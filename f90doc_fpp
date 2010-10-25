@@ -1,0 +1,13 @@
+#!/bin/sh
+# Run preprocessor before f90doc
+# Jason McEwen
+# July 2006
+
+for file in $*
+do
+
+  gfortran -E -x f95-cpp-input $file -o $file~
+  f90doc $file~
+  rm -f $file~
+
+done

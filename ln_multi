@@ -1,0 +1,12 @@
+#!/bin/sh
+# Create symbolic links to list of files
+# Jason McEwen
+# November 2004
+
+for file in $*
+do
+
+    base=`basename $file`
+    ln -s $file $base
+
+done

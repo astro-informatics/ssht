@@ -1,0 +1,13 @@
+#!/bin/sh
+
+bin/s2dw_test 1024 > test_B1024_f95.txt
+bin/s2dw_test 512 > test_B512_f95.txt
+bin/s2dw_test 256 > test_B256_f95.txt
+bin/s2dw_test 128 > test_B128_f95.txt
+bin/s2dw_test 64 > test_B064_f95.txt
+
+
+
+
+
+

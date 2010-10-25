@@ -1,0 +1,12 @@
+#!/bin/sh
+
+OLDWORD="</HEAD>"
+NEWWORD="  <LINK rel=\"stylesheet\" href=\"stylesheet.css\" type=\"text/css\" /> </HEAD>" 
+
+for file in $*
+do
+
+  cat $file | sed "s|$OLDWORD|$NEWWORD|g" > tmp
+  mv tmp  $file
+
+done
