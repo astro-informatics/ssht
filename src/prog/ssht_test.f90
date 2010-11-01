@@ -135,7 +135,7 @@ spin = 0
 call ssht_test_gen_flm_complex(L, flm2_orig, seed)
 !call ssht_core_dh_inverse_direct_factored(f_dh, flm2_orig, L, spin)
 call ssht_core_dh_inverse_sov(f_dh, flm2_orig, L, spin)
-call ssht_core_dh_forward_direct(flm2_syn, f_dh, L, spin)
+call ssht_core_dh_forward_sov(flm2_syn, f_dh, L, spin)
 
 write(*,'(a,e43.5)') 'HERE IT IS, MAXERR: ', maxval(abs(flm2_orig(0:L**2-1) - flm2_syn(0:L**2-1)))
 

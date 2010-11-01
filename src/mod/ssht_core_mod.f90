@@ -39,7 +39,8 @@ module ssht_core_mod
        ssht_core_elm2ind, ssht_core_ind2elm, &
        ssht_core_dh_inverse_direct, ssht_core_dh_inverse_direct_factored, &
        ssht_core_dh_inverse_sov_direct, ssht_core_dh_inverse_sov, &
-       ssht_core_dh_forward_direct, &
+       ssht_core_dh_forward_sov_direct, &
+       ssht_core_dh_forward_sov, &
        ssht_core_mw_inverse_direct, &
        ssht_core_mw_forward_direct, &
        ssht_core_mweo_inverse_direct, ssht_core_mweo_inverse_sov_direct, &
@@ -559,14 +560,6 @@ contains
     complex(dpc) :: fext(0:2*L-2, 0:2*L-2)
     integer*8 :: fftw_plan
 
-
-
-!    complex(dpc) :: fext2(0:2*L-2, 0:2*L-2)
-!    complex(dpc) :: fext3(0:2*L-2, 0:2*L-2)
-
-    real(dp) :: theta_fft, phi_fft
-
-
     ! Compute Fmm.
     Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
     do el = 0, L-1
@@ -583,49 +576,43 @@ contains
        end do
     end do
 
-    ! Compute fext using 2D FFT.
-
-
-
+    ! Apply phase modulation to account for sampling offset.
     do m = 0, 2*L-2
        do mm = 0, 2*L-2
           Fmm(m-L+1,mm-L+1) = Fmm(m-L+1,mm-L+1) * exp(I*(m+mm)*PI/(2d0*L-1d0))
        end do
     end do
     
-
-
+    ! Apply spatial shift.
     fext(0:L-1, 0:L-1) = Fmm(0:L-1,0:L-1)
     fext(L:2*L-2, 0:L-1) = Fmm(-(L-1):-1,0:L-1)
     fext(0:L-1, L:2*L-2) = Fmm(0:L-1,-(L-1):-1)
     fext(L:2*L-2, L:2*L-2) = Fmm(-(L-1):-1,-(L-1):-1)
-
+! If apply phase shift below then just copy Fmm.
 !!$    fext(0:2*L-2, 0:2*L-2) = Fmm(-(L-1):L-1,-(L-1):L-1)
 
-
+    ! Perform 2D FFT.
+    ! ** NOTE THAT 2D FFTW SWITCHES DIMENSIONS! HENCE TRANSPOSE BELOW. **
     call dfftw_plan_dft_2d(fftw_plan, 2*L-1, 2*L-1, fext(0:2*L-2,0:2*L-2), &
          fext(0:2*L-2,0:2*L-2), FFTW_BACKWARD, FFTW_ESTIMATE)
     call dfftw_execute_dft(fftw_plan, fext(0:2*L-2,0:2*L-2), fext(0:2*L-2,0:2*L-2))
     call dfftw_destroy_plan(fftw_plan)
 
-
-
     ! Extract f from version of f extended to the torus (fext).
-    f(0:L-1, 0:2*L-2) = transpose(fext(0:2*L-2, 0:L-1)) * exp(-I*(L-1)*2d0*PI/(2d0*L-1d0))
+    ! Note transpose due to 2D FFTW (see comment above)!
+    ! Also note that additional phase modulation is again applied to 
+    ! account for sampling offset.
+    f(0:L-1, 0:2*L-2) = transpose(fext(0:2*L-2, 0:L-1)) &
+         * exp(-I*(L-1)*2d0*PI/(2d0*L-1d0))
 
+! If don't apply spatial shift above then apply phase modulation here.
 !!$    do t = 0, L-1     
 !!$       theta = ssht_core_mweo_t2theta(t, L)    
-!!$       theta_fft = 2d0*PI*t/(2d0*L-1d0)
 !!$       do p = 0, 2*L-2
 !!$          phi = ssht_core_mweo_p2phi(p, L)
-!!$          phi_fft = 2d0*PI*p/(2d0*L-1d0)
-!!$          !f(t,p) = f(t,p) * exp(-I*(L-1)*(theta+phi))
-!!$
-!!$          f(t,p) = f(t,p) * exp(-I*(L-1)*(theta_fft+phi_fft + 2d0*PI/(2d0*L-1d0)))
+!!$          f(t,p) = f(t,p) * exp(-I*(L-1)*(theta+phi))
 !!$       end do
 !!$    end do
-
-
 
   end subroutine ssht_core_mweo_inverse_sov
 
@@ -641,7 +628,7 @@ contains
 
 
 
-  subroutine ssht_core_dh_forward_direct(flm, f, L, spin)
+  subroutine ssht_core_dh_forward_sov_direct(flm, f, L, spin)
 
     integer, intent(in) :: L
     integer, intent(in) :: spin
@@ -698,7 +685,72 @@ contains
        end do
     end do
 
-  end subroutine ssht_core_dh_forward_direct
+  end subroutine ssht_core_dh_forward_sov_direct
+
+
+ subroutine ssht_core_dh_forward_sov(flm, f, L, spin)
+
+    integer, intent(in) :: L
+    integer, intent(in) :: spin
+    complex(dpc), intent(in) :: f(0:2*L-1 ,0:2*L-2)
+    complex(dpc), intent(out) :: flm(0:L**2-1)
+
+    integer :: p, m, t, mm, el, ind
+    real(dp) :: theta, phi
+    real(dp) :: w
+    complex(dpc) :: fmt(-(L-1):L-1, 0:2*L-1)
+    complex(dpc) :: Fmm(-(L-1):L-1, -(L-1):L-1)
+    real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
+    integer*8 :: fftw_plan
+    complex(dpc) :: tmp(0:2*L-2)
+
+    ! Compute fmt using FFT.     
+    call dfftw_plan_dft_1d(fftw_plan, 2*L-1, fmt(-(L-1):L-1,0), &
+         fmt(-(L-1):L-1,0), FFTW_FORWARD, FFTW_MEASURE)
+    do t = 0, 2*L-1             
+
+       call dfftw_execute_dft(fftw_plan, f(t,0:2*L-2), tmp(0:2*L-2))
+
+       ! Spatial shift in frequency.
+       fmt(0:L-1, t) = tmp(0:L-1)
+       fmt(-(L-1):-1, t) = tmp(L:2*L-2)
+    end do
+    call dfftw_destroy_plan(fftw_plan)
+    fmt(-(L-1):L-1, 0:2*L-1) = fmt(-(L-1):L-1, 0:2*L-1) &
+         * 2d0*PI / (2d0*L-1d0)
+
+    ! Compute Fmm.
+    Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
+    do t = 0, 2*L-1
+       theta = ssht_core_dh_t2theta(t, L)
+       w = weight_dh(theta, L)
+       do m = -(L-1), L-1
+          do mm = -(L-1), L-1
+             Fmm(m,mm) = Fmm(m,mm) + &
+                  fmt(m,t) * exp(-I*mm*theta) * w
+          end do
+       end do
+    end do
+
+    ! Compute flm.
+    flm = 0
+     do el = 0, L-1
+       call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+       do m = -el, el
+          call ssht_core_elm2ind(ind, el, m)
+          do mm = -el, el
+             flm(ind) = flm(ind) + &
+                  (-1)**spin * sqrt((2d0*el+1d0)/(4d0*PI)) &
+                  * exp(I*PION2*(m+spin)) &
+                  * dl(mm,m) * dl(mm,-spin) &
+                  * Fmm(m,mm)
+          end do
+       end do
+    end do
+
+  end subroutine ssht_core_dh_forward_sov
+
+
 
 
 
@@ -714,17 +766,9 @@ contains
     real(dp) :: theta, phi
 
     real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
-    complex(dpc) :: Fmm(-(L-1):L-1, -(L-1):L-1)
-!    complex(dpc) :: Fmme(-(L-1):L-1, -(L-1):L-1)
-!    complex(dpc) :: Fmmo(-(L-1):L-1, -(L-1):L-1)
-    complex(dpc) :: Gmm(-(L-1):L-1, -(L-1):L-1)
-!    complex(dpc) :: Imme(-(L-1):L-1, -(L-1):L-1)
-!    complex(dpc) :: Immo(-(L-1):L-1, -(L-1):L-1)
     complex(dpc) :: fext(0:2*L-2 ,0:2*L-1)
-!    complex(dpc) :: fe(0:2*L-2 ,0:2*L-2)
-!    complex(dpc) :: fo(0:2*L-2 ,0:2*L-2)
-
-    complex(dpc) :: Gmm_term
+    complex(dpc) :: Fmm(-(L-1):L-1, -(L-1):L-1)
+    complex(dpc) :: Gmm(-(L-1):L-1, -(L-1):L-1)
 
     integer :: p_plus_pi
 
@@ -809,13 +853,10 @@ contains
     real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
     complex(dpc) :: fe(0:2*L-2 ,0:2*L-2)
     complex(dpc) :: fo(0:2*L-2 ,0:2*L-2)
-!!    complex(dpc) :: Fmm(-(L-1):L-1, -(L-1):L-1)
     complex(dpc) :: Fmme(-(L-1):L-1, -(L-1):L-1)
     complex(dpc) :: Fmmo(-(L-1):L-1, -(L-1):L-1)
-!    complex(dpc) :: Imm(-(L-1):L-1, -(L-1):L-1)
     complex(dpc) :: Gmme(-(L-1):L-1, -(L-1):L-1)
     complex(dpc) :: Gmmo(-(L-1):L-1, -(L-1):L-1)
-!    complex(dpc) :: fext(0:2*L-2 ,0:2*L-1)
     complex(dpc) :: Gmm_term
 
     ! Extend f to the torus with even and odd extensions 
