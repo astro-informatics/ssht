@@ -42,7 +42,8 @@ module ssht_core_mod
        ssht_core_dh_forward_direct, &
        ssht_core_mw_inverse_direct, &
        ssht_core_mw_forward_direct, &
-       ssht_core_mweo_inverse_direct, &
+       ssht_core_mweo_inverse_direct, ssht_core_mweo_inverse_sov_direct, &
+       ssht_core_mweo_inverse_sov, &
        ssht_core_mweo_forward_direct
 
 
@@ -333,7 +334,7 @@ contains
        end do
     end do
 
-    ! Compute Fmt.
+    ! Compute fmt.
     fmt(-(L-1):L-1, 0:2*L-1) = cmplx(0d0, 0d0)
     do t = 0, 2*L-1     
        theta = ssht_core_dh_t2theta(t, L)       
@@ -390,7 +391,7 @@ contains
        end do
     end do
 
-    ! Compute Fmt.
+    ! Compute fmt.
     fmt(-(L-1):L-1, 0:2*L-1) = cmplx(0d0, 0d0)
     do t = 0, 2*L-1     
        theta = ssht_core_dh_t2theta(t, L)       
@@ -453,6 +454,10 @@ contains
 
   end subroutine ssht_core_mw_inverse_direct
 
+
+
+
+
   subroutine ssht_core_mweo_inverse_direct(f, flm, L, spin)
     
     integer, intent(in) :: L
@@ -484,6 +489,164 @@ contains
     end do
 
   end subroutine ssht_core_mweo_inverse_direct
+
+
+
+
+
+  subroutine ssht_core_mweo_inverse_sov_direct(f, flm, L, spin)
+    
+    integer, intent(in) :: L
+    integer, intent(in) :: spin
+    complex(dpc), intent(in) :: flm(0:L**2-1)
+    complex(dpc), intent(out) :: f(0:L-1, 0:2*L-2)
+
+    integer :: el, m, mm, t, p, ind
+    real(dp) :: theta, phi
+    real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
+    complex(dpc) :: Fmm(-(L-1):L-1, -(L-1):L-1)
+    complex(dpc) :: fext(0:2*L-2, 0:2*L-2)
+
+    ! Compute Fmm.
+    Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
+    do el = 0, L-1
+       call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+       do m = -el, el
+          call ssht_core_elm2ind(ind, el, m)
+          do mm = -el, el
+             Fmm(m,mm) = Fmm(m,mm) + &
+                  (-1)**spin * sqrt((2d0*el+1d0)/(4d0*PI)) &
+                  * exp(-I*PION2*(m+spin)) &
+                  * dl(mm,m) * dl(mm,-spin) &
+                  * flm(ind)
+          end do
+       end do
+    end do
+
+    ! Compute fext using 2D DFT.
+    fext(0:2*L-2, 0:2*L-2) = cmplx(0d0, 0d0)
+    do t = 0, 2*L-2     
+       theta = ssht_core_mweo_t2theta(t, L)    
+       do p = 0, 2*L-2
+          phi = ssht_core_mweo_p2phi(p, L)
+          do m = -(L-1), L-1          
+             do mm = -(L-1), L-1
+                fext(t,p) = fext(t,p) + &
+                     Fmm(m,mm) * exp(I*m*phi + I*mm*theta)
+             end do
+          end do
+       end do
+    end do
+
+    ! Extract f from version of f extended to the torus (fext).
+    f(0:L-1, 0:2*L-2) = fext(0:L-1, 0:2*L-2)
+
+  end subroutine ssht_core_mweo_inverse_sov_direct
+
+
+
+  subroutine ssht_core_mweo_inverse_sov(f, flm, L, spin)
+    
+    integer, intent(in) :: L
+    integer, intent(in) :: spin
+    complex(dpc), intent(in) :: flm(0:L**2-1)
+    complex(dpc), intent(out) :: f(0:L-1, 0:2*L-2)
+
+    integer :: el, m, mm, t, p, ind
+    real(dp) :: theta, phi
+    real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
+    complex(dpc) :: Fmm(-(L-1):L-1, -(L-1):L-1)
+    complex(dpc) :: fext(0:2*L-2, 0:2*L-2)
+    integer*8 :: fftw_plan
+
+
+
+    complex(dpc) :: fext2(0:2*L-2, 0:2*L-2)
+    complex(dpc) :: fext3(0:2*L-2, 0:2*L-2)
+
+    real(dp) :: theta_fft, phi_fft
+
+
+    ! Compute Fmm.
+    Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
+    do el = 0, L-1
+       call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+       do m = -el, el
+          call ssht_core_elm2ind(ind, el, m)
+          do mm = -el, el
+             Fmm(m,mm) = Fmm(m,mm) + &
+                  (-1)**spin * sqrt((2d0*el+1d0)/(4d0*PI)) &
+                  * exp(-I*PION2*(m+spin)) &
+                  * dl(mm,m) * dl(mm,-spin) &
+                  * flm(ind)
+          end do
+       end do
+    end do
+
+    ! Compute fext using 2D FFT.
+
+
+
+!!$    fext(0:L-1, 0:L-1) = Fmm(0:L-1,0:L-1)
+!!$    fext(L:2*L-2, 0:L-1) = Fmm(-(L-1):-1,0:L-1)
+!!$    fext(0:L-1, L:2*L-2) = Fmm(0:L-1,-(L-1):-1)
+!!$    fext(L:2*L-2, L:2*L-2) = Fmm(-(L-1):-1,-(L-1):-1)
+
+    fext(0:2*L-2, 0:2*L-2) = Fmm(-(L-1):L-1,-(L-1):L-1)
+
+    do m = 0, 2*L-2
+       do mm = 0, 2*L-2
+          fext(m,mm) = fext(m,mm) * exp(I*(m+mm)*PI/(2d0*L-1d0))
+       end do
+    end do
+    
+
+
+    call dfftw_plan_dft_2d(fftw_plan, 2*L-1, 2*L-1, fext(0:2*L-2,0:2*L-2), &
+         fext(0:2*L-2,0:2*L-2), FFTW_BACKWARD, FFTW_ESTIMATE)
+    call dfftw_execute_dft(fftw_plan, fext(0:2*L-2,0:2*L-2), fext2(0:2*L-2,0:2*L-2))
+    call dfftw_destroy_plan(fftw_plan)
+
+
+
+
+    ! Compute fext using 2D DFT.
+    fext3(0:2*L-2, 0:2*L-2) = cmplx(0d0, 0d0)
+    do t = 0, 2*L-2     
+       theta = ssht_core_mweo_t2theta(t, L)    
+       theta_fft = 2d0*pi*t/(2d0*L-1d0)
+       do p = 0, 2*L-2
+          phi = ssht_core_mweo_p2phi(p, L)
+          phi_fft = 2d0*pi*p/(2d0*L-1d0)
+          do m = 0, 2*L-2
+             do mm = 0, 2*L-2
+                fext3(t,p) = fext3(t,p) + &
+                     fext(m,mm) * exp(I*m*phi_fft + I*mm*theta_fft) 
+             end do
+          end do
+       end do
+    end do
+
+    ! Extract f from version of f extended to the torus (fext).
+    f(0:L-1, 0:2*L-2) = fext3(0:L-1, 0:2*L-2)
+    f(0:L-1, 0:2*L-2) = transpose(fext2(0:2*L-2, 0:L-1))
+
+    do t = 0, L-1     
+       theta = ssht_core_mweo_t2theta(t, L)    
+       do p = 0, 2*L-2
+          phi = ssht_core_mweo_p2phi(p, L)
+
+!          f(t,p) = f(t,p) * exp(-I*(L-1)*(theta+phi))
+          f(t,p) = f(t,p) * exp(-I*(L-1)*(theta+phi))
+       end do
+    end do
+
+
+
+  end subroutine ssht_core_mweo_inverse_sov
+
+
+
 
 
 
