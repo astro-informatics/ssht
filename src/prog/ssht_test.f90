@@ -61,9 +61,9 @@ program ssht_test
 
   integer :: L, ind, ind_check, el, el_check, m, m_check
   integer :: spin
-  complex(dpc), allocatable :: flm2_orig(:), flm2_syn(:), f2(:,:)
+  complex(dpc), allocatable :: flm2_orig(:), flm2_syn(:), f_dh(:,:)
   
-  complex(dpc), allocatable :: f3(:,:)
+  complex(dpc), allocatable :: f_mw(:,:), f_mweo(:,:)
 
   ! Initialise parameters.
   call getarg(1, arg)
@@ -118,11 +118,11 @@ write(*,*) 'L**2 = ', L**2
 
   allocate(flm2_orig(0:L**2-1), stat=fail)
   allocate(flm2_syn(0:L**2-1), stat=fail)
-  allocate(f2(0:2*L-1, 0:2*L-2), stat=fail)
+  allocate(f_dh(0:2*L-1, 0:2*L-2), stat=fail)
 
 !  allocate(f3(0:2*L-2, 0:2*L-2), stat=fail)
-!!  allocate(f3(0:L-1, 0:2*L-2), stat=fail)
-  allocate(f3(0:L-1, 0:2*L-1), stat=fail)
+  allocate(f_mweo(0:L-1, 0:2*L-2), stat=fail)
+  allocate(f_mw(0:L-1, 0:2*L-1), stat=fail)
 ! check doesn't fail
 
 
@@ -133,16 +133,24 @@ write(*,*) 'L**2 = ', L**2
 
 spin = 0
 call ssht_test_gen_flm_complex(L, flm2_orig, seed)
-call ssht_core_inverse_direct(f2, flm2_orig, L, spin)
-call ssht_core_forward_direct(flm2_syn, f2, L, spin)
+call ssht_core_dh_inverse_direct(f_dh, flm2_orig, L, spin)
+call ssht_core_dh_forward_direct(flm2_syn, f_dh, L, spin)
 
 write(*,'(a,e43.5)') 'HERE IT IS, MAXERR: ', maxval(abs(flm2_orig(0:L**2-1) - flm2_syn(0:L**2-1)))
 
 flm2_orig(0:L**2-1) = cmplx(0d0, 0d0)
 flm2_syn(0:L**2-1) = cmplx(0d0, 0d0)
 call ssht_test_gen_flm_complex(L, flm2_orig, seed)
-call ssht_core_sst_inverse_direct(f3, flm2_orig, L, spin)
-call ssht_core_sst_forward_direct(flm2_syn, f3, L, spin)
+call ssht_core_mw_inverse_direct(f_mw, flm2_orig, L, spin)
+call ssht_core_mw_forward_direct(flm2_syn, f_mw, L, spin)
+
+write(*,'(a,e43.5)') 'HERE IT IS, MAXERR: ', maxval(abs(flm2_orig(0:L**2-1) - flm2_syn(0:L**2-1)))
+
+flm2_orig(0:L**2-1) = cmplx(0d0, 0d0)
+flm2_syn(0:L**2-1) = cmplx(0d0, 0d0)
+call ssht_test_gen_flm_complex(L, flm2_orig, seed)
+call ssht_core_mweo_inverse_direct(f_mweo, flm2_orig, L, spin)
+call ssht_core_mweo_forward_direct(flm2_syn, f_mweo, L, spin)
 
 write(*,'(a,e43.5)') 'HERE IT IS, MAXERR: ', maxval(abs(flm2_orig(0:L**2-1) - flm2_syn(0:L**2-1)))
 
@@ -156,7 +164,7 @@ write(*,'(a,e43.5)') 'HERE IT IS, MAXERR: ', maxval(abs(flm2_orig(0:L**2-1) - fl
 !!$   write(*,'(a,2f10.5)') 'flm_syn ', flm2_syn(ind)
 !!$end do
 
-deallocate(flm2_orig, flm2_syn, f2)
+deallocate(flm2_orig, flm2_syn, f_dh, f_mw, f_mweo)
 
 
      ! Compute kernels, scaling function and directionality coefficients.
