@@ -372,8 +372,6 @@ contains
     real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
     complex(dpc) :: Fmm(-(L-1):L-1, -(L-1):L-1)
     complex(dpc) :: fmt(-(L-1):L-1, 0:2*L-1)
-    complex(dpc) :: tmp(0:2*L-2)
-
     integer*8 :: fftw_plan
 
     ! Compute Fmm.
@@ -404,32 +402,20 @@ contains
        end do
     end do
 
-!** TODO:
-! estimate plan outside of loop
-
     ! Compute f using FFT.
     f(0:2*L-1 ,0:2*L-2) = 0d0
+    call dfftw_plan_dft_1d(fftw_plan, 2*L-1, f(0,0:2*L-2), &
+         f(0,0:2*L-2), FFTW_BACKWARD, FFTW_MEASURE)
     do t = 0, 2*L-1       
-       tmp(0:2*L-2) = fmt(-(L-1):L-1,t)
 
        ! Spatial shift in frequency.
-       tmp(0:L-1) = fmt(0:L-1,t)
-       tmp(L:2*L-2) = fmt(-(L-1):-1,t)
+       f(t,0:L-1) = fmt(0:L-1,t)
+       f(t,L:2*L-2) = fmt(-(L-1):-1,t)
 
-       call dfftw_plan_dft_1d(fftw_plan, 2*L-1, tmp(0:2*L-2), &
-            tmp(0:2*L-2), FFTW_BACKWARD, FFTW_ESTIMATE)
-       call dfftw_execute_dft(fftw_plan, tmp(0:2*L-2), tmp(0:2*L-2))
-       call dfftw_destroy_plan(fftw_plan)
-       
-       ! Phase shift in space.
-!!$       do p = 0, 2*L-2
-!!$          phi = ssht_core_dh_p2phi(p, L)
-!!$          f(t,p) = tmp(p) * exp(-I*(L-1)*phi)
-!!$       end do
-
-       f(t,0:2*L-2) = tmp(0:2*L-2)
+       call dfftw_execute_dft(fftw_plan, f(t,0:2*L-2), f(t,0:2*L-2))
 
     end do
+    call dfftw_destroy_plan(fftw_plan)
 
   end subroutine ssht_core_dh_inverse_sov
 
