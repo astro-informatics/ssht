@@ -100,7 +100,7 @@ program ssht_test
   ind_check = 0
   do el = 0, L-1     
      do m = -el, el       
-write(*,*) 'Testing el,m'
+!write(*,*) 'Testing el,m'
         call ssht_core_elm2ind(ind, el, m)
         if (ind /= ind_check) then
 stop "failed"
@@ -133,7 +133,8 @@ write(*,*) 'L**2 = ', L**2
 
 spin = 0
 call ssht_test_gen_flm_complex(L, flm2_orig, seed)
-call ssht_core_dh_inverse_direct(f_dh, flm2_orig, L, spin)
+!call ssht_core_dh_inverse_direct_factored(f_dh, flm2_orig, L, spin)
+call ssht_core_dh_inverse_sov(f_dh, flm2_orig, L, spin)
 call ssht_core_dh_forward_direct(flm2_syn, f_dh, L, spin)
 
 write(*,'(a,e43.5)') 'HERE IT IS, MAXERR: ', maxval(abs(flm2_orig(0:L**2-1) - flm2_syn(0:L**2-1)))

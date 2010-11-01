@@ -37,7 +37,8 @@ module ssht_core_mod
        ssht_core_free_wavdyn, &
        ssht_core_assimilate_int, &
        ssht_core_elm2ind, ssht_core_ind2elm, &
-       ssht_core_dh_inverse_direct, &
+       ssht_core_dh_inverse_direct, ssht_core_dh_inverse_direct_factored, &
+       ssht_core_dh_inverse_sov_direct, ssht_core_dh_inverse_sov, &
        ssht_core_dh_forward_direct, &
        ssht_core_mw_inverse_direct, &
        ssht_core_mw_forward_direct, &
@@ -175,11 +176,12 @@ contains
 
 
   !--------------------------------------------------------------------------
-  ! ssht_core_inverse_direct
+  ! ssht_core_dh_inverse_direct
   !
   !! Compute inverse transform using direct method based on 
-  !!   f(t,p) = \sum_{l,m} sflm 
-  !!              * (-1)^s sqrt((2*l+1)/(4pi)) dlm(-s)(theta) exp(imphi)
+  !!   f(t,p) = \sum_{el,m} sflm 
+  !!              * (-1)^s * sqrt((2*el+1)/(4*pi)) * dlm(-s)(theta) 
+  !!              * exp(I*m*phi)
   !! (equation 8a in notes).
 !** TODO: 
 !** - update to reflect equation in paper
@@ -233,6 +235,204 @@ contains
     end do
 
   end subroutine ssht_core_dh_inverse_direct
+
+
+  !--------------------------------------------------------------------------
+  ! ssht_core_dh_inverse_direct_factored
+  !
+  !! Compute inverse transform using direct method based on 
+  !!   f(t,p) = \sum_{el,m,mm} sflm 
+  !!              * (-1)^s * sqrt((2*el+1)/(4*pi)) * I^(-(m+spin))
+  !!              * dlm(mm,m)(PI/2) * dlm(mm,-spin)(PI/2)
+  !!              * exp(I*m*phi + I*mm*theta)
+  !! (equation 8b in notes).
+!** TODO: 
+!** - update to reflect equation in paper
+  !!
+  !! Notes:
+  !!  - Used for code verification puposes only.
+  !!
+  !! Variables:
+  !!  - f(0:2*L-1 ,0:2*L-2): Complex signal f(theta, phi) [output].
+  !!  - flm
+
+!!(0:L**2+2*L): Harmonic coefficients of signal ordered by 
+  !!    ind = el**2 + el + m [input].
+  !!  - L: Harmonic band-limit [input].
+  !!  - spin: Spin order [input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !--------------------------------------------------------------------------
+  
+  subroutine ssht_core_dh_inverse_direct_factored(f, flm, L, spin)
+    
+    integer, intent(in) :: L
+    integer, intent(in) :: spin
+    complex(dpc), intent(in) :: flm(0:L**2-1)
+    complex(dpc), intent(out) :: f(0:2*L-1, 0:2*L-2)
+
+    integer :: el, m, mm, t, p, ind
+    real(dp) :: theta, phi
+    real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
+          
+    f(0:2*L-1 ,0:2*L-2) = 0d0
+    do el = 0, L-1
+       call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+       do m = -el, el
+          call ssht_core_elm2ind(ind, el, m)
+          do mm = -el, el
+             do t = 0, 2*L-1
+                theta = ssht_core_dh_t2theta(t, L)             
+                do p = 0, 2*L-2
+                   phi = ssht_core_dh_p2phi(p, L)
+                   f(t,p) = f(t,p) + &
+                        (-1)**spin * sqrt((2d0*el+1d0)/(4d0*PI)) &
+                        * exp(-I*PION2*(m+spin)) &
+                        * exp(I*m*phi + I*mm*theta) &
+                        * dl(mm,m) * dl(mm,-spin) &
+                        * flm(ind)
+                end do
+             end do
+          end do
+       end do
+    end do
+
+  end subroutine ssht_core_dh_inverse_direct_factored
+
+
+! Eqns (9), (10) and (11)
+  subroutine ssht_core_dh_inverse_sov_direct(f, flm, L, spin)
+    
+    integer, intent(in) :: L
+    integer, intent(in) :: spin
+    complex(dpc), intent(in) :: flm(0:L**2-1)
+    complex(dpc), intent(out) :: f(0:2*L-1, 0:2*L-2)
+
+    integer :: el, m, mm, t, p, ind
+    real(dp) :: theta, phi
+    real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
+    complex(dpc) :: Fmm(-(L-1):L-1, -(L-1):L-1)
+    complex(dpc) :: fmt(-(L-1):L-1, 0:2*L-1)
+
+    ! Compute Fmm.
+    Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
+    do el = 0, L-1
+       call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+       do m = -el, el
+          call ssht_core_elm2ind(ind, el, m)
+          do mm = -el, el
+             Fmm(m,mm) = Fmm(m,mm) + &
+                  (-1)**spin * sqrt((2d0*el+1d0)/(4d0*PI)) &
+                  * exp(-I*PION2*(m+spin)) &
+                  * dl(mm,m) * dl(mm,-spin) &
+                  * flm(ind)
+          end do
+       end do
+    end do
+
+    ! Compute Fmt.
+    fmt(-(L-1):L-1, 0:2*L-1) = cmplx(0d0, 0d0)
+    do t = 0, 2*L-1     
+       theta = ssht_core_dh_t2theta(t, L)       
+       do m = -(L-1), L-1          
+          do mm = -(L-1), L-1
+             fmt(m,t) = fmt(m,t) + &
+                  Fmm(m,mm) * exp(I*mm*theta)
+          end do
+       end do
+    end do
+
+    ! Compute f.
+    f(0:2*L-1 ,0:2*L-2) = 0d0
+    do t = 0, 2*L-1       
+       do p = 0, 2*L-2
+          phi = ssht_core_dh_p2phi(p, L)
+          do m = -(L-1), L-1          
+             f(t,p) = f(t,p) + &
+                  fmt(m,t) * exp(I*m*phi)
+          end do
+       end do
+    end do
+
+  end subroutine ssht_core_dh_inverse_sov_direct
+
+! Eqns (9), (10) and (11), with FFT
+  subroutine ssht_core_dh_inverse_sov(f, flm, L, spin)
+    
+    integer, intent(in) :: L
+    integer, intent(in) :: spin
+    complex(dpc), intent(in) :: flm(0:L**2-1)
+    complex(dpc), intent(out) :: f(0:2*L-1, 0:2*L-2)
+
+    integer :: el, m, mm, t, p, ind
+    real(dp) :: theta, phi
+    real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
+    complex(dpc) :: Fmm(-(L-1):L-1, -(L-1):L-1)
+    complex(dpc) :: fmt(-(L-1):L-1, 0:2*L-1)
+    complex(dpc) :: tmp(0:2*L-2)
+
+    integer*8 :: fftw_plan
+
+    ! Compute Fmm.
+    Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
+    do el = 0, L-1
+       call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+       do m = -el, el
+          call ssht_core_elm2ind(ind, el, m)
+          do mm = -el, el
+             Fmm(m,mm) = Fmm(m,mm) + &
+                  (-1)**spin * sqrt((2d0*el+1d0)/(4d0*PI)) &
+                  * exp(-I*PION2*(m+spin)) &
+                  * dl(mm,m) * dl(mm,-spin) &
+                  * flm(ind)
+          end do
+       end do
+    end do
+
+    ! Compute Fmt.
+    fmt(-(L-1):L-1, 0:2*L-1) = cmplx(0d0, 0d0)
+    do t = 0, 2*L-1     
+       theta = ssht_core_dh_t2theta(t, L)       
+       do m = -(L-1), L-1          
+          do mm = -(L-1), L-1
+             fmt(m,t) = fmt(m,t) + &
+                  Fmm(m,mm) * exp(I*mm*theta)
+          end do
+       end do
+    end do
+
+!** TODO:
+! estimate plan outside of loop
+
+    ! Compute f using FFT.
+    f(0:2*L-1 ,0:2*L-2) = 0d0
+    do t = 0, 2*L-1       
+       tmp(0:2*L-2) = fmt(-(L-1):L-1,t)
+
+       ! Spatial shift in frequency.
+       tmp(0:L-1) = fmt(0:L-1,t)
+       tmp(L:2*L-2) = fmt(-(L-1):-1,t)
+
+       call dfftw_plan_dft_1d(fftw_plan, 2*L-1, tmp(0:2*L-2), &
+            tmp(0:2*L-2), FFTW_BACKWARD, FFTW_ESTIMATE)
+       call dfftw_execute_dft(fftw_plan, tmp(0:2*L-2), tmp(0:2*L-2))
+       call dfftw_destroy_plan(fftw_plan)
+       
+       ! Phase shift in space.
+!!$       do p = 0, 2*L-2
+!!$          phi = ssht_core_dh_p2phi(p, L)
+!!$          f(t,p) = tmp(p) * exp(-I*(L-1)*phi)
+!!$       end do
+
+       f(t,0:2*L-2) = tmp(0:2*L-2)
+
+    end do
+
+  end subroutine ssht_core_dh_inverse_sov
+
 
 
   subroutine ssht_core_mw_inverse_direct(f, flm, L, spin)
@@ -318,13 +518,12 @@ contains
     integer :: p, m, t, mm, el, ind
     real(dp) :: theta, phi
     real(dp) :: w
-    complex(dpc) :: fmt(-L:L, 0:2*L-1)
+    complex(dpc) :: fmt(-(L-1):L-1, 0:2*L-1)
     complex(dpc) :: Fmm(-(L-1):L-1, -(L-1):L-1)
     real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
 
-
     ! Compute fmt.
-    fmt(-L:L, 0:2*L-1) = cmplx(0d0, 0d0)
+    fmt(-(L-1):L-1, 0:2*L-1) = cmplx(0d0, 0d0)
     do p = 0, 2*L-2
        phi = ssht_core_dh_p2phi(p, L)
        do m = -(L-1), L-1
@@ -334,7 +533,8 @@ contains
           end do
        end do
     end do
-    fmt(-L:L, 0:2*L-1) = fmt(-L:L, 0:2*L-1) * 2d0*PI / (2d0*L-1d0)
+    fmt(-(L-1):L-1, 0:2*L-1) = fmt(-(L-1):L-1, 0:2*L-1) &
+         * 2d0*PI / (2d0*L-1d0)
     
     ! Compute Fmm.
     Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
@@ -1552,7 +1752,7 @@ contains
              !Wa(0:2*bl_hi-2) = wav(jj,0:2*bl_hi-2,bb,gg)
              Wa(0:2*bl_hi-2) = wavdyn(jj)%coeff(0:2*bl_hi-2,bb,gg)
              call dfftw_plan_dft_r2c_1d(fftw_plan, 2*bl_hi-1, &
-                  Wa(0:2*bl_hi-2), Ua(0:bl_hi-1), FFTW_ESTIMATE)
+                  Wa(0:2*bl_hi-2), Ua(0:bl_hi-1), FFTW_FORWARD, FFTW_ESTIMATE)
              call dfftw_execute(fftw_plan)
              call dfftw_destroy_plan(fftw_plan)
              V(0:bl_hi-1,bb,gg) = Ua(0:bl_hi-1) &
