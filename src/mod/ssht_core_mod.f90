@@ -561,8 +561,8 @@ contains
 
 
 
-    complex(dpc) :: fext2(0:2*L-2, 0:2*L-2)
-    complex(dpc) :: fext3(0:2*L-2, 0:2*L-2)
+!    complex(dpc) :: fext2(0:2*L-2, 0:2*L-2)
+!    complex(dpc) :: fext3(0:2*L-2, 0:2*L-2)
 
     real(dp) :: theta_fft, phi_fft
 
@@ -587,59 +587,43 @@ contains
 
 
 
-!!$    fext(0:L-1, 0:L-1) = Fmm(0:L-1,0:L-1)
-!!$    fext(L:2*L-2, 0:L-1) = Fmm(-(L-1):-1,0:L-1)
-!!$    fext(0:L-1, L:2*L-2) = Fmm(0:L-1,-(L-1):-1)
-!!$    fext(L:2*L-2, L:2*L-2) = Fmm(-(L-1):-1,-(L-1):-1)
-
-    fext(0:2*L-2, 0:2*L-2) = Fmm(-(L-1):L-1,-(L-1):L-1)
-
     do m = 0, 2*L-2
        do mm = 0, 2*L-2
-          fext(m,mm) = fext(m,mm) * exp(I*(m+mm)*PI/(2d0*L-1d0))
+          Fmm(m-L+1,mm-L+1) = Fmm(m-L+1,mm-L+1) * exp(I*(m+mm)*PI/(2d0*L-1d0))
        end do
     end do
     
 
 
+    fext(0:L-1, 0:L-1) = Fmm(0:L-1,0:L-1)
+    fext(L:2*L-2, 0:L-1) = Fmm(-(L-1):-1,0:L-1)
+    fext(0:L-1, L:2*L-2) = Fmm(0:L-1,-(L-1):-1)
+    fext(L:2*L-2, L:2*L-2) = Fmm(-(L-1):-1,-(L-1):-1)
+
+!!$    fext(0:2*L-2, 0:2*L-2) = Fmm(-(L-1):L-1,-(L-1):L-1)
+
+
     call dfftw_plan_dft_2d(fftw_plan, 2*L-1, 2*L-1, fext(0:2*L-2,0:2*L-2), &
          fext(0:2*L-2,0:2*L-2), FFTW_BACKWARD, FFTW_ESTIMATE)
-    call dfftw_execute_dft(fftw_plan, fext(0:2*L-2,0:2*L-2), fext2(0:2*L-2,0:2*L-2))
+    call dfftw_execute_dft(fftw_plan, fext(0:2*L-2,0:2*L-2), fext(0:2*L-2,0:2*L-2))
     call dfftw_destroy_plan(fftw_plan)
 
 
 
-
-    ! Compute fext using 2D DFT.
-    fext3(0:2*L-2, 0:2*L-2) = cmplx(0d0, 0d0)
-    do t = 0, 2*L-2     
-       theta = ssht_core_mweo_t2theta(t, L)    
-       theta_fft = 2d0*pi*t/(2d0*L-1d0)
-       do p = 0, 2*L-2
-          phi = ssht_core_mweo_p2phi(p, L)
-          phi_fft = 2d0*pi*p/(2d0*L-1d0)
-          do m = 0, 2*L-2
-             do mm = 0, 2*L-2
-                fext3(t,p) = fext3(t,p) + &
-                     fext(m,mm) * exp(I*m*phi_fft + I*mm*theta_fft) 
-             end do
-          end do
-       end do
-    end do
-
     ! Extract f from version of f extended to the torus (fext).
-    f(0:L-1, 0:2*L-2) = fext3(0:L-1, 0:2*L-2)
-    f(0:L-1, 0:2*L-2) = transpose(fext2(0:2*L-2, 0:L-1))
+    f(0:L-1, 0:2*L-2) = transpose(fext(0:2*L-2, 0:L-1)) * exp(-I*(L-1)*2d0*PI/(2d0*L-1d0))
 
-    do t = 0, L-1     
-       theta = ssht_core_mweo_t2theta(t, L)    
-       do p = 0, 2*L-2
-          phi = ssht_core_mweo_p2phi(p, L)
-
-!          f(t,p) = f(t,p) * exp(-I*(L-1)*(theta+phi))
-          f(t,p) = f(t,p) * exp(-I*(L-1)*(theta+phi))
-       end do
-    end do
+!!$    do t = 0, L-1     
+!!$       theta = ssht_core_mweo_t2theta(t, L)    
+!!$       theta_fft = 2d0*PI*t/(2d0*L-1d0)
+!!$       do p = 0, 2*L-2
+!!$          phi = ssht_core_mweo_p2phi(p, L)
+!!$          phi_fft = 2d0*PI*p/(2d0*L-1d0)
+!!$          !f(t,p) = f(t,p) * exp(-I*(L-1)*(theta+phi))
+!!$
+!!$          f(t,p) = f(t,p) * exp(-I*(L-1)*(theta_fft+phi_fft + 2d0*PI/(2d0*L-1d0)))
+!!$       end do
+!!$    end do
 
 
 
