@@ -25,7 +25,7 @@ program ssht_test
 
   implicit none
 
-	 interface
+  interface
      subroutine ssht_test_gen_flm(L, flm, seed)
        use ssht_types_mod, only: dpc
        implicit none
@@ -35,133 +35,202 @@ program ssht_test
      end subroutine ssht_test_gen_flm
   end interface
 
-	character(len=64) :: arg
-	integer, parameter :: N_repeat = 1
-	integer :: B
-	integer :: N
-	real(dp) :: alpha
-	integer :: J
-	integer :: J_max
-	integer :: bl_scoeff
-	integer :: fail = 0, seed, i_repeat
-	real(dp) :: error_flm(0:N_repeat-1)
-	logical :: admiss_pass
-	real :: time_start, time_end
-	real :: durations_analysis(0:N_repeat-1)
-	real :: durations_synthesis(0:N_repeat-1)
+  character(len=64) :: arg
+  integer, parameter :: N_repeat = 1
+  integer :: B
+  integer :: N
+  real(dp) :: alpha
+  integer :: J
+  integer :: J_max
+  integer :: bl_scoeff
+  integer :: fail = 0, seed, i_repeat
+  real(dp) :: error_flm(0:N_repeat-1)
+  logical :: admiss_pass
+  real :: time_start, time_end
+  real :: durations_analysis(0:N_repeat-1)
+  real :: durations_synthesis(0:N_repeat-1)
 
-	complex(dpc), allocatable :: flm_orig(:,:), flm_syn(:,:)
-	real(dp), allocatable :: K_gamma(:,:)
-	real(dp), allocatable :: Phi2(:)
-	complex(dpc), allocatable :: Slm(:,:)
-	real(dp), allocatable :: admiss(:)
+  complex(dpc), allocatable :: flm_orig(:,:), flm_syn(:,:)
+  real(dp), allocatable :: K_gamma(:,:)
+  real(dp), allocatable :: Phi2(:)
+  complex(dpc), allocatable :: Slm(:,:)
+  real(dp), allocatable :: admiss(:)
   type(ssht_wav_abg), allocatable :: wavdyn(:)
-!  real(dp), allocatable :: wav(:,:,:,:)
-	complex(dpc), allocatable :: scoeff(:,:)
+  !  real(dp), allocatable :: wav(:,:,:,:)
+  complex(dpc), allocatable :: scoeff(:,:)
 
-	! Initialise parameters.
-	call getarg(1, arg)
-	read(arg,*) B
-	!B = 32
-	N = 3
-	alpha = 2d0	
-	J_max = ssht_core_comp_Jmax(B, alpha)
-	J = J_max
-	seed = 1
+  integer :: L, ind, ind_check, el, el_check, m, m_check
+  integer :: spin
+  complex(dpc), allocatable :: flm2_orig(:), flm2_syn(:), f2(:,:)
+  
+  complex(dpc), allocatable :: f3(:,:)
 
-	! Allocate memory.
-	allocate(flm_orig(0:B-1, 0:B-1), stat=fail)
-	allocate(flm_syn(0:B-1, 0:B-1), stat=fail)
-	allocate(K_gamma(0:J,0:B-1), stat=fail)
-	allocate(Phi2(0:B-1), stat=fail)
-	allocate(Slm(0:B-1,0:N-1), stat=fail)
-	allocate(admiss(0:B-1), stat=fail)
-!	allocate(wav(0:J, 0:2*B-2, 0:2*B-1, 0:N-1), stat=fail)
-	if(fail /= 0) then
-		call ssht_error(SSHT_ERROR_MEM_ALLOC_FAIL, 'ssht_test')
-	end if
+  ! Initialise parameters.
+  call getarg(1, arg)
+  read(arg,*) B
+  !B = 32
+  N = 3
+  alpha = 2d0	
+  J_max = ssht_core_comp_Jmax(B, alpha)
+  J = J_max
+  seed = 1
 
-	write(*,*)
-	write(*,'(a)') 'SSHT test program'
-	write(*,'(a)') '================'
-	write(*,*)
+  ! Allocate memory.
+  allocate(flm_orig(0:B-1, 0:B-1), stat=fail)
+  allocate(flm_syn(0:B-1, 0:B-1), stat=fail)
+  allocate(K_gamma(0:J,0:B-1), stat=fail)
+  allocate(Phi2(0:B-1), stat=fail)
+  allocate(Slm(0:B-1,0:N-1), stat=fail)
+  allocate(admiss(0:B-1), stat=fail)
+  !	allocate(wav(0:J, 0:2*B-2, 0:2*B-1, 0:N-1), stat=fail)
+  if(fail /= 0) then
+     call ssht_error(SSHT_ERROR_MEM_ALLOC_FAIL, 'ssht_test')
+  end if
 
-	do i_repeat = 0,N_repeat-1
+  write(*,*)
+  write(*,'(a)') 'SSHT test program'
+  write(*,'(a)') '================'
+  write(*,*)
 
-		! Generate harmonic coefficients of random test signal.
-		call ssht_test_gen_flm(B-1, flm_orig, seed)
-	
-		! Compute kernels, scaling function and directionality coefficients.
-		write(*,'(a,i2)') 'Initialisation no.', i_repeat
-		call cpu_time(time_start)
-		call ssht_core_init_kernels(K_gamma, Phi2, bl_scoeff, J, B, alpha)
-		call ssht_core_init_directionality(Slm, B, N)
-		admiss_pass = ssht_core_admiss(admiss, K_gamma, Phi2, B, J)
-		if(.not. admiss_pass) then
-			call ssht_error(SSHT_ERROR_ADMISS_FAIL, 'ssht_test')
-		end if
-		call cpu_time(time_end)
-		write(*,'(a,f43.2)') ' duration =', time_end - time_start
 
-		! Allocate memory for scaling coefficients (cannot be done earlier 
-		! since don't know bl_scoeff).
-		allocate(scoeff(0:bl_scoeff-1, 0:bl_scoeff-1), stat=fail)
-		if(fail /= 0) then
-			call ssht_error(SSHT_ERROR_MEM_ALLOC_FAIL, 'ssht_test')
-		end if
-	
-		! Compute wavelet and scaling coefficients.
-		write(*,'(a,i2)') 'Analysis no.', i_repeat
-		call cpu_time(time_start)
-		call ssht_core_analysis_flm2wav_dynamic(wavdyn, scoeff, flm_orig, K_gamma, Slm, &
-			J, B, N, bl_scoeff, alpha)
-!		call ssht_core_analysis_flm2wav(wav, scoeff, flm_orig, K_gamma, Slm, &
-!			J, B, N, bl_scoeff, alpha)
-		call cpu_time(time_end)
-		durations_analysis(i_repeat) = time_end - time_start
-		write(*,'(a,f43.2)') ' duration =', durations_analysis(i_repeat)
 
-		! Synthesis harmonic coefficients of signal from wavelet and scaling 
-		! coefficients.
-		write(*,'(a,i2)') 'Synthesis no.', i_repeat
-		call cpu_time(time_start)
-		call ssht_core_synthesis_wav2flm_dynamic(flm_syn, wavdyn, scoeff, K_gamma, Phi2, &
-				Slm, J, B, N, bl_scoeff, alpha)
-!		call ssht_core_synthesis_wav2flm(flm_syn, wav, scoeff, K_gamma, Phi2, &
-!				Slm, J, B, N, bl_scoeff, alpha)
-		call cpu_time(time_end)
-		durations_synthesis(i_repeat) = time_end - time_start
-		write(*,'(a,f43.2)') ' duration =', durations_synthesis(i_repeat)
-	
-		error_flm(i_repeat) = maxval(abs(flm_orig(0:B-1,0:B-1) - flm_syn(0:B-1,0:B-1)))
-		write(*,'(a,e43.5)') ' error =   ', error_flm(i_repeat)
-		write(*,*)
 
-		deallocate(scoeff)
+  ! Test conversion between (el,m) and ind.
+  L = B
+  ind_check = 0
+  do el = 0, L-1     
+     do m = -el, el       
+write(*,*) 'Testing el,m'
+        call ssht_core_elm2ind(ind, el, m)
+        if (ind /= ind_check) then
+stop "failed"
+        end if
+        call ssht_core_ind2elm(el_check, m_check, ind)
+        if (el /= el_check .and. m /= m_check) then
+stop "failed"
+        end if
+        ind_check = ind_check + 1
+     end do
+  end do
 
-	end do
+write(*,*) 'ind_check = ', ind_check
+write(*,*) 'L**2 = ', L**2
 
-	write(*,'(a)') 'Summary:'
-	write(*,'(a,i30)') 'N_repeat               =', N_repeat
-	write(*,'(a,i30)') 'B                      =', B
-	write(*,'(a,i30)') 'N                      =', N
-	write(*,'(a,i30)') 'J                      =', J	
-	write(*,'(a,f30.5)') 'alpha                  =', alpha
-	write(*,'(a,f30.5)') 'Average analysis time  =', sum(durations_analysis(0:N_repeat-1)) / real(N_repeat)
-	write(*,'(a,f30.5)') 'Average synthesis time =', sum(durations_synthesis(0:N_repeat-1)) / real(N_repeat)
-	write(*,'(a,e30.5)') 'Average max error      =', sum(error_flm(0:N_repeat-1)) / real(N_repeat)
-	write(*,*)
+  allocate(flm2_orig(0:L**2-1), stat=fail)
+  allocate(flm2_syn(0:L**2-1), stat=fail)
+  allocate(f2(0:2*L-1, 0:2*L-2), stat=fail)
 
-	if( abs(sum(error_flm(0:N_repeat-1)) / real(N_repeat)) < 1d-6) then
-		write(*,'(a)') 'Tests passed!'
-	else
-		write(*,'(a)') 'Tests failed!'
-	end if 
-	write(*,*) 
+!  allocate(f3(0:2*L-2, 0:2*L-2), stat=fail)
+!!  allocate(f3(0:L-1, 0:2*L-2), stat=fail)
+  allocate(f3(0:L-1, 0:2*L-1), stat=fail)
+! check doesn't fail
 
-	! Deallocate memory.
-	deallocate(flm_orig, flm_syn, K_gamma, Phi2, Slm, admiss)
-!  deallocate(wav)
+
+  do i_repeat = 0,N_repeat-1
+
+     ! Generate harmonic coefficients of random test signal.
+     call ssht_test_gen_flm(B-1, flm_orig, seed)
+
+spin = 0
+call ssht_test_gen_flm_complex(L, flm2_orig, seed)
+call ssht_core_inverse_direct(f2, flm2_orig, L, spin)
+call ssht_core_forward_direct(flm2_syn, f2, L, spin)
+
+write(*,'(a,e43.5)') 'HERE IT IS, MAXERR: ', maxval(abs(flm2_orig(0:L**2-1) - flm2_syn(0:L**2-1)))
+
+flm2_orig(0:L**2-1) = cmplx(0d0, 0d0)
+flm2_syn(0:L**2-1) = cmplx(0d0, 0d0)
+call ssht_test_gen_flm_complex(L, flm2_orig, seed)
+call ssht_core_sst_inverse_direct(f3, flm2_orig, L, spin)
+call ssht_core_sst_forward_direct(flm2_syn, f3, L, spin)
+
+write(*,'(a,e43.5)') 'HERE IT IS, MAXERR: ', maxval(abs(flm2_orig(0:L**2-1) - flm2_syn(0:L**2-1)))
+
+
+
+!!$do ind = 0,L*2-1
+!!$   write(*,'(a,2f10.5)') 'flm_orig ', flm2_orig(ind)
+!!$end do
+!!$write(*,*)
+!!$do ind = 0,L*2-1
+!!$   write(*,'(a,2f10.5)') 'flm_syn ', flm2_syn(ind)
+!!$end do
+
+deallocate(flm2_orig, flm2_syn, f2)
+
+
+     ! Compute kernels, scaling function and directionality coefficients.
+     write(*,'(a,i2)') 'Initialisation no.', i_repeat
+     call cpu_time(time_start)
+     call ssht_core_init_kernels(K_gamma, Phi2, bl_scoeff, J, B, alpha)
+     call ssht_core_init_directionality(Slm, B, N)
+     admiss_pass = ssht_core_admiss(admiss, K_gamma, Phi2, B, J)
+     if(.not. admiss_pass) then
+        call ssht_error(SSHT_ERROR_ADMISS_FAIL, 'ssht_test')
+     end if
+     call cpu_time(time_end)
+     write(*,'(a,f43.2)') ' duration =', time_end - time_start
+
+     ! Allocate memory for scaling coefficients (cannot be done earlier 
+     ! since don't know bl_scoeff).
+     allocate(scoeff(0:bl_scoeff-1, 0:bl_scoeff-1), stat=fail)
+     if(fail /= 0) then
+        call ssht_error(SSHT_ERROR_MEM_ALLOC_FAIL, 'ssht_test')
+     end if
+
+     ! Compute wavelet and scaling coefficients.
+     write(*,'(a,i2)') 'Analysis no.', i_repeat
+     call cpu_time(time_start)
+     call ssht_core_analysis_flm2wav_dynamic(wavdyn, scoeff, flm_orig, K_gamma, Slm, &
+          J, B, N, bl_scoeff, alpha)
+     !		call ssht_core_analysis_flm2wav(wav, scoeff, flm_orig, K_gamma, Slm, &
+     !			J, B, N, bl_scoeff, alpha)
+     call cpu_time(time_end)
+     durations_analysis(i_repeat) = time_end - time_start
+     write(*,'(a,f43.2)') ' duration =', durations_analysis(i_repeat)
+
+     ! Synthesis harmonic coefficients of signal from wavelet and scaling 
+     ! coefficients.
+     write(*,'(a,i2)') 'Synthesis no.', i_repeat
+     call cpu_time(time_start)
+     call ssht_core_synthesis_wav2flm_dynamic(flm_syn, wavdyn, scoeff, K_gamma, Phi2, &
+          Slm, J, B, N, bl_scoeff, alpha)
+     !		call ssht_core_synthesis_wav2flm(flm_syn, wav, scoeff, K_gamma, Phi2, &
+     !				Slm, J, B, N, bl_scoeff, alpha)
+     call cpu_time(time_end)
+     durations_synthesis(i_repeat) = time_end - time_start
+     write(*,'(a,f43.2)') ' duration =', durations_synthesis(i_repeat)
+
+     error_flm(i_repeat) = maxval(abs(flm_orig(0:B-1,0:B-1) - flm_syn(0:B-1,0:B-1)))
+     write(*,'(a,e43.5)') ' error =   ', error_flm(i_repeat)
+     write(*,*)
+
+
+     deallocate(scoeff)
+
+  end do
+
+  write(*,'(a)') 'Summary:'
+  write(*,'(a,i30)') 'N_repeat               =', N_repeat
+  write(*,'(a,i30)') 'B                      =', B
+  write(*,'(a,i30)') 'N                      =', N
+  write(*,'(a,i30)') 'J                      =', J	
+  write(*,'(a,f30.5)') 'alpha                  =', alpha
+  write(*,'(a,f30.5)') 'Average analysis time  =', sum(durations_analysis(0:N_repeat-1)) / real(N_repeat)
+  write(*,'(a,f30.5)') 'Average synthesis time =', sum(durations_synthesis(0:N_repeat-1)) / real(N_repeat)
+  write(*,'(a,e30.5)') 'Average max error      =', sum(error_flm(0:N_repeat-1)) / real(N_repeat)
+  write(*,*)
+
+  if( abs(sum(error_flm(0:N_repeat-1)) / real(N_repeat)) < 1d-6) then
+     write(*,'(a)') 'Tests passed!'
+  else
+     write(*,'(a)') 'Tests failed!'
+  end if
+  write(*,*) 
+
+  ! Deallocate memory.
+  deallocate(flm_orig, flm_syn, K_gamma, Phi2, Slm, admiss)
+  !  deallocate(wav)
 
 end program ssht_test
 
@@ -223,6 +292,35 @@ subroutine ssht_test_gen_flm(L, flm, seed)
 end subroutine ssht_test_gen_flm
 
 
+subroutine ssht_test_gen_flm_complex(L, flm, seed)
+
+  use ssht_types_mod, only: dpc
+
+  implicit none
+
+  interface 
+     function ran2_dp(idum)
+       use ssht_types_mod, only: dp
+       real(dp) :: ran2_dp
+       integer :: idum
+     end function ran2_dp
+  end interface
+
+  integer, intent(in) :: L
+  complex(dpc), intent(out) :: flm(0:L**2-1)
+  integer, intent(in) :: seed
+
+  integer :: ind
+
+  flm(0:L**2-1) = 0d0
+
+  do ind = 0,L**2 - 1
+     flm(ind) = cmplx(2d0*ran2_dp(seed)-1d0, 2d0*ran2_dp(seed)-1d0)
+  end do
+
+end subroutine ssht_test_gen_flm_complex
+
+
 !--------------------------------------------------------------------------
 ! ran2_dp
 !
@@ -247,7 +345,7 @@ function ran2_dp(idum)
 
   use ssht_types_mod, only: dp
 
-	implicit none
+  implicit none
 
   INTEGER :: idum,IM1,IM2,IMM1,IA1,IA2,IQ1,IQ2,IR1,IR2,NTAB,NDIV
   REAL(dp) :: ran2_dp,AM,EPS,RNMX
@@ -280,6 +378,6 @@ function ran2_dp(idum)
   if(iy.lt.1)iy=iy+IMM1
   ran2_dp=min(AM*iy,RNMX)
   return
-  
+
 end function ran2_dp
-   
+
