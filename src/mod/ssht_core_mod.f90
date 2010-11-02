@@ -1154,16 +1154,49 @@ complex(dpc) :: po_r(-2*(L-1):2*(L-1))
 
     ! Compute w
     do mm = -2*(L-1), 2*(L-1)
-       w(mm) = weight_mw(mm)
+       w(mm) = weight_mw(mm) &
+            * exp(-I*mm*2*(L-1)*2d0*PI/(4d0*L-3d0)) !&
+!            * exp(-I*2*(L-1)*2*(L-1)*2d0*PI/(4d0*L-3d0))
     end do
 
-    wr(-2*(L-1):2*(L-1)) = cmplx(0d0, 0d0)
-    do mm = -2*(L-1), 2*(L-1)
-       do r = -2*(L-1), 2*(L-1)
-          wr(r) = wr(r) + &
-               w(mm) * exp(I*mm*r*2d0*PI/(4d0*L-3d0)) 
-       end do
+!!$    wr(0:2*(L-1)) = w(-2*(L-1):0)
+!!$    wr(-2*(L-1):-1) = w(1:2*(L-1))
+!!$    w(-2*(L-1):2*(L-1)) = wr(-2*(L-1):2*(L-1))
+
+    call dfftw_plan_dft_1d(fftw_plan, 4*L-3, w(-2*(L-1):2*(L-1)), &
+         w(-2*(L-1):2*(L-1)), FFTW_BACKWARD, FFTW_ESTIMATE)
+    call dfftw_execute_dft(fftw_plan, w(-2*(L-1):2*(L-1)), w(-2*(L-1):2*(L-1)))
+
+!!$    wr(0:2*(L-1)) = w(-2*(L-1):0)
+!!$    wr(-2*(L-1):-1) = w(1:2*(L-1))
+!!$    w(-2*(L-1):2*(L-1)) = wr(-2*(L-1):2*(L-1))
+
+!    wr(-2*(L-1):2*(L-1)) = w(-2*(L-1):2*(L-1)) * exp(I*2*(L-1)*2*(L-1)*2d0*PI/(4d0*L-3d0))
+
+!    do r = 0, 4*L-4
+!       wr(r-2*(L-1)) = w(r-2*(L-1)) * exp(-I*2*(L-1)*r*2d0*PI/(4d0*L-3d0))
+    do r = -2*(L-1), 2*(L-1)
+       wr(r) = w(r) * exp(-I*2*(L-1)*r*2d0*PI/(4d0*L-3d0)) &
+            * exp(-I*2*(L-1)*2*(L-1)*2d0*PI/(4d0*L-3d0))
     end do
+
+!!$    wr(-2*(L-1):2*(L-1)) = cmplx(0d0, 0d0)
+!!$!    do mm = -2*(L-1), 2*(L-1)
+!!$    do mm = 0, 4*L-4
+!!$!       do r = -2*(L-1), 2*(L-1)
+!!$       do r = 0, 4*L-4
+!!$          wr(r-2*(L-1)) = wr(r-2*(L-1)) + &
+!!$!          wr(r) = wr(r) + &
+!!$               w(mm-2*(L-1)) * exp(I*mm*r*2d0*PI/(4d0*L-3d0)) &
+!!$               * exp(-I*2*(L-1)*r*2d0*PI/(4d0*L-3d0)) !&
+!!$!               * exp(-I*mm*2*(L-1)*2d0*PI/(4d0*L-3d0)) &
+!!$!               * exp(I*2*(L-1)*2*(L-1)*2d0*PI/(4d0*L-3d0))
+!!$
+!!$
+!!$
+!!$!               w(mm) * exp(I*mm*r*2d0*PI/(4d0*L-3d0)) 
+!!$       end do
+!!$    end do
 
 
     do m = -(L-1), L-1
