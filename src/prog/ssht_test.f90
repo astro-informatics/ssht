@@ -141,9 +141,9 @@ write(*,'(a,e43.5)') 'HERE IT IS, MAXERR: ', maxval(abs(flm2_orig(0:L**2-1) - fl
 
 flm2_orig(0:L**2-1) = cmplx(0d0, 0d0)
 flm2_syn(0:L**2-1) = cmplx(0d0, 0d0)
-call ssht_test_gen_flm_complex(L, flm2_orig, seed)
-call ssht_core_mw_inverse_direct(f_mw, flm2_orig, L, spin)
-call ssht_core_mw_forward_direct(flm2_syn, f_mw, L, spin)
+!call ssht_test_gen_flm_complex(L, flm2_orig, seed)
+!call ssht_core_mw_inverse_direct(f_mw, flm2_orig, L, spin)
+!call ssht_core_mw_forward_direct(flm2_syn, f_mw, L, spin)
 
 write(*,'(a,e43.5)') 'HERE IT IS, MAXERR: ', maxval(abs(flm2_orig(0:L**2-1) - flm2_syn(0:L**2-1)))
 

@@ -950,8 +950,6 @@ contains
     complex(dpc) :: Gmme(-(L-1):L-1, -(L-1):L-1)
     complex(dpc) :: Gmmo(-(L-1):L-1, -(L-1):L-1)
     complex(dpc) :: Gmm_term
-
-real(dp) :: theta_fft, phi_fft
     integer*8 :: fftw_plan
 
 
@@ -962,63 +960,7 @@ real(dp) :: theta_fft, phi_fft
     fo(0:L-1, 0:2*L-2) = f(0:L-1, 0:2*L-2)
     fo(L:2*L-2, 0:2*L-2) = -f(L-2:0:-1, 0:2*L-2)
 
-
-
-    do p = 0, 2*L-2
-       phi = ssht_core_mweo_p2phi(p, L)
-       do t = 0, 2*L-2
-          theta = ssht_core_mw_t2theta(t, L)   
-          fe(t,p) = fe(t,p) * exp(I*(phi+theta)*(L-1))
-          fo(t,p) = fo(t,p) * exp(I*(phi+theta)*(L-1))
-       end do
-    end do
-
-    ! Compute Fmm for even and odd extensions.
-!!$    Fmme(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
-!!$    Fmmo(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
-!!$    do p = 0, 2*L-2
-!!$       phi = ssht_core_mweo_p2phi(p, L)
-!!$       phi_fft = 2*PI*p/(2d0*L-1d0)
-!!$       do t = 0, 2*L-2
-!!$          theta = ssht_core_mw_t2theta(t, L)    
-!!$          theta_fft = 2*PI*t/(2d0*L-1d0)
-!!$          do m = 0, 2*L-2
-!!$             do mm = 0, 2*L-2
-!!$                Fmme(m-(L-1),mm-(L-1)) = Fmme(m-(L-1),mm-(L-1)) + &
-!!$                     fe(t,p) * exp(-I*(m*phi_fft + mm*theta_fft)) 
-!!$                     !* exp(I*(phi+theta)*(L-1)) &
-!!$                     !* exp(-I*(m+mm)*PI/(2d0*L-1d0))
-!!$                Fmmo(m-(L-1),mm-(L-1)) = Fmmo(m-(L-1),mm-(L-1)) + &
-!!$                     fo(t,p) * exp(-I*(m*phi_fft + mm*theta_fft)) 
-!!$                     !* exp(I*(phi+theta)*(L-1)) &
-!!$                     !* exp(-I*(m+mm)*PI/(2d0*L-1d0))
-!!$
-!!$             end do
-!!$          end do
-!!$
-!!$       end do
-!!$    end do
-
-
-
-    call dfftw_plan_dft_2d(fftw_plan, 2*L-1, 2*L-1, fe(0:2*L-2,0:2*L-2), &
-         fe(0:2*L-2,0:2*L-2), FFTW_FORWARD, FFTW_ESTIMATE)
-    call dfftw_execute_dft(fftw_plan, fe(0:2*L-2,0:2*L-2), fe(0:2*L-2,0:2*L-2))
-    call dfftw_execute_dft(fftw_plan, fo(0:2*L-2,0:2*L-2), fo(0:2*L-2,0:2*L-2))
-    call dfftw_destroy_plan(fftw_plan)
-    Fmme(-(L-1):L-1, -(L-1):L-1) = transpose(fe(0:2*L-2,0:2*L-2))
-    Fmmo(-(L-1):L-1, -(L-1):L-1) = transpose(fo(0:2*L-2,0:2*L-2))
-
-
-! shift here for alternative implementation
-
-    do m = 0, 2*L-2
-       do mm = 0, 2*L-2
-          Fmme(m-(L-1),mm-(L-1)) = Fmme(m-(L-1),mm-(L-1)) * exp(-I*(m+mm)*PI/(2d0*L-1d0))
-          Fmmo(m-(L-1),mm-(L-1)) = Fmmo(m-(L-1),mm-(L-1)) * exp(-I*(m+mm)*PI/(2d0*L-1d0))
-       end do
-    end do
-
+! If don't apply spatial shift below then apply phase modulation here.
 !!$    do p = 0, 2*L-2
 !!$       phi = ssht_core_mweo_p2phi(p, L)
 !!$       do t = 0, 2*L-2
@@ -1027,47 +969,44 @@ real(dp) :: theta_fft, phi_fft
 !!$          fo(t,p) = fo(t,p) * exp(I*(phi+theta)*(L-1))
 !!$       end do
 !!$    end do
-!!$    call dfftw_plan_dft_2d(fftw_plan, 2*L-1, 2*L-1, fe(0:2*L-2,0:2*L-2), &
-!!$         fe(0:2*L-2,0:2*L-2), FFTW_FORWARD, FFTW_ESTIMATE)
-!!$    call dfftw_execute_dft(fftw_plan, fe(0:2*L-2,0:2*L-2), fe(0:2*L-2,0:2*L-2))
-!!$    call dfftw_execute_dft(fftw_plan, fo(0:2*L-2,0:2*L-2), fo(0:2*L-2,0:2*L-2))
-!!$    call dfftw_destroy_plan(fftw_plan)
-!!$
-!!$    do m = 0, 2*L-2
-!!$       do mm = 0, 2*L-2
-!!$          fe(m,mm) = fe(mm,m) * exp(-I*(m+mm)*PI/(2d0*L-1d0))
-!!$          fo(m,mm) = fo(mm,m) * exp(-I*(m+mm)*PI/(2d0*L-1d0))
-!!$       end do
-!!$    end do
 
-!!$    Fmme(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
-!!$    Fmmo(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
-!!$    do p = 0, 2*L-2
-!!$       phi = ssht_core_mweo_p2phi(p, L)
-!!$       do t = 0, 2*L-2
-!!$          theta = ssht_core_mw_t2theta(t, L)    
-!!$          do m = -(L-1), L-1
-!!$             do mm = -(L-1), L-1
-!!$                Fmme(m,mm) = Fmme(m,mm) + &
-!!$                     fe(t,p) * exp(-I*(m*phi + mm*theta))
-!!$                Fmmo(m,mm) = Fmmo(m,mm) + &
-!!$                     fo(t,p) * exp(-I*(m*phi + mm*theta))
-!!$             end do
-!!$          end do
-!!$
-!!$       end do
-!!$    end do
+    ! Compute Fmm for even and odd extensions by 2D FFT.
+    ! ** NOTE THAT 2D FFTW SWITCHES DIMENSIONS! HENCE TRANSPOSE BELOW. **
+    call dfftw_plan_dft_2d(fftw_plan, 2*L-1, 2*L-1, fe(0:2*L-2,0:2*L-2), &
+         fe(0:2*L-2,0:2*L-2), FFTW_FORWARD, FFTW_ESTIMATE)
+    call dfftw_execute_dft(fftw_plan, fe(0:2*L-2,0:2*L-2), fe(0:2*L-2,0:2*L-2))
+    call dfftw_execute_dft(fftw_plan, fo(0:2*L-2,0:2*L-2), fo(0:2*L-2,0:2*L-2))
+    call dfftw_destroy_plan(fftw_plan)
+
+! If apply phase shift above just copy Fmm (and transpose 
+! to account for 2D FFT).
+!!$    Fmme(-(L-1):L-1, -(L-1):L-1) = transpose(fe(0:2*L-2,0:2*L-2))
+!!$    Fmmo(-(L-1):L-1, -(L-1):L-1) = transpose(fo(0:2*L-2,0:2*L-2))
+
+    ! Apply spatial shift in frequency.
+    fe(0:2*L-2,0:2*L-2) = transpose(fe(0:2*L-2,0:2*L-2)) * exp(I*(L-1)*2d0*PI/(2d0*L-1d0))
+    fo(0:2*L-2,0:2*L-2) = transpose(fo(0:2*L-2,0:2*L-2)) * exp(I*(L-1)*2d0*PI/(2d0*L-1d0))
+    Fmme(0:L-1,0:L-1) = fe(0:L-1, 0:L-1)
+    Fmme(-(L-1):-1,0:L-1) = fe(L:2*L-2, 0:L-1)
+    Fmme(0:L-1,-(L-1):-1) = fe(0:L-1, L:2*L-2)
+    Fmme(-(L-1):-1,-(L-1):-1) = fe(L:2*L-2, L:2*L-2)
+    Fmmo(0:L-1,0:L-1) = fo(0:L-1, 0:L-1)
+    Fmmo(-(L-1):-1,0:L-1) = fo(L:2*L-2, 0:L-1)
+    Fmmo(0:L-1,-(L-1):-1) = fo(0:L-1, L:2*L-2)
+    Fmmo(-(L-1):-1,-(L-1):-1) = fo(L:2*L-2, L:2*L-2)
+
+    ! Apply phase modulation to account for sampling offset.
+    do m = 0, 2*L-2
+       do mm = 0, 2*L-2
+          Fmme(m-(L-1),mm-(L-1)) = Fmme(m-(L-1),mm-(L-1)) * exp(-I*(m+mm)*PI/(2d0*L-1d0))
+          Fmmo(m-(L-1),mm-(L-1)) = Fmmo(m-(L-1),mm-(L-1)) * exp(-I*(m+mm)*PI/(2d0*L-1d0))
+       end do
+    end do
 
     Fmme(-(L-1):L-1, -(L-1):L-1) = Fmme(-(L-1):L-1, -(L-1):L-1) &
          / (2d0*L-1d0)**2
     Fmmo(-(L-1):L-1, -(L-1):L-1) = Fmmo(-(L-1):L-1, -(L-1):L-1) &
          / (2d0*L-1d0)**2
-!!$
-!!$
-!!$    Fmmo(-(L-1):L-1, -(L-1):L-1) = fe(0:2*L-2, 0:2*L-2) &
-!!$         / (2d0*L-1d0)**2
-!!$    Fmmo(-(L-1):L-1, -(L-1):L-1) = fo(0:2*L-2, 0:2*L-2) &
-!!$         / (2d0*L-1d0)**2
 
     ! Compute Gmm for even and odd extensions by direct calculation 
     ! of convolution.
