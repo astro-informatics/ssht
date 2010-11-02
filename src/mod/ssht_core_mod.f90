@@ -46,7 +46,9 @@ module ssht_core_mod
        ssht_core_mweo_inverse_direct, ssht_core_mweo_inverse_sov_direct, &
        ssht_core_mweo_inverse_sov, &
        ssht_core_mweo_forward_sov_direct, &
-       ssht_core_mweo_forward_sov
+       ssht_core_mweo_forward_sov, &
+       ssht_core_mweo_forward_sov_conv
+
 
   !---------------------------------------
   ! Global variables
@@ -1050,7 +1052,205 @@ contains
 
   end subroutine ssht_core_mweo_forward_sov
 
+subroutine ssht_core_mweo_forward_sov_conv(flm, f, L, spin)
 
+    integer, intent(in) :: L
+    integer, intent(in) :: spin
+    complex(dpc), intent(in) :: f(0:L-1 ,0:2*L-2)
+    complex(dpc), intent(out) :: flm(0:L**2-1)
+
+    integer :: p, m, t, mm, el, ind, k
+    real(dp) :: theta, phi
+
+    real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
+    complex(dpc) :: fe(0:2*L-2 ,0:2*L-2)
+    complex(dpc) :: fo(0:2*L-2 ,0:2*L-2)
+    complex(dpc) :: Fmme(-(L-1):L-1, -(L-1):L-1)
+    complex(dpc) :: Fmmo(-(L-1):L-1, -(L-1):L-1)
+    complex(dpc) :: Gmme(-(L-1):L-1, -(L-1):L-1)
+    complex(dpc) :: Gmmo(-(L-1):L-1, -(L-1):L-1)
+    complex(dpc) :: Gmm_term
+    integer*8 :: fftw_plan
+
+!!$    complex(dpc) :: Gmme_orig(-(L-1):L-1, -(L-1):L-1)
+!!$    complex(dpc) :: Gmmo_orig(-(L-1):L-1, -(L-1):L-1)
+
+integer :: r
+complex(dpc) :: pe, po
+complex(dpc) :: Fmme_pad(-2*(L-1):2*(L-1))
+complex(dpc) :: Fmmo_pad(-2*(L-1):2*(L-1))
+complex(dpc) :: Fmme_pad_r(-2*(L-1):2*(L-1))
+complex(dpc) :: Fmmo_pad_r(-2*(L-1):2*(L-1))
+complex(dpc) :: w(-2*(L-1):2*(L-1))
+complex(dpc) :: wr(-2*(L-1):2*(L-1))
+complex(dpc) :: pe_r(-2*(L-1):2*(L-1))
+complex(dpc) :: po_r(-2*(L-1):2*(L-1))
+
+
+
+    ! Extend f to the torus with even and odd extensions 
+    ! about theta=PI.
+    fe(0:L-1, 0:2*L-2) = f(0:L-1, 0:2*L-2)
+    fe(L:2*L-2, 0:2*L-2) = f(L-2:0:-1, 0:2*L-2)
+    fo(0:L-1, 0:2*L-2) = f(0:L-1, 0:2*L-2)
+    fo(L:2*L-2, 0:2*L-2) = -f(L-2:0:-1, 0:2*L-2)
+
+! If don't apply spatial shift below then apply phase modulation here.
+!!$    do p = 0, 2*L-2
+!!$       phi = ssht_core_mweo_p2phi(p, L)
+!!$       do t = 0, 2*L-2
+!!$          theta = ssht_core_mw_t2theta(t, L)   
+!!$          fe(t,p) = fe(t,p) * exp(I*(phi+theta)*(L-1))
+!!$          fo(t,p) = fo(t,p) * exp(I*(phi+theta)*(L-1))
+!!$       end do
+!!$    end do
+
+    ! Compute Fmm for even and odd extensions by 2D FFT.
+    ! ** NOTE THAT 2D FFTW SWITCHES DIMENSIONS! HENCE TRANSPOSE BELOW. **
+    call dfftw_plan_dft_2d(fftw_plan, 2*L-1, 2*L-1, fe(0:2*L-2,0:2*L-2), &
+         fe(0:2*L-2,0:2*L-2), FFTW_FORWARD, FFTW_ESTIMATE)
+    call dfftw_execute_dft(fftw_plan, fe(0:2*L-2,0:2*L-2), fe(0:2*L-2,0:2*L-2))
+    call dfftw_execute_dft(fftw_plan, fo(0:2*L-2,0:2*L-2), fo(0:2*L-2,0:2*L-2))
+    call dfftw_destroy_plan(fftw_plan)
+
+! If apply phase shift above just copy Fmm (and transpose 
+! to account for 2D FFT).
+!!$    Fmme(-(L-1):L-1, -(L-1):L-1) = transpose(fe(0:2*L-2,0:2*L-2))
+!!$    Fmmo(-(L-1):L-1, -(L-1):L-1) = transpose(fo(0:2*L-2,0:2*L-2))
+
+    ! Apply spatial shift in frequency.
+    fe(0:2*L-2,0:2*L-2) = transpose(fe(0:2*L-2,0:2*L-2)) * exp(I*(L-1)*2d0*PI/(2d0*L-1d0))
+    fo(0:2*L-2,0:2*L-2) = transpose(fo(0:2*L-2,0:2*L-2)) * exp(I*(L-1)*2d0*PI/(2d0*L-1d0))
+    Fmme(0:L-1,0:L-1) = fe(0:L-1, 0:L-1)
+    Fmme(-(L-1):-1,0:L-1) = fe(L:2*L-2, 0:L-1)
+    Fmme(0:L-1,-(L-1):-1) = fe(0:L-1, L:2*L-2)
+    Fmme(-(L-1):-1,-(L-1):-1) = fe(L:2*L-2, L:2*L-2)
+    Fmmo(0:L-1,0:L-1) = fo(0:L-1, 0:L-1)
+    Fmmo(-(L-1):-1,0:L-1) = fo(L:2*L-2, 0:L-1)
+    Fmmo(0:L-1,-(L-1):-1) = fo(0:L-1, L:2*L-2)
+    Fmmo(-(L-1):-1,-(L-1):-1) = fo(L:2*L-2, L:2*L-2)
+
+    ! Apply phase modulation to account for sampling offset.
+    do m = 0, 2*L-2
+       do mm = 0, 2*L-2
+          Fmme(m-(L-1),mm-(L-1)) = Fmme(m-(L-1),mm-(L-1)) * exp(-I*(m+mm)*PI/(2d0*L-1d0))
+          Fmmo(m-(L-1),mm-(L-1)) = Fmmo(m-(L-1),mm-(L-1)) * exp(-I*(m+mm)*PI/(2d0*L-1d0))
+       end do
+    end do
+
+    Fmme(-(L-1):L-1, -(L-1):L-1) = Fmme(-(L-1):L-1, -(L-1):L-1) &
+         / (2d0*L-1d0)**2
+    Fmmo(-(L-1):L-1, -(L-1):L-1) = Fmmo(-(L-1):L-1, -(L-1):L-1) &
+         / (2d0*L-1d0)**2
+
+    ! Compute Gmm for even and odd extensions by direct calculation 
+    ! of convolution.
+!!$    Gmme_orig(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
+!!$    Gmmo_orig(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
+
+
+
+
+
+    ! Compute w
+    do mm = -2*(L-1), 2*(L-1)
+       w(mm) = weight_mw(mm)
+    end do
+
+    wr(-2*(L-1):2*(L-1)) = cmplx(0d0, 0d0)
+    do mm = -2*(L-1), 2*(L-1)
+       do r = -2*(L-1), 2*(L-1)
+          wr(r) = wr(r) + &
+               w(mm) * exp(I*mm*r*2d0*PI/(4d0*L-3d0)) 
+       end do
+    end do
+
+
+    do m = -(L-1), L-1
+
+       ! Zero-pad Fmm.
+       Fmme_pad(-2*(L-1):-L) = 0d0
+       Fmme_pad(-(L-1):L-1) = Fmme(m,-(L-1):L-1)
+       Fmme_pad(L:2*(L-1)) = 0d0
+       Fmmo_pad(-2*(L-1):-L) = 0d0
+       Fmmo_pad(-(L-1):L-1) = Fmmo(m,-(L-1):L-1)
+       Fmmo_pad(L:2*(L-1)) = 0d0
+
+       ! FFT
+       Fmme_pad_r(-2*(L-1):2*(L-1)) = cmplx(0d0, 0d0)
+       Fmmo_pad_r(-2*(L-1):2*(L-1)) = cmplx(0d0, 0d0)
+       do mm = -2*(L-1), 2*(L-1)
+          do r = -2*(L-1), 2*(L-1)
+             Fmme_pad_r(r) = Fmme_pad_r(r) + &
+                  Fmme_pad(mm) * exp(I*mm*r*2d0*PI/(4d0*L-3d0))
+             Fmmo_pad_r(r) = Fmmo_pad_r(r) + &
+                  Fmmo_pad(mm) * exp(I*mm*r*2d0*PI/(4d0*L-3d0))
+          end do
+       end do
+
+       ! Compute product
+       do r = -2*(L-1), 2*(L-1)
+          pe_r(r) = Fmme_pad_r(r) * wr(-r)
+          po_r(r) = Fmmo_pad_r(r) * wr(-r)
+       end do
+
+       ! IFFT
+       do mm = -(L-1), (L-1)
+          pe = cmplx(0d0, 0d0)
+          po = cmplx(0d0, 0d0)
+          do r = -2*(L-1), 2*(L-1)
+             pe = pe + &
+                  pe_r(r) * exp(-I*mm*r*2d0*PI/(4d0*L-3d0))
+             po = po + &
+                  po_r(r) * exp(-I*mm*r*2d0*PI/(4d0*L-3d0))
+          end do
+          Gmme(m,mm) = pe * 2d0 * PI / (4d0*L-3d0)
+          Gmmo(m,mm) = po * 2d0 * PI / (4d0*L-3d0)
+       end do
+
+    end do
+!    call dfftw_destroy_plan(fftw_plan)
+
+    
+
+!!$    do m = -(L-1), L-1
+!!$       do mm = -(L-1), L-1
+!!$          do k = -(L-1), L-1 
+!!$             Gmme_orig(m,mm) = Gmme_orig(m,mm) + &
+!!$                  Fmme(m,k) * weight_mw(k - mm) * 2d0 * PI
+!!$             Gmmo_orig(m,mm) = Gmmo_orig(m,mm) + &
+!!$                  Fmmo(m,k) * weight_mw(k - mm) * 2d0 * PI
+!!$          end do
+!!$       end do
+!!$    end do
+
+
+    ! Compute flm.
+    flm = 0
+     do el = 0, L-1
+       call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+       do m = -el, el
+          call ssht_core_elm2ind(ind, el, m)
+          do mm = -el, el
+             if (mod(m+spin,2) == 0) then
+                ! m+spin even
+                Gmm_term = Gmme(m,mm)
+             else
+                ! m+spin odd
+                Gmm_term = Gmmo(m,mm)
+             end if
+
+             flm(ind) = flm(ind) + &
+                  (-1)**spin * sqrt((2d0*el+1d0)/(4d0*PI)) &
+                  * exp(I*PION2*(m+spin)) &
+                  * dl(mm,m) * dl(mm,-spin) &
+                  * Gmm_term
+
+          end do
+       end do
+    end do
+
+  end subroutine ssht_core_mweo_forward_sov_conv
 
 
 
