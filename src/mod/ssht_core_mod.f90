@@ -1052,7 +1052,7 @@ contains
 
   end subroutine ssht_core_mweo_forward_sov
 
-subroutine ssht_core_mweo_forward_sov_conv(flm, f, L, spin)
+  subroutine ssht_core_mweo_forward_sov_conv(flm, f, L, spin)
 
     integer, intent(in) :: L
     integer, intent(in) :: spin
@@ -1070,23 +1070,13 @@ subroutine ssht_core_mweo_forward_sov_conv(flm, f, L, spin)
     complex(dpc) :: Gmme(-(L-1):L-1, -(L-1):L-1)
     complex(dpc) :: Gmmo(-(L-1):L-1, -(L-1):L-1)
     complex(dpc) :: Gmm_term
-    integer*8 :: fftw_plan
-
-!!$    complex(dpc) :: Gmme_orig(-(L-1):L-1, -(L-1):L-1)
-!!$    complex(dpc) :: Gmmo_orig(-(L-1):L-1, -(L-1):L-1)
-
-integer :: r
-complex(dpc) :: pe, po
-complex(dpc) :: Fmme_pad(-2*(L-1):2*(L-1))
-complex(dpc) :: Fmmo_pad(-2*(L-1):2*(L-1))
-complex(dpc) :: Fmme_pad_r(-2*(L-1):2*(L-1))
-complex(dpc) :: Fmmo_pad_r(-2*(L-1):2*(L-1))
-complex(dpc) :: w(-2*(L-1):2*(L-1))
-complex(dpc) :: wr(-2*(L-1):2*(L-1))
-complex(dpc) :: pe_r(-2*(L-1):2*(L-1))
-complex(dpc) :: po_r(-2*(L-1):2*(L-1))
-
-
+    integer*8 :: fftw_plan_fwd, fftw_plan_bwd
+    
+    integer :: r
+    complex(dpc) :: Fmme_pad(-2*(L-1):2*(L-1))
+    complex(dpc) :: Fmmo_pad(-2*(L-1):2*(L-1))
+    complex(dpc) :: w(-2*(L-1):2*(L-1))
+    complex(dpc) :: wr(-2*(L-1):2*(L-1))
 
     ! Extend f to the torus with even and odd extensions 
     ! about theta=PI.
@@ -1107,11 +1097,11 @@ complex(dpc) :: po_r(-2*(L-1):2*(L-1))
 
     ! Compute Fmm for even and odd extensions by 2D FFT.
     ! ** NOTE THAT 2D FFTW SWITCHES DIMENSIONS! HENCE TRANSPOSE BELOW. **
-    call dfftw_plan_dft_2d(fftw_plan, 2*L-1, 2*L-1, fe(0:2*L-2,0:2*L-2), &
+    call dfftw_plan_dft_2d(fftw_plan_fwd, 2*L-1, 2*L-1, fe(0:2*L-2,0:2*L-2), &
          fe(0:2*L-2,0:2*L-2), FFTW_FORWARD, FFTW_ESTIMATE)
-    call dfftw_execute_dft(fftw_plan, fe(0:2*L-2,0:2*L-2), fe(0:2*L-2,0:2*L-2))
-    call dfftw_execute_dft(fftw_plan, fo(0:2*L-2,0:2*L-2), fo(0:2*L-2,0:2*L-2))
-    call dfftw_destroy_plan(fftw_plan)
+    call dfftw_execute_dft(fftw_plan_fwd, fe(0:2*L-2,0:2*L-2), fe(0:2*L-2,0:2*L-2))
+    call dfftw_execute_dft(fftw_plan_fwd, fo(0:2*L-2,0:2*L-2), fo(0:2*L-2,0:2*L-2))
+    call dfftw_destroy_plan(fftw_plan_fwd)
 
 ! If apply phase shift above just copy Fmm (and transpose 
 ! to account for 2D FFT).
@@ -1143,122 +1133,100 @@ complex(dpc) :: po_r(-2*(L-1):2*(L-1))
     Fmmo(-(L-1):L-1, -(L-1):L-1) = Fmmo(-(L-1):L-1, -(L-1):L-1) &
          / (2d0*L-1d0)**2
 
-    ! Compute Gmm for even and odd extensions by direct calculation 
-    ! of convolution.
-!!$    Gmme_orig(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
-!!$    Gmmo_orig(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
-
-
-
-
-
-    ! Compute w.
+    ! Compute weights.
     do mm = -2*(L-1), 2*(L-1)
        w(mm) = weight_mw(mm)
     end do
 
-    ! Compute FFT of w.
+    ! Compute IFFT of w to give wr.
     wr(1:2*(L-1)) = w(-2*(L-1):-1)
     wr(-2*(L-1):0) = w(0:2*(L-1))
     w(-2*(L-1):2*(L-1)) = wr(-2*(L-1):2*(L-1))
-    call dfftw_plan_dft_1d(fftw_plan, 4*L-3, w(-2*(L-1):2*(L-1)), &
-         w(-2*(L-1):2*(L-1)), FFTW_BACKWARD, FFTW_ESTIMATE)
-    call dfftw_execute_dft(fftw_plan, w(-2*(L-1):2*(L-1)), w(-2*(L-1):2*(L-1)))
+    call dfftw_plan_dft_1d(fftw_plan_bwd, 4*L-3, wr(-2*(L-1):2*(L-1)), &
+         wr(-2*(L-1):2*(L-1)), FFTW_BACKWARD, FFTW_MEASURE)
+    call dfftw_execute_dft(fftw_plan_bwd, w(-2*(L-1):2*(L-1)), w(-2*(L-1):2*(L-1)))
     wr(0:2*(L-1)) = w(-2*(L-1):0)
     wr(-2*(L-1):-1) = w(1:2*(L-1))
 
+    ! Plan forward FFT.
+    call dfftw_plan_dft_1d(fftw_plan_fwd, 4*L-3, w(-2*(L-1):2*(L-1)), &
+         w(-2*(L-1):2*(L-1)), FFTW_FORWARD, FFTW_MEASURE)
 
-
-!!$    wr(0:2*(L-1)) = w(-2*(L-1):0)
-!!$    wr(-2*(L-1):-1) = w(1:2*(L-1))
-!!$    w(-2*(L-1):2*(L-1)) = wr(-2*(L-1):2*(L-1))
-
-!    wr(-2*(L-1):2*(L-1)) = w(-2*(L-1):2*(L-1)) * exp(I*2*(L-1)*2*(L-1)*2d0*PI/(4d0*L-3d0))
-
-!    do r = 0, 4*L-4
-!       wr(r-2*(L-1)) = w(r-2*(L-1)) * exp(-I*2*(L-1)*r*2d0*PI/(4d0*L-3d0))
-!    do r = -2*(L-1), 2*(L-1)
-!       wr(r) = w(r) & !* exp(-I*2*(L-1)*r*2d0*PI/(4d0*L-3d0)) &
-!            * exp(-I*2*(L-1)*2*(L-1)*2d0*PI/(4d0*L-3d0))
-!    end do
-
-!!$    wr(-2*(L-1):2*(L-1)) = cmplx(0d0, 0d0)
-!!$!    do mm = -2*(L-1), 2*(L-1)
-!!$    do mm = 0, 4*L-4
-!!$!       do r = -2*(L-1), 2*(L-1)
-!!$       do r = 0, 4*L-4
-!!$          wr(r-2*(L-1)) = wr(r-2*(L-1)) + &
-!!$!          wr(r) = wr(r) + &
-!!$               w(mm-2*(L-1)) * exp(I*mm*r*2d0*PI/(4d0*L-3d0)) &
-!!$               * exp(-I*2*(L-1)*r*2d0*PI/(4d0*L-3d0)) !&
-!!$!               * exp(-I*mm*2*(L-1)*2d0*PI/(4d0*L-3d0)) &
-!!$!               * exp(I*2*(L-1)*2*(L-1)*2d0*PI/(4d0*L-3d0))
-!!$
-!!$
-!!$
-!!$!               w(mm) * exp(I*mm*r*2d0*PI/(4d0*L-3d0)) 
-!!$       end do
-!!$    end do
-
-
+    ! Compute Gmm for even and odd extensions by convolution implemented 
+    ! as product in real space.
     do m = -(L-1), L-1
 
-       ! Zero-pad Fmm.
+       ! Zero-pad Fmme.
        Fmme_pad(-2*(L-1):-L) = 0d0
        Fmme_pad(-(L-1):L-1) = Fmme(m,-(L-1):L-1)
        Fmme_pad(L:2*(L-1)) = 0d0
+
+       ! Compute IFFT of Fmme (Fmmo used for temporary storage).
+       Fmmo_pad(1:2*(L-1)) = Fmme_pad(-2*(L-1):-1)
+       Fmmo_pad(-2*(L-1):0) = Fmme_pad(0:2*(L-1))
+       Fmme_pad(-2*(L-1):2*(L-1)) = Fmmo_pad(-2*(L-1):2*(L-1))
+       call dfftw_execute_dft(fftw_plan_bwd, Fmme_pad(-2*(L-1):2*(L-1)), &
+            Fmme_pad(-2*(L-1):2*(L-1)))
+       Fmmo_pad(0:2*(L-1)) = Fmme_pad(-2*(L-1):0)
+       Fmmo_pad(-2*(L-1):-1) = Fmme_pad(1:2*(L-1))
+       Fmme_pad(-2*(L-1):2*(L-1)) = Fmmo_pad(-2*(L-1):2*(L-1))
+
+       ! Compute product of Fmme and weight in real space.
+       do r = -2*(L-1), 2*(L-1)
+          Fmme_pad(r) = Fmme_pad(r) * wr(-r)
+       end do
+
+       ! Compute Gmme by FFT.
+       Fmmo_pad(1:2*(L-1)) = Fmme_pad(-2*(L-1):-1)
+       Fmmo_pad(-2*(L-1):0) = Fmme_pad(0:2*(L-1))
+       Fmme_pad(-2*(L-1):2*(L-1)) = Fmmo_pad(-2*(L-1):2*(L-1))
+       call dfftw_execute_dft(fftw_plan_fwd, Fmme_pad(-2*(L-1):2*(L-1)), &
+            Fmme_pad(-2*(L-1):2*(L-1)))
+       Fmmo_pad(0:2*(L-1)) = Fmme_pad(-2*(L-1):0)
+       Fmmo_pad(-2*(L-1):-1) = Fmme_pad(1:2*(L-1))
+       Fmme_pad(-2*(L-1):2*(L-1)) = Fmmo_pad(-2*(L-1):2*(L-1))
+
+       ! Extract section of Gmme of interest.
+       Gmme(m,-(L-1):(L-1)) = Fmme_pad(-(L-1):(L-1)) * 2d0 * PI / (4d0*L-3d0)
+
+       ! Repeat for odd signal...
+
+       ! Zero-pad Fmmo.
        Fmmo_pad(-2*(L-1):-L) = 0d0
        Fmmo_pad(-(L-1):L-1) = Fmmo(m,-(L-1):L-1)
        Fmmo_pad(L:2*(L-1)) = 0d0
 
-       ! FFT
-       Fmme_pad_r(-2*(L-1):2*(L-1)) = cmplx(0d0, 0d0)
-       Fmmo_pad_r(-2*(L-1):2*(L-1)) = cmplx(0d0, 0d0)
-       do mm = -2*(L-1), 2*(L-1)
-          do r = -2*(L-1), 2*(L-1)
-             Fmme_pad_r(r) = Fmme_pad_r(r) + &
-                  Fmme_pad(mm) * exp(I*mm*r*2d0*PI/(4d0*L-3d0))
-             Fmmo_pad_r(r) = Fmmo_pad_r(r) + &
-                  Fmmo_pad(mm) * exp(I*mm*r*2d0*PI/(4d0*L-3d0))
-          end do
-       end do
+       ! Compute IFFT of Fmmo (Fmme used for temporary storage).
+       Fmme_pad(1:2*(L-1)) = Fmmo_pad(-2*(L-1):-1)
+       Fmme_pad(-2*(L-1):0) = Fmmo_pad(0:2*(L-1))
+       Fmmo_pad(-2*(L-1):2*(L-1)) = Fmme_pad(-2*(L-1):2*(L-1))
+       call dfftw_execute_dft(fftw_plan_bwd, Fmmo_pad(-2*(L-1):2*(L-1)), &
+            Fmmo_pad(-2*(L-1):2*(L-1)))
+       Fmme_pad(0:2*(L-1)) = Fmmo_pad(-2*(L-1):0)
+       Fmme_pad(-2*(L-1):-1) = Fmmo_pad(1:2*(L-1))
+       Fmmo_pad(-2*(L-1):2*(L-1)) = Fmme_pad(-2*(L-1):2*(L-1))
 
-       ! Compute product
+       ! Compute product of Fmmo and weight in real space.
        do r = -2*(L-1), 2*(L-1)
-          pe_r(r) = Fmme_pad_r(r) * wr(-r)
-          po_r(r) = Fmmo_pad_r(r) * wr(-r)
+          Fmmo_pad(r) = Fmmo_pad(r) * wr(-r)
        end do
 
-       ! IFFT
-       do mm = -(L-1), (L-1)
-          pe = cmplx(0d0, 0d0)
-          po = cmplx(0d0, 0d0)
-          do r = -2*(L-1), 2*(L-1)
-             pe = pe + &
-                  pe_r(r) * exp(-I*mm*r*2d0*PI/(4d0*L-3d0))
-             po = po + &
-                  po_r(r) * exp(-I*mm*r*2d0*PI/(4d0*L-3d0))
-          end do
-          Gmme(m,mm) = pe * 2d0 * PI / (4d0*L-3d0)
-          Gmmo(m,mm) = po * 2d0 * PI / (4d0*L-3d0)
-       end do
+       ! Compute Gmmo by FFT.
+       Fmme_pad(1:2*(L-1)) = Fmmo_pad(-2*(L-1):-1)
+       Fmme_pad(-2*(L-1):0) = Fmmo_pad(0:2*(L-1))
+       Fmmo_pad(-2*(L-1):2*(L-1)) = Fmme_pad(-2*(L-1):2*(L-1))
+       call dfftw_execute_dft(fftw_plan_fwd, Fmmo_pad(-2*(L-1):2*(L-1)), &
+            Fmmo_pad(-2*(L-1):2*(L-1)))
+       Fmme_pad(0:2*(L-1)) = Fmmo_pad(-2*(L-1):0)
+       Fmme_pad(-2*(L-1):-1) = Fmmo_pad(1:2*(L-1))
+       Fmmo_pad(-2*(L-1):2*(L-1)) = Fmme_pad(-2*(L-1):2*(L-1))
+
+       ! Extract section of Gmmo of interest.
+       Gmmo(m,-(L-1):(L-1)) = Fmmo_pad(-(L-1):(L-1)) * 2d0 * PI / (4d0*L-3d0)
 
     end do
-!    call dfftw_destroy_plan(fftw_plan)
-
-    
-
-!!$    do m = -(L-1), L-1
-!!$       do mm = -(L-1), L-1
-!!$          do k = -(L-1), L-1 
-!!$             Gmme_orig(m,mm) = Gmme_orig(m,mm) + &
-!!$                  Fmme(m,k) * weight_mw(k - mm) * 2d0 * PI
-!!$             Gmmo_orig(m,mm) = Gmmo_orig(m,mm) + &
-!!$                  Fmmo(m,k) * weight_mw(k - mm) * 2d0 * PI
-!!$          end do
-!!$       end do
-!!$    end do
-
+    call dfftw_destroy_plan(fftw_plan_bwd)
+    call dfftw_destroy_plan(fftw_plan_fwd)    
 
     ! Compute flm.
     flm = 0
