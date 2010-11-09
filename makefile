@@ -91,7 +91,9 @@ test:    $(SSHTBIN)/ssht_test
 runtest: test
 	$(SSHTBIN)/ssht_test 64
 
-prog:    $(SSHTBIN)/ssht_wav2sky $(SSHTBIN)/ssht_analysis $(SSHTBIN)/ssht_synthesis $(SSHTBIN)/ssht_wavplot $(SSHTBIN)/ssht_mat2fits $(SSHTBIN)/ssht_fits2mat
+#prog:    $(SSHTBIN)/ssht_wav2sky $(SSHTBIN)/ssht_analysis $(SSHTBIN)/ssht_synthesis $(SSHTBIN)/ssht_wavplot $#(SSHTBIN)/ssht_mat2fits $(SSHTBIN)/ssht_fits2mat $(SSHTBIN)/ssht_forward
+
+prog:    $(SSHTBIN)/ssht_forward $(SSHTBIN)/ssht_inverse
 
 $(SSHTINC)/%.o: $(SSHTSRC)/%.f90
 	$(FC) $(FFLAGS) $(PPFLAGS) -c $< -o $@ 
@@ -199,5 +201,17 @@ $(SSHTBIN)/ssht_fits2mat:       $(SSHTINC)/ssht_fits2mat.o
 	$(FC)                                          \
 	-o $(SSHTBIN)/ssht_fits2mat                       \
 	$(SSHTINC)/ssht_fits2mat.o $(LDFLAGSPROG) $(LDFLAGS) $(PPFLAGS)
+
+$(SSHTINC)/ssht_forward.o:     $(SSHTPROG)/ssht_forward.f90 lib
+$(SSHTBIN)/ssht_forward:       $(SSHTINC)/ssht_forward.o
+	$(FC)                                          \
+	-o $(SSHTBIN)/ssht_forward                       \
+	$(SSHTINC)/ssht_forward.o $(LDFLAGSPROG) $(LDFLAGS) $(PPFLAGS)
+
+$(SSHTINC)/ssht_inverse.o:     $(SSHTPROG)/ssht_inverse.f90 lib
+$(SSHTBIN)/ssht_inverse:       $(SSHTINC)/ssht_inverse.o
+	$(FC)                                          \
+	-o $(SSHTBIN)/ssht_inverse                       \
+	$(SSHTINC)/ssht_inverse.o $(LDFLAGSPROG) $(LDFLAGS) $(PPFLAGS)
 
 
