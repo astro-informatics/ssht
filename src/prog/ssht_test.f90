@@ -65,6 +65,10 @@ program ssht_test
   
   complex(dpc), allocatable :: f_mw(:,:), f_mweo(:,:)
 
+integer :: fileid
+real(dp) :: re, im
+integer :: t, p
+
   ! Initialise parameters.
   call getarg(1, arg)
   read(arg,*) B
@@ -133,8 +137,80 @@ write(*,*) 'L**2 = ', L**2
 
 spin = 0
 call ssht_test_gen_flm_complex(L, flm2_orig, seed)
+
+! Write to file.
+fileid = 51
+open(unit=fileid, file='flms.txt', status='new', action='write', &
+     form='formatted')
+do ind = 0,L**2 - 1
+   write(fileid,'(2e25.15)') real(flm2_orig(ind)), aimag(flm2_orig(ind))
+end do
+close(fileid)
+
+flm2_orig(0:L**2-1) = cmplx(0d0, 0d0)
+
+! Open file
+open(fileid, file='flms.txt', &
+     form='formatted', status='old')
+
+! Allocate space...
+
+! Read values.
+do ind = 0,L**2 - 1
+   read(fileid,'(2e25.15)') re, im
+   flm2_orig(ind) = cmplx(re,im)
+end do
+
+! Close file
+close(fileid)
+
+
+
+
+
+
 !call ssht_core_dh_inverse_direct_factored(f_dh, flm2_orig, L, spin)
 call ssht_core_dh_inverse_sov(f_dh, flm2_orig, L, spin)
+
+
+! Write to file.
+
+
+fileid = 51
+open(unit=fileid, file='f.txt', status='new', action='write', &
+     form='formatted')
+do t = 0, 2*L-1
+   do p = 0, 2*L-2        
+      write(fileid,'(2e25.15)') real(f_dh(t,p)), aimag(f_dh(t,p))
+   end do
+end do
+close(fileid)
+
+
+
+! Open file
+open(fileid, file='f.txt', &
+     form='formatted', status='old')
+
+! Allocate space...
+
+! Read values.
+do t = 0, 2*L-1
+   do p = 0, 2*L-2   
+      read(fileid,'(2e25.15)') re, im
+!write(*,*) re
+      f_dh(t,p) = cmplx(re,im)
+   end do
+end do
+
+
+! Close file
+close(fileid)
+
+
+
+
+
 call ssht_core_dh_forward_sov(flm2_syn, f_dh, L, spin)
 
 write(*,'(a,e43.5)') 'HERE IT IS, MAXERR: ', maxval(abs(flm2_orig(0:L**2-1) - flm2_syn(0:L**2-1)))
