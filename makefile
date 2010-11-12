@@ -13,7 +13,13 @@ OPT = $(OPTF95) -m64
 
 # ======== LINKS ========
 
-PROGDIR = /Users/mcewen/src
+UNAME := $(shell uname)
+ifeq ($(UNAME), Linux)
+  PROGDIR = ..
+endif
+ifeq ($(UNAME), Darwin)
+  PROGDIR = /Users/mcewen/src
+endif
 
 SSHTDIR  = $(PROGDIR)/ssht
 SSHTLIB  = $(SSHTDIR)/lib
