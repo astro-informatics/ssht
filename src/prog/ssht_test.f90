@@ -133,11 +133,14 @@ write(*,*) 'L**2 = ', L**2
   do i_repeat = 0,N_repeat-1
 
      ! Generate harmonic coefficients of random test signal.
-     call ssht_test_gen_flm(B-1, flm_orig, seed)
+!     call ssht_test_gen_flm(B-1, flm_orig, seed)
 
-spin = 0
-call ssht_test_gen_flm_complex(L, flm2_orig, seed)
-!call ssht_core_dh_inverse_direct_factored(f_dh, flm2_orig, L, spin)
+spin = 1
+flm2_orig(0:L**2-1) = cmplx(0d0, 0d0)
+flm2_syn(0:L**2-1) = cmplx(0d0, 0d0)
+f_dh(0:2*L-1, 0:2*L-2) = cmplx(0d0, 0d0)
+call ssht_test_gen_flm_complex(L, spin, flm2_orig, seed)
+!call ssht_core_dh_inverse_direct(f_dh, flm2_orig, L, spin)
 call ssht_core_dh_inverse_sov(f_dh, flm2_orig, L, spin)
 call ssht_core_dh_forward_sov(flm2_syn, f_dh, L, spin)
 
@@ -145,19 +148,20 @@ write(*,'(a,e43.5)') 'HERE IT IS, MAXERR: ', maxval(abs(flm2_orig(0:L**2-1) - fl
 
 flm2_orig(0:L**2-1) = cmplx(0d0, 0d0)
 flm2_syn(0:L**2-1) = cmplx(0d0, 0d0)
-!call ssht_test_gen_flm_complex(L, flm2_orig, seed)
-!call ssht_core_mw_inverse_direct(f_mw, flm2_orig, L, spin)
-!call ssht_core_mw_forward_direct(flm2_syn, f_mw, L, spin)
+call ssht_test_gen_flm_complex(L, spin, flm2_orig, seed)
+call ssht_core_hw_inverse_direct(f_mw, flm2_orig, L, spin)
+call ssht_core_hw_forward_direct(flm2_syn, f_mw, L, spin)
 
 write(*,'(a,e43.5)') 'HERE IT IS, MAXERR: ', maxval(abs(flm2_orig(0:L**2-1) - flm2_syn(0:L**2-1)))
 
 flm2_orig(0:L**2-1) = cmplx(0d0, 0d0)
 flm2_syn(0:L**2-1) = cmplx(0d0, 0d0)
-call ssht_test_gen_flm_complex(L, flm2_orig, seed)
+call ssht_test_gen_flm_complex(L, spin, flm2_orig(0:L**2-1), seed)
 !call ssht_core_mweo_inverse_direct(f_mweo, flm2_orig, L, spin)
 !call ssht_core_mweo_inverse_sov_direct(f_mweo, flm2_orig, L, spin)
-call ssht_core_mweo_inverse_sov(f_mweo, flm2_orig, L, spin)
+call ssht_core_mweo_inverse_sov(f_mweo(0:L-1, 0:2*L-2), flm2_orig(0:L**2-1), L, spin)
 call ssht_core_mweo_forward_sov_conv(flm2_syn, f_mweo, L, spin)
+!call ssht_core_mw_forward_direct(flm2_syn(0:L**2-1), f_mweo(0:L-1, 0:2*L-2), L, spin)
 
 write(*,'(a,e43.5)') 'HERE IT IS, MAXERR: ', maxval(abs(flm2_orig(0:L**2-1) - flm2_syn(0:L**2-1)))
 
@@ -171,7 +175,7 @@ write(*,'(a,e43.5)') 'HERE IT IS, MAXERR: ', maxval(abs(flm2_orig(0:L**2-1) - fl
 !!$   write(*,'(a,2f10.5)') 'flm_syn ', flm2_syn(ind)
 !!$end do
 
-deallocate(flm2_orig, flm2_syn, f_dh, f_mw, f_mweo)
+!deallocate(flm2_orig, flm2_syn, f_dh, f_mw, f_mweo)
 
 
      ! Compute kernels, scaling function and directionality coefficients.
@@ -196,8 +200,8 @@ deallocate(flm2_orig, flm2_syn, f_dh, f_mw, f_mweo)
      ! Compute wavelet and scaling coefficients.
      write(*,'(a,i2)') 'Analysis no.', i_repeat
      call cpu_time(time_start)
-     call ssht_core_analysis_flm2wav_dynamic(wavdyn, scoeff, flm_orig, K_gamma, Slm, &
-          J, B, N, bl_scoeff, alpha)
+     !call ssht_core_analysis_flm2wav_dynamic(wavdyn, scoeff, flm_orig, K_gamma, Slm, &
+     !     J, B, N, bl_scoeff, alpha)
      !		call ssht_core_analysis_flm2wav(wav, scoeff, flm_orig, K_gamma, Slm, &
      !			J, B, N, bl_scoeff, alpha)
      call cpu_time(time_end)
@@ -208,8 +212,8 @@ deallocate(flm2_orig, flm2_syn, f_dh, f_mw, f_mweo)
      ! coefficients.
      write(*,'(a,i2)') 'Synthesis no.', i_repeat
      call cpu_time(time_start)
-     call ssht_core_synthesis_wav2flm_dynamic(flm_syn, wavdyn, scoeff, K_gamma, Phi2, &
-          Slm, J, B, N, bl_scoeff, alpha)
+     !call ssht_core_synthesis_wav2flm_dynamic(flm_syn, wavdyn, scoeff, K_gamma, Phi2, &
+     !     Slm, J, B, N, bl_scoeff, alpha)
      !		call ssht_core_synthesis_wav2flm(flm_syn, wav, scoeff, K_gamma, Phi2, &
      !				Slm, J, B, N, bl_scoeff, alpha)
      call cpu_time(time_end)
@@ -307,9 +311,10 @@ subroutine ssht_test_gen_flm(L, flm, seed)
 end subroutine ssht_test_gen_flm
 
 
-subroutine ssht_test_gen_flm_complex(L, flm, seed)
+subroutine ssht_test_gen_flm_complex(L, spin, flm, seed)
 
   use ssht_types_mod, only: dpc
+  use ssht_core_mod
 
   implicit none
 
@@ -322,15 +327,20 @@ subroutine ssht_test_gen_flm_complex(L, flm, seed)
   end interface
 
   integer, intent(in) :: L
+  integer, intent(in) :: spin
   complex(dpc), intent(out) :: flm(0:L**2-1)
   integer, intent(in) :: seed
 
-  integer :: ind
+  integer :: ind, ind_lo, el, m
 
   flm(0:L**2-1) = 0d0
 
+  !call ssht_core_elm2ind(ind_lo, abs(spin), 0)
   do ind = 0,L**2 - 1
-     flm(ind) = cmplx(2d0*ran2_dp(seed)-1d0, 2d0*ran2_dp(seed)-1d0)
+     call ssht_core_ind2elm(el, m, ind)  
+     if(el >= abs(spin)) then
+        flm(ind) = cmplx(2d0*ran2_dp(seed)-1d0, 2d0*ran2_dp(seed)-1d0)
+     end if
   end do
 
 end subroutine ssht_test_gen_flm_complex

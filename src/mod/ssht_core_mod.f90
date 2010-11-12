@@ -41,13 +41,14 @@ module ssht_core_mod
        ssht_core_dh_inverse_sov_direct, ssht_core_dh_inverse_sov, &
        ssht_core_dh_forward_sov_direct, &
        ssht_core_dh_forward_sov, &
-       ssht_core_mw_inverse_direct, &
-       ssht_core_mw_forward_direct, &
+       ssht_core_hw_inverse_direct, &
+       ssht_core_hw_forward_direct, &
        ssht_core_mweo_inverse_direct, ssht_core_mweo_inverse_sov_direct, &
        ssht_core_mweo_inverse_sov, &
        ssht_core_mweo_forward_sov_direct, &
        ssht_core_mweo_forward_sov, &
-       ssht_core_mweo_forward_sov_conv
+       ssht_core_mweo_forward_sov_conv, &
+       ssht_core_mw_forward_direct
 
 
   !---------------------------------------
@@ -217,8 +218,10 @@ contains
 
     integer :: el, m, t, p, ind
     real(dp) :: theta, phi
-    real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
-          
+    real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)          
+
+write(*,*) 'spin = ', spin
+
     f(0:2*L-1 ,0:2*L-2) = 0d0
     do el = 0, L-1
        do t = 0, 2*L-1
@@ -378,6 +381,10 @@ contains
     complex(dpc) :: fmt(-(L-1):L-1, 0:2*L-1)
     integer*8 :: fftw_plan
 
+
+write(*,*) 'spin = ', spin
+write(*,*) 'DH inverse_sov'
+
     ! Compute Fmm.
     Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
     do el = 0, L-1
@@ -425,7 +432,7 @@ contains
 
 
 
-  subroutine ssht_core_mw_inverse_direct(f, flm, L, spin)
+  subroutine ssht_core_hw_inverse_direct(f, flm, L, spin)
     
     integer, intent(in) :: L
     integer, intent(in) :: spin
@@ -455,7 +462,7 @@ contains
        end do
     end do
 
-  end subroutine ssht_core_mw_inverse_direct
+  end subroutine ssht_core_hw_inverse_direct
 
 
 
@@ -706,6 +713,9 @@ contains
     integer*8 :: fftw_plan
     complex(dpc) :: tmp(0:2*L-2)
 
+write(*,*) 'spin = ', spin
+write(*,*) 'DH forward_sov'
+
     ! Compute fmt using FFT.     
     call dfftw_plan_dft_1d(fftw_plan, 2*L-1, fmt(-(L-1):L-1,0), &
          fmt(-(L-1):L-1,0), FFTW_FORWARD, FFTW_MEASURE)
@@ -757,7 +767,7 @@ contains
 
 
 
-  subroutine ssht_core_mw_forward_direct(flm, f, L, spin)
+  subroutine ssht_core_hw_forward_direct(flm, f, L, spin)
 
     integer, intent(in) :: L
     integer, intent(in) :: spin
@@ -838,8 +848,84 @@ contains
        end do
     end do
 
-  end subroutine ssht_core_mw_forward_direct
+  end subroutine ssht_core_hw_forward_direct
 
+
+
+  subroutine ssht_core_mw_forward_direct(flm, f, L, spin)
+
+    integer, intent(in) :: L
+    integer, intent(in) :: spin
+    complex(dpc), intent(in) :: f(0:L-1 ,0:2*L-2)
+    complex(dpc), intent(out) :: flm(0:L**2-1)
+
+    integer :: p, m, t, mm, el, ind, k
+    real(dp) :: theta, phi
+
+    real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
+    complex(dpc) :: Fmt(-(L-1):L-1, 0:2*L-2)
+    complex(dpc) :: Fmm(-(L-1):L-1, -(L-1):L-1)
+    complex(dpc) :: Gmm(-(L-1):L-1, -(L-1):L-1) 
+
+    ! Compute Fourier transform over phi, i.e. compute Fmt.
+    Fmt(-(L-1):L-1,0:2*L-2) = cmplx(0d0, 0d0)    
+    do p = 0, 2*L-2
+       phi = ssht_core_mweo_p2phi(p, L)
+       do t = 0, L-1
+          do m = -(L-1), L-1
+             Fmt(m,t) = Fmt(m,t) + &
+                  f(t,p) * exp(-I*m*phi)
+          end do
+       end do
+    end do
+    Fmt(-(L-1):L-1,0:2*L-2) = Fmt(-(L-1):L-1,0:2*L-2) / (2d0*L-1d0)
+
+    ! Extend Fmt periodically.
+    do m = -(L-1), L-1
+       Fmt(m, L:2*L-2) = (-1)**(m+spin) * Fmt(m, L-2:0:-1)
+    end do
+
+    ! Compute Fmm.
+    Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
+    do t = 0, 2*L-2
+       theta = ssht_core_mw_t2theta(t, L)    
+       do m = -(L-1), L-1
+          do mm = -(L-1), L-1
+             Fmm(m,mm) = Fmm(m,mm) + &
+                  Fmt(m,t) * exp(-I*mm*theta)
+          end do
+       end do
+    end do
+    Fmm(-(L-1):L-1, -(L-1):L-1) = Fmm(-(L-1):L-1, -(L-1):L-1) / (2d0*L-1d0)
+
+    ! Compute Gmm by direct convolution.
+    Gmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
+    do m = -(L-1), L-1
+       do mm = -(L-1), L-1
+          do k = -(L-1), L-1 
+             Gmm(m,mm) = Gmm(m,mm) + &
+                  Fmm(m,k) * weight_mw(k - mm) * 2d0 * PI
+          end do
+       end do
+    end do
+
+    ! Compute flm.
+    flm = 0
+     do el = 0, L-1
+       call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+       do m = -el, el
+          call ssht_core_elm2ind(ind, el, m)
+          do mm = -el, el             
+             flm(ind) = flm(ind) + &
+                  (-1)**spin * sqrt((2d0*el+1d0)/(4d0*PI)) &
+                  * exp(I*PION2*(m+spin)) &
+                  * dl(mm,m) * dl(mm,-spin) &
+                  * Gmm(m,mm)
+          end do
+       end do
+    end do
+
+  end subroutine ssht_core_mw_forward_direct
 
 
   subroutine ssht_core_mweo_forward_sov_direct(flm, f, L, spin)

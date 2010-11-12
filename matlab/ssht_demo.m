@@ -11,8 +11,8 @@ function ssht_demo
 
 
 % Define size parameters.
-spin = 0;
-L = 4;
+spin = 2;
+L = 64;
 nphi = 2*L - 1;
 ntheta_dh = 2*L;
 ntheta_mw = L;
@@ -21,6 +21,8 @@ ntheta_mw = L;
 flm = zeros(L^2,1);
 flm = rand(size(flm)) + sqrt(-1)*rand(size(flm));
 flm = 2.*(flm - (1+sqrt(-1))./2);
+ind_min = spin^2 + spin;
+flm(1:ind_min) = 0;
 
 % Measure error of inverse-forward transform for DH.
 f_dh = ssht_inverse(flm, 'DH', L, spin);
@@ -31,6 +33,8 @@ maxerr_dh = max(abs(flm - flm_dh_syn))
 f_mw = ssht_inverse(flm, 'MW', L, spin);
 flm_mw_syn = ssht_forward(f_mw, 'MW', L, spin);
 maxerr_mw = max(abs(flm - flm_mw_syn))
+
+return;
 
 % Define sample points.
 t_dh = 0:ntheta_dh-1;
@@ -55,7 +59,7 @@ f_save = [real(f), imag(f)];
 save('f.txt', 'f_save', '-ascii', '-double');
 
 cmd = sprintf('%s%s%s%s%s%s', ...
-   './ssht_forward -inp f.txt -out flm.txt -method ', ...
+   '../bin/ssht_forward -inp f.txt -out flm.txt -method ', ...
    method(1:2), ' -L ', num2str(L), ' -spin ', num2str(spin));
 system(cmd);
 
@@ -72,7 +76,7 @@ flm_save = [real(flm), imag(flm)];
 save('flm.txt', 'flm_save', '-ascii', '-double');
 
 cmd = sprintf('%s%s%s%s%s%s', ...
-   './ssht_inverse -inp flm.txt -out f.txt -method ', ...
+   '../bin/ssht_inverse -inp flm.txt -out f.txt -method ', ...
    method(1:2), ' -L ', num2str(L), ' -spin ', num2str(spin));
 system(cmd);
 
