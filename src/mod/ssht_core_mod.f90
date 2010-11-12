@@ -222,8 +222,8 @@ contains
 
 write(*,*) 'spin = ', spin
 
-    f(0:2*L-1 ,0:2*L-2) = 0d0
-    do el = 0, L-1
+    f(0:2*L-1 ,0:2*L-2) = cmplx(0d0, 0d0)
+    do el = abs(spin), L-1
        do t = 0, 2*L-1
           theta = ssht_core_dh_t2theta(t, L)             
           call ssht_dl_beta_operator(dl(-el:el,-el:el), theta, el)
@@ -285,8 +285,8 @@ write(*,*) 'spin = ', spin
     real(dp) :: theta, phi
     real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
           
-    f(0:2*L-1 ,0:2*L-2) = 0d0
-    do el = 0, L-1
+    f(0:2*L-1 ,0:2*L-2) = cmplx(0d0, 0d0)
+    do el = abs(spin), L-1
        call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
        do m = -el, el
           call ssht_core_elm2ind(ind, el, m)
@@ -326,7 +326,7 @@ write(*,*) 'spin = ', spin
 
     ! Compute Fmm.
     Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
-    do el = 0, L-1
+    do el = abs(spin), L-1
        call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
        do m = -el, el
           call ssht_core_elm2ind(ind, el, m)
@@ -353,7 +353,7 @@ write(*,*) 'spin = ', spin
     end do
 
     ! Compute f.
-    f(0:2*L-1 ,0:2*L-2) = 0d0
+    f(0:2*L-1 ,0:2*L-2) = cmplx(0d0, 0d0)
     do t = 0, 2*L-1       
        do p = 0, 2*L-2
           phi = ssht_core_dh_p2phi(p, L)
@@ -387,7 +387,7 @@ write(*,*) 'DH inverse_sov'
 
     ! Compute Fmm.
     Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
-    do el = 0, L-1
+    do el = abs(spin), L-1
        call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
        do m = -el, el
           call ssht_core_elm2ind(ind, el, m)
@@ -414,7 +414,7 @@ write(*,*) 'DH inverse_sov'
     end do
 
     ! Compute f using FFT.
-    f(0:2*L-1 ,0:2*L-2) = 0d0
+    f(0:2*L-1 ,0:2*L-2) = cmplx(0d0, 0d0)
     call dfftw_plan_dft_1d(fftw_plan, 2*L-1, f(0,0:2*L-2), &
          f(0,0:2*L-2), FFTW_BACKWARD, FFTW_MEASURE)
     do t = 0, 2*L-1       
@@ -443,8 +443,8 @@ write(*,*) 'DH inverse_sov'
     real(dp) :: theta, phi
     real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
           
-    f(0:2*L-1 ,0:2*L-2) = 0d0
-    do el = 0, L-1
+    f(0:2*L-1 ,0:2*L-2) = cmplx(0d0, 0d0)
+    do el = abs(spin), L-1
        do t = 0, L-1
           theta = ssht_core_mw_t2theta(t, L)             
           call ssht_dl_beta_operator(dl(-el:el,-el:el), theta, el)
@@ -479,8 +479,8 @@ write(*,*) 'DH inverse_sov'
     real(dp) :: theta, phi
     real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
           
-    f(0:2*L-1 ,0:2*L-2) = 0d0
-    do el = 0, L-1
+    f(0:2*L-1 ,0:2*L-2) = cmplx(0d0, 0d0)
+    do el = abs(spin), L-1
        do t = 0, L-1
           theta = ssht_core_mw_t2theta(t, L)             
           call ssht_dl_beta_operator(dl(-el:el,-el:el), theta, el)
@@ -519,7 +519,7 @@ write(*,*) 'DH inverse_sov'
 
     ! Compute Fmm.
     Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
-    do el = 0, L-1
+    do el = abs(spin), L-1
        call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
        do m = -el, el
           call ssht_core_elm2ind(ind, el, m)
@@ -571,7 +571,7 @@ write(*,*) 'DH inverse_sov'
 
     ! Compute Fmm.
     Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
-    do el = 0, L-1
+    do el = abs(spin), L-1
        call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
        do m = -el, el
           call ssht_core_elm2ind(ind, el, m)
@@ -679,8 +679,8 @@ write(*,*) 'DH inverse_sov'
     end do
 
     ! Compute flm.
-    flm = 0
-     do el = 0, L-1
+    flm(0::L**2-1) = cmplx(0d0, 0d0)
+    do el = abs(spin), L-1
        call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
        do m = -el, el
           call ssht_core_elm2ind(ind, el, m)
@@ -745,8 +745,8 @@ write(*,*) 'DH forward_sov'
     end do
 
     ! Compute flm.
-    flm = 0
-     do el = 0, L-1
+    flm(0::L**2-1) = cmplx(0d0, 0d0)
+    do el = abs(spin), L-1
        call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
        do m = -el, el
           call ssht_core_elm2ind(ind, el, m)
@@ -833,8 +833,8 @@ write(*,*) 'DH forward_sov'
     end do
 
     ! Compute flm.
-    flm = 0
-     do el = 0, L-1
+    flm(0::L**2-1) = cmplx(0d0, 0d0)
+    do el = 0, L-1
        call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
        do m = -el, el
           call ssht_core_elm2ind(ind, el, m)
@@ -910,8 +910,8 @@ write(*,*) 'DH forward_sov'
     end do
 
     ! Compute flm.
-    flm = 0
-     do el = 0, L-1
+    flm(0::L**2-1) = cmplx(0d0, 0d0)
+    do el = abs(spin), L-1
        call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
        do m = -el, el
           call ssht_core_elm2ind(ind, el, m)
@@ -993,8 +993,8 @@ write(*,*) 'DH forward_sov'
     end do
 
     ! Compute flm.
-    flm = 0
-     do el = 0, L-1
+    flm(0::L**2-1) = cmplx(0d0, 0d0)
+    do el = abs(spin), L-1
        call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
        do m = -el, el
           call ssht_core_elm2ind(ind, el, m)
@@ -1112,8 +1112,8 @@ write(*,*) 'DH forward_sov'
     end do
 
     ! Compute flm.
-    flm = 0
-     do el = 0, L-1
+    flm(0::L**2-1) = cmplx(0d0, 0d0)
+    do el = abs(spin), L-1
        call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
        do m = -el, el
           call ssht_core_elm2ind(ind, el, m)
@@ -1243,9 +1243,9 @@ write(*,*) 'DH forward_sov'
     do m = -(L-1), L-1
 
        ! Zero-pad Fmme.
-       Fmme_pad(-2*(L-1):-L) = 0d0
+       Fmme_pad(-2*(L-1):-L) = cmplx(0d0, 0d0)
        Fmme_pad(-(L-1):L-1) = Fmme(m,-(L-1):L-1)
-       Fmme_pad(L:2*(L-1)) = 0d0
+       Fmme_pad(L:2*(L-1)) = cmplx(0d0, 0d0)
 
        ! Compute IFFT of Fmme (Fmmo used for temporary storage).
        Fmmo_pad(1:2*(L-1)) = Fmme_pad(-2*(L-1):-1)
@@ -1278,9 +1278,9 @@ write(*,*) 'DH forward_sov'
        ! Repeat for odd signal...
 
        ! Zero-pad Fmmo.
-       Fmmo_pad(-2*(L-1):-L) = 0d0
+       Fmmo_pad(-2*(L-1):-L) = cmplx(0d0, 0d0)
        Fmmo_pad(-(L-1):L-1) = Fmmo(m,-(L-1):L-1)
-       Fmmo_pad(L:2*(L-1)) = 0d0
+       Fmmo_pad(L:2*(L-1)) = cmplx(0d0, 0d0)
 
        ! Compute IFFT of Fmmo (Fmme used for temporary storage).
        Fmme_pad(1:2*(L-1)) = Fmmo_pad(-2*(L-1):-1)
@@ -1315,8 +1315,8 @@ write(*,*) 'DH forward_sov'
     call dfftw_destroy_plan(fftw_plan_fwd)    
 
     ! Compute flm.
-    flm = 0
-     do el = 0, L-1
+    flm(0::L**2-1) = cmplx(0d0, 0d0)
+    do el = abs(spin), L-1
        call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
        do m = -el, el
           call ssht_core_elm2ind(ind, el, m)
@@ -1418,7 +1418,7 @@ write(*,*) 'DH forward_sov'
           if(jj>=1) then
              Phi2_diff = Phi2_all(jj-1,el) - Phi2_all(jj,el)
              if(Phi2_diff < 0d0) then ! Due to numerical precision
-                K_gamma(jj-1,el) = 0d0
+                K_gamma(jj-1,el) = cmplx(0d0, 0d0)
              else
                 K_gamma(jj-1,el) = sqrt(Phi2_diff)
              end if
