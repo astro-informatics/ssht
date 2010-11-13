@@ -11,30 +11,11 @@ function ssht_demo
 
 
 % Define size parameters.
-spin = 2;
-L = 64;
+spin = -4;
+L = 16;
 nphi = 2*L - 1;
 ntheta_dh = 2*L;
 ntheta_mw = L;
-
-% Random flms.
-flm = zeros(L^2,1);
-flm = rand(size(flm)) + sqrt(-1)*rand(size(flm));
-flm = 2.*(flm - (1+sqrt(-1))./2);
-ind_min = spin^2 + spin;
-flm(1:ind_min) = 0;
-
-% Measure error of inverse-forward transform for DH.
-f_dh = ssht_inverse(flm, 'DH', L, spin);
-flm_dh_syn = ssht_forward(f_dh, 'DH', L, spin);
-maxerr_dh = max(abs(flm - flm_dh_syn))
-
-% Measure error of inverse-forward transform for MW.
-f_mw = ssht_inverse(flm, 'MW', L, spin);
-flm_mw_syn = ssht_forward(f_mw, 'MW', L, spin);
-maxerr_mw = max(abs(flm - flm_mw_syn))
-
-return;
 
 % Define sample points.
 t_dh = 0:ntheta_dh-1;
@@ -45,11 +26,34 @@ p = 0:nphi-1;
 phi_dh = 2d0*p*pi / (2d0*L - 1d0)
 phi_mw = (2d0*p+1d0)*pi / (2d0*L - 1d0)
 
+% Random flms.
+flm = zeros(L^2,1);
+flm = rand(size(flm)) + sqrt(-1)*rand(size(flm));
+flm = 2.*(flm - (1+sqrt(-1))./2);
+ind_min = spin^2 + abs(spin);
+flm(1:ind_min) = 0;
+
+% Measure error of inverse-forward transform for DH.
+f_dh = ssht_inverse(flm, 'DH', L, spin);
+flm_dh_syn = ssht_forward(f_dh, 'DH', L, spin);
+maxerr_dh = max(abs(flm - flm_dh_syn))
+
+% Measure error of inverse-forward transform for MW.
+f_mw = ssht_inverse(flm, 'MW', L, spin);
+f_mw_grid = reshape(f_mw, nphi, ntheta_mw);
+f_mw_grid(:,end) = f_mw_grid(1,end).*exp(sqrt(-1)*spin*phi_mw).* ...
+   exp(sqrt(-1)*(-1d0)*pi / (2d0*L - 1d0)*spin);
+f_mw = f_mw_grid(:);
+flm_mw_syn = ssht_forward(f_mw, 'MW', L, spin);
+maxerr_mw = max(abs(flm - flm_mw_syn))
+
 % Define sample points and function values on grids.
 f_dh_grid = reshape(f_dh, nphi, ntheta_dh)
 [theta_dh_grid, phi_dh_grid] = meshgrid(theta_dh, phi_dh)
 f_mw_grid = reshape(f_mw, nphi, ntheta_mw)
 [theta_mw_grid, phi_mw_grid] = meshgrid(theta_mw, phi_mw)
+
+keyboard;
 
 
 function flm = ssht_forward(f, method, L, spin)
