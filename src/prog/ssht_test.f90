@@ -62,7 +62,8 @@ program ssht_test
   ! Initialise parameters.
   call getarg(1, arg)
   read(arg,*) L
-  spin = 3  
+  call getarg(2, arg)
+  read(arg,*) spin
   seed = 1
 
   ! Allocate memory.
@@ -84,7 +85,7 @@ program ssht_test
 
   write(*,*)
   write(*,'(a)') 'SSHT test program'
-  write(*,'(a)') '================'
+  write(*,'(a)') '================='
   write(*,*)
 
 
@@ -152,10 +153,20 @@ write(*,*) 'L**2 = ', L**2
      !call ssht_core_mweo_inverse_sov_direct(f_mweo, flm2_orig, L, spin)
      call ssht_core_mweo_inverse_sov(f_mweo(0:L-1, 0:2*L-2), flm_orig(0:L**2-1), L, spin)
      call ssht_core_mweo_forward_sov_conv(flm_syn, f_mweo, L, spin)
-     !call ssht_core_mw_forward_direct(flm2_syn(0:L**2-1), f_mweo(0:L-1, 0:2*L-2), L, spin)
+     !call ssht_core_mw_forward_direct(flm_syn, f_mweo, L, spin)
 
      write(*,'(a,e43.5)') 'HERE IT IS, MAXERR: ', maxval(abs(flm_orig(0:L**2-1) - flm_syn(0:L**2-1)))
 
+     flm_orig(0:L**2-1) = cmplx(0d0, 0d0)
+     flm_syn(0:L**2-1) = cmplx(0d0, 0d0)
+     call ssht_test_gen_flm_complex(L, spin, flm_orig(0:L**2-1), seed)
+     !call ssht_core_mweo_inverse_direct(f_mweo, flm2_orig, L, spin)
+     !call ssht_core_mweo_inverse_sov_direct(f_mweo, flm2_orig, L, spin)
+     call ssht_core_mw_inverse_sov_direct(f_mweo(0:L-1, 0:2*L-2), flm_orig(0:L**2-1), L, spin)
+     !call ssht_core_mweo_forward_sov_conv(flm_syn, f_mweo, L, spin)
+     call ssht_core_mw_forward_direct(flm_syn, f_mweo, L, spin)
+
+     write(*,'(a,e43.5)') 'HERE IT IS, MAXERR: ', maxval(abs(flm_orig(0:L**2-1) - flm_syn(0:L**2-1)))
 
 
 

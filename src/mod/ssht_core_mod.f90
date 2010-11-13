@@ -1,6 +1,10 @@
 !------------------------------------------------------------------------------
 ! ssht_core_mod  -- SSHT library core class
 ! 
+
+
+
+
 !! Functionality to perform scale discretised wavelet transform on the sphere.
 !
 !! @author J. D. McEwen (mcewen@mrao.cam.ac.uk)
@@ -48,7 +52,8 @@ module ssht_core_mod
        ssht_core_mweo_forward_sov_direct, &
        ssht_core_mweo_forward_sov, &
        ssht_core_mweo_forward_sov_conv, &
-       ssht_core_mw_forward_direct
+       ssht_core_mw_forward_direct, &
+       ssht_core_mw_inverse_sov_direct
 
 
   !---------------------------------------
@@ -75,13 +80,29 @@ module ssht_core_mod
 contains
 
 
-
   !--------------------------------------------------------------------------
   ! Sampling relations
   !--------------------------------------------------------------------------
 
 
-  ! t in [0 .. 2*L - 1] => 2L points
+  !--------------------------------------------------------------------------
+  ! ssht_core_dh_t2theta
+  !
+  !! Covert theta index to angle for Driscoll and Healy sampling.
+  !!
+  !! Notes:
+  !!  - t ranges from [0 .. 2*L-1] => 2*L points in (0,pi).
+  !!
+  !! Variables:
+  !!  - t: Theta index [input].
+  !!  - theta: Theta angle [output].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !--------------------------------------------------------------------------
+  
   function ssht_core_dh_t2theta(t, L) result (theta)
 
     integer, intent(in) :: t
@@ -92,7 +113,25 @@ contains
 
   end function ssht_core_dh_t2theta
 
-  ! p in [0 .. 2*L - 2] => 2*L - 1 points
+
+  !--------------------------------------------------------------------------
+  ! ssht_core_dh_p2phi
+  !
+  !! Covert phi index to angle for Driscoll and Healy sampling.
+  !!
+  !! Notes:
+  !!  - p ranges from [0 .. 2*L-2] => 2*L-1 points in [0,2*pi).
+  !!
+  !! Variables:
+  !!  - p: Phi index [input].
+  !!  - phi: Phi angle [output].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !--------------------------------------------------------------------------
+  
   function ssht_core_dh_p2phi(p, L) result (phi)
 
     integer, intent(in) :: p
@@ -104,7 +143,24 @@ contains
   end function ssht_core_dh_p2phi
 
 
-  ! t in [0 .. 2*L - 2] => 2L - 1 points
+  !--------------------------------------------------------------------------
+  ! ssht_core_mw_t2theta
+  !
+  !! Covert theta index to angle for McEwen and Wiaux sampling.
+  !!
+  !! Notes:
+  !!  - t ranges from [0 .. 2*L-2] => 2*L-1 points in (0,2*pi).
+  !!
+  !! Variables:
+  !!  - t: Theta index [input].
+  !!  - theta: Theta angle [output].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !--------------------------------------------------------------------------
+ 
   function ssht_core_mw_t2theta(t, L) result (theta)
 
     integer, intent(in) :: t
@@ -115,19 +171,54 @@ contains
 
   end function ssht_core_mw_t2theta
 
-  ! p in [0 .. 2*L - 1] => 2L points
+
+  !--------------------------------------------------------------------------
+  ! ssht_core_mw_p2phi
+  !
+  !! Covert phi index to angle for McEwen and Wiaux sampling.
+  !!
+  !! Notes:
+  !!  - p ranges from [0 .. 2*L-2] => 2*L-1 points in [0,2*pi).
+  !!
+  !! Variables:
+  !!  - p: Phi index [input].
+  !!  - phi: Phi angle [output].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !--------------------------------------------------------------------------
+
   function ssht_core_mw_p2phi(p, L) result (phi)
 
     integer, intent(in) :: p
     integer, intent(in) :: L
     real(dp) :: phi
 
-    phi = 2d0*p*PI / (2d0*L)
+    phi = 2d0*p*PI / (2d0*L - 1d0)	
 
   end function ssht_core_mw_p2phi
 
 
-  ! t in [0 .. 2*L - 2] => 2L - 1 points
+  !--------------------------------------------------------------------------
+  ! ssht_core_mweo_t2theta
+  !
+  !! Covert theta index to angle for McEwen and Wiaux even-odd sampling.
+  !!
+  !! Notes:
+  !!  - t ranges from [0 .. 2*L-2] => 2*L-1 points in (0,2*pi).
+  !!
+  !! Variables:
+  !!  - t: Theta index [input].
+  !!  - theta: Theta angle [output].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !--------------------------------------------------------------------------
+
   function ssht_core_mweo_t2theta(t, L) result (theta)
 
     integer, intent(in) :: t
@@ -139,7 +230,24 @@ contains
   end function ssht_core_mweo_t2theta
 
 
-  ! p in [0 .. 2*L - 2] => 2L - 1 points
+  !--------------------------------------------------------------------------
+  ! ssht_core_mweo_p2phi
+  !
+  !! Covert phi index to angle for McEwen and Wiaux even-odd sampling.
+  !!
+  !! Notes:
+  !!  - p ranges from [0 .. 2*L-2] => 2*L-1 points in (0,2*pi).
+  !!
+  !! Variables:
+  !!  - p: Phi index [input].
+  !!  - phi: Phi angle [output].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !--------------------------------------------------------------------------
+
   function ssht_core_mweo_p2phi(p, L) result (phi)
 
     integer, intent(in) :: p
@@ -151,6 +259,40 @@ contains
   end function ssht_core_mweo_p2phi
 
 
+
+
+
+
+
+
+  ! p in [0 .. 2*L - 1] => 2L points
+  function ssht_core_hw_p2phi(p, L) result (phi)
+
+    integer, intent(in) :: p
+    integer, intent(in) :: L
+    real(dp) :: phi
+
+    phi = 2d0*p*PI / (2d0*L)
+
+  end function ssht_core_hw_p2phi
+
+
+  function ssht_core_hw_t2theta(t, L) result (theta)
+
+    integer, intent(in) :: t
+    integer, intent(in) :: L
+    real(dp) :: theta
+
+    theta = (2d0*t+1d0)*PI / (2d0*L - 1d0)
+
+  end function ssht_core_hw_t2theta
+
+
+
+
+  !--------------------------------------------------------------------------
+  ! Harmonic index relations
+  !--------------------------------------------------------------------------
 
 
   subroutine ssht_core_elm2ind(ind, el, m)
@@ -446,12 +588,12 @@ write(*,*) 'DH inverse_sov'
     f(0:2*L-1 ,0:2*L-2) = cmplx(0d0, 0d0)
     do el = abs(spin), L-1
        do t = 0, L-1
-          theta = ssht_core_mw_t2theta(t, L)             
+          theta = ssht_core_hw_t2theta(t, L)             
           call ssht_dl_beta_operator(dl(-el:el,-el:el), theta, el)
           do m = -el, el
              call ssht_core_elm2ind(ind, el, m)
              do p = 0, 2*L-1
-                phi = ssht_core_mw_p2phi(p, L)
+                phi = ssht_core_hw_p2phi(p, L)
                 f(t,p) = f(t,p) + &
                      (-1)**spin * sqrt((2d0*el+1d0)/(4d0*PI)) &
                      * exp(I*m*phi) &
@@ -482,7 +624,7 @@ write(*,*) 'DH inverse_sov'
     f(0:2*L-1 ,0:2*L-2) = cmplx(0d0, 0d0)
     do el = abs(spin), L-1
        do t = 0, L-1
-          theta = ssht_core_mw_t2theta(t, L)             
+          theta = ssht_core_mweo_t2theta(t, L)             
           call ssht_dl_beta_operator(dl(-el:el,-el:el), theta, el)
           do m = -el, el
              call ssht_core_elm2ind(ind, el, m)
@@ -627,6 +769,54 @@ write(*,*) 'DH inverse_sov'
 
 
 
+ subroutine ssht_core_mw_inverse_sov_direct(f, flm, L, spin)
+    
+    integer, intent(in) :: L
+    integer, intent(in) :: spin
+    complex(dpc), intent(in) :: flm(0:L**2-1)
+    complex(dpc), intent(out) :: f(0:L-1, 0:2*L-2)
+
+    integer :: el, m, mm, t, p, ind
+    real(dp) :: theta, phi
+    real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
+    complex(dpc) :: Fmm(-(L-1):L-1, -(L-1):L-1)
+    complex(dpc) :: fext(0:2*L-2, 0:2*L-2)
+
+    ! Compute Fmm.
+    Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
+    do el = abs(spin), L-1
+       call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+       do m = -el, el
+          call ssht_core_elm2ind(ind, el, m)
+          do mm = -el, el
+             Fmm(m,mm) = Fmm(m,mm) + &
+                  (-1)**spin * sqrt((2d0*el+1d0)/(4d0*PI)) &
+                  * exp(-I*PION2*(m+spin)) &
+                  * dl(mm,m) * dl(mm,-spin) &
+                  * flm(ind)
+          end do
+       end do
+    end do
+
+    ! Compute fext using 2D DFT.
+    fext(0:2*L-2, 0:2*L-2) = cmplx(0d0, 0d0)
+    do t = 0, 2*L-2     
+       theta = ssht_core_mw_t2theta(t, L)    
+       do p = 0, 2*L-2
+          phi = ssht_core_mw_p2phi(p, L)
+          do m = -(L-1), L-1          
+             do mm = -(L-1), L-1
+                fext(t,p) = fext(t,p) + &
+                     Fmm(m,mm) * exp(I*m*phi + I*mm*theta)
+             end do
+          end do
+       end do
+    end do
+
+    ! Extract f from version of f extended to the torus (fext).
+    f(0:L-1, 0:2*L-2) = fext(0:L-1, 0:2*L-2)
+
+  end subroutine ssht_core_mw_inverse_sov_direct
 
 
 
@@ -795,7 +985,7 @@ write(*,*) 'DH forward_sov'
     ! Extend f to the torus using incorporating all symmetries in 
     ! single extension (requires even number of samples in phi).
     do p = 0, 2*L-1
-       phi = ssht_core_mw_p2phi(p, L)
+       phi = ssht_core_hw_p2phi(p, L)
        do t = 0, L-2
           fext(t, p) = f(t, p)
           p_plus_pi = mod(p + L, 2*L)  ! -- only works if Nphi even!
@@ -807,7 +997,7 @@ write(*,*) 'DH forward_sov'
     ! Compute Fmm.
     Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
     do p = 0, 2*L-1
-       phi = ssht_core_mw_p2phi(p, L)
+       phi = ssht_core_hw_p2phi(p, L)
        do t = 0, 2*L-2
           theta = ssht_core_mw_t2theta(t, L)    
           do m = -(L-1), L-1
@@ -870,7 +1060,7 @@ write(*,*) 'DH forward_sov'
     ! Compute Fourier transform over phi, i.e. compute Fmt.
     Fmt(-(L-1):L-1,0:2*L-2) = cmplx(0d0, 0d0)    
     do p = 0, 2*L-2
-       phi = ssht_core_mweo_p2phi(p, L)
+       phi = ssht_core_mw_p2phi(p, L)
        do t = 0, L-1
           do m = -(L-1), L-1
              Fmt(m,t) = Fmt(m,t) + &
@@ -1052,7 +1242,7 @@ write(*,*) 'DH forward_sov'
 !!$    do p = 0, 2*L-2
 !!$       phi = ssht_core_mweo_p2phi(p, L)
 !!$       do t = 0, 2*L-2
-!!$          theta = ssht_core_mw_t2theta(t, L)   
+!!$          theta = ssht_core_mweo_t2theta(t, L)   
 !!$          fe(t,p) = fe(t,p) * exp(I*(phi+theta)*(L-1))
 !!$          fo(t,p) = fo(t,p) * exp(I*(phi+theta)*(L-1))
 !!$       end do
@@ -1175,7 +1365,7 @@ write(*,*) 'DH forward_sov'
 !!$    do p = 0, 2*L-2
 !!$       phi = ssht_core_mweo_p2phi(p, L)
 !!$       do t = 0, 2*L-2
-!!$          theta = ssht_core_mw_t2theta(t, L)   
+!!$          theta = ssht_core_mweo_t2theta(t, L)   
 !!$          fe(t,p) = fe(t,p) * exp(I*(phi+theta)*(L-1))
 !!$          fo(t,p) = fo(t,p) * exp(I*(phi+theta)*(L-1))
 !!$       end do
