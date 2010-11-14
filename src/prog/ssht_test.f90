@@ -1,6 +1,9 @@
 !------------------------------------------------------------------------------
 ! ssht_test
 !
+
+
+
 !! Performs SSHT transform analysis and synthesis and check that the original 
 !! signal is reconstructed exactly (to numerical precision).  Test is 
 !! performed on a random signal with harmonic coefficients uniformly 
@@ -20,7 +23,7 @@ program ssht_test
   use ssht_types_mod
   use ssht_error_mod
   use ssht_core_mod
-  use ssht_fileio_mod
+!  use ssht_fileio_mod
   !use F90_UNIX_ENV
 
   implicit none
@@ -129,14 +132,6 @@ write(*,*) 'L**2 = ', L**2
 
      write(*,'(a,e43.5)') 'HERE IT IS, MAXERR: ', maxval(abs(flm_orig(0:L**2-1) - flm_syn(0:L**2-1)))
 
-
-!!$do ind = 0,L*2-1
-!!$   write(*,'(a,2f10.5)') 'flm_orig ', flm_orig(ind)
-!!$end do
-!!$write(*,*)
-!!$do ind = 0,L*2-1
-!!$   write(*,'(a,2f10.5)') 'flm_syn ', flm_syn(ind)
-!!$end do
 
      flm_orig(0:L**2-1) = cmplx(0d0, 0d0)
      flm_syn(0:L**2-1) = cmplx(0d0, 0d0)
@@ -251,9 +246,46 @@ end program ssht_test
 !   October 2007 - Jason McEwen
 !--------------------------------------------------------------------------
 
-subroutine ssht_test_gen_flm(L, flm, seed)
+!!$subroutine ssht_test_gen_flm(L, flm, seed)
+!!$
+!!$  use ssht_types_mod, only: dpc
+!!$
+!!$  implicit none
+!!$
+!!$  interface 
+!!$     function ran2_dp(idum)
+!!$       use ssht_types_mod, only: dp
+!!$       real(dp) :: ran2_dp
+!!$       integer :: idum
+!!$     end function ran2_dp
+!!$  end interface
+!!$
+!!$  integer, intent(in) :: L
+!!$  complex(dpc), intent(out) :: flm(0:L,0:L)
+!!$  integer, intent(in) :: seed
+!!$
+!!$  integer :: el, m
+!!$
+!!$  flm(0:L,0:L) = 0d0
+!!$
+!!$  do el = 0,L
+!!$
+!!$     flm(el,0) = cmplx(2d0*ran2_dp(seed)-1d0, 0d0)
+!!$
+!!$     do m = 1,el
+!!$        flm(el,m) = cmplx(2d0*ran2_dp(seed)-1d0, 2d0*ran2_dp(seed)-1d0)
+!!$     end do
+!!$
+!!$  end do
+!!$
+!!$end subroutine ssht_test_gen_flm
+
+
+
+subroutine ssht_test_gen_flm_real(L, flm, seed)
 
   use ssht_types_mod, only: dpc
+  use ssht_core_mod
 
   implicit none
 
@@ -266,24 +298,31 @@ subroutine ssht_test_gen_flm(L, flm, seed)
   end interface
 
   integer, intent(in) :: L
-  complex(dpc), intent(out) :: flm(0:L,0:L)
+  complex(dpc), intent(out) :: flm(0:L**2-1)
   integer, intent(in) :: seed
 
-  integer :: el, m
+  integer :: el, m, ind
+  complex(dpc) :: tmp
 
-  flm(0:L,0:L) = 0d0
+  flm(0:L**2-1) = cmplx(0d0, 0d0)
 
-  do el = 0,L
-
-     flm(el,0) = cmplx(2d0*ran2_dp(seed)-1d0, 0d0)
+  do el = 0,L-1
+     m = 0
+     call ssht_core_ind2elm(el, m, ind)  
+     tmp = cmplx(2d0*ran2_dp(seed)-1d0, 0d0)
+     flm(ind) = tmp
 
      do m = 1,el
-        flm(el,m) = cmplx(2d0*ran2_dp(seed)-1d0, 2d0*ran2_dp(seed)-1d0)
+        call ssht_core_elm2ind(ind, el, m)  
+        tmp = cmplx(2d0*ran2_dp(seed)-1d0, 2d0*ran2_dp(seed)-1d0)
+        flm(ind) = tmp
+        call ssht_core_elm2ind(ind, el, -m)  
+        flm(ind) = (-1)**m * conjg(tmp)
      end do
 
   end do
 
-end subroutine ssht_test_gen_flm
+end subroutine ssht_test_gen_flm_real
 
 
 subroutine ssht_test_gen_flm_complex(L, spin, flm, seed)
@@ -308,14 +347,14 @@ subroutine ssht_test_gen_flm_complex(L, spin, flm, seed)
 
   integer :: ind, ind_lo, el, m
 
-  flm(0:L**2-1) = 0d0
+  flm(0:L**2-1) = cmplx(0d0, 0d0)
 
-  !call ssht_core_elm2ind(ind_lo, abs(spin), 0)
-  do ind = 0,L**2 - 1
-     call ssht_core_ind2elm(el, m, ind)  
-     if(el >= abs(spin)) then
+  call ssht_core_elm2ind(ind_lo, abs(spin), 0)
+  do ind = ind_lo,L**2 - 1
+!     call ssht_core_ind2elm(el, m, ind)  
+!     if(el >= abs(spin)) then
         flm(ind) = cmplx(2d0*ran2_dp(seed)-1d0, 2d0*ran2_dp(seed)-1d0)
-     end if
+!     end if
   end do
 
 end subroutine ssht_test_gen_flm_complex
