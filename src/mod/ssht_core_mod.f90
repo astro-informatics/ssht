@@ -351,10 +351,11 @@ contains
   !   October 2010 - Written by Jason McEwen
   !----------------------------------------------------------------------------
   
-  subroutine ssht_core_dh_inverse_direct(f, flm, L, spin)
+  subroutine ssht_core_dh_inverse_direct(f, flm, L, spin, verbosity)
     
     integer, intent(in) :: L
     integer, intent(in) :: spin
+    integer, intent(in), optional :: verbosity
     complex(dpc), intent(in) :: flm(0:L**2-1)
     complex(dpc), intent(out) :: f(0:2*L-1, 0:2*L-2)
 
@@ -416,10 +417,11 @@ write(*,*) 'spin = ', spin
   !   October 2010 - Written by Jason McEwen
   !----------------------------------------------------------------------------
   
-  subroutine ssht_core_dh_inverse_direct_factored(f, flm, L, spin)
+  subroutine ssht_core_dh_inverse_direct_factored(f, flm, L, spin, verbosity)
     
     integer, intent(in) :: L
     integer, intent(in) :: spin
+    integer, intent(in), optional :: verbosity
     complex(dpc), intent(in) :: flm(0:L**2-1)
     complex(dpc), intent(out) :: f(0:2*L-1, 0:2*L-2)
 
@@ -453,10 +455,11 @@ write(*,*) 'spin = ', spin
 
 
 ! Eqns (9), (10) and (11)
-  subroutine ssht_core_dh_inverse_sov_direct(f, flm, L, spin)
+  subroutine ssht_core_dh_inverse_sov_direct(f, flm, L, spin, verbosity)
     
     integer, intent(in) :: L
     integer, intent(in) :: spin
+    integer, intent(in), optional :: verbosity
     complex(dpc), intent(in) :: flm(0:L**2-1)
     complex(dpc), intent(out) :: f(0:2*L-1, 0:2*L-2)
 
@@ -509,10 +512,11 @@ write(*,*) 'spin = ', spin
   end subroutine ssht_core_dh_inverse_sov_direct
 
 ! Eqns (9), (10) and (11), with FFT
-  subroutine ssht_core_dh_inverse_sov(f, flm, L, spin)
+  subroutine ssht_core_dh_inverse_sov(f, flm, L, spin, verbosity)
     
     integer, intent(in) :: L
     integer, intent(in) :: spin
+    integer, intent(in), optional :: verbosity
     complex(dpc), intent(in) :: flm(0:L**2-1)
     complex(dpc), intent(out) :: f(0:2*L-1, 0:2*L-2)
 
@@ -524,8 +528,12 @@ write(*,*) 'spin = ', spin
     integer*8 :: fftw_plan
 
 
-write(*,*) 'spin = ', spin
-write(*,*) 'DH inverse_sov'
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,i5,a,i5,a)') '[ssht-1.0] Computing inverse transform for L=', &
+               L, ' spin=', spin, ' using Driscoll and Healy quadrature...'
+       end if
+    end if
 
     ! Compute Fmm.
     Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
@@ -580,10 +588,11 @@ write(*,*) 'DH inverse_sov'
 
 
 
-  subroutine ssht_core_hw_inverse_direct(f, flm, L, spin)
+  subroutine ssht_core_hw_inverse_direct(f, flm, L, spin, verbosity)
     
     integer, intent(in) :: L
     integer, intent(in) :: spin
+    integer, intent(in), optional :: verbosity
     complex(dpc), intent(in) :: flm(0:L**2-1)
     complex(dpc), intent(out) :: f(0:L-1, 0:2*L-1)
 
@@ -620,10 +629,11 @@ write(*,*) 'DH inverse_sov'
   !----------------------------------------------------------------------------
 
 
-  subroutine ssht_core_mweo_inverse_direct(f, flm, L, spin)
+  subroutine ssht_core_mweo_inverse_direct(f, flm, L, spin, verbosity)
     
     integer, intent(in) :: L
     integer, intent(in) :: spin
+    integer, intent(in), optional :: verbosity
     complex(dpc), intent(in) :: flm(0:L**2-1)
     complex(dpc), intent(out) :: f(0:L-1, 0:2*L-2)
 
@@ -656,10 +666,11 @@ write(*,*) 'DH inverse_sov'
 
 
 
-  subroutine ssht_core_mweo_inverse_sov_direct(f, flm, L, spin)
+  subroutine ssht_core_mweo_inverse_sov_direct(f, flm, L, spin, verbosity)
     
     integer, intent(in) :: L
     integer, intent(in) :: spin
+    integer, intent(in), optional :: verbosity
     complex(dpc), intent(in) :: flm(0:L**2-1)
     complex(dpc), intent(out) :: f(0:L-1, 0:2*L-2)
 
@@ -707,10 +718,11 @@ write(*,*) 'DH inverse_sov'
 
 
 
-  subroutine ssht_core_mweo_inverse_sov(f, flm, L, spin)
+  subroutine ssht_core_mweo_inverse_sov(f, flm, L, spin, verbosity)
     
     integer, intent(in) :: L
     integer, intent(in) :: spin
+    integer, intent(in), optional :: verbosity
     complex(dpc), intent(in) :: flm(0:L**2-1)
     complex(dpc), intent(out) :: f(0:L-1, 0:2*L-2)
 
@@ -784,10 +796,11 @@ write(*,*) 'DH inverse_sov'
   !----------------------------------------------------------------------------
 
 
-  subroutine ssht_core_mw_inverse_sov_direct(f, flm, L, spin)
+  subroutine ssht_core_mw_inverse_sov_direct(f, flm, L, spin, verbosity)
     
     integer, intent(in) :: L
     integer, intent(in) :: spin
+    integer, intent(in), optional :: verbosity
     complex(dpc), intent(in) :: flm(0:L**2-1)
     complex(dpc), intent(out) :: f(0:L-1, 0:2*L-2)
 
@@ -854,10 +867,11 @@ write(*,*) 'DH inverse_sov'
 
 
 
-  subroutine ssht_core_dh_forward_sov_direct(flm, f, L, spin)
+  subroutine ssht_core_dh_forward_sov_direct(flm, f, L, spin, verbosity)
 
     integer, intent(in) :: L
     integer, intent(in) :: spin
+    integer, intent(in), optional :: verbosity
     complex(dpc), intent(in) :: f(0:2*L-1 ,0:2*L-2)
     complex(dpc), intent(out) :: flm(0:L**2-1)
 
@@ -914,10 +928,11 @@ write(*,*) 'DH inverse_sov'
   end subroutine ssht_core_dh_forward_sov_direct
 
 
- subroutine ssht_core_dh_forward_sov(flm, f, L, spin)
+ subroutine ssht_core_dh_forward_sov(flm, f, L, spin, verbosity)
 
     integer, intent(in) :: L
     integer, intent(in) :: spin
+    integer, intent(in), optional :: verbosity
     complex(dpc), intent(in) :: f(0:2*L-1 ,0:2*L-2)
     complex(dpc), intent(out) :: flm(0:L**2-1)
 
@@ -930,8 +945,12 @@ write(*,*) 'DH inverse_sov'
     integer*8 :: fftw_plan
     complex(dpc) :: tmp(0:2*L-2)
 
-write(*,*) 'spin = ', spin
-write(*,*) 'DH forward_sov'
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,i5,a,i5,a)') '[ssht-1.0] Computing forward transform for L=', &
+               L, ' spin=', spin, ' using Driscoll and Healy quadrature...'
+       end if
+    end if
 
     ! Compute fmt using FFT.     
     call dfftw_plan_dft_1d(fftw_plan, 2*L-1, fmt(-(L-1):L-1,0), &
@@ -990,10 +1009,11 @@ write(*,*) 'DH forward_sov'
 
 
 
-  subroutine ssht_core_hw_forward_direct(flm, f, L, spin)
+  subroutine ssht_core_hw_forward_direct(flm, f, L, spin, verbosity)
 
     integer, intent(in) :: L
     integer, intent(in) :: spin
+    integer, intent(in), optional :: verbosity
     complex(dpc), intent(in) :: f(0:L-1 ,0:2*L-1)
     complex(dpc), intent(out) :: flm(0:L**2-1)
 
@@ -1081,10 +1101,11 @@ write(*,*) 'DH forward_sov'
   !----------------------------------------------------------------------------
 
 
-  subroutine ssht_core_mw_forward_direct(flm, f, L, spin)
+  subroutine ssht_core_mw_forward_direct(flm, f, L, spin, verbosity)
 
     integer, intent(in) :: L
     integer, intent(in) :: spin
+    integer, intent(in), optional :: verbosity
     complex(dpc), intent(in) :: f(0:L-1 ,0:2*L-2)
     complex(dpc), intent(out) :: flm(0:L**2-1)
 
@@ -1163,10 +1184,11 @@ write(*,*) 'DH forward_sov'
   !----------------------------------------------------------------------------
 
 
-  subroutine ssht_core_mweo_forward_sov_direct(flm, f, L, spin)
+  subroutine ssht_core_mweo_forward_sov_direct(flm, f, L, spin, verbosity)
 
     integer, intent(in) :: L
     integer, intent(in) :: spin
+    integer, intent(in), optional :: verbosity
     complex(dpc), intent(in) :: f(0:L-1 ,0:2*L-2)
     complex(dpc), intent(out) :: flm(0:L**2-1)
 
@@ -1255,10 +1277,11 @@ write(*,*) 'DH forward_sov'
   end subroutine ssht_core_mweo_forward_sov_direct
 
 
-  subroutine ssht_core_mweo_forward_sov(flm, f, L, spin)
+  subroutine ssht_core_mweo_forward_sov(flm, f, L, spin, verbosity)
 
     integer, intent(in) :: L
     integer, intent(in) :: spin
+    integer, intent(in), optional :: verbosity
     complex(dpc), intent(in) :: f(0:L-1 ,0:2*L-2)
     complex(dpc), intent(out) :: flm(0:L**2-1)
 
@@ -1373,10 +1396,11 @@ write(*,*) 'DH forward_sov'
 
   end subroutine ssht_core_mweo_forward_sov
 
-  subroutine ssht_core_mweo_forward_sov_conv(flm, f, L, spin)
+  subroutine ssht_core_mweo_forward_sov_conv(flm, f, L, spin, verbosity)
 
     integer, intent(in) :: L
     integer, intent(in) :: spin
+    integer, intent(in), optional :: verbosity
     complex(dpc), intent(in) :: f(0:L-1 ,0:2*L-2)
     complex(dpc), intent(out) :: flm(0:L**2-1)
 
@@ -1649,15 +1673,17 @@ write(*,*) 'DH forward_sov'
 
 
 
+
+
+
   !--------------------------------------------------------------------------
-  ! quad_weights
+  ! weight_dh
   !
-  !! Compute quadrature weights for exact quadrature with measure 
-  !! dcos(theta).  Weights are derived by Driscoll and Healy.
+  !! Compute Discoll and Healy weights.
   !!
   !! Variables:
   !!  - theta_t: Theta value to compute weight for [input].
-  !!  - B: Harmonic band limit [input].
+  !!  - L: Harmonic band-limit [input].
   !!  - w: Corresponding weight [output]
   !
   !! @author J. D. McEwen
@@ -1667,23 +1693,39 @@ write(*,*) 'DH forward_sov'
   !   October 2007 - Written by Jason McEwen
   !--------------------------------------------------------------------------
 
-  function weight_dh(theta_t, B) result(w)
+  function weight_dh(theta_t, L) result(w)
 
     real(dp), intent(in) :: theta_t
-    integer, intent(in) :: B
+    integer, intent(in) :: L
     real(dp) :: w	
 
     integer :: k
 
     w = 0d0
-    do k = 0,B-1
+    do k = 0,L-1
        w = w + sin((2d0*k+1d0)*theta_t) / real(2d0*k+1d0,dp)
     end do
-    w = (2d0/real(B,dp)) * sin(theta_t) * w
+    w = (2d0/real(L,dp)) * sin(theta_t) * w
 
   end function weight_dh
 
-!** TODO: comment here and above weight_dh function.
+
+  !--------------------------------------------------------------------------
+  ! weight_mw
+  !
+  !! Compute weights for toroidal extension.
+  !!
+  !! Variables:
+  !!  - p: Integer index to compute weight for [input].
+  !!  - w: Corresponding weight [output]
+  !
+  !! @author J. D. McEwen
+  !! @version 0.1 October 2010
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !--------------------------------------------------------------------------
+
   function weight_mw(p) result(w)
 
     integer, intent(in) :: p
@@ -1702,7 +1744,6 @@ write(*,*) 'DH forward_sov'
     end if
 
   end function weight_mw
-
 
 
 end module ssht_core_mod

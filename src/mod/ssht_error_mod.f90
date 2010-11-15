@@ -31,7 +31,7 @@ module ssht_error_mod
   ! Global variables
   !---------------------------------------
 
-  integer, parameter :: SSHT_ERROR_NUM = 11
+  integer, parameter :: SSHT_ERROR_NUM = 12
 
   integer, public, parameter :: &
        SSHT_ERROR_NONE = 0, &
@@ -45,7 +45,8 @@ module ssht_error_mod
        SSHT_ERROR_SIZE_NOT_DEF = 8, &
        SSHT_ERROR_ARG_INVALID = 9, &
        SSHT_ERROR_ARG_WARNING = 10, &
-       SSHT_ERROR_FILEIO = 11
+       SSHT_ERROR_INDEX_INVALID = 11, &
+       SSHT_ERROR_FILEIO = 12
 
   ! Each element of the error_comment array must have the same length, thus
   ! space with trailing space characters.  When come to use trim to remove 
@@ -65,6 +66,7 @@ module ssht_error_mod
        'Sizes not defined                                                        ', &
        'Arguments invalid                                                        ', &
        'Argument warning                                                         ', &
+       'Index invalid                                                            ', &
        'File IO error                                                            ' &
        /) 
 
@@ -83,6 +85,7 @@ module ssht_error_mod
        .true.,  &
        .true.,  &	
        .false.,  &	
+       .true.,  &	
        .true.  /)
 
 

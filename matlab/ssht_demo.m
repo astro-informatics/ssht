@@ -47,6 +47,8 @@ f_mw = f_mw_grid(:);
 flm_mw_syn = ssht_forward(f_mw, 'MW', L, spin);
 maxerr_mw = max(abs(flm - flm_mw_syn))
 
+keyboard; 
+
 % Define sample points and function values on grids.
 f_dh_grid = reshape(f_dh, nphi, ntheta_dh)
 [theta_dh_grid, phi_dh_grid] = meshgrid(theta_dh, phi_dh)

@@ -1,21 +1,18 @@
 !------------------------------------------------------------------------------
 ! ssht_test
 !
-
-
-
-!! Performs SSHT transform analysis and synthesis and check that the original 
-!! signal is reconstructed exactly (to numerical precision).  Test is 
-!! performed on a random signal with harmonic coefficients uniformly 
-!! sampled from (-1,1).
+!! Applies SSHT algorithms to perform inverse and forward spherical harmonic 
+!! transforms (respectively) to check that the original signal is 
+!! reconstructed exactly (to numerical precision).  Test is performed on a 
+!! random signal with harmonic coefficients uniformly sampled from (-1,1).
 !!
-!! Usage: ssht_test B, e.g. ssht_test 64
+!! Usage: ssht_test B spin, e.g. ssht_test 64 2
 !     
 !! @author J. D. McEwen (mcewen@mrao.cam.ac.uk)
-!! @version 0.1 - November 2007
+!! @version 0.1 - November 2010
 !
 ! Revisions:
-!   November 2007 - Written by Jason McEwen 
+!   November 2010 - Written by Jason McEwen 
 !------------------------------------------------------------------------------
 
 program ssht_test
@@ -23,7 +20,6 @@ program ssht_test
   use ssht_types_mod
   use ssht_error_mod
   use ssht_core_mod
-!  use ssht_fileio_mod
   !use F90_UNIX_ENV
 
   implicit none
@@ -49,13 +45,23 @@ program ssht_test
   end interface
 
   character(len=64) :: arg
-  integer, parameter :: N_repeat = 1
+  integer, parameter :: N_repeat = 2
+  integer :: verbosity = 0
   integer :: fail = 0, seed, i_repeat
-  real(dp) :: error_flm(0:N_repeat-1)
-  logical :: admiss_pass
   real :: time_start, time_end
-  real :: durations_analysis(0:N_repeat-1)
-  real :: durations_synthesis(0:N_repeat-1)
+
+  real(dp) :: errors_dh(0:N_repeat-1)
+  real :: durations_forward_dh(0:N_repeat-1)
+  real :: durations_inverse_dh(0:N_repeat-1)
+  real(dp) :: errors_hw(0:N_repeat-1)
+  real :: durations_forward_hw(0:N_repeat-1)
+  real :: durations_inverse_hw(0:N_repeat-1)
+  real(dp) :: errors_mweo(0:N_repeat-1)
+  real :: durations_forward_mweo(0:N_repeat-1)
+  real :: durations_inverse_mweo(0:N_repeat-1)
+  real(dp) :: errors_mw(0:N_repeat-1)
+  real :: durations_forward_mw(0:N_repeat-1)
+  real :: durations_inverse_mw(0:N_repeat-1)
 
   integer :: L, ind, ind_check, el, el_check, m, m_check
   integer :: spin
@@ -84,138 +90,195 @@ program ssht_test
   f_hw(0:L-1, 0:2*L-1) = cmplx(0d0, 0d0)
   f_mweo(0:L-1, 0:2*L-2) = cmplx(0d0, 0d0)
 
-
-
+  ! Write program name.
   write(*,*)
   write(*,'(a)') 'SSHT test program'
-  write(*,'(a)') '================='
+  write(*,'(a)') '==============================================================='
   write(*,*)
 
-
-
-
-  ! Test conversion between (el,m) and ind.
-  !L = B
+  ! Test index conversion between (el,m) and ind.
   ind_check = 0
   do el = 0, L-1     
      do m = -el, el       
-!write(*,*) 'Testing el,m'
         call ssht_core_elm2ind(ind, el, m)
         if (ind /= ind_check) then
-stop "failed"
+           call ssht_error(SSHT_ERROR_INDEX_INVALID, 'ssht_test')
         end if
         call ssht_core_ind2elm(el_check, m_check, ind)
         if (el /= el_check .and. m /= m_check) then
-stop "failed"
+           call ssht_error(SSHT_ERROR_INDEX_INVALID, 'ssht_test')
         end if
         ind_check = ind_check + 1
      end do
   end do
+  if (ind_check /= L**2) then
+     call ssht_error(SSHT_ERROR_INDEX_INVALID, 'ssht_test')
+  end if
 
-write(*,*) 'ind_check = ', ind_check
-write(*,*) 'L**2 = ', L**2
-
-
-
+  ! Run algorithm error and timing tests.
   do i_repeat = 0,N_repeat-1
 
-     ! Generate harmonic coefficients of random test signal.
-!     call ssht_test_gen_flm(B-1, flm_orig, seed)
 
 
+
+     if (spin == 0) then 
+        write(*,*) 'TODO: run real tests'
+        write(*,*)
+! run additional real analysis.
+     end if
+
+
+
+
+     !=========================================================================
+     ! DH
+     write(*,'(a,i2)') 'DH test no.', i_repeat
      flm_orig(0:L**2-1) = cmplx(0d0, 0d0)
      flm_syn(0:L**2-1) = cmplx(0d0, 0d0)
      call ssht_test_gen_flm_complex(L, spin, flm_orig, seed)
+     call cpu_time(time_start)
+     !-------------------------------------------------------------------------
      !call ssht_core_dh_inverse_direct(f_dh, flm2_orig, L, spin)
-     call ssht_core_dh_inverse_sov(f_dh, flm_orig, L, spin)
-     call ssht_core_dh_forward_sov(flm_syn, f_dh, L, spin)
+     call ssht_core_dh_inverse_sov(f_dh, flm_orig, L, spin, verbosity)
+     !-------------------------------------------------------------------------
+     call cpu_time(time_end)
+     durations_inverse_dh(i_repeat) = time_end - time_start
+     call cpu_time(time_start)
+     !-------------------------------------------------------------------------
+     call ssht_core_dh_forward_sov(flm_syn, f_dh, L, spin, verbosity)
+     !-------------------------------------------------------------------------
+     call cpu_time(time_end)
+     durations_forward_dh(i_repeat) = time_end - time_start
+     errors_dh(i_repeat) = maxval(abs(flm_orig(0:L**2-1) - flm_syn(0:L**2-1)))
+     write(*,'(a,f40.4)') ' duration_inverse (s) =', durations_inverse_dh(i_repeat)
+     write(*,'(a,f40.4)') ' duration_forward (s) =', durations_forward_dh(i_repeat)
+     write(*,'(a,e40.5)') ' error                =', errors_dh(i_repeat)
+     write(*,*)
 
-     write(*,'(a,e43.5)') 'HERE IT IS, MAXERR: ', maxval(abs(flm_orig(0:L**2-1) - flm_syn(0:L**2-1)))
-
-
+     !=========================================================================
+     ! HW
+     write(*,'(a,i2)') 'HW test no.', i_repeat
      flm_orig(0:L**2-1) = cmplx(0d0, 0d0)
      flm_syn(0:L**2-1) = cmplx(0d0, 0d0)
      call ssht_test_gen_flm_complex(L, spin, flm_orig, seed)
+     call cpu_time(time_start)
+     !-------------------------------------------------------------------------
      call ssht_core_hw_inverse_direct(f_hw, flm_orig, L, spin)
+     !-------------------------------------------------------------------------
+     call cpu_time(time_end)
+     durations_inverse_hw(i_repeat) = time_end - time_start
+     call cpu_time(time_start)
+     !-------------------------------------------------------------------------
      call ssht_core_hw_forward_direct(flm_syn, f_hw, L, spin)
+     !-------------------------------------------------------------------------
+     call cpu_time(time_end)
+     durations_forward_hw(i_repeat) = time_end - time_start
+     errors_hw(i_repeat) = maxval(abs(flm_orig(0:L**2-1) - flm_syn(0:L**2-1)))
+     write(*,'(a,f40.4)') ' duration_inverse (s) =', durations_inverse_hw(i_repeat)
+     write(*,'(a,f40.4)') ' duration_forward (s) =', durations_forward_hw(i_repeat)
+     write(*,'(a,e40.5)') ' error                =', errors_hw(i_repeat)
+     write(*,*)
 
-     write(*,'(a,e43.5)') 'HERE IT IS, MAXERR: ', maxval(abs(flm_orig(0:L**2-1) - flm_syn(0:L**2-1)))
-
+     !=========================================================================
+     ! MWEO
+     write(*,'(a,i2)') 'MWEO test no.', i_repeat
      flm_orig(0:L**2-1) = cmplx(0d0, 0d0)
      flm_syn(0:L**2-1) = cmplx(0d0, 0d0)
-     call ssht_test_gen_flm_complex(L, spin, flm_orig(0:L**2-1), seed)
+     call ssht_test_gen_flm_complex(L, spin, flm_orig, seed)
+     call cpu_time(time_start)
+     !-------------------------------------------------------------------------
      !call ssht_core_mweo_inverse_direct(f_mweo, flm2_orig, L, spin)
      !call ssht_core_mweo_inverse_sov_direct(f_mweo, flm2_orig, L, spin)
-     call ssht_core_mweo_inverse_sov(f_mweo(0:L-1, 0:2*L-2), flm_orig(0:L**2-1), L, spin)
+     call ssht_core_mweo_inverse_sov(f_mweo, flm_orig, L, spin)
+     !-------------------------------------------------------------------------
+     call cpu_time(time_end)
+     durations_inverse_mweo(i_repeat) = time_end - time_start
+     call cpu_time(time_start)
+     !-------------------------------------------------------------------------
      call ssht_core_mweo_forward_sov_conv(flm_syn, f_mweo, L, spin)
      !call ssht_core_mw_forward_direct(flm_syn, f_mweo, L, spin)
+     !-------------------------------------------------------------------------
+     call cpu_time(time_end)
+     durations_forward_mweo(i_repeat) = time_end - time_start
+     errors_mweo(i_repeat) = maxval(abs(flm_orig(0:L**2-1) - flm_syn(0:L**2-1)))
+     write(*,'(a,f40.4)') ' duration_inverse (s) =', durations_inverse_mweo(i_repeat)
+     write(*,'(a,f40.4)') ' duration_forward (s) =', durations_forward_mweo(i_repeat)
+     write(*,'(a,e40.5)') ' error                =', errors_mweo(i_repeat)
+     write(*,*)
 
-     write(*,'(a,e43.5)') 'HERE IT IS, MAXERR: ', maxval(abs(flm_orig(0:L**2-1) - flm_syn(0:L**2-1)))
-
+     !=========================================================================
+     ! MW
+     write(*,'(a,i2)') 'MW test no.', i_repeat
      flm_orig(0:L**2-1) = cmplx(0d0, 0d0)
      flm_syn(0:L**2-1) = cmplx(0d0, 0d0)
-     call ssht_test_gen_flm_complex(L, spin, flm_orig(0:L**2-1), seed)
+     call ssht_test_gen_flm_complex(L, spin, flm_orig, seed)
+     call cpu_time(time_start)
+     !-------------------------------------------------------------------------
      !call ssht_core_mweo_inverse_direct(f_mweo, flm2_orig, L, spin)
      !call ssht_core_mweo_inverse_sov_direct(f_mweo, flm2_orig, L, spin)
-     call ssht_core_mw_inverse_sov_direct(f_mweo(0:L-1, 0:2*L-2), flm_orig(0:L**2-1), L, spin)
+     call ssht_core_mw_inverse_sov_direct(f_mweo, flm_orig, L, spin)
+     !-------------------------------------------------------------------------
+     call cpu_time(time_end)
+     durations_inverse_mw(i_repeat) = time_end - time_start
+     call cpu_time(time_start)
+     !-------------------------------------------------------------------------
      !call ssht_core_mweo_forward_sov_conv(flm_syn, f_mweo, L, spin)
      call ssht_core_mw_forward_direct(flm_syn, f_mweo, L, spin)
-
-     write(*,'(a,e43.5)') 'HERE IT IS, MAXERR: ', maxval(abs(flm_orig(0:L**2-1) - flm_syn(0:L**2-1)))
-
-
-
-!deallocate(flm2_orig, flm2_syn, f_dh, f_mw, f_mweo)
-
-
-     ! Compute kernels, scaling function and directionality coefficients.
-     write(*,'(a,i2)') 'Initialisation no.', i_repeat
-     call cpu_time(time_start)
-     !...
+     !-------------------------------------------------------------------------
      call cpu_time(time_end)
-     write(*,'(a,f43.2)') ' duration =', time_end - time_start
-
-
-     ! Compute wavelet and scaling coefficients.
-     write(*,'(a,i2)') 'Analysis no.', i_repeat
-     call cpu_time(time_start)
-     !...     
-     call cpu_time(time_end)
-     durations_analysis(i_repeat) = time_end - time_start
-     write(*,'(a,f43.2)') ' duration =', durations_analysis(i_repeat)
-
-     ! Synthesis harmonic coefficients of signal from wavelet and scaling 
-     ! coefficients.
-     write(*,'(a,i2)') 'Synthesis no.', i_repeat
-     call cpu_time(time_start)
-     !...     
-     call cpu_time(time_end)
-     durations_synthesis(i_repeat) = time_end - time_start
-     write(*,'(a,f43.2)') ' duration =', durations_synthesis(i_repeat)
-
-     !error_flm(i_repeat) = maxval(abs(flm_orig(0:B-1,0:B-1) - flm_syn(0:B-1,0:B-1)))
-     write(*,'(a,e43.5)') ' error =   ', error_flm(i_repeat)
+     durations_forward_mw(i_repeat) = time_end - time_start
+     errors_mw(i_repeat) = maxval(abs(flm_orig(0:L**2-1) - flm_syn(0:L**2-1)))
+     write(*,'(a,f40.4)') ' duration_inverse (s) =', durations_inverse_mw(i_repeat)
+     write(*,'(a,f40.4)') ' duration_forward (s) =', durations_forward_mw(i_repeat)
+     write(*,'(a,e40.5)') ' error                =', errors_mw(i_repeat)
      write(*,*)
 
   end do
 
-!!$  write(*,'(a)') 'Summary:'
-!!$  write(*,'(a,i30)') 'N_repeat               =', N_repeat
-!!$  write(*,'(a,i30)') 'B                      =', B
-!!$  write(*,'(a,i30)') 'N                      =', N
-!!$  write(*,'(a,i30)') 'J                      =', J	
-!!$  write(*,'(a,f30.5)') 'alpha                  =', alpha
-!!$  write(*,'(a,f30.5)') 'Average analysis time  =', sum(durations_analysis(0:N_repeat-1)) / real(N_repeat)
-!!$  write(*,'(a,f30.5)') 'Average synthesis time =', sum(durations_synthesis(0:N_repeat-1)) / real(N_repeat)
-!!$  write(*,'(a,e30.5)') 'Average max error      =', sum(error_flm(0:N_repeat-1)) / real(N_repeat)
-!!$  write(*,*)
-!!$
-!!$  if( abs(sum(error_flm(0:N_repeat-1)) / real(N_repeat)) < 1d-6) then
-!!$     write(*,'(a)') 'Tests passed!'
-!!$  else
-!!$     write(*,'(a)') 'Tests failed!'
-!!$  end if
-!!$  write(*,*) 
+  ! Print summary.
+  write(*,'(a)') '==============================================================='
+  write(*,*)
+  write(*,'(a)') 'Summary'
+  write(*,'(a,i40)') 'N_repeat              =', N_repeat
+  write(*,'(a,i40)') 'L                     =', L
+  write(*,'(a,i40)') 'spin                  =', spin
+  write(*,*)
+
+  write(*,'(a,i2)') 'DH'
+  write(*,'(a,f30.5)') ' Average forward transform time =', &
+       sum(durations_forward_dh(0:N_repeat-1)) / real(N_repeat)
+  write(*,'(a,f30.5)') ' Average inverse transform time =', &
+       sum(durations_inverse_dh(0:N_repeat-1)) / real(N_repeat)
+  write(*,'(a,e30.5)') ' Average max error              =', &
+       sum(errors_dh(0:N_repeat-1)) / real(N_repeat)
+  write(*,*)
+
+  write(*,'(a,i2)') 'HW'
+  write(*,'(a,f30.5)') ' Average forward transform time =', &
+       sum(durations_forward_hw(0:N_repeat-1)) / real(N_repeat)
+  write(*,'(a,f30.5)') ' Average inverse transform time =', &
+       sum(durations_inverse_hw(0:N_repeat-1)) / real(N_repeat)
+  write(*,'(a,e30.5)') ' Average max error              =', &
+       sum(errors_hw(0:N_repeat-1)) / real(N_repeat)
+  write(*,*)
+
+  write(*,'(a,i2)') 'MWEO'
+  write(*,'(a,f30.5)') ' Average forward transform time =', &
+       sum(durations_forward_mweo(0:N_repeat-1)) / real(N_repeat)
+  write(*,'(a,f30.5)') ' Average inverse transform time =', &
+       sum(durations_inverse_mweo(0:N_repeat-1)) / real(N_repeat)
+  write(*,'(a,e30.5)') ' Average max error              =', &
+       sum(errors_mweo(0:N_repeat-1)) / real(N_repeat)
+  write(*,*)
+
+  write(*,'(a,i2)') 'MW'
+  write(*,'(a,f30.5)') ' Average forward transform time =', &
+       sum(durations_forward_mw(0:N_repeat-1)) / real(N_repeat)
+  write(*,'(a,f30.5)') ' Average inverse transform time =', &
+       sum(durations_inverse_mw(0:N_repeat-1)) / real(N_repeat)
+  write(*,'(a,e30.5)') ' Average max error              =', &
+       sum(errors_mw(0:N_repeat-1)) / real(N_repeat)
+  write(*,*)
 
   ! Deallocate memory.
   deallocate(flm_orig, flm_syn)
@@ -225,62 +288,23 @@ end program ssht_test
 
 
 !--------------------------------------------------------------------------
-! ssht_test_gen_flm
+! ssht_test_gen_flm_real
 !
-!! Generate random spherical harmonic coefficients.
-!!
-!! Notes: 
-!!   - Uniform deviate (Num rec 1992, chap 7.1), original routine
-!!     said to be 'perfect'.
+!! Generate random spherical harmonic coefficients of a real spin=0
+!! signal.
 !!
 !! Variables:
-!!   - L: Maximum harmonic and limit to consider (i.e. B-1) [input].
-!!   - flm(0:L,0:L): Random spherical harmonic coefficients generated 
+!!   - L: Harmonic band-limit [input].
+!!   - flm(0:L**2-1): Random spherical harmonic coefficients generated 
 !!     [output].
 !!   - seed: Integer seed required for random number generator [input].
 !
 !! @author J. D. McEwen
-!! @version 0.1 October 2007
+!! @version 0.1 October 2010
 ! 
 ! Revisions:
-!   October 2007 - Jason McEwen
+!   October 2010 - Jason McEwen
 !--------------------------------------------------------------------------
-
-!!$subroutine ssht_test_gen_flm(L, flm, seed)
-!!$
-!!$  use ssht_types_mod, only: dpc
-!!$
-!!$  implicit none
-!!$
-!!$  interface 
-!!$     function ran2_dp(idum)
-!!$       use ssht_types_mod, only: dp
-!!$       real(dp) :: ran2_dp
-!!$       integer :: idum
-!!$     end function ran2_dp
-!!$  end interface
-!!$
-!!$  integer, intent(in) :: L
-!!$  complex(dpc), intent(out) :: flm(0:L,0:L)
-!!$  integer, intent(in) :: seed
-!!$
-!!$  integer :: el, m
-!!$
-!!$  flm(0:L,0:L) = 0d0
-!!$
-!!$  do el = 0,L
-!!$
-!!$     flm(el,0) = cmplx(2d0*ran2_dp(seed)-1d0, 0d0)
-!!$
-!!$     do m = 1,el
-!!$        flm(el,m) = cmplx(2d0*ran2_dp(seed)-1d0, 2d0*ran2_dp(seed)-1d0)
-!!$     end do
-!!$
-!!$  end do
-!!$
-!!$end subroutine ssht_test_gen_flm
-
-
 
 subroutine ssht_test_gen_flm_real(L, flm, seed)
 
@@ -324,6 +348,24 @@ subroutine ssht_test_gen_flm_real(L, flm, seed)
 
 end subroutine ssht_test_gen_flm_real
 
+
+!--------------------------------------------------------------------------
+! ssht_test_gen_flm_real
+!
+!! Generate random spherical harmonic coefficients of a complex signal.
+!!
+!! Variables:
+!!   - L: Harmonic band-limit [input].
+!!   - flm(0:L**2-1): Random spherical harmonic coefficients generated 
+!!     [output].
+!!   - seed: Integer seed required for random number generator [input].
+!
+!! @author J. D. McEwen
+!! @version 0.1 October 2010
+! 
+! Revisions:
+!   October 2010 - Jason McEwen
+!--------------------------------------------------------------------------
 
 subroutine ssht_test_gen_flm_complex(L, spin, flm, seed)
 
