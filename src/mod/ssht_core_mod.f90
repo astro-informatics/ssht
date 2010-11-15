@@ -35,8 +35,6 @@ module ssht_core_mod
        ssht_core_dh_inverse_sov_direct, ssht_core_dh_inverse_sov, &
        ssht_core_dh_forward_sov_direct, &
        ssht_core_dh_forward_sov, &
-       ssht_core_hw_inverse_direct, &
-       ssht_core_hw_forward_direct, &
        ssht_core_mweo_inverse_direct, ssht_core_mweo_inverse_sov_direct, &
        ssht_core_mweo_inverse_sov, &
        ssht_core_mweo_forward_sov_direct, &
@@ -73,9 +71,9 @@ module ssht_core_mod
 contains
 
 
-  !----------------------------------------------------------------------------
+  !============================================================================
   ! Sampling relations
-  !----------------------------------------------------------------------------
+  !============================================================================
 
 
   !----------------------------------------------------------------------------
@@ -257,35 +255,9 @@ contains
 
 
 
-
-  ! p in [0 .. 2*L - 1] => 2L points
-  function ssht_core_hw_p2phi(p, L) result (phi)
-
-    integer, intent(in) :: p
-    integer, intent(in) :: L
-    real(dp) :: phi
-
-    phi = 2d0*p*PI / (2d0*L)
-
-  end function ssht_core_hw_p2phi
-
-
-  function ssht_core_hw_t2theta(t, L) result (theta)
-
-    integer, intent(in) :: t
-    integer, intent(in) :: L
-    real(dp) :: theta
-
-    theta = (2d0*t+1d0)*PI / (2d0*L - 1d0)
-
-  end function ssht_core_hw_t2theta
-
-
-
-
-  !----------------------------------------------------------------------------
+  !============================================================================
   ! Harmonic index relations
-  !----------------------------------------------------------------------------
+  !============================================================================
 
 
   subroutine ssht_core_elm2ind(ind, el, m)
@@ -579,47 +551,6 @@ write(*,*) 'spin = ', spin
     call dfftw_destroy_plan(fftw_plan)
 
   end subroutine ssht_core_dh_inverse_sov
-
-
-
-  !----------------------------------------------------------------------------
-  ! HW
-  !----------------------------------------------------------------------------
-
-
-
-  subroutine ssht_core_hw_inverse_direct(f, flm, L, spin, verbosity)
-    
-    integer, intent(in) :: L
-    integer, intent(in) :: spin
-    integer, intent(in), optional :: verbosity
-    complex(dpc), intent(in) :: flm(0:L**2-1)
-    complex(dpc), intent(out) :: f(0:L-1, 0:2*L-1)
-
-    integer :: el, m, t, p, ind
-    real(dp) :: theta, phi
-    real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
-          
-    f(0:2*L-1 ,0:2*L-2) = cmplx(0d0, 0d0)
-    do el = abs(spin), L-1
-       do t = 0, L-1
-          theta = ssht_core_hw_t2theta(t, L)             
-          call ssht_dl_beta_operator(dl(-el:el,-el:el), theta, el)
-          do m = -el, el
-             call ssht_core_elm2ind(ind, el, m)
-             do p = 0, 2*L-1
-                phi = ssht_core_hw_p2phi(p, L)
-                f(t,p) = f(t,p) + &
-                     (-1)**spin * sqrt((2d0*el+1d0)/(4d0*PI)) &
-                     * exp(I*m*phi) &
-                     * dl(m,-spin) * flm(ind)
-             end do
-          end do
-          
-       end do
-    end do
-
-  end subroutine ssht_core_hw_inverse_direct
 
 
 
@@ -1000,182 +931,6 @@ write(*,*) 'spin = ', spin
 
 
 
-
-
-  !----------------------------------------------------------------------------
-  ! HW
-  !----------------------------------------------------------------------------
-
-
-
-
-  subroutine ssht_core_hw_forward_direct(flm, f, L, spin, verbosity)
-
-    integer, intent(in) :: L
-    integer, intent(in) :: spin
-    integer, intent(in), optional :: verbosity
-    complex(dpc), intent(in) :: f(0:L-1 ,0:2*L-1)
-    complex(dpc), intent(out) :: flm(0:L**2-1)
-
-    integer :: p, m, t, mm, el, ind, k
-    real(dp) :: theta, phi
-
-    real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
-    complex(dpc) :: fext(0:2*L-2 ,0:2*L-1)
-    complex(dpc) :: Fmm(-(L-1):L-1, -(L-1):L-1)
-    complex(dpc) :: Gmm(-(L-1):L-1, -(L-1):L-1)
-
-    integer :: p_plus_pi
-
-    ! Need even number of points in phi for H&W trick.
-    ! But we need odd number of points to be connection with m range.
-
-    ! For now consider even and odd extension as before in my algorithm.
-    ! Come back to later to see if can invent a trick to get working with even
-    ! number of points in phi,
-
-
-    ! Extend f to the torus using incorporating all symmetries in 
-    ! single extension (requires even number of samples in phi).
-    do p = 0, 2*L-1
-       phi = ssht_core_hw_p2phi(p, L)
-       do t = 0, L-2
-          fext(t, p) = f(t, p)
-          p_plus_pi = mod(p + L, 2*L)  ! -- only works if Nphi even!
-          fext(2*L-2-t, p_plus_pi) = (-1)**spin * f(t,p)
-       end do
-       fext(L-1, p) = f(L-1, p)
-    end do
-
-    ! Compute Fmm.
-    Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
-    do p = 0, 2*L-1
-       phi = ssht_core_hw_p2phi(p, L)
-       do t = 0, 2*L-2
-          theta = ssht_core_mw_t2theta(t, L)    
-          do m = -(L-1), L-1
-             do mm = -(L-1), L-1
-                Fmm(m,mm) = Fmm(m,mm) + &
-                     fext(t,p) * exp(-I*(m*phi + mm*theta))
-             end do
-          end do
-       end do
-    end do
-    Fmm(-(L-1):L-1, -(L-1):L-1) = Fmm(-(L-1):L-1, -(L-1):L-1) &
-         / (2d0*L-1d0) / (2d0*L)
-
-    ! Compute Gmm by direct calculation of convolution.
-    Gmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
-    do m = -(L-1), L-1
-       do mm = -(L-1), L-1
-          do k = -(L-1), L-1 
-             Gmm(m,mm) = Gmm(m,mm) + &
-                  Fmm(m,k) * weight_mw(k - mm) * 2d0 * PI
-          end do
-       end do
-    end do
-
-    ! Compute flm.
-    flm(0::L**2-1) = cmplx(0d0, 0d0)
-    do el = 0, L-1
-       call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
-       do m = -el, el
-          call ssht_core_elm2ind(ind, el, m)
-          do mm = -el, el
-             flm(ind) = flm(ind) + &
-                  (-1)**spin * sqrt((2d0*el+1d0)/(4d0*PI)) &
-                  * exp(I*PION2*(m+spin)) &
-                  * dl(mm,m) * dl(mm,-spin) &
-                  * Gmm(m,mm)
-          end do
-       end do
-    end do
-
-  end subroutine ssht_core_hw_forward_direct
-
-
-
-
-  !----------------------------------------------------------------------------
-  ! MW
-  !----------------------------------------------------------------------------
-
-
-  subroutine ssht_core_mw_forward_direct(flm, f, L, spin, verbosity)
-
-    integer, intent(in) :: L
-    integer, intent(in) :: spin
-    integer, intent(in), optional :: verbosity
-    complex(dpc), intent(in) :: f(0:L-1 ,0:2*L-2)
-    complex(dpc), intent(out) :: flm(0:L**2-1)
-
-    integer :: p, m, t, mm, el, ind, k
-    real(dp) :: theta, phi
-
-    real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
-    complex(dpc) :: Fmt(-(L-1):L-1, 0:2*L-2)
-    complex(dpc) :: Fmm(-(L-1):L-1, -(L-1):L-1)
-    complex(dpc) :: Gmm(-(L-1):L-1, -(L-1):L-1) 
-
-    ! Compute Fourier transform over phi, i.e. compute Fmt.
-    Fmt(-(L-1):L-1,0:2*L-2) = cmplx(0d0, 0d0)    
-    do p = 0, 2*L-2
-       phi = ssht_core_mw_p2phi(p, L)
-       do t = 0, L-1
-          do m = -(L-1), L-1
-             Fmt(m,t) = Fmt(m,t) + &
-                  f(t,p) * exp(-I*m*phi)
-          end do
-       end do
-    end do
-    Fmt(-(L-1):L-1,0:2*L-2) = Fmt(-(L-1):L-1,0:2*L-2) / (2d0*L-1d0)
-
-    ! Extend Fmt periodically.
-    do m = -(L-1), L-1
-       Fmt(m, L:2*L-2) = (-1)**(m+spin) * Fmt(m, L-2:0:-1)
-    end do
-
-    ! Compute Fmm.
-    Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
-    do t = 0, 2*L-2
-       theta = ssht_core_mw_t2theta(t, L)    
-       do m = -(L-1), L-1
-          do mm = -(L-1), L-1
-             Fmm(m,mm) = Fmm(m,mm) + &
-                  Fmt(m,t) * exp(-I*mm*theta)
-          end do
-       end do
-    end do
-    Fmm(-(L-1):L-1, -(L-1):L-1) = Fmm(-(L-1):L-1, -(L-1):L-1) / (2d0*L-1d0)
-
-    ! Compute Gmm by direct convolution.
-    Gmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
-    do m = -(L-1), L-1
-       do mm = -(L-1), L-1
-          do k = -(L-1), L-1 
-             Gmm(m,mm) = Gmm(m,mm) + &
-                  Fmm(m,k) * weight_mw(k - mm) * 2d0 * PI
-          end do
-       end do
-    end do
-
-    ! Compute flm.
-    flm(0::L**2-1) = cmplx(0d0, 0d0)
-    do el = abs(spin), L-1
-       call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
-       do m = -el, el
-          call ssht_core_elm2ind(ind, el, m)
-          do mm = -el, el             
-             flm(ind) = flm(ind) + &
-                  (-1)**spin * sqrt((2d0*el+1d0)/(4d0*PI)) &
-                  * exp(I*PION2*(m+spin)) &
-                  * dl(mm,m) * dl(mm,-spin) &
-                  * Gmm(m,mm)
-          end do
-       end do
-    end do
-
-  end subroutine ssht_core_mw_forward_direct
 
 
 
@@ -1601,21 +1356,91 @@ write(*,*) 'spin = ', spin
   end subroutine ssht_core_mweo_forward_sov_conv
 
 
+  !----------------------------------------------------------------------------
+  ! MW
+  !----------------------------------------------------------------------------
 
 
-  !--------------------------------------------------------------------------
-  ! Initialisation routine
-  !--------------------------------------------------------------------------
+  subroutine ssht_core_mw_forward_direct(flm, f, L, spin, verbosity)
+
+    integer, intent(in) :: L
+    integer, intent(in) :: spin
+    integer, intent(in), optional :: verbosity
+    complex(dpc), intent(in) :: f(0:L-1 ,0:2*L-2)
+    complex(dpc), intent(out) :: flm(0:L**2-1)
+
+    integer :: p, m, t, mm, el, ind, k
+    real(dp) :: theta, phi
+
+    real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
+    complex(dpc) :: Fmt(-(L-1):L-1, 0:2*L-2)
+    complex(dpc) :: Fmm(-(L-1):L-1, -(L-1):L-1)
+    complex(dpc) :: Gmm(-(L-1):L-1, -(L-1):L-1) 
+
+    ! Compute Fourier transform over phi, i.e. compute Fmt.
+    Fmt(-(L-1):L-1,0:2*L-2) = cmplx(0d0, 0d0)    
+    do p = 0, 2*L-2
+       phi = ssht_core_mw_p2phi(p, L)
+       do t = 0, L-1
+          do m = -(L-1), L-1
+             Fmt(m,t) = Fmt(m,t) + &
+                  f(t,p) * exp(-I*m*phi)
+          end do
+       end do
+    end do
+    Fmt(-(L-1):L-1,0:2*L-2) = Fmt(-(L-1):L-1,0:2*L-2) / (2d0*L-1d0)
+
+    ! Extend Fmt periodically.
+    do m = -(L-1), L-1
+       Fmt(m, L:2*L-2) = (-1)**(m+spin) * Fmt(m, L-2:0:-1)
+    end do
+
+    ! Compute Fmm.
+    Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
+    do t = 0, 2*L-2
+       theta = ssht_core_mw_t2theta(t, L)    
+       do m = -(L-1), L-1
+          do mm = -(L-1), L-1
+             Fmm(m,mm) = Fmm(m,mm) + &
+                  Fmt(m,t) * exp(-I*mm*theta)
+          end do
+       end do
+    end do
+    Fmm(-(L-1):L-1, -(L-1):L-1) = Fmm(-(L-1):L-1, -(L-1):L-1) / (2d0*L-1d0)
+
+    ! Compute Gmm by direct convolution.
+    Gmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
+    do m = -(L-1), L-1
+       do mm = -(L-1), L-1
+          do k = -(L-1), L-1 
+             Gmm(m,mm) = Gmm(m,mm) + &
+                  Fmm(m,k) * weight_mw(k - mm) * 2d0 * PI
+          end do
+       end do
+    end do
+
+    ! Compute flm.
+    flm(0::L**2-1) = cmplx(0d0, 0d0)
+    do el = abs(spin), L-1
+       call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+       do m = -el, el
+          call ssht_core_elm2ind(ind, el, m)
+          do mm = -el, el             
+             flm(ind) = flm(ind) + &
+                  (-1)**spin * sqrt((2d0*el+1d0)/(4d0*PI)) &
+                  * exp(I*PION2*(m+spin)) &
+                  * dl(mm,m) * dl(mm,-spin) &
+                  * Gmm(m,mm)
+          end do
+       end do
+    end do
+
+  end subroutine ssht_core_mw_forward_direct
 
 
 
-  !--------------------------------------------------------------------------
-  ! Analysis routines
-  !--------------------------------------------------------------------------
 
-  !--------------------------------------------------------------------------
-  ! Synthesis routines 
-  !--------------------------------------------------------------------------
+
 
 
   !--------------------------------------------------------------------------

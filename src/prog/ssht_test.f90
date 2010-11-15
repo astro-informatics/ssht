@@ -53,9 +53,6 @@ program ssht_test
   real(dp) :: errors_dh(0:N_repeat-1)
   real :: durations_forward_dh(0:N_repeat-1)
   real :: durations_inverse_dh(0:N_repeat-1)
-  real(dp) :: errors_hw(0:N_repeat-1)
-  real :: durations_forward_hw(0:N_repeat-1)
-  real :: durations_inverse_hw(0:N_repeat-1)
   real(dp) :: errors_mweo(0:N_repeat-1)
   real :: durations_forward_mweo(0:N_repeat-1)
   real :: durations_inverse_mweo(0:N_repeat-1)
@@ -66,7 +63,7 @@ program ssht_test
   integer :: L, ind, ind_check, el, el_check, m, m_check
   integer :: spin
   complex(dpc), allocatable :: flm_orig(:), flm_syn(:)
-  complex(dpc), allocatable :: f_dh(:,:), f_hw(:,:), f_mweo(:,:)
+  complex(dpc), allocatable :: f_dh(:,:), f_mweo(:,:), f_mw(:,:)
 
   ! Initialise parameters.
   call getarg(1, arg)
@@ -79,16 +76,16 @@ program ssht_test
   allocate(flm_orig(0:L**2-1), stat=fail)
   allocate(flm_syn(0:L**2-1), stat=fail)  
   allocate(f_dh(0:2*L-1, 0:2*L-2), stat=fail)
-  allocate(f_hw(0:L-1, 0:2*L-1), stat=fail)
   allocate(f_mweo(0:L-1, 0:2*L-2), stat=fail)
+  allocate(f_mw(0:L-1, 0:2*L-1), stat=fail)
   if(fail /= 0) then
      call ssht_error(SSHT_ERROR_MEM_ALLOC_FAIL, 'ssht_test')
   end if
   flm_orig(0:L**2-1) = cmplx(0d0, 0d0)
   flm_syn(0:L**2-1) = cmplx(0d0, 0d0)
   f_dh(0:2*L-1, 0:2*L-2) = cmplx(0d0, 0d0)
-  f_hw(0:L-1, 0:2*L-1) = cmplx(0d0, 0d0)
   f_mweo(0:L-1, 0:2*L-2) = cmplx(0d0, 0d0)
+  f_mw(0:L-1, 0:2*L-1) = cmplx(0d0, 0d0)
 
   ! Write program name.
   write(*,*)
@@ -156,30 +153,6 @@ program ssht_test
      write(*,*)
 
      !=========================================================================
-     ! HW
-     write(*,'(a,i2)') 'HW test no.', i_repeat
-     flm_orig(0:L**2-1) = cmplx(0d0, 0d0)
-     flm_syn(0:L**2-1) = cmplx(0d0, 0d0)
-     call ssht_test_gen_flm_complex(L, spin, flm_orig, seed)
-     call cpu_time(time_start)
-     !-------------------------------------------------------------------------
-     call ssht_core_hw_inverse_direct(f_hw, flm_orig, L, spin)
-     !-------------------------------------------------------------------------
-     call cpu_time(time_end)
-     durations_inverse_hw(i_repeat) = time_end - time_start
-     call cpu_time(time_start)
-     !-------------------------------------------------------------------------
-     call ssht_core_hw_forward_direct(flm_syn, f_hw, L, spin)
-     !-------------------------------------------------------------------------
-     call cpu_time(time_end)
-     durations_forward_hw(i_repeat) = time_end - time_start
-     errors_hw(i_repeat) = maxval(abs(flm_orig(0:L**2-1) - flm_syn(0:L**2-1)))
-     write(*,'(a,f40.4)') ' duration_inverse (s) =', durations_inverse_hw(i_repeat)
-     write(*,'(a,f40.4)') ' duration_forward (s) =', durations_forward_hw(i_repeat)
-     write(*,'(a,e40.5)') ' error                =', errors_hw(i_repeat)
-     write(*,*)
-
-     !=========================================================================
      ! MWEO
      write(*,'(a,i2)') 'MWEO test no.', i_repeat
      flm_orig(0:L**2-1) = cmplx(0d0, 0d0)
@@ -216,14 +189,14 @@ program ssht_test
      !-------------------------------------------------------------------------
      !call ssht_core_mweo_inverse_direct(f_mweo, flm2_orig, L, spin)
      !call ssht_core_mweo_inverse_sov_direct(f_mweo, flm2_orig, L, spin)
-     call ssht_core_mw_inverse_sov_direct(f_mweo, flm_orig, L, spin)
+     call ssht_core_mw_inverse_sov_direct(f_mw, flm_orig, L, spin)
      !-------------------------------------------------------------------------
      call cpu_time(time_end)
      durations_inverse_mw(i_repeat) = time_end - time_start
      call cpu_time(time_start)
      !-------------------------------------------------------------------------
      !call ssht_core_mweo_forward_sov_conv(flm_syn, f_mweo, L, spin)
-     call ssht_core_mw_forward_direct(flm_syn, f_mweo, L, spin)
+     call ssht_core_mw_forward_direct(flm_syn, f_mw, L, spin)
      !-------------------------------------------------------------------------
      call cpu_time(time_end)
      durations_forward_mw(i_repeat) = time_end - time_start
@@ -237,8 +210,8 @@ program ssht_test
 
   ! Print summary.
   write(*,'(a)') '==============================================================='
-  write(*,*)
   write(*,'(a)') 'Summary'
+  write(*,*)
   write(*,'(a,i40)') 'N_repeat              =', N_repeat
   write(*,'(a,i40)') 'L                     =', L
   write(*,'(a,i40)') 'spin                  =', spin
@@ -251,15 +224,6 @@ program ssht_test
        sum(durations_inverse_dh(0:N_repeat-1)) / real(N_repeat)
   write(*,'(a,e30.5)') ' Average max error              =', &
        sum(errors_dh(0:N_repeat-1)) / real(N_repeat)
-  write(*,*)
-
-  write(*,'(a,i2)') 'HW'
-  write(*,'(a,f30.5)') ' Average forward transform time =', &
-       sum(durations_forward_hw(0:N_repeat-1)) / real(N_repeat)
-  write(*,'(a,f30.5)') ' Average inverse transform time =', &
-       sum(durations_inverse_hw(0:N_repeat-1)) / real(N_repeat)
-  write(*,'(a,e30.5)') ' Average max error              =', &
-       sum(errors_hw(0:N_repeat-1)) / real(N_repeat)
   write(*,*)
 
   write(*,'(a,i2)') 'MWEO'
@@ -282,7 +246,7 @@ program ssht_test
 
   ! Deallocate memory.
   deallocate(flm_orig, flm_syn)
-  deallocate(f_dh, f_hw, f_mweo)
+  deallocate(f_dh, f_mweo, f_mw)
 
 end program ssht_test
 
