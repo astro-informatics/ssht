@@ -19,6 +19,7 @@ program ssht_test
 
   use ssht_types_mod
   use ssht_error_mod
+  use ssht_sampling_mod
   use ssht_core_mod
   !use F90_UNIX_ENV
 
@@ -97,11 +98,11 @@ program ssht_test
   ind_check = 0
   do el = 0, L-1     
      do m = -el, el       
-        call ssht_core_elm2ind(ind, el, m)
+        call ssht_sampling_elm2ind(ind, el, m)
         if (ind /= ind_check) then
            call ssht_error(SSHT_ERROR_INDEX_INVALID, 'ssht_test')
         end if
-        call ssht_core_ind2elm(el_check, m_check, ind)
+        call ssht_sampling_ind2elm(el_check, m_check, ind)
         if (el /= el_check .and. m /= m_check) then
            call ssht_error(SSHT_ERROR_INDEX_INVALID, 'ssht_test')
         end if
@@ -189,7 +190,7 @@ program ssht_test
      !-------------------------------------------------------------------------
      !call ssht_core_mweo_inverse_direct(f_mweo, flm2_orig, L, spin)
      !call ssht_core_mweo_inverse_sov_direct(f_mweo, flm2_orig, L, spin)
-     call ssht_core_mw_inverse_sov_direct(f_mw, flm_orig, L, spin)
+     call ssht_core_mw_inverse_sov(f_mw, flm_orig, L, spin)
      !-------------------------------------------------------------------------
      call cpu_time(time_end)
      durations_inverse_mw(i_repeat) = time_end - time_start
@@ -273,7 +274,7 @@ end program ssht_test
 subroutine ssht_test_gen_flm_real(L, flm, seed)
 
   use ssht_types_mod, only: dpc
-  use ssht_core_mod
+  use ssht_sampling_mod
 
   implicit none
 
@@ -296,15 +297,15 @@ subroutine ssht_test_gen_flm_real(L, flm, seed)
 
   do el = 0,L-1
      m = 0
-     call ssht_core_ind2elm(el, m, ind)  
+     call ssht_sampling_ind2elm(el, m, ind)  
      tmp = cmplx(2d0*ran2_dp(seed)-1d0, 0d0)
      flm(ind) = tmp
 
      do m = 1,el
-        call ssht_core_elm2ind(ind, el, m)  
+        call ssht_sampling_elm2ind(ind, el, m)  
         tmp = cmplx(2d0*ran2_dp(seed)-1d0, 2d0*ran2_dp(seed)-1d0)
         flm(ind) = tmp
-        call ssht_core_elm2ind(ind, el, -m)  
+        call ssht_sampling_elm2ind(ind, el, -m)  
         flm(ind) = (-1)**m * conjg(tmp)
      end do
 
@@ -334,7 +335,7 @@ end subroutine ssht_test_gen_flm_real
 subroutine ssht_test_gen_flm_complex(L, spin, flm, seed)
 
   use ssht_types_mod, only: dpc
-  use ssht_core_mod
+  use ssht_sampling_mod
 
   implicit none
 
@@ -355,7 +356,7 @@ subroutine ssht_test_gen_flm_complex(L, spin, flm, seed)
 
   flm(0:L**2-1) = cmplx(0d0, 0d0)
 
-  call ssht_core_elm2ind(ind_lo, abs(spin), 0)
+  call ssht_sampling_elm2ind(ind_lo, abs(spin), 0)
   do ind = ind_lo,L**2 - 1
 !     call ssht_core_ind2elm(el, m, ind)  
 !     if(el >= abs(spin)) then

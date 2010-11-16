@@ -81,6 +81,7 @@ SSHTOBJ = $(SSHTINC)/ssht_types_mod.o    \
           $(SSHTINC)/ssht_error_mod.o   \
           $(SSHTINC)/ssht_dl_mod.o      \
           $(SSHTINC)/ssht_fileio_mod.o  \
+          $(SSHTINC)/ssht_sampling_mod.o  \
           $(SSHTINC)/ssht_core_mod.o   
 
 
@@ -158,9 +159,13 @@ $(SSHTINC)/ssht_fileio_mod.o:  $(SSHTSRC)/ssht_fileio_mod.f90   \
                            $(SSHTINC)/ssht_types_mod.o    \
                            $(SSHTINC)/ssht_error_mod.o    \
                            $(SSHTINC)/ssht_core_mod.o    
+$(SSHTINC)/ssht_sampling_mod.o:  $(SSHTSRC)/ssht_sampling_mod.f90   \
+                           $(SSHTINC)/ssht_types_mod.o    \
+                           $(SSHTINC)/ssht_error_mod.o
 $(SSHTINC)/ssht_core_mod.o:  $(SSHTSRC)/ssht_core_mod.f90   \
                            $(SSHTINC)/ssht_types_mod.o    \
                            $(SSHTINC)/ssht_error_mod.o    \
+                           $(SSHTINC)/ssht_sampling_mod.o    \
                            $(SSHTINC)/ssht_dl_mod.o       
 
 

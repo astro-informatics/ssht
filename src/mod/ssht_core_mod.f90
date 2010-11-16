@@ -19,6 +19,7 @@ module ssht_core_mod
   use ssht_types_mod
   use ssht_error_mod
   use ssht_dl_mod
+  use ssht_sampling_mod
 
   implicit none
 
@@ -30,18 +31,21 @@ module ssht_core_mod
   !---------------------------------------
 
   public :: &
-       ssht_core_elm2ind, ssht_core_ind2elm, &
-       ssht_core_dh_inverse_direct, ssht_core_dh_inverse_direct_factored, &
-       ssht_core_dh_inverse_sov_direct, ssht_core_dh_inverse_sov, &
+       ssht_core_dh_inverse_direct, &
+       ssht_core_dh_inverse_direct_factored, &
+       ssht_core_dh_inverse_sov_direct, &
+       ssht_core_dh_inverse_sov, &
        ssht_core_dh_forward_sov_direct, &
        ssht_core_dh_forward_sov, &
-       ssht_core_mweo_inverse_direct, ssht_core_mweo_inverse_sov_direct, &
+       ssht_core_mweo_inverse_direct, &
+       ssht_core_mweo_inverse_sov_direct, &
        ssht_core_mweo_inverse_sov, &
        ssht_core_mweo_forward_sov_direct, &
        ssht_core_mweo_forward_sov, &
        ssht_core_mweo_forward_sov_conv, &
        ssht_core_mw_forward_direct, &
-       ssht_core_mw_inverse_sov_direct
+       ssht_core_mw_inverse_sov_direct, &
+       ssht_core_mw_inverse_sov
 
 
   !---------------------------------------
@@ -69,219 +73,6 @@ module ssht_core_mod
   !----------------------------------------------------------------------------
 
 contains
-
-
-  !============================================================================
-  ! Sampling relations
-  !============================================================================
-
-
-  !----------------------------------------------------------------------------
-  ! ssht_core_dh_t2theta
-  !
-  !! Covert theta index to angle for Driscoll and Healy sampling.
-  !!
-  !! Notes:
-  !!  - t ranges from [0 .. 2*L-1] => 2*L points in (0,pi).
-  !!
-  !! Variables:
-  !!  - t: Theta index [input].
-  !!  - theta: Theta angle [output].
-  !
-  !! @author J. D. McEwen
-  !
-  ! Revisions:
-  !   October 2010 - Written by Jason McEwen
-  !----------------------------------------------------------------------------
-  
-  function ssht_core_dh_t2theta(t, L) result (theta)
-
-    integer, intent(in) :: t
-    integer, intent(in) :: L
-    real(dp) :: theta
-
-    theta = (2d0*t+1d0)*PI / (4d0*L)
-
-  end function ssht_core_dh_t2theta
-
-
-  !----------------------------------------------------------------------------
-  ! ssht_core_dh_p2phi
-  !
-  !! Covert phi index to angle for Driscoll and Healy sampling.
-  !!
-  !! Notes:
-  !!  - p ranges from [0 .. 2*L-2] => 2*L-1 points in [0,2*pi).
-  !!
-  !! Variables:
-  !!  - p: Phi index [input].
-  !!  - phi: Phi angle [output].
-  !
-  !! @author J. D. McEwen
-  !
-  ! Revisions:
-  !   October 2010 - Written by Jason McEwen
-  !----------------------------------------------------------------------------
-  
-  function ssht_core_dh_p2phi(p, L) result (phi)
-
-    integer, intent(in) :: p
-    integer, intent(in) :: L
-    real(dp) :: phi
-
-    phi = 2d0*p*PI / (2d0*L - 1d0)	
-
-  end function ssht_core_dh_p2phi
-
-
-  !----------------------------------------------------------------------------
-  ! ssht_core_mw_t2theta
-  !
-  !! Covert theta index to angle for McEwen and Wiaux sampling.
-  !!
-  !! Notes:
-  !!  - t ranges from [0 .. 2*L-2] => 2*L-1 points in (0,2*pi).
-  !!
-  !! Variables:
-  !!  - t: Theta index [input].
-  !!  - theta: Theta angle [output].
-  !
-  !! @author J. D. McEwen
-  !
-  ! Revisions:
-  !   October 2010 - Written by Jason McEwen
-  !----------------------------------------------------------------------------
- 
-  function ssht_core_mw_t2theta(t, L) result (theta)
-
-    integer, intent(in) :: t
-    integer, intent(in) :: L
-    real(dp) :: theta
-
-    theta = (2d0*t+1d0)*PI / (2d0*L - 1d0)
-
-  end function ssht_core_mw_t2theta
-
-
-  !----------------------------------------------------------------------------
-  ! ssht_core_mw_p2phi
-  !
-  !! Covert phi index to angle for McEwen and Wiaux sampling.
-  !!
-  !! Notes:
-  !!  - p ranges from [0 .. 2*L-2] => 2*L-1 points in [0,2*pi).
-  !!
-  !! Variables:
-  !!  - p: Phi index [input].
-  !!  - phi: Phi angle [output].
-  !
-  !! @author J. D. McEwen
-  !
-  ! Revisions:
-  !   October 2010 - Written by Jason McEwen
-  !----------------------------------------------------------------------------
-
-  function ssht_core_mw_p2phi(p, L) result (phi)
-
-    integer, intent(in) :: p
-    integer, intent(in) :: L
-    real(dp) :: phi
-
-    phi = 2d0*p*PI / (2d0*L - 1d0)	
-
-  end function ssht_core_mw_p2phi
-
-
-  !----------------------------------------------------------------------------
-  ! ssht_core_mweo_t2theta
-  !
-  !! Covert theta index to angle for McEwen and Wiaux even-odd sampling.
-  !!
-  !! Notes:
-  !!  - t ranges from [0 .. 2*L-2] => 2*L-1 points in (0,2*pi).
-  !!
-  !! Variables:
-  !!  - t: Theta index [input].
-  !!  - theta: Theta angle [output].
-  !
-  !! @author J. D. McEwen
-  !
-  ! Revisions:
-  !   October 2010 - Written by Jason McEwen
-  !----------------------------------------------------------------------------
-
-  function ssht_core_mweo_t2theta(t, L) result (theta)
-
-    integer, intent(in) :: t
-    integer, intent(in) :: L
-    real(dp) :: theta
-
-    theta = (2d0*t+1d0)*PI / (2d0*L - 1d0)
-
-  end function ssht_core_mweo_t2theta
-
-
-  !----------------------------------------------------------------------------
-  ! ssht_core_mweo_p2phi
-  !
-  !! Covert phi index to angle for McEwen and Wiaux even-odd sampling.
-  !!
-  !! Notes:
-  !!  - p ranges from [0 .. 2*L-2] => 2*L-1 points in (0,2*pi).
-  !!
-  !! Variables:
-  !!  - p: Phi index [input].
-  !!  - phi: Phi angle [output].
-  !
-  !! @author J. D. McEwen
-  !
-  ! Revisions:
-  !   October 2010 - Written by Jason McEwen
-  !----------------------------------------------------------------------------
-
-  function ssht_core_mweo_p2phi(p, L) result (phi)
-
-    integer, intent(in) :: p
-    integer, intent(in) :: L
-    real(dp) :: phi
-
-    phi = (2d0*p+1d0)*PI / (2d0*L - 1d0)
-
-  end function ssht_core_mweo_p2phi
-
-
-
-
-
-
-
-  !============================================================================
-  ! Harmonic index relations
-  !============================================================================
-
-
-  subroutine ssht_core_elm2ind(ind, el, m)
-
-    integer, intent(out) :: ind
-    integer, intent(in) :: el, m
-
-    ind = el**2 + el + m
-
-  end subroutine ssht_core_elm2ind
-
-  subroutine ssht_core_ind2elm(el, m, ind)
-
-    integer, intent(out) :: el, m
-    integer, intent(in) :: ind
-
-    el = floor(sqrt(real(ind,dp)))
-    m = ind - el**2 - el
-
-  end subroutine ssht_core_ind2elm
-
-
-
-
 
 
   !============================================================================
@@ -340,12 +131,12 @@ write(*,*) 'spin = ', spin
     f(0:2*L-1 ,0:2*L-2) = cmplx(0d0, 0d0)
     do el = abs(spin), L-1
        do t = 0, 2*L-1
-          theta = ssht_core_dh_t2theta(t, L)             
+          theta = ssht_sampling_dh_t2theta(t, L)             
           call ssht_dl_beta_operator(dl(-el:el,-el:el), theta, el)
           do m = -el, el
-             call ssht_core_elm2ind(ind, el, m)
+             call ssht_sampling_elm2ind(ind, el, m)
              do p = 0, 2*L-2
-                phi = ssht_core_dh_p2phi(p, L)
+                phi = ssht_sampling_dh_p2phi(p, L)
                 f(t,p) = f(t,p) + &
                      (-1)**spin * sqrt((2d0*el+1d0)/(4d0*PI)) &
                      * exp(I*m*phi) &
@@ -405,12 +196,12 @@ write(*,*) 'spin = ', spin
     do el = abs(spin), L-1
        call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
        do m = -el, el
-          call ssht_core_elm2ind(ind, el, m)
+          call ssht_sampling_elm2ind(ind, el, m)
           do mm = -el, el
              do t = 0, 2*L-1
-                theta = ssht_core_dh_t2theta(t, L)             
+                theta = ssht_sampling_dh_t2theta(t, L)             
                 do p = 0, 2*L-2
-                   phi = ssht_core_dh_p2phi(p, L)
+                   phi = ssht_sampling_dh_p2phi(p, L)
                    f(t,p) = f(t,p) + &
                         (-1)**spin * sqrt((2d0*el+1d0)/(4d0*PI)) &
                         * exp(-I*PION2*(m+spin)) &
@@ -446,7 +237,7 @@ write(*,*) 'spin = ', spin
     do el = abs(spin), L-1
        call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
        do m = -el, el
-          call ssht_core_elm2ind(ind, el, m)
+          call ssht_sampling_elm2ind(ind, el, m)
           do mm = -el, el
              Fmm(m,mm) = Fmm(m,mm) + &
                   (-1)**spin * sqrt((2d0*el+1d0)/(4d0*PI)) &
@@ -460,7 +251,7 @@ write(*,*) 'spin = ', spin
     ! Compute fmt.
     fmt(-(L-1):L-1, 0:2*L-1) = cmplx(0d0, 0d0)
     do t = 0, 2*L-1     
-       theta = ssht_core_dh_t2theta(t, L)       
+       theta = ssht_sampling_dh_t2theta(t, L)       
        do m = -(L-1), L-1          
           do mm = -(L-1), L-1
              fmt(m,t) = fmt(m,t) + &
@@ -473,7 +264,7 @@ write(*,*) 'spin = ', spin
     f(0:2*L-1 ,0:2*L-2) = cmplx(0d0, 0d0)
     do t = 0, 2*L-1       
        do p = 0, 2*L-2
-          phi = ssht_core_dh_p2phi(p, L)
+          phi = ssht_sampling_dh_p2phi(p, L)
           do m = -(L-1), L-1          
              f(t,p) = f(t,p) + &
                   fmt(m,t) * exp(I*m*phi)
@@ -512,7 +303,7 @@ write(*,*) 'spin = ', spin
     do el = abs(spin), L-1
        call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
        do m = -el, el
-          call ssht_core_elm2ind(ind, el, m)
+          call ssht_sampling_elm2ind(ind, el, m)
           do mm = -el, el
              Fmm(m,mm) = Fmm(m,mm) + &
                   (-1)**spin * sqrt((2d0*el+1d0)/(4d0*PI)) &
@@ -526,7 +317,7 @@ write(*,*) 'spin = ', spin
     ! Compute fmt.
     fmt(-(L-1):L-1, 0:2*L-1) = cmplx(0d0, 0d0)
     do t = 0, 2*L-1     
-       theta = ssht_core_dh_t2theta(t, L)       
+       theta = ssht_sampling_dh_t2theta(t, L)       
        do m = -(L-1), L-1          
           do mm = -(L-1), L-1
              fmt(m,t) = fmt(m,t) + &
@@ -575,12 +366,12 @@ write(*,*) 'spin = ', spin
     f(0:2*L-1 ,0:2*L-2) = cmplx(0d0, 0d0)
     do el = abs(spin), L-1
        do t = 0, L-1
-          theta = ssht_core_mweo_t2theta(t, L)             
+          theta = ssht_sampling_mweo_t2theta(t, L)             
           call ssht_dl_beta_operator(dl(-el:el,-el:el), theta, el)
           do m = -el, el
-             call ssht_core_elm2ind(ind, el, m)
+             call ssht_sampling_elm2ind(ind, el, m)
              do p = 0, 2*L-2
-                phi = ssht_core_mweo_p2phi(p, L)
+                phi = ssht_sampling_mweo_p2phi(p, L)
                 f(t,p) = f(t,p) + &
                      (-1)**spin * sqrt((2d0*el+1d0)/(4d0*PI)) &
                      * exp(I*m*phi) &
@@ -616,7 +407,7 @@ write(*,*) 'spin = ', spin
     do el = abs(spin), L-1
        call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
        do m = -el, el
-          call ssht_core_elm2ind(ind, el, m)
+          call ssht_sampling_elm2ind(ind, el, m)
           do mm = -el, el
              Fmm(m,mm) = Fmm(m,mm) + &
                   (-1)**spin * sqrt((2d0*el+1d0)/(4d0*PI)) &
@@ -630,9 +421,9 @@ write(*,*) 'spin = ', spin
     ! Compute fext using 2D DFT.
     fext(0:2*L-2, 0:2*L-2) = cmplx(0d0, 0d0)
     do t = 0, 2*L-2     
-       theta = ssht_core_mweo_t2theta(t, L)    
+       theta = ssht_sampling_mweo_t2theta(t, L)    
        do p = 0, 2*L-2
-          phi = ssht_core_mweo_p2phi(p, L)
+          phi = ssht_sampling_mweo_p2phi(p, L)
           do m = -(L-1), L-1          
              do mm = -(L-1), L-1
                 fext(t,p) = fext(t,p) + &
@@ -669,7 +460,7 @@ write(*,*) 'spin = ', spin
     do el = abs(spin), L-1
        call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
        do m = -el, el
-          call ssht_core_elm2ind(ind, el, m)
+          call ssht_sampling_elm2ind(ind, el, m)
           do mm = -el, el
              Fmm(m,mm) = Fmm(m,mm) + &
                   (-1)**spin * sqrt((2d0*el+1d0)/(4d0*PI)) &
@@ -711,9 +502,9 @@ write(*,*) 'spin = ', spin
 
 ! If don't apply spatial shift above then apply phase modulation here.
 !!$    do t = 0, L-1     
-!!$       theta = ssht_core_mweo_t2theta(t, L)    
+!!$       theta = ssht_sampling_mweo_t2theta(t, L)    
 !!$       do p = 0, 2*L-2
-!!$          phi = ssht_core_mweo_p2phi(p, L)
+!!$          phi = ssht_sampling_mweo_p2phi(p, L)
 !!$          f(t,p) = f(t,p) * exp(-I*(L-1)*(theta+phi))
 !!$       end do
 !!$    end do
@@ -746,7 +537,7 @@ write(*,*) 'spin = ', spin
     do el = abs(spin), L-1
        call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
        do m = -el, el
-          call ssht_core_elm2ind(ind, el, m)
+          call ssht_sampling_elm2ind(ind, el, m)
           do mm = -el, el
              Fmm(m,mm) = Fmm(m,mm) + &
                   (-1)**spin * sqrt((2d0*el+1d0)/(4d0*PI)) &
@@ -760,9 +551,9 @@ write(*,*) 'spin = ', spin
     ! Compute fext using 2D DFT.
     fext(0:2*L-2, 0:2*L-2) = cmplx(0d0, 0d0)
     do t = 0, 2*L-2     
-       theta = ssht_core_mw_t2theta(t, L)    
+       theta = ssht_sampling_mw_t2theta(t, L)    
        do p = 0, 2*L-2
-          phi = ssht_core_mw_p2phi(p, L)
+          phi = ssht_sampling_mw_p2phi(p, L)
           do m = -(L-1), L-1          
              do mm = -(L-1), L-1
                 fext(t,p) = fext(t,p) + &
@@ -778,6 +569,59 @@ write(*,*) 'spin = ', spin
   end subroutine ssht_core_mw_inverse_sov_direct
 
 
+  subroutine ssht_core_mw_inverse_sov(f, flm, L, spin, verbosity)
+    
+    integer, intent(in) :: L
+    integer, intent(in) :: spin
+    integer, intent(in), optional :: verbosity
+    complex(dpc), intent(in) :: flm(0:L**2-1)
+    complex(dpc), intent(out) :: f(0:L-1, 0:2*L-2)
+
+    integer :: el, m, mm, t, p, ind
+    real(dp) :: theta, phi
+    real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
+    complex(dpc) :: Fmm(-(L-1):L-1, -(L-1):L-1)
+    complex(dpc) :: fext(0:2*L-2, 0:2*L-2)
+    integer*8 :: fftw_plan
+
+    ! Compute Fmm.
+    Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
+    do el = abs(spin), L-1
+       call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+       do m = -el, el
+          call ssht_sampling_elm2ind(ind, el, m)
+          do mm = -el, el
+             Fmm(m,mm) = Fmm(m,mm) + &
+                  (-1)**spin * sqrt((2d0*el+1d0)/(4d0*PI)) &
+                  * exp(-I*PION2*(m+spin)) &
+                  * dl(mm,m) * dl(mm,-spin) &
+                  * flm(ind)
+          end do
+       end do
+    end do
+
+    ! Apply phase modulation to account for sampling offset.
+    do mm = -(L-1), L-1
+       Fmm(-(L-1):L-1,mm) = Fmm(-(L-1):L-1,mm) * exp(I*mm*PI/(2d0*L-1d0))
+    end do
+
+    ! Apply spatial shift.
+    fext(0:L-1, 0:L-1) = Fmm(0:L-1,0:L-1)
+    fext(L:2*L-2, 0:L-1) = Fmm(-(L-1):-1,0:L-1)
+    fext(0:L-1, L:2*L-2) = Fmm(0:L-1,-(L-1):-1)
+    fext(L:2*L-2, L:2*L-2) = Fmm(-(L-1):-1,-(L-1):-1)
+
+    ! Perform 2D FFT.
+    ! ** NOTE THAT 2D FFTW SWITCHES DIMENSIONS! HENCE TRANSPOSE BELOW. **
+    call dfftw_plan_dft_2d(fftw_plan, 2*L-1, 2*L-1, fext(0:2*L-2,0:2*L-2), &
+         fext(0:2*L-2,0:2*L-2), FFTW_BACKWARD, FFTW_ESTIMATE)
+    call dfftw_execute_dft(fftw_plan, fext(0:2*L-2,0:2*L-2), fext(0:2*L-2,0:2*L-2))
+    call dfftw_destroy_plan(fftw_plan)
+
+    ! Extract f from version of f extended to the torus (fext).
+    f(0:L-1, 0:2*L-2) = transpose(fext(0:2*L-2, 0:L-1))
+
+  end subroutine ssht_core_mw_inverse_sov
 
 
 
@@ -816,7 +660,7 @@ write(*,*) 'spin = ', spin
     ! Compute fmt.
     fmt(-(L-1):L-1, 0:2*L-1) = cmplx(0d0, 0d0)
     do p = 0, 2*L-2
-       phi = ssht_core_dh_p2phi(p, L)
+       phi = ssht_sampling_dh_p2phi(p, L)
        do m = -(L-1), L-1
           do t = 0, 2*L-1             
              fmt(m,t) = fmt(m,t) + &
@@ -830,7 +674,7 @@ write(*,*) 'spin = ', spin
     ! Compute Fmm.
     Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
     do t = 0, 2*L-1
-       theta = ssht_core_dh_t2theta(t, L)
+       theta = ssht_sampling_dh_t2theta(t, L)
        w = weight_dh(theta, L)
        do m = -(L-1), L-1
           do mm = -(L-1), L-1
@@ -845,7 +689,7 @@ write(*,*) 'spin = ', spin
     do el = abs(spin), L-1
        call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
        do m = -el, el
-          call ssht_core_elm2ind(ind, el, m)
+          call ssht_sampling_elm2ind(ind, el, m)
           do mm = -el, el
              flm(ind) = flm(ind) + &
                   (-1)**spin * sqrt((2d0*el+1d0)/(4d0*PI)) &
@@ -901,7 +745,7 @@ write(*,*) 'spin = ', spin
     ! Compute Fmm.
     Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
     do t = 0, 2*L-1
-       theta = ssht_core_dh_t2theta(t, L)
+       theta = ssht_sampling_dh_t2theta(t, L)
        w = weight_dh(theta, L)
        do m = -(L-1), L-1
           do mm = -(L-1), L-1
@@ -916,7 +760,7 @@ write(*,*) 'spin = ', spin
     do el = abs(spin), L-1
        call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
        do m = -el, el
-          call ssht_core_elm2ind(ind, el, m)
+          call ssht_sampling_elm2ind(ind, el, m)
           do mm = -el, el
              flm(ind) = flm(ind) + &
                   (-1)**spin * sqrt((2d0*el+1d0)/(4d0*PI)) &
@@ -970,9 +814,9 @@ write(*,*) 'spin = ', spin
     Fmme(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
     Fmmo(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
     do p = 0, 2*L-2
-       phi = ssht_core_mweo_p2phi(p, L)
+       phi = ssht_sampling_mweo_p2phi(p, L)
        do t = 0, 2*L-2
-          theta = ssht_core_mw_t2theta(t, L)    
+          theta = ssht_sampling_mw_t2theta(t, L)    
           do m = -(L-1), L-1
              do mm = -(L-1), L-1
                 Fmme(m,mm) = Fmme(m,mm) + &
@@ -1009,7 +853,7 @@ write(*,*) 'spin = ', spin
     do el = abs(spin), L-1
        call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
        do m = -el, el
-          call ssht_core_elm2ind(ind, el, m)
+          call ssht_sampling_elm2ind(ind, el, m)
           do mm = -el, el
              if (mod(m+spin,2) == 0) then
                 ! m+spin even
@@ -1063,9 +907,9 @@ write(*,*) 'spin = ', spin
 
 ! If don't apply spatial shift below then apply phase modulation here.
 !!$    do p = 0, 2*L-2
-!!$       phi = ssht_core_mweo_p2phi(p, L)
+!!$       phi = ssht_sampling_mweo_p2phi(p, L)
 !!$       do t = 0, 2*L-2
-!!$          theta = ssht_core_mweo_t2theta(t, L)   
+!!$          theta = ssht_sampling_mweo_t2theta(t, L)   
 !!$          fe(t,p) = fe(t,p) * exp(I*(phi+theta)*(L-1))
 !!$          fo(t,p) = fo(t,p) * exp(I*(phi+theta)*(L-1))
 !!$       end do
@@ -1129,7 +973,7 @@ write(*,*) 'spin = ', spin
     do el = abs(spin), L-1
        call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
        do m = -el, el
-          call ssht_core_elm2ind(ind, el, m)
+          call ssht_sampling_elm2ind(ind, el, m)
           do mm = -el, el
              if (mod(m+spin,2) == 0) then
                 ! m+spin even
@@ -1187,9 +1031,9 @@ write(*,*) 'spin = ', spin
 
 ! If don't apply spatial shift below then apply phase modulation here.
 !!$    do p = 0, 2*L-2
-!!$       phi = ssht_core_mweo_p2phi(p, L)
+!!$       phi = ssht_sampling_mweo_p2phi(p, L)
 !!$       do t = 0, 2*L-2
-!!$          theta = ssht_core_mweo_t2theta(t, L)   
+!!$          theta = ssht_sampling_mweo_t2theta(t, L)   
 !!$          fe(t,p) = fe(t,p) * exp(I*(phi+theta)*(L-1))
 !!$          fo(t,p) = fo(t,p) * exp(I*(phi+theta)*(L-1))
 !!$       end do
@@ -1333,7 +1177,7 @@ write(*,*) 'spin = ', spin
     do el = abs(spin), L-1
        call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
        do m = -el, el
-          call ssht_core_elm2ind(ind, el, m)
+          call ssht_sampling_elm2ind(ind, el, m)
           do mm = -el, el
              if (mod(m+spin,2) == 0) then
                 ! m+spin even
@@ -1380,7 +1224,7 @@ write(*,*) 'spin = ', spin
     ! Compute Fourier transform over phi, i.e. compute Fmt.
     Fmt(-(L-1):L-1,0:2*L-2) = cmplx(0d0, 0d0)    
     do p = 0, 2*L-2
-       phi = ssht_core_mw_p2phi(p, L)
+       phi = ssht_sampling_mw_p2phi(p, L)
        do t = 0, L-1
           do m = -(L-1), L-1
              Fmt(m,t) = Fmt(m,t) + &
@@ -1398,7 +1242,7 @@ write(*,*) 'spin = ', spin
     ! Compute Fmm.
     Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
     do t = 0, 2*L-2
-       theta = ssht_core_mw_t2theta(t, L)    
+       theta = ssht_sampling_mw_t2theta(t, L)    
        do m = -(L-1), L-1
           do mm = -(L-1), L-1
              Fmm(m,mm) = Fmm(m,mm) + &
@@ -1424,7 +1268,7 @@ write(*,*) 'spin = ', spin
     do el = abs(spin), L-1
        call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
        do m = -el, el
-          call ssht_core_elm2ind(ind, el, m)
+          call ssht_sampling_elm2ind(ind, el, m)
           do mm = -el, el             
              flm(ind) = flm(ind) + &
                   (-1)**spin * sqrt((2d0*el+1d0)/(4d0*PI)) &
