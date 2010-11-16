@@ -43,7 +43,9 @@ module ssht_core_mod
        ssht_core_mweo_forward_sov_direct, &
        ssht_core_mweo_forward_sov, &
        ssht_core_mweo_forward_sov_conv, &
-       ssht_core_mw_forward_direct, &
+       ssht_core_mw_forward_sov_direct, &
+       ssht_core_mw_forward_sov, &
+       ssht_core_mw_forward_sov_conv, &
        ssht_core_mw_inverse_sov_direct, &
        ssht_core_mw_inverse_sov
 
@@ -1205,7 +1207,7 @@ write(*,*) 'spin = ', spin
   !----------------------------------------------------------------------------
 
 
-  subroutine ssht_core_mw_forward_direct(flm, f, L, spin, verbosity)
+  subroutine ssht_core_mw_forward_sov_direct(flm, f, L, spin, verbosity)
 
     integer, intent(in) :: L
     integer, intent(in) :: spin
@@ -1279,11 +1281,219 @@ write(*,*) 'spin = ', spin
        end do
     end do
 
-  end subroutine ssht_core_mw_forward_direct
+  end subroutine ssht_core_mw_forward_sov_direct
 
 
 
 
+  subroutine ssht_core_mw_forward_sov(flm, f, L, spin, verbosity)
+
+    integer, intent(in) :: L
+    integer, intent(in) :: spin
+    integer, intent(in), optional :: verbosity
+    complex(dpc), intent(in) :: f(0:L-1 ,0:2*L-2)
+    complex(dpc), intent(out) :: flm(0:L**2-1)
+
+    integer :: p, m, t, mm, el, ind, k
+    real(dp) :: theta, phi
+
+    real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
+    complex(dpc) :: Fmt(-(L-1):L-1, 0:2*L-2)
+    complex(dpc) :: Fmm(-(L-1):L-1, -(L-1):L-1)
+    complex(dpc) :: Gmm(-(L-1):L-1, -(L-1):L-1) 
+    integer*8 :: fftw_plan
+    complex(dpc) :: tmp(0:2*L-2)
+
+    ! Compute Fourier transform over phi, i.e. compute Fmt.
+    call dfftw_plan_dft_1d(fftw_plan, 2*L-1, Fmt(-(L-1):L-1,0), &
+         Fmt(-(L-1):L-1,0), FFTW_FORWARD, FFTW_MEASURE)
+    do t = 0, L-1
+       call dfftw_execute_dft(fftw_plan, f(t,0:2*L-2), tmp(0:2*L-2))
+       Fmt(0:L-1,t) = tmp(0:L-1)
+       Fmt(-(L-1):-1,t) = tmp(L:2*L-2)
+    end do
+!    call dfftw_destroy_plan(fftw_plan)
+    Fmt(-(L-1):L-1, 0:L-1) = Fmt(-(L-1):L-1, 0:L-1) / (2d0*L-1d0)
+
+    ! Extend Fmt periodically.
+    do m = -(L-1), L-1
+       Fmt(m, L:2*L-2) = (-1)**(m+spin) * Fmt(m, L-2:0:-1)
+    end do
+
+    ! Compute Fourier transform over theta, i.e. compute Fmm.
+    do m = -(L-1), L-1
+       call dfftw_execute_dft(fftw_plan, Fmt(m,0:2*L-2), tmp(0:2*L-2))
+       Fmm(m,0:L-1) = tmp(0:L-1)
+       Fmm(m,-(L-1):-1) = tmp(L:2*L-2)
+    end do
+    Fmm(-(L-1):L-1, -(L-1):L-1) = Fmm(-(L-1):L-1, -(L-1):L-1) / (2d0*L-1d0)
+    call dfftw_destroy_plan(fftw_plan)
+
+    ! Apply phase modulation to account for sampling offset.
+    do mm = -(L-1), L-1
+       Fmm(-(L-1):L-1,mm) = Fmm(-(L-1):L-1, mm) * exp(-I*mm*PI/(2d0*L - 1d0))
+    end do
+
+    ! Compute Gmm by direct convolution.
+    Gmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
+    do m = -(L-1), L-1
+       do mm = -(L-1), L-1
+          do k = -(L-1), L-1 
+             Gmm(m,mm) = Gmm(m,mm) + &
+                  Fmm(m,k) * weight_mw(k - mm) * 2d0 * PI
+          end do
+       end do
+    end do
+
+    ! Compute flm.
+    flm(0::L**2-1) = cmplx(0d0, 0d0)
+    do el = abs(spin), L-1
+       call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+       do m = -el, el
+          call ssht_sampling_elm2ind(ind, el, m)
+          do mm = -el, el             
+             flm(ind) = flm(ind) + &
+                  (-1)**spin * sqrt((2d0*el+1d0)/(4d0*PI)) &
+                  * exp(I*PION2*(m+spin)) &
+                  * dl(mm,m) * dl(mm,-spin) &
+                  * Gmm(m,mm)
+          end do
+       end do
+    end do
+
+  end subroutine ssht_core_mw_forward_sov
+
+
+  subroutine ssht_core_mw_forward_sov_conv(flm, f, L, spin, verbosity)
+
+    integer, intent(in) :: L
+    integer, intent(in) :: spin
+    integer, intent(in), optional :: verbosity
+    complex(dpc), intent(in) :: f(0:L-1 ,0:2*L-2)
+    complex(dpc), intent(out) :: flm(0:L**2-1)
+
+    integer :: p, m, t, mm, el, ind, k
+    real(dp) :: theta, phi
+
+    real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
+    complex(dpc) :: Fmt(-(L-1):L-1, 0:2*L-2)
+    complex(dpc) :: Fmm(-(L-1):L-1, -(L-1):L-1)
+    complex(dpc) :: Gmm(-(L-1):L-1, -(L-1):L-1) 
+    integer*8 :: fftw_plan
+    complex(dpc) :: tmp(0:2*L-2)
+
+    integer :: r
+    complex(dpc) :: Fmm_pad(-2*(L-1):2*(L-1))
+    complex(dpc) :: tmp_pad(-2*(L-1):2*(L-1))
+    complex(dpc) :: w(-2*(L-1):2*(L-1))
+    complex(dpc) :: wr(-2*(L-1):2*(L-1))
+    integer*8 :: fftw_plan_fwd, fftw_plan_bwd
+
+    ! Compute Fourier transform over phi, i.e. compute Fmt.
+    call dfftw_plan_dft_1d(fftw_plan, 2*L-1, Fmt(-(L-1):L-1,0), &
+         Fmt(-(L-1):L-1,0), FFTW_FORWARD, FFTW_MEASURE)
+    do t = 0, L-1
+       call dfftw_execute_dft(fftw_plan, f(t,0:2*L-2), tmp(0:2*L-2))
+       Fmt(0:L-1,t) = tmp(0:L-1)
+       Fmt(-(L-1):-1,t) = tmp(L:2*L-2)
+    end do
+    Fmt(-(L-1):L-1, 0:L-1) = Fmt(-(L-1):L-1, 0:L-1) / (2d0*L-1d0)
+
+    ! Extend Fmt periodically.
+    do m = -(L-1), L-1
+       Fmt(m, L:2*L-2) = (-1)**(m+spin) * Fmt(m, L-2:0:-1)
+    end do
+
+    ! Compute Fourier transform over theta, i.e. compute Fmm.
+    do m = -(L-1), L-1
+       call dfftw_execute_dft(fftw_plan, Fmt(m,0:2*L-2), tmp(0:2*L-2))
+       Fmm(m,0:L-1) = tmp(0:L-1)
+       Fmm(m,-(L-1):-1) = tmp(L:2*L-2)
+    end do
+    Fmm(-(L-1):L-1, -(L-1):L-1) = Fmm(-(L-1):L-1, -(L-1):L-1) / (2d0*L-1d0)
+    call dfftw_destroy_plan(fftw_plan)
+
+    ! Apply phase modulation to account for sampling offset.
+    do mm = -(L-1), L-1
+       Fmm(-(L-1):L-1,mm) = Fmm(-(L-1):L-1, mm) * exp(-I*mm*PI/(2d0*L - 1d0))
+    end do
+
+    ! Compute weights.
+    do mm = -2*(L-1), 2*(L-1)
+       w(mm) = weight_mw(mm)
+    end do
+
+    ! Compute IFFT of w to give wr.
+    wr(1:2*(L-1)) = w(-2*(L-1):-1)
+    wr(-2*(L-1):0) = w(0:2*(L-1))
+    w(-2*(L-1):2*(L-1)) = wr(-2*(L-1):2*(L-1))
+    call dfftw_plan_dft_1d(fftw_plan_bwd, 4*L-3, wr(-2*(L-1):2*(L-1)), &
+         wr(-2*(L-1):2*(L-1)), FFTW_BACKWARD, FFTW_MEASURE)
+    call dfftw_execute_dft(fftw_plan_bwd, w(-2*(L-1):2*(L-1)), w(-2*(L-1):2*(L-1)))
+    wr(0:2*(L-1)) = w(-2*(L-1):0)
+    wr(-2*(L-1):-1) = w(1:2*(L-1))
+
+    ! Plan forward FFT.
+    call dfftw_plan_dft_1d(fftw_plan_fwd, 4*L-3, w(-2*(L-1):2*(L-1)), &
+         w(-2*(L-1):2*(L-1)), FFTW_FORWARD, FFTW_MEASURE)
+
+    ! Compute Gmm by convolution implemented as product in real space.
+    do m = -(L-1), L-1
+
+       ! Zero-pad Fmm.
+       Fmm_pad(-2*(L-1):-L) = cmplx(0d0, 0d0)
+       Fmm_pad(-(L-1):L-1) = Fmm(m,-(L-1):L-1)
+       Fmm_pad(L:2*(L-1)) = cmplx(0d0, 0d0)
+       
+       ! Compute IFFT of Fmm.
+       tmp_pad(1:2*(L-1)) = Fmm_pad(-2*(L-1):-1)
+       tmp_pad(-2*(L-1):0) = Fmm_pad(0:2*(L-1))
+       Fmm_pad(-2*(L-1):2*(L-1)) = tmp_pad(-2*(L-1):2*(L-1))
+       call dfftw_execute_dft(fftw_plan_bwd, Fmm_pad(-2*(L-1):2*(L-1)), &
+            Fmm_pad(-2*(L-1):2*(L-1)))
+       tmp_pad(0:2*(L-1)) = Fmm_pad(-2*(L-1):0)
+       tmp_pad(-2*(L-1):-1) = Fmm_pad(1:2*(L-1))
+       Fmm_pad(-2*(L-1):2*(L-1)) = tmp_pad(-2*(L-1):2*(L-1))
+
+       ! Compute product of Fmm and weight in real space.
+       do r = -2*(L-1), 2*(L-1)
+          Fmm_pad(r) = Fmm_pad(r) * wr(-r)
+       end do
+
+       ! Compute Gmm by FFT.
+       tmp_pad(1:2*(L-1)) = Fmm_pad(-2*(L-1):-1)
+       tmp_pad(-2*(L-1):0) = Fmm_pad(0:2*(L-1))
+       Fmm_pad(-2*(L-1):2*(L-1)) = tmp_pad(-2*(L-1):2*(L-1))
+       call dfftw_execute_dft(fftw_plan_fwd, Fmm_pad(-2*(L-1):2*(L-1)), &
+            Fmm_pad(-2*(L-1):2*(L-1)))
+       tmp_pad(0:2*(L-1)) = Fmm_pad(-2*(L-1):0)
+       tmp_pad(-2*(L-1):-1) = Fmm_pad(1:2*(L-1))
+       Fmm_pad(-2*(L-1):2*(L-1)) = tmp_pad(-2*(L-1):2*(L-1))
+
+       ! Extract section of Gmm of interest.
+       Gmm(m,-(L-1):(L-1)) = Fmm_pad(-(L-1):(L-1)) * 2d0 * PI / (4d0*L-3d0)
+
+    end do
+    call dfftw_destroy_plan(fftw_plan_bwd)
+    call dfftw_destroy_plan(fftw_plan_fwd)   
+
+    ! Compute flm.
+    flm(0::L**2-1) = cmplx(0d0, 0d0)
+    do el = abs(spin), L-1
+       call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+       do m = -el, el
+          call ssht_sampling_elm2ind(ind, el, m)
+          do mm = -el, el             
+             flm(ind) = flm(ind) + &
+                  (-1)**spin * sqrt((2d0*el+1d0)/(4d0*PI)) &
+                  * exp(I*PION2*(m+spin)) &
+                  * dl(mm,m) * dl(mm,-spin) &
+                  * Gmm(m,mm)
+          end do
+       end do
+    end do
+
+  end subroutine ssht_core_mw_forward_sov_conv
 
 
 
