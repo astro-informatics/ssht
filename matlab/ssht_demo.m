@@ -11,8 +11,9 @@ function ssht_demo
 
 
 % Define size parameters.
-spin = 3;
-L = 16;
+spin = 0;
+reality = true;
+L = 5;
 nphi = 2*L - 1;
 ntheta_dh = 2*L;
 ntheta_mw = L;
@@ -24,14 +25,29 @@ t_mw = 0:ntheta_mw-1;
 theta_mw = (2d0*t_mw+1d0)*pi / (2d0*L - 1d0)
 p = 0:nphi-1;
 phi_dh = 2d0*p*pi / (2d0*L - 1d0)
-phi_mw = (2d0*p+1d0)*pi / (2d0*L - 1d0)
+%phi_mw = (2d0*p+1d0)*pi / (2d0*L - 1d0)
+phi_mw = (2d0*p)*pi / (2d0*L - 1d0)
 
-% Random flms.
+% Random flms (of complex signal).
 flm = zeros(L^2,1);
 flm = rand(size(flm)) + sqrt(-1)*rand(size(flm));
 flm = 2.*(flm - (1+sqrt(-1))./2);
 ind_min = spin^2 + abs(spin);
 flm(1:ind_min) = 0;
+
+% Impose reality on flms.
+if (reality)
+   for el = 0:L-1
+      m = 0;
+      ind = el^2 + el + m;
+      flm(ind+1) = real(flm(ind+1));
+      for m = 1:el
+         ind_pm = el^2 + el + m;
+         ind_nm = el^2 + el - m;
+         flm(ind_nm+1) = (-1)^m * conj(flm(ind_pm+1));
+      end
+   end
+end
 
 % Measure error of inverse-forward transform for DH.
 f_dh = ssht_inverse(flm, 'DH', L, spin);
@@ -41,8 +57,8 @@ maxerr_dh = max(abs(flm - flm_dh_syn))
 % Measure error of inverse-forward transform for MW.
 f_mw = ssht_inverse(flm, 'MW', L, spin);
 f_mw_grid = reshape(f_mw, nphi, ntheta_mw)
-f_mw_grid(:,end) = f_mw_grid(1,end).*exp(sqrt(-1)*spin*phi_mw).* ...
-   exp(sqrt(-1)*(-1d0)*pi / (2d0*L - 1d0)*spin);
+f_mw_grid(:,end) = f_mw_grid(1,end).*exp(sqrt(-1)*spin*phi_mw);%.* ...
+%   exp(sqrt(-1)*(-1d0)*pi / (2d0*L - 1d0)*spin);
 f_mw = f_mw_grid(:);
 flm_mw_syn = ssht_forward(f_mw, 'MW', L, spin);
 maxerr_mw = max(abs(flm - flm_mw_syn))

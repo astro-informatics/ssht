@@ -26,13 +26,13 @@ program ssht_test
   implicit none
 
   interface
-     subroutine ssht_test_gen_flm(L, flm, seed)
+     subroutine ssht_test_gen_flm_real(L, flm, seed)
        use ssht_types_mod, only: dpc
        implicit none
        integer, intent(in) :: L
-       complex(dpc), intent(out) :: flm(0:L,0:L)
+       complex(dpc), intent(out) :: flm(0:L**2-1)
        integer, intent(in) :: seed
-     end subroutine ssht_test_gen_flm
+     end subroutine ssht_test_gen_flm_real
 
      subroutine ssht_test_gen_flm_complex(L, spin, flm, seed)
        use ssht_types_mod, only: dpc
@@ -46,7 +46,7 @@ program ssht_test
   end interface
 
   character(len=64) :: arg
-  integer, parameter :: N_repeat = 10
+  integer, parameter :: N_repeat = 1
   integer :: verbosity = 0
   integer :: fail = 0, seed, i_repeat
   real :: time_start, time_end
@@ -123,6 +123,35 @@ program ssht_test
         write(*,*) 'TODO: run real tests'
         write(*,*)
 ! run additional real analysis.
+
+
+
+
+        !=========================================================================
+        ! MW
+        write(*,'(a,i2)') 'MW test no.', i_repeat
+        flm_orig(0:L**2-1) = cmplx(0d0, 0d0)
+        flm_syn(0:L**2-1) = cmplx(0d0, 0d0)
+        call ssht_test_gen_flm_real(L, flm_orig, seed)
+        call cpu_time(time_start)
+        !-------------------------------------------------------------------------
+        call ssht_core_mw_inverse_sov_sym(f_mw, flm_orig, L, spin)
+        !-------------------------------------------------------------------------
+        call cpu_time(time_end)
+        durations_inverse_mw(i_repeat) = time_end - time_start
+        call cpu_time(time_start)
+        !-------------------------------------------------------------------------
+        call ssht_core_mw_forward_sov_conv_sym(flm_syn, f_mw, L, spin)
+        !-------------------------------------------------------------------------
+        call cpu_time(time_end)
+        durations_forward_mw(i_repeat) = time_end - time_start
+        errors_mw(i_repeat) = maxval(abs(flm_orig(0:L**2-1) - flm_syn(0:L**2-1)))
+        write(*,'(a,f40.4)') ' duration_inverse (s) =', durations_inverse_mw(i_repeat)
+        write(*,'(a,f40.4)') ' duration_forward (s) =', durations_forward_mw(i_repeat)
+        write(*,'(a,e40.5)') ' error                =', errors_mw(i_repeat)
+        write(*,*)
+
+
      end if
 
 
@@ -291,10 +320,9 @@ subroutine ssht_test_gen_flm_real(L, flm, seed)
   complex(dpc) :: tmp
 
   flm(0:L**2-1) = cmplx(0d0, 0d0)
-
   do el = 0,L-1
      m = 0
-     call ssht_sampling_ind2elm(el, m, ind)  
+     call ssht_sampling_elm2ind(ind, el, m)  
      tmp = cmplx(2d0*ran2_dp(seed)-1d0, 0d0)
      flm(ind) = tmp
 
@@ -312,7 +340,7 @@ end subroutine ssht_test_gen_flm_real
 
 
 !--------------------------------------------------------------------------
-! ssht_test_gen_flm_real
+! ssht_test_gen_flm_complex
 !
 !! Generate random spherical harmonic coefficients of a complex signal.
 !!

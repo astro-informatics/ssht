@@ -62,7 +62,7 @@ program ssht_forward
         call ssht_core_dh_forward_sov(flm(0:L**2-1), &
              f(0:ntheta-1, 0:2*L-2), L, spin)
      case(METHOD_MW)
-        call ssht_core_mweo_forward_sov_conv(flm(0:L**2-1), &
+        call ssht_core_mw_forward_sov_conv(flm(0:L**2-1), &
              f(0:ntheta-1, 0:2*L-2), L, spin)
 
 !        call ssht_core_mw_forward_direct(flm(0:L**2-1), &

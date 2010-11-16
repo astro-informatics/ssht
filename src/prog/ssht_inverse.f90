@@ -59,7 +59,7 @@ program ssht_inverse
         call ssht_core_dh_inverse_sov(f(0:ntheta-1, 0:2*L-2), &
              flm(0:L**2-1), L, spin)
      case(METHOD_MW)
-        call ssht_core_mweo_inverse_sov(f(0:ntheta-1, 0:2*L-2), &
+        call ssht_core_mw_inverse_sov(f(0:ntheta-1, 0:2*L-2), &
              flm(0:L**2-1), L, spin)
      case default
         call ssht_error(SSHT_ERROR_ARG_INVALID, 'ssht_inverse', &
