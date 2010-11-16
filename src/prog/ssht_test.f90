@@ -150,14 +150,15 @@ f_dh_real(0:2*L-1, 0:2*L-2) = 0d0
         call ssht_test_gen_flm_real(L, flm_orig, seed)
         call cpu_time(time_start)
         !-------------------------------------------------------------------------
-        call ssht_core_dh_inverse_sov_sym(f_dh, flm_orig, L, spin, verbosity)
+!        call ssht_core_dh_inverse_sov_sym(f_dh, flm_orig, L, spin, verbosity)
+        call ssht_core_dh_inverse_sov_sym_real(f_dh_real, flm_orig, L, verbosity)
         !-------------------------------------------------------------------------
         call cpu_time(time_end)
         durations_inverse_dh(i_repeat) = time_end - time_start
         call cpu_time(time_start)
         !-------------------------------------------------------------------------
 !        call ssht_core_dh_forward_sov_sym(flm_syn, f_dh, L, spin, verbosity)
-        f_dh_real = real(f_dh,kind=dp)
+!        f_dh_real = real(f_dh,kind=dp)
         call ssht_core_dh_forward_sov_sym_real(flm_syn, f_dh_real, L, verbosity)
 
         !-------------------------------------------------------------------------

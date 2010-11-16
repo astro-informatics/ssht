@@ -36,6 +36,7 @@ module ssht_core_mod
        ssht_core_dh_inverse_sov_direct, &
        ssht_core_dh_inverse_sov, &
        ssht_core_dh_inverse_sov_sym, &
+       ssht_core_dh_inverse_sov_sym_real, &
        ssht_core_dh_forward_sov_direct, &
        ssht_core_dh_forward_sov, &
        ssht_core_dh_forward_sov_sym, &
@@ -445,6 +446,72 @@ write(*,*) 'spin = ', spin
 
   end subroutine ssht_core_dh_inverse_sov_sym
 
+
+! Eqns (9), (10) and (11), with FFT
+  subroutine ssht_core_dh_inverse_sov_sym_real(f, flm, L, verbosity)
+    
+    integer, intent(in) :: L
+    integer, intent(in), optional :: verbosity
+    complex(dpc), intent(in) :: flm(0:L**2-1)
+    real(dp), intent(out) :: f(0:2*L-1, 0:2*L-2)
+
+    integer :: el, m, mm, t, p, ind
+    real(dp) :: theta, phi
+    real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
+    complex(dpc) :: Fmm(0:L-1, 0:L-1)
+    complex(dpc) :: fmt(0:L-1, 0:2*L-1)
+    integer*8 :: fftw_plan
+
+    integer :: spin
+
+    spin = 0
+
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,i5,a,i5,a)') '[ssht-1.0] Computing inverse transform for L=', &
+               L, ' spin=', spin, ' using Driscoll and Healy quadrature...'
+       end if
+    end if
+
+    ! Compute Fmm.
+    Fmm(0:L-1, 0:L-1) = cmplx(0d0, 0d0)
+    do el = abs(spin), L-1
+       call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+       do m = 0, el
+          call ssht_sampling_elm2ind(ind, el, m)
+          do mm = 0, el
+             Fmm(m,mm) = Fmm(m,mm) + &
+                  (-1)**spin * sqrt((2d0*el+1d0)/(4d0*PI)) &
+                  * exp(-I*PION2*(m+spin)) &
+                  * dl(mm,m) * dl(mm,-spin) &
+                  * flm(ind)
+          end do
+       end do
+    end do
+
+    ! Compute fmt.
+    fmt(0:L-1, 0:2*L-1) = cmplx(0d0, 0d0)
+    do t = 0, 2*L-1     
+       theta = ssht_sampling_dh_t2theta(t, L)       
+       do m = 0, L-1          
+          fmt(m,t) = fmt(m,t) + Fmm(m,0)
+          do mm = 1, L-1
+             fmt(m,t) = fmt(m,t) + &
+                  Fmm(m,mm) * (exp(I*mm*theta)  + (-1)**(m+spin) * exp(-I*mm*theta))
+          end do
+       end do
+    end do
+
+    ! Compute f using FFT.
+    f(0:2*L-1 ,0:2*L-2) = cmplx(0d0, 0d0)
+    call dfftw_plan_dft_c2r_1d(fftw_plan, 2*L-1, Fmm(0:L-1,0), &
+         f(0,0:2*L-2), FFTW_MEASURE)
+    do t = 0, 2*L-1       
+       call dfftw_execute_dft_c2r(fftw_plan, fmt(0:L-1,t), f(t,0:2*L-2))
+    end do
+    call dfftw_destroy_plan(fftw_plan)
+
+  end subroutine ssht_core_dh_inverse_sov_sym_real
 
   !----------------------------------------------------------------------------
   ! MWEO
