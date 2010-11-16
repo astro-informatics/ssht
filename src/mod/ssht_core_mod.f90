@@ -365,7 +365,7 @@ write(*,*) 'spin = ', spin
     integer :: el, m, mm, t, p, ind
     real(dp) :: theta, phi
     real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
-    complex(dpc) :: Fmm(-(L-1):L-1, -(L-1):L-1)
+    complex(dpc) :: Fmm(-(L-1):L-1, 0:L-1)
     complex(dpc) :: fmt(-(L-1):L-1, 0:2*L-1)
     integer*8 :: fftw_plan
 
@@ -378,7 +378,7 @@ write(*,*) 'spin = ', spin
     end if
 
     ! Compute Fmm.
-    Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
+    Fmm(-(L-1):L-1, 0:L-1) = cmplx(0d0, 0d0)
     do el = abs(spin), L-1
        call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
        do m = -el, el
