@@ -66,6 +66,12 @@ program ssht_test
   complex(dpc), allocatable :: flm_orig(:), flm_syn(:)
   complex(dpc), allocatable :: f_dh(:,:), f_mweo(:,:), f_mw(:,:)
 
+
+
+
+real(dpc), allocatable :: f_dh_real(:,:), f_mweo_real(:,:), f_mw_real(:,:)
+
+
   ! Initialise parameters.
   call getarg(1, arg)
   read(arg,*) L
@@ -77,6 +83,11 @@ program ssht_test
   allocate(flm_orig(0:L**2-1), stat=fail)
   allocate(flm_syn(0:L**2-1), stat=fail)  
   allocate(f_dh(0:2*L-1, 0:2*L-2), stat=fail)
+
+allocate(f_dh_real(0:2*L-1, 0:2*L-2), stat=fail)
+
+
+
   allocate(f_mweo(0:L-1, 0:2*L-2), stat=fail)
   allocate(f_mw(0:L-1, 0:2*L-1), stat=fail)
   if(fail /= 0) then
@@ -85,6 +96,10 @@ program ssht_test
   flm_orig(0:L**2-1) = cmplx(0d0, 0d0)
   flm_syn(0:L**2-1) = cmplx(0d0, 0d0)
   f_dh(0:2*L-1, 0:2*L-2) = cmplx(0d0, 0d0)
+
+
+f_dh_real(0:2*L-1, 0:2*L-2) = 0d0
+
   f_mweo(0:L-1, 0:2*L-2) = cmplx(0d0, 0d0)
   f_mw(0:L-1, 0:2*L-1) = cmplx(0d0, 0d0)
 
@@ -128,27 +143,30 @@ program ssht_test
 
 
         !=========================================================================
-        ! MW
-        write(*,'(a,i2)') 'MW test no.', i_repeat
+        ! DH
+        write(*,'(a,i2)') 'DH test no.', i_repeat
         flm_orig(0:L**2-1) = cmplx(0d0, 0d0)
         flm_syn(0:L**2-1) = cmplx(0d0, 0d0)
         call ssht_test_gen_flm_real(L, flm_orig, seed)
         call cpu_time(time_start)
         !-------------------------------------------------------------------------
-        call ssht_core_mw_inverse_sov_sym(f_mw, flm_orig, L, spin)
+        call ssht_core_dh_inverse_sov_sym(f_dh, flm_orig, L, spin, verbosity)
         !-------------------------------------------------------------------------
         call cpu_time(time_end)
-        durations_inverse_mw(i_repeat) = time_end - time_start
+        durations_inverse_dh(i_repeat) = time_end - time_start
         call cpu_time(time_start)
         !-------------------------------------------------------------------------
-        call ssht_core_mw_forward_sov_conv_sym(flm_syn, f_mw, L, spin)
+!        call ssht_core_dh_forward_sov_sym(flm_syn, f_dh, L, spin, verbosity)
+        f_dh_real = real(f_dh,kind=dp)
+        call ssht_core_dh_forward_sov_sym_real(flm_syn, f_dh_real, L, verbosity)
+
         !-------------------------------------------------------------------------
         call cpu_time(time_end)
-        durations_forward_mw(i_repeat) = time_end - time_start
-        errors_mw(i_repeat) = maxval(abs(flm_orig(0:L**2-1) - flm_syn(0:L**2-1)))
-        write(*,'(a,f40.4)') ' duration_inverse (s) =', durations_inverse_mw(i_repeat)
-        write(*,'(a,f40.4)') ' duration_forward (s) =', durations_forward_mw(i_repeat)
-        write(*,'(a,e40.5)') ' error                =', errors_mw(i_repeat)
+        durations_forward_dh(i_repeat) = time_end - time_start
+        errors_dh(i_repeat) = maxval(abs(flm_orig(0:L**2-1) - flm_syn(0:L**2-1)))
+        write(*,'(a,f40.4)') ' duration_inverse (s) =', durations_inverse_dh(i_repeat)
+        write(*,'(a,f40.4)') ' duration_forward (s) =', durations_forward_dh(i_repeat)
+        write(*,'(a,e40.5)') ' error                =', errors_dh(i_repeat)
         write(*,*)
 
 
