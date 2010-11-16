@@ -137,13 +137,13 @@ program ssht_test
      call cpu_time(time_start)
      !-------------------------------------------------------------------------
      !call ssht_core_dh_inverse_direct(f_dh, flm2_orig, L, spin)
-     call ssht_core_dh_inverse_sov(f_dh, flm_orig, L, spin, verbosity)
+     call ssht_core_dh_inverse_sov_sym(f_dh, flm_orig, L, spin, verbosity)
      !-------------------------------------------------------------------------
      call cpu_time(time_end)
      durations_inverse_dh(i_repeat) = time_end - time_start
      call cpu_time(time_start)
      !-------------------------------------------------------------------------
-     call ssht_core_dh_forward_sov(flm_syn, f_dh, L, spin, verbosity)
+     call ssht_core_dh_forward_sov_sym(flm_syn, f_dh, L, spin, verbosity)
      !-------------------------------------------------------------------------
      call cpu_time(time_end)
      durations_forward_dh(i_repeat) = time_end - time_start
@@ -163,13 +163,13 @@ program ssht_test
      !-------------------------------------------------------------------------
      !call ssht_core_mweo_inverse_direct(f_mweo, flm2_orig, L, spin)
      !call ssht_core_mweo_inverse_sov_direct(f_mweo, flm2_orig, L, spin)
-     call ssht_core_mweo_inverse_sov(f_mweo, flm_orig, L, spin)
+     call ssht_core_mweo_inverse_sov_sym(f_mweo, flm_orig, L, spin)
      !-------------------------------------------------------------------------
      call cpu_time(time_end)
      durations_inverse_mweo(i_repeat) = time_end - time_start
      call cpu_time(time_start)
      !-------------------------------------------------------------------------
-     call ssht_core_mweo_forward_sov_conv(flm_syn, f_mweo, L, spin)
+     call ssht_core_mweo_forward_sov_conv_sym(flm_syn, f_mweo, L, spin)
      !call ssht_core_mw_forward_direct(flm_syn, f_mweo, L, spin)
      !-------------------------------------------------------------------------
      call cpu_time(time_end)
@@ -188,14 +188,13 @@ program ssht_test
      call ssht_test_gen_flm_complex(L, spin, flm_orig, seed)
      call cpu_time(time_start)
      !-------------------------------------------------------------------------
-     call ssht_core_mw_inverse_sov(f_mw, flm_orig, L, spin)
+     call ssht_core_mw_inverse_sov_sym(f_mw, flm_orig, L, spin)
      !-------------------------------------------------------------------------
      call cpu_time(time_end)
      durations_inverse_mw(i_repeat) = time_end - time_start
      call cpu_time(time_start)
      !-------------------------------------------------------------------------
-     !call ssht_core_mweo_forward_sov_conv(flm_syn, f_mweo, L, spin)
-     call ssht_core_mw_forward_sov_conv(flm_syn, f_mw, L, spin)
+     call ssht_core_mw_forward_sov_conv_sym(flm_syn, f_mw, L, spin)
      !-------------------------------------------------------------------------
      call cpu_time(time_end)
      durations_forward_mw(i_repeat) = time_end - time_start

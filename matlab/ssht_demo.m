@@ -11,7 +11,7 @@ function ssht_demo
 
 
 % Define size parameters.
-spin = -4;
+spin = 3;
 L = 16;
 nphi = 2*L - 1;
 ntheta_dh = 2*L;
@@ -40,7 +40,7 @@ maxerr_dh = max(abs(flm - flm_dh_syn))
 
 % Measure error of inverse-forward transform for MW.
 f_mw = ssht_inverse(flm, 'MW', L, spin);
-f_mw_grid = reshape(f_mw, nphi, ntheta_mw);
+f_mw_grid = reshape(f_mw, nphi, ntheta_mw)
 f_mw_grid(:,end) = f_mw_grid(1,end).*exp(sqrt(-1)*spin*phi_mw).* ...
    exp(sqrt(-1)*(-1d0)*pi / (2d0*L - 1d0)*spin);
 f_mw = f_mw_grid(:);
