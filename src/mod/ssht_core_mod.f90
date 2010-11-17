@@ -2029,19 +2029,19 @@ write(*,*) 'spin = ', spin
 
     integer, intent(in) :: L
     integer, intent(in), optional :: verbosity
-    complex(dpc), intent(in) :: f(0:L-1 ,0:2*L-2)
+    real(dp), intent(in) :: f(0:L-1 ,0:2*L-2)
     complex(dpc), intent(out) :: flm(0:L**2-1)
 
     integer :: p, m, t, mm, el, ind, k
     real(dp) :: theta, phi
 
     real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
-    complex(dpc) :: fe(0:2*L-2 ,0:2*L-2)
-    complex(dpc) :: fo(0:2*L-2 ,0:2*L-2)
-    complex(dpc) :: Fmme(-(L-1):L-1, -(L-1):L-1)
-    complex(dpc) :: Fmmo(-(L-1):L-1, -(L-1):L-1)
-    complex(dpc) :: Gmme(-(L-1):L-1, -(L-1):L-1)
-    complex(dpc) :: Gmmo(-(L-1):L-1, -(L-1):L-1)
+    real(dp) :: fe(0:2*L-2 ,0:2*L-2)
+    real(dp) :: fo(0:2*L-2 ,0:2*L-2)
+    complex(dpc) :: Fmme(0:L-1, -(L-1):L-1)
+    complex(dpc) :: Fmmo(0:L-1, -(L-1):L-1)
+    complex(dpc) :: Gmme(0:L-1, -(L-1):L-1)
+    complex(dpc) :: Gmmo(0:L-1, -(L-1):L-1)
     complex(dpc) :: Gmm_term
     integer*8 :: fftw_plan_fwd, fftw_plan_bwd
     
@@ -2051,65 +2051,47 @@ write(*,*) 'spin = ', spin
     complex(dpc) :: w(-2*(L-1):2*(L-1))
     complex(dpc) :: wr(-2*(L-1):2*(L-1))
 
+    integer :: ind_nm
+    integer :: spin
+    complex(dpc) :: tmp(0:L-1,0:2*L-2)
 
-integer :: spin
-spin = 0
-
+    spin = 0
 
     ! Extend f to the torus with even and odd extensions 
     ! about theta=PI.
+    ! Compute Fmm for even and odd extensions by 2D FFT.
+    ! Apply spatial shift in frequency.
+    call dfftw_plan_dft_r2c_2d(fftw_plan_fwd, 2*L-1, 2*L-1, fe(0:2*L-2,0:2*L-2), &
+         tmp(0:L-1,0:2*L-2), FFTW_ESTIMATE)
+
     fe(0:L-1, 0:2*L-2) = f(0:L-1, 0:2*L-2)
     fe(L:2*L-2, 0:2*L-2) = f(L-2:0:-1, 0:2*L-2)
+    call dfftw_execute_dft_r2c(fftw_plan_fwd, &
+         transpose(fe(0:2*L-2,0:2*L-2)), tmp(0:L-1,0:2*L-2))
+    Fmme(0:L-1,0:L-1) = tmp(0:L-1, 0:L-1)
+    Fmme(0:L-1,-(L-1):-1) = tmp(0:L-1, L:2*L-2)
+
     fo(0:L-1, 0:2*L-2) = f(0:L-1, 0:2*L-2)
     fo(L:2*L-2, 0:2*L-2) = -f(L-2:0:-1, 0:2*L-2)
+    call dfftw_execute_dft_r2c(fftw_plan_fwd, &
+         transpose(fo(0:2*L-2,0:2*L-2)), tmp(0:L-1,0:2*L-2))
+    Fmmo(0:L-1,0:L-1) = tmp(0:L-1, 0:L-1)
+    Fmmo(0:L-1,-(L-1):-1) = tmp(0:L-1, L:2*L-2)
 
-! If don't apply spatial shift below then apply phase modulation here.
-!!$    do p = 0, 2*L-2
-!!$       phi = ssht_sampling_mweo_p2phi(p, L)
-!!$       do t = 0, 2*L-2
-!!$          theta = ssht_sampling_mweo_t2theta(t, L)   
-!!$          fe(t,p) = fe(t,p) * exp(I*(phi+theta)*(L-1))
-!!$          fo(t,p) = fo(t,p) * exp(I*(phi+theta)*(L-1))
-!!$       end do
-!!$    end do
-
-    ! Compute Fmm for even and odd extensions by 2D FFT.
-    ! ** NOTE THAT 2D FFTW SWITCHES DIMENSIONS! HENCE TRANSPOSE BELOW. **
-    call dfftw_plan_dft_2d(fftw_plan_fwd, 2*L-1, 2*L-1, fe(0:2*L-2,0:2*L-2), &
-         fe(0:2*L-2,0:2*L-2), FFTW_FORWARD, FFTW_ESTIMATE)
-    call dfftw_execute_dft(fftw_plan_fwd, fe(0:2*L-2,0:2*L-2), fe(0:2*L-2,0:2*L-2))
-    call dfftw_execute_dft(fftw_plan_fwd, fo(0:2*L-2,0:2*L-2), fo(0:2*L-2,0:2*L-2))
     call dfftw_destroy_plan(fftw_plan_fwd)
 
-! If apply phase shift above just copy Fmm (and transpose 
-! to account for 2D FFT).
-!!$    Fmme(-(L-1):L-1, -(L-1):L-1) = transpose(fe(0:2*L-2,0:2*L-2))
-!!$    Fmmo(-(L-1):L-1, -(L-1):L-1) = transpose(fo(0:2*L-2,0:2*L-2))
-
-    ! Apply spatial shift in frequency.
-    fe(0:2*L-2,0:2*L-2) = transpose(fe(0:2*L-2,0:2*L-2)) * exp(I*(L-1)*2d0*PI/(2d0*L-1d0))
-    fo(0:2*L-2,0:2*L-2) = transpose(fo(0:2*L-2,0:2*L-2)) * exp(I*(L-1)*2d0*PI/(2d0*L-1d0))
-    Fmme(0:L-1,0:L-1) = fe(0:L-1, 0:L-1)
-    Fmme(-(L-1):-1,0:L-1) = fe(L:2*L-2, 0:L-1)
-    Fmme(0:L-1,-(L-1):-1) = fe(0:L-1, L:2*L-2)
-    Fmme(-(L-1):-1,-(L-1):-1) = fe(L:2*L-2, L:2*L-2)
-    Fmmo(0:L-1,0:L-1) = fo(0:L-1, 0:L-1)
-    Fmmo(-(L-1):-1,0:L-1) = fo(L:2*L-2, 0:L-1)
-    Fmmo(0:L-1,-(L-1):-1) = fo(0:L-1, L:2*L-2)
-    Fmmo(-(L-1):-1,-(L-1):-1) = fo(L:2*L-2, L:2*L-2)
+    Fmme(0:L-1, -(L-1):L-1) = Fmme(0:L-1, -(L-1):L-1) &
+         / (2d0*L-1d0)**2
+    Fmmo(0:L-1, -(L-1):L-1) = Fmmo(0:L-1, -(L-1):L-1) &
+         / (2d0*L-1d0)**2
 
     ! Apply phase modulation to account for sampling offset.
-    do m = 0, 2*L-2
-       do mm = 0, 2*L-2
-          Fmme(m-(L-1),mm-(L-1)) = Fmme(m-(L-1),mm-(L-1)) * exp(-I*(m+mm)*PI/(2d0*L-1d0))
-          Fmmo(m-(L-1),mm-(L-1)) = Fmmo(m-(L-1),mm-(L-1)) * exp(-I*(m+mm)*PI/(2d0*L-1d0))
+    do m = 0, L-1
+       do mm = -(L-1), L-1
+          Fmme(m,mm) = Fmme(m,mm) * exp(-I*(m+mm)*PI/(2d0*L-1d0))
+          Fmmo(m,mm) = Fmmo(m,mm) * exp(-I*(m+mm)*PI/(2d0*L-1d0))
        end do
     end do
-
-    Fmme(-(L-1):L-1, -(L-1):L-1) = Fmme(-(L-1):L-1, -(L-1):L-1) &
-         / (2d0*L-1d0)**2
-    Fmmo(-(L-1):L-1, -(L-1):L-1) = Fmmo(-(L-1):L-1, -(L-1):L-1) &
-         / (2d0*L-1d0)**2
 
     ! Compute weights.
     do mm = -2*(L-1), 2*(L-1)
@@ -2132,7 +2114,7 @@ spin = 0
 
     ! Compute Gmm for even and odd extensions by convolution implemented 
     ! as product in real space.
-    do m = -(L-1), L-1
+    do m = 0, L-1
 
        ! Zero-pad Fmme.
        Fmme_pad(-2*(L-1):-L) = cmplx(0d0, 0d0)
@@ -2210,7 +2192,7 @@ spin = 0
     flm(0::L**2-1) = cmplx(0d0, 0d0)
     do el = abs(spin), L-1
        call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
-       do m = -el, el
+       do m = 0, el
           call ssht_sampling_elm2ind(ind, el, m)
 
           flm(ind) = flm(ind) + &
@@ -2235,6 +2217,15 @@ spin = 0
                   * Gmm_term
 
           end do
+       end do
+    end do
+
+    ! Set flm values for negative m using conjugate symmetry.
+    do el = abs(spin), L-1
+       do m = 1, el
+          call ssht_sampling_elm2ind(ind, el, m)
+          call ssht_sampling_elm2ind(ind_nm, el, -m)
+          flm(ind_nm) = (-1)**m * conjg(flm(ind))
        end do
     end do
 
