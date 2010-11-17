@@ -1,5 +1,5 @@
 !------------------------------------------------------------------------------
-! ssht_sampling_mod  -- SSHT library core class
+! ssht_sampling_mod  -- SSHT library sampling class
 ! 
 !! Functionality to define sample positions for various algorithms and to 
 !! convert 1D and 2D harmonic indices.
@@ -40,7 +40,17 @@ module ssht_sampling_mod
   ! Global variables
   !---------------------------------------
 
-  ! None.
+  !! Flag to indicate Driscoll and Healy sampling.
+  integer, public, parameter :: SSHT_SAMPLING_DH = 1
+
+  !! Flag to indicate McEwen and Wiaux sampling.
+  integer, public, parameter :: SSHT_SAMPLING_MW = 2
+
+  !! Flag to indicate McEwen and Wiaux sampling for even-odd algorithm.
+  integer, public, parameter :: SSHT_SAMPLING_MWEO = 3
+
+  !! Flag to indicate default sampling (McEwen and Wiaux sampling).
+  integer, public, parameter :: SSHT_SAMPLING_DEFAULT = SSHT_SAMPLING_MW
 
 
   !---------------------------------------

@@ -38,18 +38,8 @@ module ssht_types_mod
   ! Tolerances
   ! --------------------------------------
 
-	!! Admissibility tolerance.
-	real(dp), public, parameter :: TOL_ADMISS = 1e-12
-
-	!! Numerical integration tolerance.
-	real(dp), public, parameter :: TOL_QUAD = 1d-12
-
-	!! Limit opening tolerance for definite numerical integration.
-	real(dp), public, parameter :: TOL_LIMIT = 1d-12
-
-	!! Tolerance for floor and ceiling functions.
-	real(dp), public, parameter :: TOL_CEIL = 1d-5
-	
+  !! Realitive reality tolerance.
+  real(dp), public, parameter :: TOL_RELATIVE_REALITY = 1e-6
 
 
   ! --------------------------------------
@@ -67,6 +57,17 @@ module ssht_types_mod
 
   !! Complex unit definition.
   complex(dpc), public, parameter :: I = (0.0_dp, 1.0_dp)
+
+
+  ! --------------------------------------
+  ! Version
+  ! --------------------------------------
+
+  !! Version string.
+  character(len=*), parameter :: VERSION = '0.1'
+
+  !! Verbosity prompt.
+  character(len=*), parameter :: VERBOSITY_PROMPT = '[ssht-0.1]'
 
 
 end module ssht_types_mod

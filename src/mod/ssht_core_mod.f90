@@ -31,6 +31,18 @@ module ssht_core_mod
   !---------------------------------------
 
   public :: &
+       ssht_core_dh_inverse, &
+       ssht_core_dh_forward, &
+       ssht_core_mweo_inverse, &
+       ssht_core_mweo_forward, &
+       ssht_core_mw_inverse, &
+       ssht_core_mw_forward, &
+       ssht_core_dh_inverse_real, &
+       ssht_core_dh_forward_real, &
+       ssht_core_mweo_inverse_real, &
+       ssht_core_mweo_forward_real, &
+       ssht_core_mw_inverse_real, &
+       ssht_core_mw_forward_real, &
        ssht_core_dh_inverse_direct, &
        ssht_core_dh_inverse_direct_factored, &
        ssht_core_dh_inverse_sov_direct, &
@@ -63,6 +75,60 @@ module ssht_core_mod
 
 
   !---------------------------------------
+  ! Interfaces
+  ! (Define default implementations)
+  !---------------------------------------
+  
+  interface ssht_core_dh_inverse
+     module procedure ssht_core_dh_inverse_sov_sym
+  end interface
+
+  interface ssht_core_dh_forward
+     module procedure ssht_core_dh_forward_sov_sym
+  end interface
+
+  interface ssht_core_mweo_inverse
+     module procedure ssht_core_mweo_inverse_sov_sym
+  end interface
+
+  interface ssht_core_mweo_forward
+     module procedure ssht_core_mweo_forward_sov_conv_sym
+  end interface
+
+  interface ssht_core_mw_inverse
+     module procedure ssht_core_mw_inverse_sov_sym
+  end interface
+
+  interface ssht_core_mw_forward
+     module procedure ssht_core_mw_forward_sov_conv_sym
+  end interface
+
+ interface ssht_core_dh_inverse_real
+     module procedure ssht_core_dh_inverse_sov_sym_real
+  end interface
+
+  interface ssht_core_dh_forward_real
+     module procedure ssht_core_dh_forward_sov_sym_real
+  end interface
+
+  interface ssht_core_mweo_inverse_real
+     module procedure ssht_core_mweo_inverse_sov_sym_real
+  end interface
+
+  interface ssht_core_mweo_forward_real
+     module procedure ssht_core_mweo_forward_sov_conv_sym_real
+  end interface
+
+  interface ssht_core_mw_inverse_real
+     module procedure ssht_core_mw_inverse_sov_sym_real
+  end interface
+
+  interface ssht_core_mw_forward_real
+     module procedure ssht_core_mw_forward_sov_conv_sym_real
+  end interface
+
+
+  !---------------------------------------
   ! Global variables
   !---------------------------------------
 
@@ -71,12 +137,7 @@ module ssht_core_mod
 
 
 
-  integer, public, parameter :: SSHT_SAMPLING_DH = 1
 
-  integer, public, parameter :: SSHT_SAMPLING_MW = 2
-  integer, public, parameter :: SSHT_SAMPLING_MWEO = 3
-  integer, public, parameter :: SSHT_SAMPLING_DEFAULT = SSHT_SAMPLING_MW
-  integer, public, parameter :: SSHT_SAMPLING_HW_TEMP = 4
 
 
   !---------------------------------------
