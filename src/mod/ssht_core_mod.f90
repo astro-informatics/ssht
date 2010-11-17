@@ -45,6 +45,7 @@ module ssht_core_mod
        ssht_core_mweo_inverse_sov_direct, &
        ssht_core_mweo_inverse_sov, &
        ssht_core_mweo_inverse_sov_sym, &
+       ssht_core_mweo_inverse_sov_sym_real, &
        ssht_core_mweo_forward_sov_direct, &
        ssht_core_mweo_forward_sov, &
        ssht_core_mweo_forward_sov_conv, &
@@ -640,11 +641,16 @@ write(*,*) 'spin = ', spin
     end do
 
     ! Apply phase modulation to account for sampling offset.
-    do m = 0, 2*L-2
-       do mm = 0, 2*L-2
-          Fmm(m-L+1,mm-L+1) = Fmm(m-L+1,mm-L+1) * exp(I*(m+mm)*PI/(2d0*L-1d0))
+!!$    do m = 0, 2*L-2
+!!$       do mm = 0, 2*L-2
+!!$          Fmm(m-L+1,mm-L+1) = Fmm(m-L+1,mm-L+1) * exp(I*(m+mm)*PI/(2d0*L-1d0))
+!!$       end do
+!!$    end do
+    do m = -(L-1), L-1
+       do mm = -(L-1), L-1
+          Fmm(m,mm) = Fmm(m,mm) * exp(I*(m+mm)*PI/(2d0*L-1d0))
        end do
-    end do
+    end do  
     
     ! Apply spatial shift.
     fext(0:L-1, 0:L-1) = Fmm(0:L-1,0:L-1)
@@ -665,8 +671,8 @@ write(*,*) 'spin = ', spin
     ! Note transpose due to 2D FFTW (see comment above)!
     ! Also note that additional phase modulation is again applied to 
     ! account for sampling offset.
-    f(0:L-1, 0:2*L-2) = transpose(fext(0:2*L-2, 0:L-1)) &
-         * exp(-I*(L-1)*2d0*PI/(2d0*L-1d0))
+    f(0:L-1, 0:2*L-2) = transpose(fext(0:2*L-2, 0:L-1)) !&
+!         * exp(-I*(L-1)*2d0*PI/(2d0*L-1d0))
 
 ! If don't apply spatial shift above then apply phase modulation here.
 !!$    do t = 0, L-1     
@@ -718,12 +724,18 @@ write(*,*) 'spin = ', spin
     end do
 
     ! Apply phase modulation to account for sampling offset.
-    do m = 0, 2*L-2
-       do mm = 0, 2*L-2
-          Fmm(m-L+1,mm-L+1) = Fmm(m-L+1,mm-L+1) * exp(I*(m+mm)*PI/(2d0*L-1d0))
+!!$    do m = 0, 2*L-2
+!!$       do mm = 0, 2*L-2
+!!$          Fmm(m-L+1,mm-L+1) = Fmm(m-L+1,mm-L+1) * exp(I*(m+mm)*PI/(2d0*L-1d0))
+!!$       end do
+!!$    end do
+    do m = -(L-1), L-1
+       do mm = -(L-1), L-1
+          Fmm(m,mm) = Fmm(m,mm) * exp(I*(m+mm)*PI/(2d0*L-1d0))
        end do
-    end do
-    
+    end do    
+
+
     ! Apply spatial shift.
     fext(0:L-1, 0:L-1) = Fmm(0:L-1,0:L-1)
     fext(L:2*L-2, 0:L-1) = Fmm(-(L-1):-1,0:L-1)
@@ -743,8 +755,8 @@ write(*,*) 'spin = ', spin
     ! Note transpose due to 2D FFTW (see comment above)!
     ! Also note that additional phase modulation is again applied to 
     ! account for sampling offset.
-    f(0:L-1, 0:2*L-2) = transpose(fext(0:2*L-2, 0:L-1)) &
-         * exp(-I*(L-1)*2d0*PI/(2d0*L-1d0))
+    f(0:L-1, 0:2*L-2) = transpose(fext(0:2*L-2, 0:L-1))! &
+!         * exp(-I*(L-1)*2d0*PI/(2d0*L-1d0))
 
 ! If don't apply spatial shift above then apply phase modulation here.
 !!$    do t = 0, L-1     
@@ -756,6 +768,76 @@ write(*,*) 'spin = ', spin
 !!$    end do
 
   end subroutine ssht_core_mweo_inverse_sov_sym
+
+
+
+  subroutine ssht_core_mweo_inverse_sov_sym_real(f, flm, L, verbosity)
+    
+    integer, intent(in) :: L
+    integer, intent(in), optional :: verbosity
+    complex(dpc), intent(in) :: flm(0:L**2-1)
+    real(dp), intent(out) :: f(0:L-1, 0:2*L-2)
+
+    integer :: el, m, mm, t, p, ind
+    real(dp) :: theta, phi
+    real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
+    complex(dpc) :: Fmm(0:L-1, -(L-1):L-1)
+    complex(dpc) :: fext(0:2*L-2, 0:2*L-2)
+    real(dp) :: fext_real(0:2*L-2,0:2*L-2)
+    integer*8 :: fftw_plan
+
+    integer :: spin
+
+    spin = 0
+
+    ! Compute Fmm.
+    Fmm(0:L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
+    do el = abs(spin), L-1
+       call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+       do m = 0, el
+          call ssht_sampling_elm2ind(ind, el, m)
+          do mm = 0, el
+             Fmm(m,mm) = Fmm(m,mm) + &
+                  (-1)**spin * sqrt((2d0*el+1d0)/(4d0*PI)) &
+                  * exp(-I*PION2*(m+spin)) &
+                  * dl(mm,m) * dl(mm,-spin) &
+                  * flm(ind)
+          end do
+       end do
+    end do
+
+    ! Use symmetry to compute Fmm for negative mm.
+    do m = 0, L-1       
+       do mm = -(L-1), -1
+          Fmm(m,mm) = (-1)**(m+spin) * Fmm(m,-mm)
+       end do
+    end do
+
+    ! Apply phase modulation to account for sampling offset.
+    do m = 0, L-1
+       do mm = -(L-1), L-1
+          Fmm(m,mm) = Fmm(m,mm) * exp(I*(m+mm)*PI/(2d0*L-1d0))
+       end do
+    end do
+    
+    ! Apply spatial shift.
+    fext(0:L-1, 0:L-1) = Fmm(0:L-1,0:L-1)
+    fext(0:L-1, L:2*L-2) = Fmm(0:L-1,-(L-1):-1)
+
+    ! Perform 2D FFT.
+    ! ** NOTE THAT 2D FFTW SWITCHES DIMENSIONS! HENCE TRANSPOSE BELOW. **
+    call dfftw_plan_dft_c2r_2d(fftw_plan, 2*L-1, 2*L-1, fext(0:L-1,0:2*L-2), &
+         fext_real(0:2*L-2,0:2*L-2), FFTW_ESTIMATE)
+    call dfftw_execute_dft_c2r(fftw_plan, fext(0:L-1,0:2*L-2), fext_real(0:2*L-2,0:2*L-2))
+    call dfftw_destroy_plan(fftw_plan)
+
+    ! Extract f from version of f extended to the torus (fext).
+    ! Note transpose due to 2D FFTW (see comment above)!
+    ! Also note that additional phase modulation is again applied to 
+    ! account for sampling offset.
+    f(0:L-1, 0:2*L-2) = transpose(fext_real(0:2*L-2, 0:L-1))
+
+  end subroutine ssht_core_mweo_inverse_sov_sym_real
 
 
 
@@ -2373,6 +2455,8 @@ write(*,*) 'spin = ', spin
 
 
   end subroutine ssht_core_mw_forward_sov_conv_sym
+
+
 
 
   !--------------------------------------------------------------------------

@@ -86,6 +86,7 @@ real(dpc), allocatable :: f_dh_real(:,:), f_mweo_real(:,:), f_mw_real(:,:)
 
 allocate(f_dh_real(0:2*L-1, 0:2*L-2), stat=fail)
 allocate(f_mw_real(0:L-1, 0:2*L-1), stat=fail)
+allocate(f_mweo_real(0:L-1, 0:2*L-2), stat=fail)
 
 
   allocate(f_mweo(0:L-1, 0:2*L-2), stat=fail)
@@ -99,6 +100,7 @@ allocate(f_mw_real(0:L-1, 0:2*L-1), stat=fail)
 
 
 f_dh_real(0:2*L-1, 0:2*L-2) = 0d0
+f_mweo_real(0:L-1, 0:2*L-2) = 0d0
 f_mw_real(0:L-1, 0:2*L-1) = 0d0
 
 
@@ -156,9 +158,9 @@ f_mw_real(0:L-1, 0:2*L-1) = 0d0
 !        call ssht_core_dh_inverse_sov_sym(f_dh, flm_orig, L, spin, verbosity)
 !        call ssht_core_dh_inverse_sov_sym_real(f_dh_real, flm_orig, L, verbosity)
 
-        call ssht_core_mw_inverse_sov_sym_real(f_mw_real, flm_orig, L, verbosity)
+!        call ssht_core_mw_inverse_sov_sym_real(f_mw_real, flm_orig, L, verbosity)
 
-
+        call ssht_core_mweo_inverse_sov_sym_real(f_mweo_real, flm_orig, L)
         !-------------------------------------------------------------------------
         call cpu_time(time_end)
         durations_inverse_dh(i_repeat) = time_end - time_start
@@ -168,8 +170,11 @@ f_mw_real(0:L-1, 0:2*L-1) = 0d0
 !        f_dh_real = real(f_dh,kind=dp)
 !        call ssht_core_dh_forward_sov_sym_real(flm_syn, f_dh_real, L, verbosity)
 
-        f_mw(0:L-1, 0:2*L-2) = f_mw_real(0:L-1, 0:2*L-2)
-        call ssht_core_mw_forward_sov_conv_sym(flm_syn, f_mw, L, spin)
+!        f_mw(0:L-1, 0:2*L-2) = f_mw_real(0:L-1, 0:2*L-2)
+!        call ssht_core_mw_forward_sov_conv_sym(flm_syn, f_mw, L, spin)
+
+        f_mweo(0:L-1, 0:2*L-2) = f_mweo_real(0:L-1, 0:2*L-2)
+        call ssht_core_mweo_forward_sov_conv_sym(flm_syn, f_mweo, L, spin)
 
         !-------------------------------------------------------------------------
         call cpu_time(time_end)
