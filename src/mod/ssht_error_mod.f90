@@ -13,7 +13,7 @@
 
 module ssht_error_mod
 
-  use ssht_types_mod, only: STRING_LEN
+  use ssht_types_mod, only: STRING_LEN, SSHT_PROMPT
 
   implicit none
 
@@ -126,7 +126,9 @@ contains
     logical, intent(in), optional :: halt_in
 
     logical :: halt
-    character(len=*), parameter :: comment_prefix = 'SSHT_ERROR: '
+    character(len=STRING_LEN) :: comment_prefix
+
+    write(comment_prefix, '(a,a)') SSHT_PROMPT, 'SSHT_ERROR: '
 
     !---------------------------------------
     ! Display error message
@@ -135,14 +137,15 @@ contains
     if(present(procedure)) then
 
        if(present(comment_add)) then
-          write(*,'(a,a,a,a,a,a,a,a)') comment_prefix, 'Error ''', &
+          write(*,'(a,a,a,a,a,a)') trim(comment_prefix), ' Error ''', &
                trim(error_comment(error_code+1)), &
                ''' occured in procedure ''', &
                trim(procedure), &
-               '''', &
-               ' - ', trim(comment_add)
+               ''''
+          write(*,'(a,a,a)') trim(comment_prefix), &
+               '  - ', trim(comment_add)
        else
-          write(*,'(a,a,a,a,a,a)') comment_prefix, 'Error ''', &
+          write(*,'(a,a,a,a,a,a)') trim(comment_prefix), ' Error ''', &
                trim(error_comment(error_code+1)), &
                ''' occured in procedure ''', &
                trim(procedure), &
@@ -152,11 +155,12 @@ contains
     else
 
        if(present(comment_add)) then
-          write(*,'(a,a,a,a)') comment_prefix, &
-               trim(error_comment(error_code+1)), &
-               ' - ', trim(comment_add)
+          write(*,'(a,a,a)') trim(comment_prefix), &
+               ' ', trim(error_comment(error_code+1))
+          write(*,'(a,a,a)') trim(comment_prefix), &
+               '  - ', trim(comment_add)
        else
-          write(*,'(a,a)') comment_prefix, trim(error_comment(error_code+1))
+          write(*,'(a,a,a)') trim(comment_prefix), ' ', trim(error_comment(error_code+1))
        end if
 
     end if
@@ -175,8 +179,8 @@ contains
     end if
 
     if( halt ) then
-       write(*,'(a,a,a,a,a)') comment_prefix, &
-            '  Halting program execution ', &
+       write(*,'(a,a,a,a,a,a)') trim(comment_prefix), ' ', &
+            'Halting program execution ', &
             'due to error ''', trim(error_comment(error_code+1)), ''''
        stop
     end if

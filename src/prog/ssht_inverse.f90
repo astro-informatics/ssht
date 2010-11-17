@@ -52,7 +52,7 @@ program ssht_inverse
   ! Check reality flag valid.
   if (spin /= 0 .and. reality == 1) then
      call ssht_error(SSHT_ERROR_ARG_INVALID, 'ssht_inverse', &
-          comment_add='Reality flag may only be set for spin 0 signals.')
+          comment_add='Reality flag may only be set for spin 0 signals')
   end if
 
   ! Set ntheta depending on method.
