@@ -40,8 +40,7 @@ NOTE
      Please report problems/bugs by email to: mcewen@mrao.cam.ac.uk
 
 LICENSE
-     S2DW package to compute the scale discretised wavelet transform on
-     the sphere
+     SSHT package to compute fast spin spherical harmonic transforms
      Copyright (C) 2010  Jason McEwen
 
      This program is free software; you can redistribute it and/or

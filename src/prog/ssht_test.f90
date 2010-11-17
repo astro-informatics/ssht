@@ -46,7 +46,7 @@ program ssht_test
   end interface
 
   character(len=64) :: arg
-  integer, parameter :: N_repeat = 10
+  integer, parameter :: N_repeat = 1
   integer :: verbosity = 0
   integer :: fail = 0, seed, i_repeat
   real :: time_start, time_end
@@ -211,9 +211,6 @@ program ssht_test
 
      end if
 
-
-
-
      !=========================================================================
      ! DH
      write(*,'(a,i2)') 'DH test no.', i_repeat
@@ -249,13 +246,13 @@ program ssht_test
      !-------------------------------------------------------------------------
      !call ssht_core_mweo_inverse_direct(f_mweo, flm2_orig, L, spin)
      !call ssht_core_mweo_inverse_sov_direct(f_mweo, flm2_orig, L, spin)
-     call ssht_core_mweo_inverse_sov_sym(f_mweo, flm_orig, L, spin)
+     call ssht_core_mweo_inverse_sov_sym(f_mweo, flm_orig, L, spin, verbosity)
      !-------------------------------------------------------------------------
      call cpu_time(time_end)
      durations_inverse_mweo(i_repeat) = time_end - time_start
      call cpu_time(time_start)
      !-------------------------------------------------------------------------
-     call ssht_core_mweo_forward_sov_conv_sym(flm_syn, f_mweo, L, spin)
+     call ssht_core_mweo_forward_sov_conv_sym(flm_syn, f_mweo, L, spin, verbosity)
      !call ssht_core_mw_forward_direct(flm_syn, f_mweo, L, spin)
      !-------------------------------------------------------------------------
      call cpu_time(time_end)
@@ -274,13 +271,13 @@ program ssht_test
      call ssht_test_gen_flm_complex(L, spin, flm_orig, seed)
      call cpu_time(time_start)
      !-------------------------------------------------------------------------
-     call ssht_core_mw_inverse_sov_sym(f_mw, flm_orig, L, spin)
+     call ssht_core_mw_inverse_sov_sym(f_mw, flm_orig, L, spin, verbosity)
      !-------------------------------------------------------------------------
      call cpu_time(time_end)
      durations_inverse_mw(i_repeat) = time_end - time_start
      call cpu_time(time_start)
      !-------------------------------------------------------------------------
-     call ssht_core_mw_forward_sov_conv_sym(flm_syn, f_mw, L, spin)
+     call ssht_core_mw_forward_sov_conv_sym_opt(flm_syn, f_mw, L, spin, verbosity)
      !-------------------------------------------------------------------------
      call cpu_time(time_end)
      durations_forward_mw(i_repeat) = time_end - time_start
