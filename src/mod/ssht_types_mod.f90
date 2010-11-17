@@ -63,10 +63,10 @@ module ssht_types_mod
   ! --------------------------------------
 
   !! Version string.
-  character(len=*), parameter :: VERSION = '0.1'
+  character(len=*), public, parameter :: SSHT_VERSION = '0.1'
 
   !! Verbosity prompt.
-  character(len=*), parameter :: VERBOSITY_PROMPT = '[ssht-0.1]'
+  character(len=*), public, parameter :: SSHT_PROMPT = '[ssht-0.1] '
 
 
 end module ssht_types_mod

@@ -194,6 +194,23 @@ contains
     real(dp) :: theta, phi
     real(dp) :: elfactor
     real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)          
+    character(len=STRING_LEN) :: format_spec
+
+    ! Print messages depending on verbosity level.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Computing inverse transform using Driscoll and Healy sampling with'
+          write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', digit(spin),',a)'
+          write(*,trim(format_spec)) SSHT_PROMPT, &
+               'parameters (L,spin,reality) = (', &
+               L, ',', spin, ',FALSE)...'
+       end if
+       if (verbosity > 1) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Using routine ssht_core_dh_inverse_direct...'
+       end if
+    end if
 
     f(0:2*L-1 ,0:2*L-2) = cmplx(0d0, 0d0)
     do el = abs(spin), L-1
@@ -214,6 +231,14 @@ contains
           
        end do
     end do
+
+    ! Print finished if verbosity set.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Inverse transform computed!'
+       end if
+    end if
 
   end subroutine ssht_core_dh_inverse_direct
 
@@ -260,7 +285,24 @@ contains
     real(dp) :: theta, phi
     real(dp) :: elfactor
     real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
-          
+    character(len=STRING_LEN) :: format_spec
+
+    ! Print messages depending on verbosity level.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Computing inverse transform using Driscoll and Healy sampling with'
+          write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', digit(spin),',a)'
+          write(*,trim(format_spec)) SSHT_PROMPT, &
+               'parameters (L,spin,reality) = (', &
+               L, ',', spin, ',FALSE)...'
+       end if
+       if (verbosity > 1) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Using routine ssht_core_dh_inverse_direct_factored...'
+       end if
+    end if     
+
     f(0:2*L-1 ,0:2*L-2) = cmplx(0d0, 0d0)
     do el = abs(spin), L-1
        call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
@@ -284,6 +326,14 @@ contains
        end do
     end do
 
+    ! Print finished if verbosity set.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Inverse transform computed!'
+       end if
+    end if
+
   end subroutine ssht_core_dh_inverse_direct_factored
 
 
@@ -302,6 +352,24 @@ contains
     real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
     complex(dpc) :: Fmm(-(L-1):L-1, -(L-1):L-1)
     complex(dpc) :: fmt(-(L-1):L-1, 0:2*L-1)
+
+    character(len=STRING_LEN) :: format_spec
+
+    ! Print messages depending on verbosity level.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Computing inverse transform using Driscoll and Healy sampling with'
+          write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', digit(spin),',a)'
+          write(*,trim(format_spec)) SSHT_PROMPT, &
+               'parameters (L,spin,reality) = (', &
+               L, ',', spin, ',FALSE)...'
+       end if
+       if (verbosity > 1) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Using routine ssht_core_dh_inverse_sov_direct...'
+       end if
+    end if
 
     ! Compute Fmm.
     Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
@@ -344,6 +412,14 @@ contains
        end do
     end do
 
+    ! Print finished if verbosity set.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Inverse transform computed!'
+       end if
+    end if
+
   end subroutine ssht_core_dh_inverse_sov_direct
 
 ! Eqns (9), (10) and (11), with FFT
@@ -362,14 +438,24 @@ contains
     complex(dpc) :: Fmm(-(L-1):L-1, -(L-1):L-1)
     complex(dpc) :: fmt(-(L-1):L-1, 0:2*L-1)
     integer*8 :: fftw_plan
+    character(len=STRING_LEN) :: format_spec
 
-
+    ! Print messages depending on verbosity level.
     if (present(verbosity)) then
        if (verbosity > 0) then
-          write(*,'(a,i5,a,i5,a)') '[ssht-1.0] Computing inverse transform for L=', &
-               L, ' spin=', spin, ' using Driscoll and Healy quadrature...'
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Computing inverse transform using Driscoll and Healy sampling with'
+          write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', digit(spin),',a)'
+          write(*,trim(format_spec)) SSHT_PROMPT, &
+               'parameters (L,spin,reality) = (', &
+               L, ',', spin, ',FALSE)...'
+       end if
+       if (verbosity > 1) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Using routine ssht_core_dh_inverse_sov...'
        end if
     end if
+
 
     ! Compute Fmm.
     Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
@@ -415,6 +501,14 @@ contains
     end do
     call dfftw_destroy_plan(fftw_plan)
 
+    ! Print finished if verbosity set.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Inverse transform computed!'
+       end if
+    end if
+
   end subroutine ssht_core_dh_inverse_sov
 
 ! Eqns (9), (10) and (11), with FFT
@@ -433,12 +527,21 @@ contains
     complex(dpc) :: Fmm(-(L-1):L-1, 0:L-1)
     complex(dpc) :: fmt(-(L-1):L-1, 0:2*L-1)
     integer*8 :: fftw_plan
+    character(len=STRING_LEN) :: format_spec
 
-
+    ! Print messages depending on verbosity level.
     if (present(verbosity)) then
        if (verbosity > 0) then
-          write(*,'(a,i5,a,i5,a)') '[ssht-1.0] Computing inverse transform for L=', &
-               L, ' spin=', spin, ' using Driscoll and Healy quadrature...'
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Computing inverse transform using Driscoll and Healy sampling with'
+          write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', digit(spin),',a)'
+          write(*,trim(format_spec)) SSHT_PROMPT, &
+               'parameters (L,spin,reality) = (', &
+               L, ',', spin, ',FALSE)...'
+       end if
+       if (verbosity > 1) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Using routine ssht_core_dh_inverse_sov_sym...'
        end if
     end if
 
@@ -510,6 +613,21 @@ contains
     end do
     call dfftw_destroy_plan(fftw_plan)
 
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Inverse transform computed!'
+       end if
+    end if
+
+    ! Print finished if verbosity set.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Inverse transform computed!'
+       end if
+    end if
+
   end subroutine ssht_core_dh_inverse_sov_sym
 
 
@@ -529,16 +647,28 @@ contains
     complex(dpc) :: fmt(0:L-1, 0:2*L-1)
     integer*8 :: fftw_plan
 
+    character(len=STRING_LEN) :: format_spec
+
     integer :: spin
 
     spin = 0
-
+    
+    ! Print messages depending on verbosity level.
     if (present(verbosity)) then
        if (verbosity > 0) then
-          write(*,'(a,i5,a,i5,a)') '[ssht-1.0] Computing inverse transform for L=', &
-               L, ' spin=', spin, ' using Driscoll and Healy quadrature...'
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Computing inverse transform using Driscoll and Healy sampling with'
+          write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', digit(spin),',a)'
+          write(*,trim(format_spec)) SSHT_PROMPT, &
+               'parameters (L,spin,reality) = (', &
+               L, ',', spin, ',TRUE)...'
+       end if
+       if (verbosity > 1) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Using routine ssht_core_dh_inverse_sov_sym_real...'
        end if
     end if
+
 
     ! Compute Fmm.
     Fmm(0:L-1, 0:L-1) = cmplx(0d0, 0d0)
@@ -579,6 +709,14 @@ contains
     end do
     call dfftw_destroy_plan(fftw_plan)
 
+    ! Print finished if verbosity set.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Inverse transform computed!'
+       end if
+    end if
+
   end subroutine ssht_core_dh_inverse_sov_sym_real
 
   !----------------------------------------------------------------------------
@@ -598,7 +736,26 @@ contains
     real(dp) :: theta, phi
     real(dp) :: elfactor
     real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
-          
+    character(len=STRING_LEN) :: format_spec
+
+    ! Print messages depending on verbosity level.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a,a)') SSHT_PROMPT, &
+               'Computing inverse transform using McEwen and Wiaux', &
+               ' even-odd sampling with'
+          write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', &
+               digit(spin),',a)'
+          write(*,trim(format_spec)) SSHT_PROMPT, &
+               'parameters (L,spin,reality) = (', &
+               L, ',', spin, ',FALSE)...'
+       end if
+       if (verbosity > 1) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Using routine ssht_core_mweo_inverse_direct...'
+       end if
+    end if
+
     f(0:2*L-1 ,0:2*L-2) = cmplx(0d0, 0d0)
     do el = abs(spin), L-1
        elfactor = sqrt((2d0*el+1d0)/(4d0*PI))
@@ -618,6 +775,14 @@ contains
           
        end do
     end do
+
+    ! Print finished if verbosity set.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Inverse transform computed!'
+       end if
+    end if
 
   end subroutine ssht_core_mweo_inverse_direct
 
@@ -639,6 +804,25 @@ contains
     real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
     complex(dpc) :: Fmm(-(L-1):L-1, -(L-1):L-1)
     complex(dpc) :: fext(0:2*L-2, 0:2*L-2)
+    character(len=STRING_LEN) :: format_spec
+
+    ! Print messages depending on verbosity level.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a,a)') SSHT_PROMPT, &
+               'Computing inverse transform using McEwen and Wiaux', &
+               ' even-odd sampling with'
+          write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', &
+               digit(spin),',a)'
+          write(*,trim(format_spec)) SSHT_PROMPT, &
+               'parameters (L,spin,reality) = (', &
+               L, ',', spin, ',FALSE)...'
+       end if
+       if (verbosity > 1) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Using routine ssht_core_mweo_inverse_sov_direct...'
+       end if
+    end if
 
     ! Compute Fmm.
     Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
@@ -675,6 +859,14 @@ contains
     ! Extract f from version of f extended to the torus (fext).
     f(0:L-1, 0:2*L-2) = fext(0:L-1, 0:2*L-2)
 
+    ! Print finished if verbosity set.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Inverse transform computed!'
+       end if
+    end if
+
   end subroutine ssht_core_mweo_inverse_sov_direct
 
 
@@ -694,6 +886,25 @@ contains
     complex(dpc) :: Fmm(-(L-1):L-1, -(L-1):L-1)
     complex(dpc) :: fext(0:2*L-2, 0:2*L-2)
     integer*8 :: fftw_plan
+    character(len=STRING_LEN) :: format_spec
+
+    ! Print messages depending on verbosity level.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a,a)') SSHT_PROMPT, &
+               'Computing inverse transform using McEwen and Wiaux', &
+               ' even-odd sampling with'
+          write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', &
+               digit(spin),',a)'
+          write(*,trim(format_spec)) SSHT_PROMPT, &
+               'parameters (L,spin,reality) = (', &
+               L, ',', spin, ',FALSE)...'
+       end if
+       if (verbosity > 1) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Using routine ssht_core_mweo_inverse_sov...'
+       end if
+    end if
 
     ! Compute Fmm.
     Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
@@ -755,6 +966,14 @@ contains
 !!$       end do
 !!$    end do
 
+    ! Print finished if verbosity set.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Inverse transform computed!'
+       end if
+    end if
+
   end subroutine ssht_core_mweo_inverse_sov
 
   subroutine ssht_core_mweo_inverse_sov_sym(f, flm, L, spin, verbosity)
@@ -772,6 +991,25 @@ contains
     complex(dpc) :: Fmm(-(L-1):L-1, -(L-1):L-1)
     complex(dpc) :: fext(0:2*L-2, 0:2*L-2)
     integer*8 :: fftw_plan
+    character(len=STRING_LEN) :: format_spec
+
+    ! Print messages depending on verbosity level.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a,a)') SSHT_PROMPT, &
+               'Computing inverse transform using McEwen and Wiaux', &
+               ' even-odd sampling with'
+          write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', &
+               digit(spin),',a)'
+          write(*,trim(format_spec)) SSHT_PROMPT, &
+               'parameters (L,spin,reality) = (', &
+               L, ',', spin, ',FALSE)...'
+       end if
+       if (verbosity > 1) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Using routine ssht_core_mweo_inverse_sov_sym...'
+       end if
+    end if
 
     ! Compute Fmm.
     Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
@@ -841,6 +1079,14 @@ contains
 !!$       end do
 !!$    end do
 
+    ! Print finished if verbosity set.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Inverse transform computed!'
+       end if
+    end if
+
   end subroutine ssht_core_mweo_inverse_sov_sym
 
 
@@ -860,10 +1106,29 @@ contains
     complex(dpc) :: fext(0:2*L-2, 0:2*L-2)
     real(dp) :: fext_real(0:2*L-2,0:2*L-2)
     integer*8 :: fftw_plan
+    character(len=STRING_LEN) :: format_spec
 
     integer :: spin
 
     spin = 0
+
+    ! Print messages depending on verbosity level.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a,a)') SSHT_PROMPT, &
+               'Computing inverse transform using McEwen and Wiaux', &
+               ' even-odd sampling with'
+          write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', &
+               digit(spin),',a)'
+          write(*,trim(format_spec)) SSHT_PROMPT, &
+               'parameters (L,spin,reality) = (', &
+               L, ',', spin, ',TRUE)...'
+       end if
+       if (verbosity > 1) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Using routine ssht_core_mweo_inverse_sov_sym_real...'
+       end if
+    end if
 
     ! Compute Fmm.
     Fmm(0:L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
@@ -913,6 +1178,14 @@ contains
     ! account for sampling offset.
     f(0:L-1, 0:2*L-2) = transpose(fext_real(0:2*L-2, 0:L-1))
 
+    ! Print finished if verbosity set.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Inverse transform computed!'
+       end if
+    end if
+
   end subroutine ssht_core_mweo_inverse_sov_sym_real
 
 
@@ -936,6 +1209,25 @@ contains
     real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
     complex(dpc) :: Fmm(-(L-1):L-1, -(L-1):L-1)
     complex(dpc) :: fext(0:2*L-2, 0:2*L-2)
+    character(len=STRING_LEN) :: format_spec
+
+    ! Print messages depending on verbosity level.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a,a)') SSHT_PROMPT, &
+               'Computing inverse transform using McEwen and Wiaux', &
+               ' sampling with'
+          write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', &
+               digit(spin),',a)'
+          write(*,trim(format_spec)) SSHT_PROMPT, &
+               'parameters (L,spin,reality) = (', &
+               L, ',', spin, ',FALSE)...'
+       end if
+       if (verbosity > 1) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Using routine ssht_core_mweo_inverse_direct...'
+       end if
+    end if
 
     ! Compute Fmm.
     Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
@@ -972,6 +1264,14 @@ contains
     ! Extract f from version of f extended to the torus (fext).
     f(0:L-1, 0:2*L-2) = fext(0:L-1, 0:2*L-2)
 
+    ! Print finished if verbosity set.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Inverse transform computed!'
+       end if
+    end if
+
   end subroutine ssht_core_mw_inverse_sov_direct
 
 
@@ -990,6 +1290,25 @@ contains
     complex(dpc) :: Fmm(-(L-1):L-1, -(L-1):L-1)
     complex(dpc) :: fext(0:2*L-2, 0:2*L-2)
     integer*8 :: fftw_plan
+    character(len=STRING_LEN) :: format_spec
+
+    ! Print messages depending on verbosity level.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a,a)') SSHT_PROMPT, &
+               'Computing inverse transform using McEwen and Wiaux', &
+               ' sampling with'
+          write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', &
+               digit(spin),',a)'
+          write(*,trim(format_spec)) SSHT_PROMPT, &
+               'parameters (L,spin,reality) = (', &
+               L, ',', spin, ',FALSE)...'
+       end if
+       if (verbosity > 1) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Using routine ssht_core_mw_inverse_sov...'
+       end if
+    end if
 
     ! Compute Fmm.
     Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
@@ -1029,6 +1348,14 @@ contains
     ! Extract f from version of f extended to the torus (fext).
     f(0:L-1, 0:2*L-2) = transpose(fext(0:2*L-2, 0:L-1))
 
+    ! Print finished if verbosity set.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Inverse transform computed!'
+       end if
+    end if
+
   end subroutine ssht_core_mw_inverse_sov
 
   subroutine ssht_core_mw_inverse_sov_sym(f, flm, L, spin, verbosity)
@@ -1046,6 +1373,25 @@ contains
     complex(dpc) :: Fmm(-(L-1):L-1, -(L-1):L-1)
     complex(dpc) :: fext(0:2*L-2, 0:2*L-2)
     integer*8 :: fftw_plan
+    character(len=STRING_LEN) :: format_spec
+
+    ! Print messages depending on verbosity level.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a,a)') SSHT_PROMPT, &
+               'Computing inverse transform using McEwen and Wiaux', &
+               ' sampling with'
+          write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', &
+               digit(spin),',a)'
+          write(*,trim(format_spec)) SSHT_PROMPT, &
+               'parameters (L,spin,reality) = (', &
+               L, ',', spin, ',FALSE)...'
+       end if
+       if (verbosity > 1) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Using routine ssht_core_mw_inverse_sov_sym...'
+       end if
+    end if
 
     ! Compute Fmm.
     Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
@@ -1092,6 +1438,14 @@ contains
     ! Extract f from version of f extended to the torus (fext).
     f(0:L-1, 0:2*L-2) = transpose(fext(0:2*L-2, 0:L-1))
 
+    ! Print finished if verbosity set.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Inverse transform computed!'
+       end if
+    end if
+
   end subroutine ssht_core_mw_inverse_sov_sym
 
   subroutine ssht_core_mw_inverse_sov_sym_real(f, flm, L, verbosity)
@@ -1109,10 +1463,29 @@ contains
     complex(dpc) :: fext(0:L-1, 0:2*L-2)
     real(dp) :: fext_real(0:2*L-2,0:2*L-2)
     integer*8 :: fftw_plan
+    character(len=STRING_LEN) :: format_spec
 
     integer :: spin
 
     spin = 0
+
+    ! Print messages depending on verbosity level.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a,a)') SSHT_PROMPT, &
+               'Computing inverse transform using McEwen and Wiaux', &
+               ' sampling with'
+          write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', &
+               digit(spin),',a)'
+          write(*,trim(format_spec)) SSHT_PROMPT, &
+               'parameters (L,spin,reality) = (', &
+               L, ',', spin, ',TRUE)...'
+       end if
+       if (verbosity > 1) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Using routine ssht_core_mw_inverse_sov_sym...'
+       end if
+    end if
 
     ! Compute Fmm.
     Fmm(0:L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
@@ -1157,6 +1530,14 @@ contains
     ! Extract f from version of f extended to the torus (fext).
     f(0:L-1, 0:2*L-2) = transpose(fext_real(0:2*L-2, 0:L-1))
 
+    ! Print finished if verbosity set.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Inverse transform computed!'
+       end if
+    end if
+
   end subroutine ssht_core_mw_inverse_sov_sym_real
 
 
@@ -1190,6 +1571,23 @@ contains
     complex(dpc) :: fmt(-(L-1):L-1, 0:2*L-1)
     complex(dpc) :: Fmm(-(L-1):L-1, -(L-1):L-1)
     real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
+    character(len=STRING_LEN) :: format_spec
+
+    ! Print messages depending on verbosity level.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Computing forward transform using Driscoll and Healy sampling with'
+          write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', digit(spin),',a)'
+          write(*,trim(format_spec)) SSHT_PROMPT, &
+               'parameters (L,spin,reality) = (', &
+               L, ',', spin, ',FALSE)...'
+       end if
+       if (verbosity > 1) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Using routine ssht_core_dh_forward_sov_direct...'
+       end if
+    end if
 
     ! Compute fmt.
     fmt(-(L-1):L-1, 0:2*L-1) = cmplx(0d0, 0d0)
@@ -1235,6 +1633,14 @@ contains
        end do
     end do
 
+    ! Print finished if verbosity set.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Forward transform computed!'
+       end if
+    end if
+
   end subroutine ssht_core_dh_forward_sov_direct
 
 
@@ -1255,11 +1661,21 @@ contains
     real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
     integer*8 :: fftw_plan
     complex(dpc) :: tmp(0:2*L-2)
+    character(len=STRING_LEN) :: format_spec
 
+    ! Print messages depending on verbosity level.
     if (present(verbosity)) then
        if (verbosity > 0) then
-          write(*,'(a,i5,a,i5,a)') '[ssht-1.0] Computing forward transform for L=', &
-               L, ' spin=', spin, ' using Driscoll and Healy quadrature...'
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Computing forward transform using Driscoll and Healy sampling with'
+          write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', digit(spin),',a)'
+          write(*,trim(format_spec)) SSHT_PROMPT, &
+               'parameters (L,spin,reality) = (', &
+               L, ',', spin, ',FALSE)...'
+       end if
+       if (verbosity > 1) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Using routine ssht_core_dh_forward_sov...'
        end if
     end if
 
@@ -1308,6 +1724,14 @@ contains
        end do
     end do
 
+    ! Print finished if verbosity set.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Forward transform computed!'
+       end if
+    end if
+
   end subroutine ssht_core_dh_forward_sov
 
 
@@ -1329,11 +1753,21 @@ contains
     real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
     integer*8 :: fftw_plan
     complex(dpc) :: tmp(0:2*L-2)
+    character(len=STRING_LEN) :: format_spec
 
+    ! Print messages depending on verbosity level.
     if (present(verbosity)) then
        if (verbosity > 0) then
-          write(*,'(a,i5,a,i5,a)') '[ssht-1.0] Computing forward transform for L=', &
-               L, ' spin=', spin, ' using Driscoll and Healy quadrature...'
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Computing forward transform using Driscoll and Healy sampling with'
+          write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', digit(spin),',a)'
+          write(*,trim(format_spec)) SSHT_PROMPT, &
+               'parameters (L,spin,reality) = (', &
+               L, ',', spin, ',FALSE)...'
+       end if
+       if (verbosity > 1) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Using routine ssht_core_dh_forward_sov_sym...'
        end if
     end if
 
@@ -1390,6 +1824,14 @@ contains
        end do
     end do
 
+    ! Print finished if verbosity set.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Forward transform computed!'
+       end if
+    end if
+
   end subroutine ssht_core_dh_forward_sov_sym
 
 
@@ -1412,13 +1854,23 @@ contains
     integer :: spin
     real(dp) :: tmp(0:2*L-2)
     integer :: ind_nm
+    character(len=STRING_LEN) :: format_spec
 
     spin = 0
 
+    ! Print messages depending on verbosity level.
     if (present(verbosity)) then
        if (verbosity > 0) then
-          write(*,'(a,i5,a,i5,a)') '[ssht-1.0] Computing forward transform for L=', &
-               L, ' spin=', spin, ' using Driscoll and Healy quadrature...'
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Computing forward transform using Driscoll and Healy sampling with'
+          write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', digit(spin),',a)'
+          write(*,trim(format_spec)) SSHT_PROMPT, &
+               'parameters (L,spin,reality) = (', &
+               L, ',', spin, ',TRUE)...'
+       end if
+       if (verbosity > 1) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Using routine ssht_core_dh_forward_sov_sym_real...'
        end if
     end if
 
@@ -1479,6 +1931,14 @@ contains
        end do
     end do
 
+    ! Print finished if verbosity set.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Forward transform computed!'
+       end if
+    end if
+
   end subroutine ssht_core_dh_forward_sov_sym_real
 
 
@@ -1507,6 +1967,25 @@ contains
     complex(dpc) :: Gmme(-(L-1):L-1, -(L-1):L-1)
     complex(dpc) :: Gmmo(-(L-1):L-1, -(L-1):L-1)
     complex(dpc) :: Gmm_term
+    character(len=STRING_LEN) :: format_spec
+
+    ! Print messages depending on verbosity level.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a,a)') SSHT_PROMPT, &
+               'Computing forward transform using McEwen and Wiaux', &
+               ' even-odd sampling with'
+          write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', &
+               digit(spin),',a)'
+          write(*,trim(format_spec)) SSHT_PROMPT, &
+               'parameters (L,spin,reality) = (', &
+               L, ',', spin, ',FALSE)...'
+       end if
+       if (verbosity > 1) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Using routine ssht_core_mweo_forward_sov_direct...'
+       end if
+    end if
 
     ! Extend f to the torus with even and odd extensions 
     ! about theta=PI.
@@ -1579,6 +2058,14 @@ contains
        end do
     end do
 
+    ! Print finished if verbosity set.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Forward transform computed!'
+       end if
+    end if
+
   end subroutine ssht_core_mweo_forward_sov_direct
 
 
@@ -1603,7 +2090,25 @@ contains
     complex(dpc) :: Gmmo(-(L-1):L-1, -(L-1):L-1)
     complex(dpc) :: Gmm_term
     integer*8 :: fftw_plan
+    character(len=STRING_LEN) :: format_spec
 
+    ! Print messages depending on verbosity level.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a,a)') SSHT_PROMPT, &
+               'Computing forward transform using McEwen and Wiaux', &
+               ' even-odd sampling with'
+          write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', &
+               digit(spin),',a)'
+          write(*,trim(format_spec)) SSHT_PROMPT, &
+               'parameters (L,spin,reality) = (', &
+               L, ',', spin, ',FALSE)...'
+       end if
+       if (verbosity > 1) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Using routine ssht_core_mweo_forward_sov...'
+       end if
+    end if
 
     ! Extend f to the torus with even and odd extensions 
     ! about theta=PI.
@@ -1701,6 +2206,14 @@ contains
        end do
     end do
 
+    ! Print finished if verbosity set.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Forward transform computed!'
+       end if
+    end if
+
   end subroutine ssht_core_mweo_forward_sov
 
   subroutine ssht_core_mweo_forward_sov_conv(flm, f, L, spin, verbosity)
@@ -1730,6 +2243,25 @@ contains
     complex(dpc) :: Fmmo_pad(-2*(L-1):2*(L-1))
     complex(dpc) :: w(-2*(L-1):2*(L-1))
     complex(dpc) :: wr(-2*(L-1):2*(L-1))
+    character(len=STRING_LEN) :: format_spec
+
+    ! Print messages depending on verbosity level.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a,a)') SSHT_PROMPT, &
+               'Computing forward transform using McEwen and Wiaux', &
+               ' even-odd sampling with'
+          write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', &
+               digit(spin),',a)'
+          write(*,trim(format_spec)) SSHT_PROMPT, &
+               'parameters (L,spin,reality) = (', &
+               L, ',', spin, ',FALSE)...'
+       end if
+       if (verbosity > 1) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Using routine ssht_core_mweo_forward_sov_conv...'
+       end if
+    end if
 
     ! Extend f to the torus with even and odd extensions 
     ! about theta=PI.
@@ -1907,6 +2439,14 @@ contains
        end do
     end do
 
+    ! Print finished if verbosity set.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Forward transform computed!'
+       end if
+    end if
+
   end subroutine ssht_core_mweo_forward_sov_conv
 
   subroutine ssht_core_mweo_forward_sov_conv_sym(flm, f, L, spin, verbosity)
@@ -1936,6 +2476,25 @@ contains
     complex(dpc) :: Fmmo_pad(-2*(L-1):2*(L-1))
     complex(dpc) :: w(-2*(L-1):2*(L-1))
     complex(dpc) :: wr(-2*(L-1):2*(L-1))
+    character(len=STRING_LEN) :: format_spec
+
+    ! Print messages depending on verbosity level.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a,a)') SSHT_PROMPT, &
+               'Computing forward transform using McEwen and Wiaux', &
+               ' even-odd sampling with'
+          write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', &
+               digit(spin),',a)'
+          write(*,trim(format_spec)) SSHT_PROMPT, &
+               'parameters (L,spin,reality) = (', &
+               L, ',', spin, ',FALSE)...'
+       end if
+       if (verbosity > 1) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Using routine ssht_core_mweo_forward_sov_conv_sym...'
+       end if
+    end if
 
     ! Extend f to the torus with even and odd extensions 
     ! about theta=PI.
@@ -2120,6 +2679,14 @@ contains
        end do
     end do
 
+    ! Print finished if verbosity set.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Forward transform computed!'
+       end if
+    end if
+
   end subroutine ssht_core_mweo_forward_sov_conv_sym
 
 
@@ -2153,8 +2720,27 @@ contains
     integer :: ind_nm
     integer :: spin
     complex(dpc) :: tmp(0:L-1,0:2*L-2)
+    character(len=STRING_LEN) :: format_spec
 
     spin = 0
+
+    ! Print messages depending on verbosity level.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a,a)') SSHT_PROMPT, &
+               'Computing forward transform using McEwen and Wiaux', &
+               ' even-odd sampling with'
+          write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', &
+               digit(spin),',a)'
+          write(*,trim(format_spec)) SSHT_PROMPT, &
+               'parameters (L,spin,reality) = (', &
+               L, ',', spin, ',TRUE)...'
+       end if
+       if (verbosity > 1) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Using routine ssht_core_mweo_forward_sov_conv_sym_real...'
+       end if
+    end if
 
     ! Extend f to the torus with even and odd extensions 
     ! about theta=PI.
@@ -2329,6 +2915,14 @@ contains
        end do
     end do
 
+    ! Print finished if verbosity set.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Forward transform computed!'
+       end if
+    end if
+
   end subroutine ssht_core_mweo_forward_sov_conv_sym_real
 
 
@@ -2354,6 +2948,25 @@ contains
     complex(dpc) :: Fmt(-(L-1):L-1, 0:2*L-2)
     complex(dpc) :: Fmm(-(L-1):L-1, -(L-1):L-1)
     complex(dpc) :: Gmm(-(L-1):L-1, -(L-1):L-1) 
+    character(len=STRING_LEN) :: format_spec
+
+    ! Print messages depending on verbosity level.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a,a)') SSHT_PROMPT, &
+               'Computing forward transform using McEwen and Wiaux', &
+               ' sampling with'
+          write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', &
+               digit(spin),',a)'
+          write(*,trim(format_spec)) SSHT_PROMPT, &
+               'parameters (L,spin,reality) = (', &
+               L, ',', spin, ',FALSE)...'
+       end if
+       if (verbosity > 1) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Using routine ssht_core_mw_forward_sov_direct...'
+       end if
+    end if
 
     ! Compute Fourier transform over phi, i.e. compute Fmt.
     Fmt(-(L-1):L-1,0:2*L-2) = cmplx(0d0, 0d0)    
@@ -2414,6 +3027,14 @@ contains
        end do
     end do
 
+    ! Print finished if verbosity set.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Forward transform computed!'
+       end if
+    end if
+
   end subroutine ssht_core_mw_forward_sov_direct
 
 
@@ -2437,6 +3058,25 @@ contains
     complex(dpc) :: Gmm(-(L-1):L-1, -(L-1):L-1) 
     integer*8 :: fftw_plan
     complex(dpc) :: tmp(0:2*L-2)
+    character(len=STRING_LEN) :: format_spec
+
+    ! Print messages depending on verbosity level.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a,a)') SSHT_PROMPT, &
+               'Computing forward transform using McEwen and Wiaux', &
+               ' sampling with'
+          write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', &
+               digit(spin),',a)'
+          write(*,trim(format_spec)) SSHT_PROMPT, &
+               'parameters (L,spin,reality) = (', &
+               L, ',', spin, ',FALSE)...'
+       end if
+       if (verbosity > 1) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Using routine ssht_core_mw_forward_sov...'
+       end if
+    end if
 
     ! Compute Fourier transform over phi, i.e. compute Fmt.
     call dfftw_plan_dft_1d(fftw_plan, 2*L-1, Fmt(-(L-1):L-1,0), &
@@ -2496,6 +3136,14 @@ contains
        end do
     end do
 
+    ! Print finished if verbosity set.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Forward transform computed!'
+       end if
+    end if
+
   end subroutine ssht_core_mw_forward_sov
 
 
@@ -2524,6 +3172,25 @@ contains
     complex(dpc) :: w(-2*(L-1):2*(L-1))
     complex(dpc) :: wr(-2*(L-1):2*(L-1))
     integer*8 :: fftw_plan_fwd, fftw_plan_bwd
+    character(len=STRING_LEN) :: format_spec
+
+    ! Print messages depending on verbosity level.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a,a)') SSHT_PROMPT, &
+               'Computing forward transform using McEwen and Wiaux', &
+               ' sampling with'
+          write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', &
+               digit(spin),',a)'
+          write(*,trim(format_spec)) SSHT_PROMPT, &
+               'parameters (L,spin,reality) = (', &
+               L, ',', spin, ',FALSE)...'
+       end if
+       if (verbosity > 1) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Using routine ssht_core_mw_forward_sov_conv...'
+       end if
+    end if
 
     ! Compute Fourier transform over phi, i.e. compute Fmt.
     call dfftw_plan_dft_1d(fftw_plan, 2*L-1, Fmt(-(L-1):L-1,0), &
@@ -2630,6 +3297,14 @@ contains
        end do
     end do
 
+    ! Print finished if verbosity set.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Forward transform computed!'
+       end if
+    end if
+
   end subroutine ssht_core_mw_forward_sov_conv
 
 
@@ -2658,6 +3333,25 @@ contains
     complex(dpc) :: w(-2*(L-1):2*(L-1))
     complex(dpc) :: wr(-2*(L-1):2*(L-1))
     integer*8 :: fftw_plan_fwd, fftw_plan_bwd
+    character(len=STRING_LEN) :: format_spec
+
+    ! Print messages depending on verbosity level.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a,a)') SSHT_PROMPT, &
+               'Computing forward transform using McEwen and Wiaux', &
+               ' sampling with'
+          write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', &
+               digit(spin),',a)'
+          write(*,trim(format_spec)) SSHT_PROMPT, &
+               'parameters (L,spin,reality) = (', &
+               L, ',', spin, ',FALSE)...'
+       end if
+       if (verbosity > 1) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Using routine ssht_core_mw_forward_sov_conv_sym...'
+       end if
+    end if
 
     ! Compute Fourier transform over phi, i.e. compute Fmt.
     call dfftw_plan_dft_1d(fftw_plan, 2*L-1, Fmt(-(L-1):L-1,0), &
@@ -2771,6 +3465,14 @@ contains
        end do
     end do
 
+    ! Print finished if verbosity set.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Forward transform computed!'
+       end if
+    end if
+
   end subroutine ssht_core_mw_forward_sov_conv_sym
 
 
@@ -2802,8 +3504,27 @@ contains
     real(dp) :: tmpr(0:2*L-2)
     integer :: ind_nm
     integer :: spin
+    character(len=STRING_LEN) :: format_spec
 
     spin = 0
+
+    ! Print messages depending on verbosity level.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a,a)') SSHT_PROMPT, &
+               'Computing forward transform using McEwen and Wiaux', &
+               ' sampling with'
+          write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', &
+               digit(spin),',a)'
+          write(*,trim(format_spec)) SSHT_PROMPT, &
+               'parameters (L,spin,reality) = (', &
+               L, ',', spin, ',TRUE)...'
+       end if
+       if (verbosity > 1) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Using routine ssht_core_mw_forward_sov_conv_sym_real...'
+       end if
+    end if
 
     ! Compute Fourier transform over phi, i.e. compute Fmt.
     call dfftw_plan_dft_r2c_1d(fftw_plan, 2*L-1, tmpr(0:2*L-2), &
@@ -2928,6 +3649,14 @@ contains
        end do
     end do
 
+    ! Print finished if verbosity set.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Forward transform computed!'
+       end if
+    end if
+
   end subroutine ssht_core_mw_forward_sov_conv_sym_real
 
 
@@ -2939,7 +3668,26 @@ contains
   !--------------------------------------------------------------------------
 
 
+  function digit(L) result(d)
 
+    integer, intent(in) :: L
+    integer :: d
+
+    if(L/10 < 1) then
+       d = 1
+    elseif(L/100 < 1) then
+       d = 2
+    elseif(L/1000 < 1) then
+       d = 3
+    elseif(L/10000 < 1) then
+       d = 4
+    elseif(L/100000 < 1) then
+       d = 5
+    else
+       d = 25
+    end if
+ 
+  end function digit
 
 
   !--------------------------------------------------------------------------

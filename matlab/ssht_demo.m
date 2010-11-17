@@ -10,10 +10,11 @@ function ssht_demo
 % Date: November 2010
 
 % Define size parameters.
-spin = 0;
+L = 12;
+spin = 6;
 reality = 1;
-verbosity = 1;
-L = 5;
+verbosity = 2;
+
 nphi = 2*L - 1;
 ntheta_dh = 2*L;
 ntheta_mw = L;

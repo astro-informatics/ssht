@@ -36,7 +36,7 @@ program ssht_inverse
   character(len=*), parameter ::  METHOD_MW = 'MW'
   character(len=STRING_LEN) :: method
   character(len=STRING_LEN) :: filename_in, filename_out
-  character(len=*), parameter ::  IO_FORMAT = '(2e25.15)'
+  character(len=*), parameter ::  IO_FORMAT = '(2d25.15)'
   integer :: L, spin
   integer :: verbosity = 0, reality = 0
   integer :: t, p, ind, ntheta
