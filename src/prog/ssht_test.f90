@@ -46,7 +46,7 @@ program ssht_test
   end interface
 
   character(len=64) :: arg
-  integer, parameter :: N_repeat = 1
+  integer, parameter :: N_repeat = 10
   integer :: verbosity = 0
   integer :: fail = 0, seed, i_repeat
   real :: time_start, time_end
@@ -61,16 +61,21 @@ program ssht_test
   real :: durations_forward_mw(0:N_repeat-1)
   real :: durations_inverse_mw(0:N_repeat-1)
 
+  real(dp) :: errors_dh_real(0:N_repeat-1)
+  real :: durations_forward_dh_real(0:N_repeat-1)
+  real :: durations_inverse_dh_real(0:N_repeat-1)
+  real(dp) :: errors_mweo_real(0:N_repeat-1)
+  real :: durations_forward_mweo_real(0:N_repeat-1)
+  real :: durations_inverse_mweo_real(0:N_repeat-1)
+  real(dp) :: errors_mw_real(0:N_repeat-1)
+  real :: durations_forward_mw_real(0:N_repeat-1)
+  real :: durations_inverse_mw_real(0:N_repeat-1)
+
   integer :: L, ind, ind_check, el, el_check, m, m_check
   integer :: spin
   complex(dpc), allocatable :: flm_orig(:), flm_syn(:)
   complex(dpc), allocatable :: f_dh(:,:), f_mweo(:,:), f_mw(:,:)
-
-
-
-
-real(dpc), allocatable :: f_dh_real(:,:), f_mweo_real(:,:), f_mw_real(:,:)
-
+  real(dpc), allocatable :: f_dh_real(:,:), f_mweo_real(:,:), f_mw_real(:,:)
 
   ! Initialise parameters.
   call getarg(1, arg)
@@ -83,30 +88,22 @@ real(dpc), allocatable :: f_dh_real(:,:), f_mweo_real(:,:), f_mw_real(:,:)
   allocate(flm_orig(0:L**2-1), stat=fail)
   allocate(flm_syn(0:L**2-1), stat=fail)  
   allocate(f_dh(0:2*L-1, 0:2*L-2), stat=fail)
-
-allocate(f_dh_real(0:2*L-1, 0:2*L-2), stat=fail)
-allocate(f_mw_real(0:L-1, 0:2*L-1), stat=fail)
-allocate(f_mweo_real(0:L-1, 0:2*L-2), stat=fail)
-
-
   allocate(f_mweo(0:L-1, 0:2*L-2), stat=fail)
-  allocate(f_mw(0:L-1, 0:2*L-1), stat=fail)
+  allocate(f_mw(0:L-1, 0:2*L-2), stat=fail)
+  allocate(f_dh_real(0:2*L-1, 0:2*L-2), stat=fail)
+  allocate(f_mweo_real(0:L-1, 0:2*L-2), stat=fail)
+  allocate(f_mw_real(0:L-1, 0:2*L-2), stat=fail)
   if(fail /= 0) then
      call ssht_error(SSHT_ERROR_MEM_ALLOC_FAIL, 'ssht_test')
   end if
   flm_orig(0:L**2-1) = cmplx(0d0, 0d0)
   flm_syn(0:L**2-1) = cmplx(0d0, 0d0)
   f_dh(0:2*L-1, 0:2*L-2) = cmplx(0d0, 0d0)
-
-
-f_dh_real(0:2*L-1, 0:2*L-2) = 0d0
-f_mweo_real(0:L-1, 0:2*L-2) = 0d0
-f_mw_real(0:L-1, 0:2*L-1) = 0d0
-
-
-
   f_mweo(0:L-1, 0:2*L-2) = cmplx(0d0, 0d0)
-  f_mw(0:L-1, 0:2*L-1) = cmplx(0d0, 0d0)
+  f_mw(0:L-1, 0:2*L-2) = cmplx(0d0, 0d0)
+  f_dh_real(0:2*L-1, 0:2*L-2) = 0d0
+  f_mweo_real(0:L-1, 0:2*L-2) = 0d0
+  f_mw_real(0:L-1, 0:2*L-2) = 0d0
 
   ! Write program name.
   write(*,*)
@@ -136,53 +133,79 @@ f_mw_real(0:L-1, 0:2*L-1) = 0d0
   ! Run algorithm error and timing tests.
   do i_repeat = 0,N_repeat-1
 
-
-
-
+     ! If spin=0 run tests on algorithms optimised for real spin=0 signal.
      if (spin == 0) then 
-        write(*,*) 'TODO: run real tests'
-        write(*,*)
-! run additional real analysis.
-
-
-
 
         !=========================================================================
-        ! DH
-        write(*,'(a,i2)') 'DH test no.', i_repeat
+        ! DH real spin=0
+        write(*,'(a,i2)') 'DH real spin=0 test no.', i_repeat
         flm_orig(0:L**2-1) = cmplx(0d0, 0d0)
         flm_syn(0:L**2-1) = cmplx(0d0, 0d0)
         call ssht_test_gen_flm_real(L, flm_orig, seed)
         call cpu_time(time_start)
         !-------------------------------------------------------------------------
-!        call ssht_core_dh_inverse_sov_sym(f_dh, flm_orig, L, spin, verbosity)
-!        call ssht_core_dh_inverse_sov_sym_real(f_dh_real, flm_orig, L, verbosity)
-
-!        call ssht_core_mw_inverse_sov_sym_real(f_mw_real, flm_orig, L, verbosity)
-
-        call ssht_core_mweo_inverse_sov_sym_real(f_mweo_real, flm_orig, L)
+        call ssht_core_dh_inverse_sov_sym_real(f_dh_real, flm_orig, L, verbosity)
         !-------------------------------------------------------------------------
         call cpu_time(time_end)
-        durations_inverse_dh(i_repeat) = time_end - time_start
+        durations_inverse_dh_real(i_repeat) = time_end - time_start
         call cpu_time(time_start)
         !-------------------------------------------------------------------------
-!        call ssht_core_dh_forward_sov_sym(flm_syn, f_dh, L, spin, verbosity)
-!        f_dh_real = real(f_dh,kind=dp)
-!        call ssht_core_dh_forward_sov_sym_real(flm_syn, f_dh_real, L, verbosity)
-
-!        f_mw(0:L-1, 0:2*L-2) = f_mw_real(0:L-1, 0:2*L-2)
-!        call ssht_core_mw_forward_sov_conv_sym_real(flm_syn, f_mw_real, L)
-
-        f_mweo(0:L-1, 0:2*L-2) = f_mweo_real(0:L-1, 0:2*L-2)
-        call ssht_core_mweo_forward_sov_conv_sym_real(flm_syn, f_mweo_real, L, spin)
-
+        call ssht_core_dh_forward_sov_sym_real(flm_syn, f_dh_real, L, verbosity)
         !-------------------------------------------------------------------------
         call cpu_time(time_end)
-        durations_forward_dh(i_repeat) = time_end - time_start
-        errors_dh(i_repeat) = maxval(abs(flm_orig(0:L**2-1) - flm_syn(0:L**2-1)))
-        write(*,'(a,f40.4)') ' duration_inverse (s) =', durations_inverse_dh(i_repeat)
-        write(*,'(a,f40.4)') ' duration_forward (s) =', durations_forward_dh(i_repeat)
-        write(*,'(a,e40.5)') ' error                =', errors_dh(i_repeat)
+        durations_forward_dh_real(i_repeat) = time_end - time_start
+        errors_dh_real(i_repeat) = maxval(abs(flm_orig(0:L**2-1) - flm_syn(0:L**2-1)))
+        write(*,'(a,f40.4)') ' duration_inverse (s) =', durations_inverse_dh_real(i_repeat)
+        write(*,'(a,f40.4)') ' duration_forward (s) =', durations_forward_dh_real(i_repeat)
+        write(*,'(a,e40.5)') ' error                =', errors_dh_real(i_repeat)
+        write(*,*)
+
+        !=========================================================================
+        ! MWEO real spin=0
+        write(*,'(a,i2)') 'MWEO real spin=0 test no.', i_repeat
+        flm_orig(0:L**2-1) = cmplx(0d0, 0d0)
+        flm_syn(0:L**2-1) = cmplx(0d0, 0d0)
+        call ssht_test_gen_flm_real(L, flm_orig, seed)
+        call cpu_time(time_start)
+        !-------------------------------------------------------------------------
+        call ssht_core_mweo_inverse_sov_sym_real(f_mweo_real, flm_orig, L, verbosity)
+        !-------------------------------------------------------------------------
+        call cpu_time(time_end)
+        durations_inverse_mweo_real(i_repeat) = time_end - time_start
+        call cpu_time(time_start)
+        !-------------------------------------------------------------------------
+        call ssht_core_mweo_forward_sov_conv_sym_real(flm_syn, f_mweo_real, L, verbosity)
+        !-------------------------------------------------------------------------
+        call cpu_time(time_end)
+        durations_forward_mweo_real(i_repeat) = time_end - time_start
+        errors_mweo_real(i_repeat) = maxval(abs(flm_orig(0:L**2-1) - flm_syn(0:L**2-1)))
+        write(*,'(a,f40.4)') ' duration_inverse (s) =', durations_inverse_mweo_real(i_repeat)
+        write(*,'(a,f40.4)') ' duration_forward (s) =', durations_forward_mweo_real(i_repeat)
+        write(*,'(a,e40.5)') ' error                =', errors_mweo_real(i_repeat)
+        write(*,*)
+
+        !=========================================================================
+        ! MW real spin=0
+        write(*,'(a,i2)') 'MW real spin=0 test no.', i_repeat
+        flm_orig(0:L**2-1) = cmplx(0d0, 0d0)
+        flm_syn(0:L**2-1) = cmplx(0d0, 0d0)
+        call ssht_test_gen_flm_real(L, flm_orig, seed)
+        call cpu_time(time_start)
+        !-------------------------------------------------------------------------
+        call ssht_core_mw_inverse_sov_sym_real(f_mw_real, flm_orig, L, verbosity)
+        !-------------------------------------------------------------------------
+        call cpu_time(time_end)
+        durations_inverse_mw_real(i_repeat) = time_end - time_start
+        call cpu_time(time_start)
+        !-------------------------------------------------------------------------
+        call ssht_core_mw_forward_sov_conv_sym_real(flm_syn, f_mw_real, L, verbosity)
+        !-------------------------------------------------------------------------
+        call cpu_time(time_end)
+        durations_forward_mw_real(i_repeat) = time_end - time_start
+        errors_mw_real(i_repeat) = maxval(abs(flm_orig(0:L**2-1) - flm_syn(0:L**2-1)))
+        write(*,'(a,f40.4)') ' duration_inverse (s) =', durations_inverse_mw_real(i_repeat)
+        write(*,'(a,f40.4)') ' duration_forward (s) =', durations_forward_mw_real(i_repeat)
+        write(*,'(a,e40.5)') ' error                =', errors_mw_real(i_repeat)
         write(*,*)
 
 
@@ -277,6 +300,35 @@ f_mw_real(0:L-1, 0:2*L-1) = 0d0
   write(*,'(a,i40)') 'L                     =', L
   write(*,'(a,i40)') 'spin                  =', spin
   write(*,*)
+
+  if (spin == 0) then
+     write(*,'(a,i2)') 'DH real'
+     write(*,'(a,f30.5)') ' Average forward transform time =', &
+          sum(durations_forward_dh_real(0:N_repeat-1)) / real(N_repeat)
+     write(*,'(a,f30.5)') ' Average inverse transform time =', &
+          sum(durations_inverse_dh_real(0:N_repeat-1)) / real(N_repeat)
+     write(*,'(a,e30.5)') ' Average max error              =', &
+          sum(errors_dh_real(0:N_repeat-1)) / real(N_repeat)
+     write(*,*)
+
+     write(*,'(a,i2)') 'MWEO real'
+     write(*,'(a,f30.5)') ' Average forward transform time =', &
+          sum(durations_forward_mweo_real(0:N_repeat-1)) / real(N_repeat)
+     write(*,'(a,f30.5)') ' Average inverse transform time =', &
+          sum(durations_inverse_mweo_real(0:N_repeat-1)) / real(N_repeat)
+     write(*,'(a,e30.5)') ' Average max error              =', &
+          sum(errors_mweo_real(0:N_repeat-1)) / real(N_repeat)
+     write(*,*)
+
+     write(*,'(a,i2)') 'MW real'
+     write(*,'(a,f30.5)') ' Average forward transform time =', &
+          sum(durations_forward_mw_real(0:N_repeat-1)) / real(N_repeat)
+     write(*,'(a,f30.5)') ' Average inverse transform time =', &
+          sum(durations_inverse_mw_real(0:N_repeat-1)) / real(N_repeat)
+     write(*,'(a,e30.5)') ' Average max error              =', &
+          sum(errors_mw_real(0:N_repeat-1)) / real(N_repeat)
+     write(*,*)
+  end if
 
   write(*,'(a,i2)') 'DH'
   write(*,'(a,f30.5)') ' Average forward transform time =', &

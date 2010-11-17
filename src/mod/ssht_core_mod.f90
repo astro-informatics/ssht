@@ -1034,7 +1034,7 @@ write(*,*) 'spin = ', spin
     spin = 0
 
     ! Compute Fmm.
-    Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
+    Fmm(0:L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
     do el = abs(spin), L-1
        call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
        do m = 0, el
