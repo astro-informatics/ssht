@@ -4,10 +4,9 @@
 !! Definition of intrinsic types and constants used in the ssht library.
 !
 !! @author J. D. McEwen (mcewen@mrao.cam.ac.uk)
-!! @version 0.1 October 2007
 !
 ! Revisions:
-!   October 2007 - Written by Jason McEwen
+!   October 2010 - Written by Jason McEwen
 !------------------------------------------------------------------------------
 
 module ssht_types_mod

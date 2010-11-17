@@ -28,7 +28,6 @@ program ssht_forward
 
   use ssht_types_mod
   use ssht_error_mod
-  use ssht_fileio_mod
   use ssht_core_mod
   use s2_sky_mod
 

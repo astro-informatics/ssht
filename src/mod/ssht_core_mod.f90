@@ -1,17 +1,12 @@
 !------------------------------------------------------------------------------
 ! ssht_core_mod  -- SSHT library core class
 ! 
-
-
-
-
-!! Functionality to perform scale discretised wavelet transform on the sphere.
+!! Functionality to perform spin spherical harmonic transform on the sphere.
 !
 !! @author J. D. McEwen (mcewen@mrao.cam.ac.uk)
-!! @version 0.1 November 2007
 !
 ! Revisions:
-!   November 2007 - Written by Jason McEwen
+!   October 2010 - Written by Jason McEwen
 !------------------------------------------------------------------------------
 
 module ssht_core_mod

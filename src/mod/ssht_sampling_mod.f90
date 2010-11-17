@@ -5,7 +5,6 @@
 !! convert 1D and 2D harmonic indices.
 !
 !! @author J. D. McEwen (mcewen@mrao.cam.ac.uk)
-!! @version 0.1 November 2010
 !
 ! Revisions:
 !   November 2010 - Written by Jason McEwen

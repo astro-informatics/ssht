@@ -7,10 +7,9 @@
 !!  - Copied from s2 library so SSHT library is self contained.
 !
 !! @author D. J. Mortlock
-!! @version 0.1 Compiled in SSHT library by JDM October 2007
 !
 ! Revisions:
-!   November 2007 - Jason McEwen
+!   Ortober 2010 - Jason McEwen
 !------------------------------------------------------------------------------
 
 module ssht_dl_mod

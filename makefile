@@ -80,7 +80,6 @@ endif
 SSHTOBJ = $(SSHTINC)/ssht_types_mod.o    \
           $(SSHTINC)/ssht_error_mod.o   \
           $(SSHTINC)/ssht_dl_mod.o      \
-          $(SSHTINC)/ssht_fileio_mod.o  \
           $(SSHTINC)/ssht_sampling_mod.o  \
           $(SSHTINC)/ssht_core_mod.o   
 
@@ -96,9 +95,7 @@ lib:	 $(SSHTLIB)/lib$(SSHTLIBNM).a
 test:    $(SSHTBIN)/ssht_test
 
 runtest: test
-	$(SSHTBIN)/ssht_test 64
-
-#prog:    $(SSHTBIN)/ssht_wav2sky $(SSHTBIN)/ssht_analysis $(SSHTBIN)/ssht_synthesis $(SSHTBIN)/ssht_wavplot $#(SSHTBIN)/ssht_mat2fits $(SSHTBIN)/ssht_fits2mat $(SSHTBIN)/ssht_forward
+	$(SSHTBIN)/ssht_test 64 0
 
 prog:    $(SSHTBIN)/ssht_forward $(SSHTBIN)/ssht_inverse
 
@@ -155,10 +152,6 @@ $(SSHTINC)/ssht_error_mod.o: $(SSHTSRC)/ssht_error_mod.f90  \
                            $(SSHTINC)/ssht_types_mod.o
 $(SSHTINC)/ssht_dl_mod.o:    $(SSHTSRC)/ssht_dl_mod.f90     \
                            $(SSHTINC)/ssht_types_mod.o
-$(SSHTINC)/ssht_fileio_mod.o:  $(SSHTSRC)/ssht_fileio_mod.f90   \
-                           $(SSHTINC)/ssht_types_mod.o    \
-                           $(SSHTINC)/ssht_error_mod.o    \
-                           $(SSHTINC)/ssht_core_mod.o    
 $(SSHTINC)/ssht_sampling_mod.o:  $(SSHTSRC)/ssht_sampling_mod.f90   \
                            $(SSHTINC)/ssht_types_mod.o    \
                            $(SSHTINC)/ssht_error_mod.o
