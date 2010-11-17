@@ -42,36 +42,36 @@ module ssht_core_mod
        ssht_core_mweo_inverse_real, &
        ssht_core_mweo_forward_real, &
        ssht_core_mw_inverse_real, &
-       ssht_core_mw_forward_real, &
-       ssht_core_dh_inverse_direct, &
-       ssht_core_dh_inverse_direct_factored, &
-       ssht_core_dh_inverse_sov_direct, &
-       ssht_core_dh_inverse_sov, &
-       ssht_core_dh_inverse_sov_sym, &
-       ssht_core_dh_inverse_sov_sym_real, &
-       ssht_core_dh_forward_sov_direct, &
-       ssht_core_dh_forward_sov, &
-       ssht_core_dh_forward_sov_sym, &
-       ssht_core_dh_forward_sov_sym_real, &
-       ssht_core_mweo_inverse_direct, &
-       ssht_core_mweo_inverse_sov_direct, &
-       ssht_core_mweo_inverse_sov, &
-       ssht_core_mweo_inverse_sov_sym, &
-       ssht_core_mweo_inverse_sov_sym_real, &
-       ssht_core_mweo_forward_sov_direct, &
-       ssht_core_mweo_forward_sov, &
-       ssht_core_mweo_forward_sov_conv, &
-       ssht_core_mweo_forward_sov_conv_sym, &
-       ssht_core_mweo_forward_sov_conv_sym_real, &
-       ssht_core_mw_forward_sov_direct, &
-       ssht_core_mw_forward_sov, &
-       ssht_core_mw_forward_sov_conv, &
-       ssht_core_mw_forward_sov_conv_sym, &
-       ssht_core_mw_forward_sov_conv_sym_real, &
-       ssht_core_mw_inverse_sov_direct, &
-       ssht_core_mw_inverse_sov, &
-       ssht_core_mw_inverse_sov_sym, &
-       ssht_core_mw_inverse_sov_sym_real
+       ssht_core_mw_forward_real
+!!$       ssht_core_dh_inverse_direct, &
+!!$       ssht_core_dh_inverse_direct_factored, &
+!!$       ssht_core_dh_inverse_sov_direct, &
+!!$       ssht_core_dh_inverse_sov, &
+!!$       ssht_core_dh_inverse_sov_sym, &
+!!$       ssht_core_dh_inverse_sov_sym_real, &
+!!$       ssht_core_dh_forward_sov_direct, &
+!!$       ssht_core_dh_forward_sov, &
+!!$       ssht_core_dh_forward_sov_sym, &
+!!$       ssht_core_dh_forward_sov_sym_real, &
+!!$       ssht_core_mweo_inverse_direct, &
+!!$       ssht_core_mweo_inverse_sov_direct, &
+!!$       ssht_core_mweo_inverse_sov, &
+!!$       ssht_core_mweo_inverse_sov_sym, &
+!!$       ssht_core_mweo_inverse_sov_sym_real, &
+!!$       ssht_core_mweo_forward_sov_direct, &
+!!$       ssht_core_mweo_forward_sov, &
+!!$       ssht_core_mweo_forward_sov_conv, &
+!!$       ssht_core_mweo_forward_sov_conv_sym, &
+!!$       ssht_core_mweo_forward_sov_conv_sym_real, &
+!!$       ssht_core_mw_forward_sov_direct, &
+!!$       ssht_core_mw_forward_sov, &
+!!$       ssht_core_mw_forward_sov_conv, &
+!!$       ssht_core_mw_forward_sov_conv_sym, &
+!!$       ssht_core_mw_forward_sov_conv_sym_real, &
+!!$       ssht_core_mw_inverse_sov_direct, &
+!!$       ssht_core_mw_inverse_sov, &
+!!$       ssht_core_mw_inverse_sov_sym, &
+!!$       ssht_core_mw_inverse_sov_sym_real
 
 
   !---------------------------------------
@@ -136,13 +136,11 @@ module ssht_core_mod
   integer, parameter :: FFTW_FORWARD=-1, FFTW_BACKWARD=1
 
 
-
-
-
-
   !---------------------------------------
   ! Data types
   !---------------------------------------
+
+  ! None.
 
 
   !----------------------------------------------------------------------------

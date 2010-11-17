@@ -1,3 +1,28 @@
+!------------------------------------------------------------------------------
+! ssht_forward
+!
+!! Compute forward spin spherical harmonic transform using either DH or MW 
+!! sampling.  Sampled functions on the sphere and harmonic coefficients are
+!! read/written to/from text files.
+!!
+!! Usage: ssht_inverse
+!!   - [-help]: Display usage information.
+!!   - [-inp filename_in]: Name of input file containing function samples.
+!!   - [-out filename_out]: Name of output file containing harmonic 
+!!     coefficients.
+!!   - [-method method]: Method (i.e. sampling) to use (DH; MW).
+!!   - [-L L]: Harmonic band-limit.
+!!   - [-spin spin]: Spin order. 
+!!   - [-reality reality]: Integer specifying whether the function on the 
+!!     sphere is real (must only be specified for spin 0 signals) 
+!!     (0=false; 1=true).
+!!   - [-verbosity verbosity]: Integer specify verbosity level from 0 to 5.
+!     
+!! @author J. D. McEwen (mcewen@mrao.cam.ac.uk)
+!
+! Revisions:
+!   November 2010 - Written by Jason McEwen 
+!------------------------------------------------------------------------------
 
 program ssht_forward
 
@@ -15,14 +40,22 @@ program ssht_forward
   character(len=STRING_LEN) :: filename_in, filename_out
   character(len=*), parameter ::  IO_FORMAT = '(2e25.15)'
   integer :: L, spin
+  integer :: verbosity = 0, reality = 0  
   integer :: t, p, ind, ntheta
   real(dp) :: re, im
   integer :: fileid
   integer :: fail = 0
   complex(dpc), allocatable :: f(:,:), flm(:)
+  real(dp), allocatable :: f_real(:,:)
 
   ! Parse options from command line.
   call parse_options()
+
+  ! Check reality flag valid.
+  if (spin /= 0 .and. reality == 1) then
+     call ssht_error(SSHT_ERROR_ARG_INVALID, 'ssht_inverse', &
+          comment_add='Reality flag may only be set for spin 0 signals.')
+  end if
 
   ! Set ntheta depending on method.
   select case(method)
@@ -36,38 +69,61 @@ program ssht_forward
   end select
 
   ! Allocate space.
-  allocate(f(0:ntheta-1, 0:2*L-2), stat=fail)
+  if (reality == 1) then
+     allocate(f_real(0:ntheta-1, 0:2*L-2), stat=fail)
+  else
+     allocate(f(0:ntheta-1, 0:2*L-2), stat=fail)
+  end if
   allocate(flm(0:L**2-1), stat=fail)
   if(fail /= 0) then
      call ssht_error(SSHT_ERROR_MEM_ALLOC_FAIL, 'ssht_forward')
-  end if  
-  f(0:ntheta-1, 0:2*L-2) = cmplx(0d0,0d0)
+  end if
+  if (reality == 1) then
+     f_real(0:ntheta-1, 0:2*L-2) = 0d0
+  else
+     f(0:ntheta-1, 0:2*L-2) = cmplx(0d0,0d0)
+  end if
   flm(0:L**2-1) = cmplx(0d0,0d0)
 
   ! Read function.
   fileid = 11
   open(fileid, file=trim(filename_in), &
        form='formatted', status='old')  
-  do t = 0, ntheta-1
-     do p = 0, 2*L-2   
-        read(fileid,IO_FORMAT) re, im
-        f(t,p) = cmplx(re,im)
+  if (reality == 1) then
+     do t = 0, ntheta-1
+        do p = 0, 2*L-2              
+           read(fileid,IO_FORMAT) re
+           f_real(t,p) = re
+        end do
      end do
-  end do
+  else
+     do t = 0, ntheta-1
+        do p = 0, 2*L-2                         
+           read(fileid,IO_FORMAT) re, im
+           f(t,p) = cmplx(re,im)
+        end do
+     end do
+  end if
   close(fileid)
 
   ! Compute forward transform.
   select case(method)
      case(METHOD_DH)
-        call ssht_core_dh_forward_sov(flm(0:L**2-1), &
-             f(0:ntheta-1, 0:2*L-2), L, spin)
+        if (reality == 1) then           
+           call ssht_core_dh_forward_real(flm(0:L**2-1), &
+                f_real(0:ntheta-1, 0:2*L-2), L, verbosity)
+        else
+           call ssht_core_dh_forward(flm(0:L**2-1), &
+                f(0:ntheta-1, 0:2*L-2), L, spin, verbosity)
+        end if
      case(METHOD_MW)
-        call ssht_core_mw_forward_sov_conv(flm(0:L**2-1), &
-             f(0:ntheta-1, 0:2*L-2), L, spin)
-
-!        call ssht_core_mw_forward_direct(flm(0:L**2-1), &
-!             f(0:ntheta-1, 0:2*L-2), L, spin)
-
+        if (reality == 1) then           
+           call ssht_core_mw_forward_real(flm(0:L**2-1), &
+                f_real(0:ntheta-1, 0:2*L-2), L, verbosity)
+        else
+           call ssht_core_mw_forward(flm(0:L**2-1), &
+                f(0:ntheta-1, 0:2*L-2), L, spin, verbosity)
+        end if
      case default
         call ssht_error(SSHT_ERROR_ARG_INVALID, 'ssht_forward', &
              comment_add='Invalid method.')
@@ -83,7 +139,9 @@ program ssht_forward
   close(fileid)
 
   ! Free memory.
-  deallocate(f, flm)
+  if (allocated(f)) deallocate(f)
+  if (allocated(f_real)) deallocate(f_real)
+  deallocate(flm)
 
   !----------------------------------------------------------------------------
 
@@ -95,8 +153,7 @@ contains
   !
   !! Parses the options passed when program called.
   !
-!!! @author J. D. McEwen (mcewen@mrao.cam.ac.uk)
-  !! @version 0.1 - November 2007
+  !! @author J. D. McEwen (mcewen@mrao.cam.ac.uk)
   !
   ! Revisions:
   !   November 2007 - Written by Jason McEwen 
@@ -134,6 +191,8 @@ contains
           write(*,'(a)') '                    [-method method (DH; MW)]'
           write(*,'(a)') '                    [-L L]'  
           write(*,'(a)') '                    [-spin spin]'
+          write(*,'(a)') '                    [-reality reality (0=false; 1=true)]'
+          write(*,'(a)') '                    [-verbosity verbosity]'
           stop
 
        case ('-inp')
@@ -150,6 +209,12 @@ contains
 
        case ('-spin')
           read(arg,*) spin
+
+       case ('-reality')
+          read(arg,*) reality
+
+       case ('-verbosity')
+          read(arg,*) verbosity
 
        case default
           print '("unknown option ",a4," ignored")', opt            
