@@ -277,7 +277,7 @@ program ssht_test
      durations_inverse_mw(i_repeat) = time_end - time_start
      call cpu_time(time_start)
      !-------------------------------------------------------------------------
-     call ssht_core_mw_forward_sov_conv_sym_opt(flm_syn, f_mw, L, spin, verbosity)
+     call ssht_core_mw_forward_sov_conv_sym(flm_syn, f_mw, L, spin, verbosity)
      !-------------------------------------------------------------------------
      call cpu_time(time_end)
      durations_forward_mw(i_repeat) = time_end - time_start
