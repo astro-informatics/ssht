@@ -11,9 +11,9 @@ function ssht_demo
 
 % Define size parameters.
 L = 12;
-spin = 6;
-reality = 1;
-verbosity = 2;
+spin = 2;
+reality = 0;
+verbosity = 1;
 
 nphi = 2*L - 1;
 ntheta_dh = 2*L;

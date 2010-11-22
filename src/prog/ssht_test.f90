@@ -77,6 +77,12 @@ program ssht_test
   complex(dpc), allocatable :: f_dh(:,:), f_mweo(:,:), f_mw(:,:)
   real(dpc), allocatable :: f_dh_real(:,:), f_mweo_real(:,:), f_mw_real(:,:)
 
+
+real(dp) :: phi_sp_mw, phi_sp_mweo
+complex(dpc) :: f_sp_mw, f_sp_mweo
+real(dp) :: f_real_sp_mw, f_real_sp_mweo
+
+
   ! Initialise parameters.
   call getarg(1, arg)
   read(arg,*) L
@@ -168,13 +174,18 @@ program ssht_test
         call ssht_test_gen_flm_real(L, flm_orig, seed)
         call cpu_time(time_start)
         !-------------------------------------------------------------------------
-        call ssht_core_mweo_inverse_real(f_mweo_real, flm_orig, L, verbosity)
+!        call ssht_core_mweo_inverse_real(f_mweo_real, flm_orig, L, verbosity)
+        call ssht_core_mweo_inverse_real_sp(f_mweo_real(0:L-2, 0:2*L-2), &
+             f_real_sp_mweo, flm_orig, L, verbosity)
+
         !-------------------------------------------------------------------------
         call cpu_time(time_end)
         durations_inverse_mweo_real(i_repeat) = time_end - time_start
         call cpu_time(time_start)
         !-------------------------------------------------------------------------
-        call ssht_core_mweo_forward_real(flm_syn, f_mweo_real, L, verbosity)
+!        call ssht_core_mweo_forward_real(flm_syn, f_mweo_real, L, verbosity)
+        call ssht_core_mweo_forward_real_sp(flm_syn, &
+             f_mweo_real(0:L-2, 0:2*L-2), f_real_sp_mweo, L, verbosity)
         !-------------------------------------------------------------------------
         call cpu_time(time_end)
         durations_forward_mweo_real(i_repeat) = time_end - time_start
@@ -192,13 +203,17 @@ program ssht_test
         call ssht_test_gen_flm_real(L, flm_orig, seed)
         call cpu_time(time_start)
         !-------------------------------------------------------------------------
-        call ssht_core_mw_inverse_real(f_mw_real, flm_orig, L, verbosity)
+!        call ssht_core_mw_inverse_real(f_mw_real, flm_orig, L, verbosity)
+        call ssht_core_mw_inverse_real_sp(f_mw_real(0:L-2, 0:2*L-2), &
+             f_real_sp_mw, flm_orig, L, verbosity)
         !-------------------------------------------------------------------------
         call cpu_time(time_end)
         durations_inverse_mw_real(i_repeat) = time_end - time_start
         call cpu_time(time_start)
         !-------------------------------------------------------------------------
-        call ssht_core_mw_forward_real(flm_syn, f_mw_real, L, verbosity)
+!        call ssht_core_mw_forward_real(flm_syn, f_mw_real, L, verbosity)
+        call ssht_core_mw_forward_real_sp(flm_syn, &
+             f_mw_real(0:L-2, 0:2*L-2), f_real_sp_mw, L, verbosity)
         !-------------------------------------------------------------------------
         call cpu_time(time_end)
         durations_forward_mw_real(i_repeat) = time_end - time_start
@@ -243,13 +258,17 @@ program ssht_test
      call ssht_test_gen_flm_complex(L, spin, flm_orig, seed)
      call cpu_time(time_start)
      !-------------------------------------------------------------------------
-     call ssht_core_mweo_inverse(f_mweo, flm_orig, L, spin, verbosity)
+!     call ssht_core_mweo_inverse(f_mweo, flm_orig, L, spin, verbosity)
+     call ssht_core_mweo_inverse_sp(f_mweo(0:L-2, 0:2*L-2), f_sp_mweo, phi_sp_mweo, &
+          flm_orig, L, spin, verbosity)
      !-------------------------------------------------------------------------
      call cpu_time(time_end)
      durations_inverse_mweo(i_repeat) = time_end - time_start
      call cpu_time(time_start)
      !-------------------------------------------------------------------------
-     call ssht_core_mweo_forward(flm_syn, f_mweo, L, spin, verbosity)
+!     call ssht_core_mweo_forward(flm_syn, f_mweo, L, spin, verbosity)
+     call ssht_core_mweo_forward_sp(flm_syn, f_mweo(0:L-2, 0:2*L-2), &
+          f_sp_mweo, phi_sp_mweo, L, spin, verbosity)
      !-------------------------------------------------------------------------
      call cpu_time(time_end)
      durations_forward_mweo(i_repeat) = time_end - time_start
@@ -267,13 +286,17 @@ program ssht_test
      call ssht_test_gen_flm_complex(L, spin, flm_orig, seed)
      call cpu_time(time_start)
      !-------------------------------------------------------------------------
-     call ssht_core_mw_inverse(f_mw, flm_orig, L, spin, verbosity)
+!     call ssht_core_mw_inverse(f_mw, flm_orig, L, spin, verbosity)
+     call ssht_core_mw_inverse_sp(f_mw(0:L-2, 0:2*L-2), f_sp_mw, phi_sp_mw, &
+          flm_orig, L, spin, verbosity)
      !-------------------------------------------------------------------------
      call cpu_time(time_end)
      durations_inverse_mw(i_repeat) = time_end - time_start
      call cpu_time(time_start)
      !-------------------------------------------------------------------------
-     call ssht_core_mw_forward(flm_syn, f_mw, L, spin, verbosity)
+!     call ssht_core_mw_forward(flm_syn, f_mw, L, spin, verbosity)
+     call ssht_core_mw_forward_sp(flm_syn, f_mw(0:L-2, 0:2*L-2), &
+          f_sp_mw, phi_sp_mw, L, spin, verbosity)
      !-------------------------------------------------------------------------
      call cpu_time(time_end)
      durations_forward_mw(i_repeat) = time_end - time_start

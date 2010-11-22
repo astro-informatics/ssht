@@ -37,7 +37,17 @@ module ssht_core_mod
        ssht_core_mweo_inverse_real, &
        ssht_core_mweo_forward_real, &
        ssht_core_mw_inverse_real, &
-       ssht_core_mw_forward_real
+       ssht_core_mw_forward_real, &
+       ssht_core_mw_inverse_sp, &
+       ssht_core_mw_forward_sp, &
+       ssht_core_mweo_inverse_sp, &
+       ssht_core_mweo_forward_sp, &
+       ssht_core_mw_inverse_real_sp, &
+       ssht_core_mw_forward_real_sp, &
+       ssht_core_mweo_inverse_real_sp, &
+       ssht_core_mweo_forward_real_sp
+
+
 !!$       ssht_core_dh_inverse_direct, &
 !!$       ssht_core_dh_inverse_direct_factored, &
 !!$       ssht_core_dh_inverse_sov_direct, &
@@ -141,6 +151,195 @@ module ssht_core_mod
   !----------------------------------------------------------------------------
 
 contains
+
+
+
+  subroutine ssht_core_mweo_inverse_sp(f, f_sp, phi_sp, flm, L, spin, verbosity) 
+
+    integer, intent(in) :: L
+    integer, intent(in) :: spin
+    integer, intent(in), optional :: verbosity
+    complex(dpc), intent(in) :: flm(0:L**2-1)
+    real(dp), intent(out) :: phi_sp
+    complex(dpc), intent(out) :: f_sp
+!    complex(dpc), intent(out) :: f(0:L-1, 0:2*L-2)
+    complex(dpc), intent(out) :: f(0:L-2, 0:2*L-2)
+    
+    complex(dpc) :: f_ext(0:L-1, 0:2*L-2)
+
+    call ssht_core_mweo_inverse(f_ext, flm, L, spin, verbosity)
+
+    f(0:L-2, 0:2*L-2) = f_ext(0:L-2, 0:2*L-2)
+    f_sp = f_ext(L-1, 0)
+    phi_sp = ssht_sampling_mweo_p2phi(0, L)
+
+  end subroutine ssht_core_mweo_inverse_sp
+
+
+
+  subroutine ssht_core_mweo_forward_sp(flm, f, f_sp, phi_sp, L, spin, verbosity)
+
+    integer, intent(in) :: L
+    integer, intent(in) :: spin
+    integer, intent(in), optional :: verbosity
+!    complex(dpc), intent(in) :: f(0:L-1 ,0:2*L-2)
+    complex(dpc), intent(in) :: f(0:L-2 ,0:2*L-2)
+    real(dp), intent(in) :: phi_sp
+    complex(dpc), intent(in) :: f_sp
+    complex(dpc), intent(out) :: flm(0:L**2-1)
+
+    complex(dpc) :: f_ext(0:L-1, 0:2*L-2)
+    integer :: p
+    real(dp) :: phi
+  
+    f_ext(0:L-2 ,0:2*L-2) = f(0:L-2 ,0:2*L-2)
+    do p = 0, 2*L-2
+       phi = ssht_sampling_mweo_p2phi(p, L)
+       f_ext(L-1, p) = f_sp * exp(I*spin*(phi-phi_sp))
+    end do
+
+    call ssht_core_mweo_forward(flm, f_ext, L, spin, verbosity)
+
+  end subroutine ssht_core_mweo_forward_sp
+
+
+
+  subroutine ssht_core_mweo_inverse_real_sp(f, f_sp, flm, L, verbosity)
+    
+    integer, intent(in) :: L
+    integer, intent(in), optional :: verbosity
+    complex(dpc), intent(in) :: flm(0:L**2-1)
+    real(dp), intent(out) :: f_sp
+!    real(dp), intent(out) :: f(0:L-1, 0:2*L-2)
+    real(dp), intent(out) :: f(0:L-2, 0:2*L-2)
+
+    real(dp) :: f_ext(0:L-1, 0:2*L-2)
+
+    call ssht_core_mweo_inverse_real(f_ext, flm, L, verbosity)
+
+    f(0:L-2, 0:2*L-2) = f_ext(0:L-2, 0:2*L-2)
+    f_sp = f_ext(L-1, 0)
+
+  end subroutine ssht_core_mweo_inverse_real_sp
+
+
+
+  subroutine ssht_core_mweo_forward_real_sp(flm, f, f_sp, L, verbosity)
+
+    integer, intent(in) :: L
+    integer, intent(in), optional :: verbosity
+!    real(dp), intent(in) :: f(0:L-1 ,0:2*L-2)
+    real(dp), intent(in) :: f(0:L-2, 0:2*L-2)
+    real(dp), intent(in) :: f_sp
+    complex(dpc), intent(out) :: flm(0:L**2-1)
+
+    real(dp) :: f_ext(0:L-1, 0:2*L-2)
+
+    f_ext(0:L-2, 0:2*L-2) = f(0:L-2, 0:2*L-2)
+    f_ext(L-1, 0:2*L-2) = f_sp
+
+    call ssht_core_mweo_forward_real(flm, f_ext, L, verbosity)
+
+  end subroutine ssht_core_mweo_forward_real_sp
+
+
+
+
+
+
+
+
+  subroutine ssht_core_mw_inverse_sp(f, f_sp, phi_sp, flm, L, spin, verbosity) 
+
+    integer, intent(in) :: L
+    integer, intent(in) :: spin
+    integer, intent(in), optional :: verbosity
+    complex(dpc), intent(in) :: flm(0:L**2-1)
+    real(dp), intent(out) :: phi_sp
+    complex(dpc), intent(out) :: f_sp
+!    complex(dpc), intent(out) :: f(0:L-1, 0:2*L-2)
+    complex(dpc), intent(out) :: f(0:L-2, 0:2*L-2)
+    
+    complex(dpc) :: f_ext(0:L-1, 0:2*L-2)
+
+    call ssht_core_mw_inverse(f_ext, flm, L, spin, verbosity)
+
+    f(0:L-2, 0:2*L-2) = f_ext(0:L-2, 0:2*L-2)
+    f_sp = f_ext(L-1, 0)
+    phi_sp = ssht_sampling_mw_p2phi(0, L)
+
+  end subroutine ssht_core_mw_inverse_sp
+
+
+
+  subroutine ssht_core_mw_forward_sp(flm, f, f_sp, phi_sp, L, spin, verbosity)
+
+    integer, intent(in) :: L
+    integer, intent(in) :: spin
+    integer, intent(in), optional :: verbosity
+!    complex(dpc), intent(in) :: f(0:L-1 ,0:2*L-2)
+    complex(dpc), intent(in) :: f(0:L-2 ,0:2*L-2)
+    real(dp), intent(in) :: phi_sp
+    complex(dpc), intent(in) :: f_sp
+    complex(dpc), intent(out) :: flm(0:L**2-1)
+
+    complex(dpc) :: f_ext(0:L-1, 0:2*L-2)
+    integer :: p
+    real(dp) :: phi
+  
+    f_ext(0:L-2 ,0:2*L-2) = f(0:L-2 ,0:2*L-2)
+    do p = 0, 2*L-2
+       phi = ssht_sampling_mw_p2phi(p, L)
+       f_ext(L-1, p) = f_sp * exp(I*spin*(phi-phi_sp))
+    end do
+
+    call ssht_core_mw_forward(flm, f_ext, L, spin, verbosity)
+
+  end subroutine ssht_core_mw_forward_sp
+
+
+
+
+
+
+  subroutine ssht_core_mw_inverse_real_sp(f, f_sp, flm, L, verbosity)
+    
+    integer, intent(in) :: L
+    integer, intent(in), optional :: verbosity
+    complex(dpc), intent(in) :: flm(0:L**2-1)
+    real(dp), intent(out) :: f_sp
+!    real(dp), intent(out) :: f(0:L-1, 0:2*L-2)
+    real(dp), intent(out) :: f(0:L-2, 0:2*L-2)
+
+    real(dp) :: f_ext(0:L-1, 0:2*L-2)
+
+    call ssht_core_mw_inverse_real(f_ext, flm, L, verbosity)
+
+    f(0:L-2, 0:2*L-2) = f_ext(0:L-2, 0:2*L-2)
+    f_sp = f_ext(L-1, 0)
+
+  end subroutine ssht_core_mw_inverse_real_sp
+
+
+
+  subroutine ssht_core_mw_forward_real_sp(flm, f, f_sp, L, verbosity)
+
+    integer, intent(in) :: L
+    integer, intent(in), optional :: verbosity
+!    real(dp), intent(in) :: f(0:L-1 ,0:2*L-2)
+    real(dp), intent(in) :: f(0:L-2, 0:2*L-2)
+    real(dp), intent(in) :: f_sp
+    complex(dpc), intent(out) :: flm(0:L**2-1)
+
+    real(dp) :: f_ext(0:L-1, 0:2*L-2)
+
+    f_ext(0:L-2, 0:2*L-2) = f(0:L-2, 0:2*L-2)
+    f_ext(L-1, 0:2*L-2) = f_sp
+
+    call ssht_core_mw_forward_real(flm, f_ext, L, verbosity)
+
+  end subroutine ssht_core_mw_forward_real_sp
+
 
 
   !============================================================================
