@@ -45,6 +45,8 @@ program ssht_inverse
   integer :: fail = 0
   complex(dpc), allocatable :: f(:,:), flm(:)
   real(dp), allocatable :: f_real(:,:)
+  real(dp) :: phi_sp = 0d0, f_real_sp = 0d0
+  complex(dpc) :: f_sp = cmplx(0d0,0d0)
 
   ! Parse options from command line.
   call parse_options()
@@ -60,7 +62,7 @@ program ssht_inverse
      case(METHOD_DH)
         ntheta = 2*L
      case(METHOD_MW)
-        ntheta = L
+        ntheta = L - 1
      case default
         call ssht_error(SSHT_ERROR_ARG_INVALID, 'ssht_inverse', &
              comment_add='Invalid method.')
@@ -105,10 +107,10 @@ program ssht_inverse
      case(METHOD_MW)
         if (reality == 1) then           
            call ssht_core_mw_inverse_real(f_real(0:ntheta-1, 0:2*L-2), &
-                flm(0:L**2-1), L, verbosity)
+                f_real_sp, flm(0:L**2-1), L, verbosity)
         else
            call ssht_core_mw_inverse(f(0:ntheta-1, 0:2*L-2), &
-                flm(0:L**2-1), L, spin, verbosity)
+                f_sp, phi_sp, flm(0:L**2-1), L, spin, verbosity)
         end if
      case default
         call ssht_error(SSHT_ERROR_ARG_INVALID, 'ssht_inverse', &
@@ -120,12 +122,16 @@ program ssht_inverse
   open(unit=fileid, file=trim(filename_out), status='new', action='write', &
        form='formatted')
   if (reality == 1) then
+     write(fileid,IO_FORMAT) 0d0, 0d0
+     write(fileid,IO_FORMAT) f_real_sp, 0d0
      do t = 0, ntheta-1
         do p = 0, 2*L-2        
-           write(fileid,IO_FORMAT) f_real(t,p)
+           write(fileid,IO_FORMAT) f_real(t,p), 0d0
         end do
      end do
   else
+     write(fileid,IO_FORMAT) phi_sp, 0d0
+     write(fileid,IO_FORMAT) real(f_sp), aimag(f_sp)
      do t = 0, ntheta-1
         do p = 0, 2*L-2        
            write(fileid,IO_FORMAT) real(f(t,p)), aimag(f(t,p))

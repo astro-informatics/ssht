@@ -37,15 +37,16 @@ module ssht_core_mod
        ssht_core_mweo_inverse_real, &
        ssht_core_mweo_forward_real, &
        ssht_core_mw_inverse_real, &
-       ssht_core_mw_forward_real, &
-       ssht_core_mw_inverse_sp, &
-       ssht_core_mw_forward_sp, &
-       ssht_core_mweo_inverse_sp, &
-       ssht_core_mweo_forward_sp, &
-       ssht_core_mw_inverse_real_sp, &
-       ssht_core_mw_forward_real_sp, &
-       ssht_core_mweo_inverse_real_sp, &
-       ssht_core_mweo_forward_real_sp
+       ssht_core_mw_forward_real
+!, &
+!!$       ssht_core_mw_inverse_sp, &
+!!$       ssht_core_mw_forward_sp, &
+!!$       ssht_core_mweo_inverse_sp, &
+!!$       ssht_core_mweo_forward_sp, &
+!!$       ssht_core_mw_inverse_real_sp, &
+!!$       ssht_core_mw_forward_real_sp, &
+!!$       ssht_core_mweo_inverse_real_sp, &
+!!$       ssht_core_mweo_forward_real_sp
 
 
 !!$       ssht_core_dh_inverse_direct, &
@@ -92,23 +93,7 @@ module ssht_core_mod
      module procedure ssht_core_dh_forward_sov_sym
   end interface
 
-  interface ssht_core_mweo_inverse
-     module procedure ssht_core_mweo_inverse_sov_sym
-  end interface
-
-  interface ssht_core_mweo_forward
-     module procedure ssht_core_mweo_forward_sov_conv_sym
-  end interface
-
-  interface ssht_core_mw_inverse
-     module procedure ssht_core_mw_inverse_sov_sym
-  end interface
-
-  interface ssht_core_mw_forward
-     module procedure ssht_core_mw_forward_sov_conv_sym
-  end interface
-
- interface ssht_core_dh_inverse_real
+  interface ssht_core_dh_inverse_real
      module procedure ssht_core_dh_inverse_sov_sym_real
   end interface
 
@@ -116,21 +101,85 @@ module ssht_core_mod
      module procedure ssht_core_dh_forward_sov_sym_real
   end interface
 
-  interface ssht_core_mweo_inverse_real
+
+
+
+
+  interface ssht_core_mweo_inverse_rsp
+     module procedure ssht_core_mweo_inverse_sov_sym
+  end interface
+
+  interface ssht_core_mweo_forward_rsp
+     module procedure ssht_core_mweo_forward_sov_conv_sym
+  end interface
+
+  interface ssht_core_mweo_inverse_real_rsp
      module procedure ssht_core_mweo_inverse_sov_sym_real
   end interface
 
-  interface ssht_core_mweo_forward_real
+  interface ssht_core_mweo_forward_real_rsp
      module procedure ssht_core_mweo_forward_sov_conv_sym_real
   end interface
 
-  interface ssht_core_mw_inverse_real
+
+  interface ssht_core_mweo_inverse
+     module procedure ssht_core_mweo_inverse_sp
+  end interface
+
+  interface ssht_core_mweo_forward
+     module procedure ssht_core_mweo_forward_sp
+  end interface
+
+  interface ssht_core_mweo_inverse_real
+     module procedure ssht_core_mweo_inverse_real_sp
+  end interface
+
+  interface ssht_core_mweo_forward_real
+     module procedure ssht_core_mweo_forward_real_sp
+  end interface
+
+
+
+
+
+
+
+
+  interface ssht_core_mw_inverse_rsp
+     module procedure ssht_core_mw_inverse_sov_sym
+  end interface
+
+  interface ssht_core_mw_forward_rsp
+     module procedure ssht_core_mw_forward_sov_conv_sym
+  end interface
+
+  interface ssht_core_mw_inverse_real_rsp
      module procedure ssht_core_mw_inverse_sov_sym_real
   end interface
 
-  interface ssht_core_mw_forward_real
+  interface ssht_core_mw_forward_real_rsp
      module procedure ssht_core_mw_forward_sov_conv_sym_real
   end interface
+
+
+
+  interface ssht_core_mw_inverse
+     module procedure ssht_core_mw_inverse_sp
+  end interface
+
+  interface ssht_core_mw_forward
+     module procedure ssht_core_mw_forward_sp
+  end interface
+
+  interface ssht_core_mw_inverse_real
+     module procedure ssht_core_mw_inverse_real_sp
+  end interface
+
+  interface ssht_core_mw_forward_real
+     module procedure ssht_core_mw_forward_real_sp
+  end interface
+
+
 
 
   !---------------------------------------
@@ -167,7 +216,7 @@ contains
     
     complex(dpc) :: f_ext(0:L-1, 0:2*L-2)
 
-    call ssht_core_mweo_inverse(f_ext, flm, L, spin, verbosity)
+    call ssht_core_mweo_inverse_rsp(f_ext, flm, L, spin, verbosity)
 
     f(0:L-2, 0:2*L-2) = f_ext(0:L-2, 0:2*L-2)
     f_sp = f_ext(L-1, 0)
@@ -198,7 +247,7 @@ contains
        f_ext(L-1, p) = f_sp * exp(I*spin*(phi-phi_sp))
     end do
 
-    call ssht_core_mweo_forward(flm, f_ext, L, spin, verbosity)
+    call ssht_core_mweo_forward_rsp(flm, f_ext, L, spin, verbosity)
 
   end subroutine ssht_core_mweo_forward_sp
 
@@ -215,7 +264,7 @@ contains
 
     real(dp) :: f_ext(0:L-1, 0:2*L-2)
 
-    call ssht_core_mweo_inverse_real(f_ext, flm, L, verbosity)
+    call ssht_core_mweo_inverse_real_rsp(f_ext, flm, L, verbosity)
 
     f(0:L-2, 0:2*L-2) = f_ext(0:L-2, 0:2*L-2)
     f_sp = f_ext(L-1, 0)
@@ -238,7 +287,7 @@ contains
     f_ext(0:L-2, 0:2*L-2) = f(0:L-2, 0:2*L-2)
     f_ext(L-1, 0:2*L-2) = f_sp
 
-    call ssht_core_mweo_forward_real(flm, f_ext, L, verbosity)
+    call ssht_core_mweo_forward_real_rsp(flm, f_ext, L, verbosity)
 
   end subroutine ssht_core_mweo_forward_real_sp
 
@@ -262,7 +311,7 @@ contains
     
     complex(dpc) :: f_ext(0:L-1, 0:2*L-2)
 
-    call ssht_core_mw_inverse(f_ext, flm, L, spin, verbosity)
+    call ssht_core_mw_inverse_rsp(f_ext, flm, L, spin, verbosity)
 
     f(0:L-2, 0:2*L-2) = f_ext(0:L-2, 0:2*L-2)
     f_sp = f_ext(L-1, 0)
@@ -293,7 +342,7 @@ contains
        f_ext(L-1, p) = f_sp * exp(I*spin*(phi-phi_sp))
     end do
 
-    call ssht_core_mw_forward(flm, f_ext, L, spin, verbosity)
+    call ssht_core_mw_forward_rsp(flm, f_ext, L, spin, verbosity)
 
   end subroutine ssht_core_mw_forward_sp
 
@@ -313,7 +362,7 @@ contains
 
     real(dp) :: f_ext(0:L-1, 0:2*L-2)
 
-    call ssht_core_mw_inverse_real(f_ext, flm, L, verbosity)
+    call ssht_core_mw_inverse_real_rsp(f_ext, flm, L, verbosity)
 
     f(0:L-2, 0:2*L-2) = f_ext(0:L-2, 0:2*L-2)
     f_sp = f_ext(L-1, 0)
@@ -336,7 +385,7 @@ contains
     f_ext(0:L-2, 0:2*L-2) = f(0:L-2, 0:2*L-2)
     f_ext(L-1, 0:2*L-2) = f_sp
 
-    call ssht_core_mw_forward_real(flm, f_ext, L, verbosity)
+    call ssht_core_mw_forward_real_rsp(flm, f_ext, L, verbosity)
 
   end subroutine ssht_core_mw_forward_real_sp
 
@@ -811,13 +860,6 @@ contains
 
     end do
     call dfftw_destroy_plan(fftw_plan)
-
-    if (present(verbosity)) then
-       if (verbosity > 0) then
-          write(*,'(a,a)') SSHT_PROMPT, &
-               'Inverse transform computed!'
-       end if
-    end if
 
     ! Print finished if verbosity set.
     if (present(verbosity)) then

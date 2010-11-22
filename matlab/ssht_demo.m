@@ -51,32 +51,30 @@ end
 
 % Measure error of inverse-forward transform for DH.
 f_dh = ssht_inverse(flm, 'DH', L, spin, reality, verbosity);
-flm_dh_syn = ssht_forward(f_dh, 'DH', L, spin, reality, verbosity);
+f_sp = 0; phi_sp = 0;
+flm_dh_syn = ssht_forward(f_dh, f_sp, phi_sp, 'DH', L, spin, reality, verbosity);
 maxerr_dh = max(abs(flm - flm_dh_syn))
 
 % Measure error of inverse-forward transform for MW.
-f_mw = ssht_inverse(flm, 'MW', L, spin, reality, verbosity);
-f_mw_grid = reshape(f_mw, nphi, ntheta_mw)
-f_mw_grid(:,end) = f_mw_grid(1,end).*exp(sqrt(-1)*spin*phi_mw);%.* ...
-%   exp(sqrt(-1)*(-1d0)*pi / (2d0*L - 1d0)*spin);
-f_mw = f_mw_grid(:);
-flm_mw_syn = ssht_forward(f_mw, 'MW', L, spin, reality, verbosity);
+[f_mw, f_sp, phi_sp] = ssht_inverse(flm, 'MW', L, spin, reality, verbosity);
+flm_mw_syn = ssht_forward(f_mw, f_sp, phi_sp, 'MW', L, spin, reality, verbosity);
 maxerr_mw = max(abs(flm - flm_mw_syn))
-
 
 % Define sample points and function values on grids.
 f_dh_grid = reshape(f_dh, nphi, ntheta_dh);
 [theta_dh_grid, phi_dh_grid] = meshgrid(theta_dh, phi_dh);
-f_mw_grid = reshape(f_mw, nphi, ntheta_mw);
-[theta_mw_grid, phi_mw_grid] = meshgrid(theta_mw, phi_mw);
+f_mw_grid = reshape(f_mw, nphi, ntheta_mw-1);
+[theta_mw_grid, phi_mw_grid] = meshgrid(theta_mw(1:end-1), phi_mw);
 
 
 
-function flm = ssht_forward(f, method, L, spin, reality, verbosity)
+function flm = ssht_forward(f, f_sp, phi_sp, method, L, spin, reality, verbosity)
 %% Compute forward spherical harmonic transform for method={'DH','MW'}.
 
-f_save = [real(f), imag(f)];
-save('f.txt', 'f_save', '-ascii', '-double');
+d = [real(f), imag(f)];
+d = [real(f_sp), imag(f_sp); d];
+d = [real(phi_sp), imag(phi_sp); d];
+save('f.txt', 'd', '-ascii', '-double');
 
 cmd = sprintf('%s%s%s%s%s%s', ...
    '../bin/ssht_forward -inp f.txt -out flm.txt -method ', ...
@@ -90,7 +88,7 @@ flm = flm(:,1) + sqrt(-1)*flm(:,2);
 system('rm -f flm.txt f.txt');
 
 
-function f = ssht_inverse(flm, method, L, spin, reality, verbosity)
+function [f, f_sp, phi_sp] = ssht_inverse(flm, method, L, spin, reality, verbosity)
 %% Compute inverse spherical harmonic transform for method={'DH','MW'}.
 
 flm_save = [real(flm), imag(flm)];
@@ -102,9 +100,13 @@ cmd = sprintf('%s%s%s%s%s%s', ...
    ' -reality ', num2str(reality), ' -verbosity ', num2str(verbosity));
 system(cmd);
 
-f = load('f.txt');
+d = load('f.txt');
+phi_sp = d(1,1);
+f = d(3:end,1);
+f_sp = d(2,1);
 if(reality ~= 1)
-   f = f(:,1) + sqrt(-1)*f(:,2);
+   f_sp = f_sp + sqrt(-1)*d(2,2);
+   f = f + sqrt(-1)*d(3:end,2);
 end
 
 system('rm -f flm.txt f.txt');

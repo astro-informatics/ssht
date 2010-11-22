@@ -46,6 +46,8 @@ program ssht_forward
   integer :: fail = 0
   complex(dpc), allocatable :: f(:,:), flm(:)
   real(dp), allocatable :: f_real(:,:)
+  real(dp) :: phi_sp = 0d0, f_real_sp = 0d0
+  complex(dpc) :: f_sp = cmplx(0d0,0d0)
 
   ! Parse options from command line.
   call parse_options()
@@ -61,7 +63,7 @@ program ssht_forward
      case(METHOD_DH)
         ntheta = 2*L
      case(METHOD_MW)
-        ntheta = L
+        ntheta = L - 1
      case default
         call ssht_error(SSHT_ERROR_ARG_INVALID, 'ssht_forward', &
              comment_add='Invalid method.')
@@ -85,10 +87,13 @@ program ssht_forward
   flm(0:L**2-1) = cmplx(0d0,0d0)
 
   ! Read function.
+  ! File format:
   fileid = 11
   open(fileid, file=trim(filename_in), &
        form='formatted', status='old')  
-  if (reality == 1) then
+  if (reality == 1) then     
+     read(fileid,IO_FORMAT) phi_sp    
+     read(fileid,IO_FORMAT) f_real_sp
      do t = 0, ntheta-1
         do p = 0, 2*L-2              
            read(fileid,IO_FORMAT) re
@@ -96,6 +101,9 @@ program ssht_forward
         end do
      end do
   else
+     read(fileid,IO_FORMAT) phi_sp    
+     read(fileid,IO_FORMAT) re, im
+     f_sp = cmplx(re,im)
      do t = 0, ntheta-1
         do p = 0, 2*L-2                         
            read(fileid,IO_FORMAT) re, im
@@ -118,10 +126,10 @@ program ssht_forward
      case(METHOD_MW)
         if (reality == 1) then           
            call ssht_core_mw_forward_real(flm(0:L**2-1), &
-                f_real(0:ntheta-1, 0:2*L-2), L, verbosity)
+                f_real(0:ntheta-1, 0:2*L-2), f_real_sp, L, verbosity)
         else
            call ssht_core_mw_forward(flm(0:L**2-1), &
-                f(0:ntheta-1, 0:2*L-2), L, spin, verbosity)
+                f(0:ntheta-1, 0:2*L-2), f_sp, phi_sp, L, spin, verbosity)
         end if
      case default
         call ssht_error(SSHT_ERROR_ARG_INVALID, 'ssht_forward', &

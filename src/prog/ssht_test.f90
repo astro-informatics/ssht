@@ -76,12 +76,9 @@ program ssht_test
   complex(dpc), allocatable :: flm_orig(:), flm_syn(:)
   complex(dpc), allocatable :: f_dh(:,:), f_mweo(:,:), f_mw(:,:)
   real(dpc), allocatable :: f_dh_real(:,:), f_mweo_real(:,:), f_mw_real(:,:)
-
-
-real(dp) :: phi_sp_mw, phi_sp_mweo
-complex(dpc) :: f_sp_mw, f_sp_mweo
-real(dp) :: f_real_sp_mw, f_real_sp_mweo
-
+  real(dp) :: phi_sp_mw, phi_sp_mweo
+  complex(dpc) :: f_sp_mw, f_sp_mweo
+  real(dp) :: f_real_sp_mw, f_real_sp_mweo
 
   ! Initialise parameters.
   call getarg(1, arg)
@@ -105,11 +102,11 @@ real(dp) :: f_real_sp_mw, f_real_sp_mweo
   flm_orig(0:L**2-1) = cmplx(0d0, 0d0)
   flm_syn(0:L**2-1) = cmplx(0d0, 0d0)
   f_dh(0:2*L-1, 0:2*L-2) = cmplx(0d0, 0d0)
-  f_mweo(0:L-1, 0:2*L-2) = cmplx(0d0, 0d0)
-  f_mw(0:L-1, 0:2*L-2) = cmplx(0d0, 0d0)
+  f_mweo(0:L-2, 0:2*L-2) = cmplx(0d0, 0d0)
+  f_mw(0:L-2, 0:2*L-2) = cmplx(0d0, 0d0)
   f_dh_real(0:2*L-1, 0:2*L-2) = 0d0
-  f_mweo_real(0:L-1, 0:2*L-2) = 0d0
-  f_mw_real(0:L-1, 0:2*L-2) = 0d0
+  f_mweo_real(0:L-2, 0:2*L-2) = 0d0
+  f_mw_real(0:L-2, 0:2*L-2) = 0d0
 
   ! Write program name.
   write(*,*)
@@ -161,9 +158,12 @@ real(dp) :: f_real_sp_mw, f_real_sp_mweo
         call cpu_time(time_end)
         durations_forward_dh_real(i_repeat) = time_end - time_start
         errors_dh_real(i_repeat) = maxval(abs(flm_orig(0:L**2-1) - flm_syn(0:L**2-1)))
-        write(*,'(a,f40.4)') ' duration_inverse (s) =', durations_inverse_dh_real(i_repeat)
-        write(*,'(a,f40.4)') ' duration_forward (s) =', durations_forward_dh_real(i_repeat)
-        write(*,'(a,e40.5)') ' error                =', errors_dh_real(i_repeat)
+        write(*,'(a,f40.4)') ' duration_inverse (s) =', &
+             durations_inverse_dh_real(i_repeat)
+        write(*,'(a,f40.4)') ' duration_forward (s) =', &
+             durations_forward_dh_real(i_repeat)
+        write(*,'(a,e40.5)') ' error                =', &
+             errors_dh_real(i_repeat)
         write(*,*)
 
         !=========================================================================
@@ -174,25 +174,25 @@ real(dp) :: f_real_sp_mw, f_real_sp_mweo
         call ssht_test_gen_flm_real(L, flm_orig, seed)
         call cpu_time(time_start)
         !-------------------------------------------------------------------------
-!        call ssht_core_mweo_inverse_real(f_mweo_real, flm_orig, L, verbosity)
-        call ssht_core_mweo_inverse_real_sp(f_mweo_real(0:L-2, 0:2*L-2), &
+        call ssht_core_mweo_inverse_real(f_mweo_real, &
              f_real_sp_mweo, flm_orig, L, verbosity)
-
         !-------------------------------------------------------------------------
         call cpu_time(time_end)
         durations_inverse_mweo_real(i_repeat) = time_end - time_start
         call cpu_time(time_start)
         !-------------------------------------------------------------------------
-!        call ssht_core_mweo_forward_real(flm_syn, f_mweo_real, L, verbosity)
-        call ssht_core_mweo_forward_real_sp(flm_syn, &
-             f_mweo_real(0:L-2, 0:2*L-2), f_real_sp_mweo, L, verbosity)
+        call ssht_core_mweo_forward_real(flm_syn, &
+             f_mweo_real, f_real_sp_mweo, L, verbosity)
         !-------------------------------------------------------------------------
         call cpu_time(time_end)
         durations_forward_mweo_real(i_repeat) = time_end - time_start
         errors_mweo_real(i_repeat) = maxval(abs(flm_orig(0:L**2-1) - flm_syn(0:L**2-1)))
-        write(*,'(a,f40.4)') ' duration_inverse (s) =', durations_inverse_mweo_real(i_repeat)
-        write(*,'(a,f40.4)') ' duration_forward (s) =', durations_forward_mweo_real(i_repeat)
-        write(*,'(a,e40.5)') ' error                =', errors_mweo_real(i_repeat)
+        write(*,'(a,f40.4)') ' duration_inverse (s) =', &
+             durations_inverse_mweo_real(i_repeat)
+        write(*,'(a,f40.4)') ' duration_forward (s) =', &
+             durations_forward_mweo_real(i_repeat)
+        write(*,'(a,e40.5)') ' error                =', &
+             errors_mweo_real(i_repeat)
         write(*,*)
 
         !=========================================================================
@@ -203,24 +203,25 @@ real(dp) :: f_real_sp_mw, f_real_sp_mweo
         call ssht_test_gen_flm_real(L, flm_orig, seed)
         call cpu_time(time_start)
         !-------------------------------------------------------------------------
-!        call ssht_core_mw_inverse_real(f_mw_real, flm_orig, L, verbosity)
-        call ssht_core_mw_inverse_real_sp(f_mw_real(0:L-2, 0:2*L-2), &
+        call ssht_core_mw_inverse_real(f_mw_real, &
              f_real_sp_mw, flm_orig, L, verbosity)
         !-------------------------------------------------------------------------
         call cpu_time(time_end)
         durations_inverse_mw_real(i_repeat) = time_end - time_start
         call cpu_time(time_start)
         !-------------------------------------------------------------------------
-!        call ssht_core_mw_forward_real(flm_syn, f_mw_real, L, verbosity)
-        call ssht_core_mw_forward_real_sp(flm_syn, &
-             f_mw_real(0:L-2, 0:2*L-2), f_real_sp_mw, L, verbosity)
+        call ssht_core_mw_forward_real(flm_syn, &
+             f_mw_real, f_real_sp_mw, L, verbosity)
         !-------------------------------------------------------------------------
         call cpu_time(time_end)
         durations_forward_mw_real(i_repeat) = time_end - time_start
         errors_mw_real(i_repeat) = maxval(abs(flm_orig(0:L**2-1) - flm_syn(0:L**2-1)))
-        write(*,'(a,f40.4)') ' duration_inverse (s) =', durations_inverse_mw_real(i_repeat)
-        write(*,'(a,f40.4)') ' duration_forward (s) =', durations_forward_mw_real(i_repeat)
-        write(*,'(a,e40.5)') ' error                =', errors_mw_real(i_repeat)
+        write(*,'(a,f40.4)') ' duration_inverse (s) =', &
+             durations_inverse_mw_real(i_repeat)
+        write(*,'(a,f40.4)') ' duration_forward (s) =', &
+             durations_forward_mw_real(i_repeat)
+        write(*,'(a,e40.5)') ' error                =', &
+             errors_mw_real(i_repeat)
         write(*,*)
 
 
@@ -245,9 +246,12 @@ real(dp) :: f_real_sp_mw, f_real_sp_mweo
      call cpu_time(time_end)
      durations_forward_dh(i_repeat) = time_end - time_start
      errors_dh(i_repeat) = maxval(abs(flm_orig(0:L**2-1) - flm_syn(0:L**2-1)))
-     write(*,'(a,f40.4)') ' duration_inverse (s) =', durations_inverse_dh(i_repeat)
-     write(*,'(a,f40.4)') ' duration_forward (s) =', durations_forward_dh(i_repeat)
-     write(*,'(a,e40.5)') ' error                =', errors_dh(i_repeat)
+     write(*,'(a,f40.4)') ' duration_inverse (s) =', &
+          durations_inverse_dh(i_repeat)
+     write(*,'(a,f40.4)') ' duration_forward (s) =', &
+          durations_forward_dh(i_repeat)
+     write(*,'(a,e40.5)') ' error                =', &
+          errors_dh(i_repeat)
      write(*,*)
 
      !=========================================================================
@@ -258,24 +262,25 @@ real(dp) :: f_real_sp_mw, f_real_sp_mweo
      call ssht_test_gen_flm_complex(L, spin, flm_orig, seed)
      call cpu_time(time_start)
      !-------------------------------------------------------------------------
-!     call ssht_core_mweo_inverse(f_mweo, flm_orig, L, spin, verbosity)
-     call ssht_core_mweo_inverse_sp(f_mweo(0:L-2, 0:2*L-2), f_sp_mweo, phi_sp_mweo, &
+     call ssht_core_mweo_inverse(f_mweo, f_sp_mweo, phi_sp_mweo, &
           flm_orig, L, spin, verbosity)
      !-------------------------------------------------------------------------
      call cpu_time(time_end)
      durations_inverse_mweo(i_repeat) = time_end - time_start
      call cpu_time(time_start)
      !-------------------------------------------------------------------------
-!     call ssht_core_mweo_forward(flm_syn, f_mweo, L, spin, verbosity)
-     call ssht_core_mweo_forward_sp(flm_syn, f_mweo(0:L-2, 0:2*L-2), &
+     call ssht_core_mweo_forward(flm_syn, f_mweo, &
           f_sp_mweo, phi_sp_mweo, L, spin, verbosity)
      !-------------------------------------------------------------------------
      call cpu_time(time_end)
      durations_forward_mweo(i_repeat) = time_end - time_start
      errors_mweo(i_repeat) = maxval(abs(flm_orig(0:L**2-1) - flm_syn(0:L**2-1)))
-     write(*,'(a,f40.4)') ' duration_inverse (s) =', durations_inverse_mweo(i_repeat)
-     write(*,'(a,f40.4)') ' duration_forward (s) =', durations_forward_mweo(i_repeat)
-     write(*,'(a,e40.5)') ' error                =', errors_mweo(i_repeat)
+     write(*,'(a,f40.4)') ' duration_inverse (s) =', &
+          durations_inverse_mweo(i_repeat)
+     write(*,'(a,f40.4)') ' duration_forward (s) =', &
+          durations_forward_mweo(i_repeat)
+     write(*,'(a,e40.5)') ' error                =', &
+          errors_mweo(i_repeat)
      write(*,*)
 
      !=========================================================================
@@ -286,24 +291,25 @@ real(dp) :: f_real_sp_mw, f_real_sp_mweo
      call ssht_test_gen_flm_complex(L, spin, flm_orig, seed)
      call cpu_time(time_start)
      !-------------------------------------------------------------------------
-!     call ssht_core_mw_inverse(f_mw, flm_orig, L, spin, verbosity)
-     call ssht_core_mw_inverse_sp(f_mw(0:L-2, 0:2*L-2), f_sp_mw, phi_sp_mw, &
+     call ssht_core_mw_inverse(f_mw, f_sp_mw, phi_sp_mw, &
           flm_orig, L, spin, verbosity)
      !-------------------------------------------------------------------------
      call cpu_time(time_end)
      durations_inverse_mw(i_repeat) = time_end - time_start
      call cpu_time(time_start)
      !-------------------------------------------------------------------------
-!     call ssht_core_mw_forward(flm_syn, f_mw, L, spin, verbosity)
-     call ssht_core_mw_forward_sp(flm_syn, f_mw(0:L-2, 0:2*L-2), &
+     call ssht_core_mw_forward(flm_syn, f_mw, &
           f_sp_mw, phi_sp_mw, L, spin, verbosity)
      !-------------------------------------------------------------------------
      call cpu_time(time_end)
      durations_forward_mw(i_repeat) = time_end - time_start
      errors_mw(i_repeat) = maxval(abs(flm_orig(0:L**2-1) - flm_syn(0:L**2-1)))
-     write(*,'(a,f40.4)') ' duration_inverse (s) =', durations_inverse_mw(i_repeat)
-     write(*,'(a,f40.4)') ' duration_forward (s) =', durations_forward_mw(i_repeat)
-     write(*,'(a,e40.5)') ' error                =', errors_mw(i_repeat)
+     write(*,'(a,f40.4)') ' duration_inverse (s) =', &
+          durations_inverse_mw(i_repeat)
+     write(*,'(a,f40.4)') ' duration_forward (s) =', &
+          durations_forward_mw(i_repeat)
+     write(*,'(a,e40.5)') ' error                =', &
+          errors_mw(i_repeat)
      write(*,*)
 
   end do
