@@ -37,7 +37,11 @@ module ssht_core_mod
        ssht_core_mweo_inverse_real, &
        ssht_core_mweo_forward_real, &
        ssht_core_mw_inverse_real, &
-       ssht_core_mw_forward_real
+       ssht_core_mw_forward_real,&
+ssht_core_gl_inverse_sov_sym, &
+ssht_core_gl_forward_sov_sym
+
+
 !, &
 !!$       ssht_core_mw_inverse_sp, &
 !!$       ssht_core_mw_forward_sp, &
@@ -959,6 +963,141 @@ contains
     end if
 
   end subroutine ssht_core_dh_inverse_sov_sym_real
+
+
+
+
+
+
+  !----------------------------------------------------------------------------
+  ! GL
+  !----------------------------------------------------------------------------
+
+
+  subroutine ssht_core_gl_inverse_sov_sym(f, flm, L, spin, verbosity)
+    
+    integer, intent(in) :: L
+    integer, intent(in) :: spin
+    integer, intent(in), optional :: verbosity
+    complex(dpc), intent(in) :: flm(0:L**2-1)
+    complex(dpc), intent(out) :: f(0:L-1, 0:2*L-2)
+
+    integer :: el, m, mm, t, p, ind
+    real(dp) :: theta, phi
+    real(dp) :: elfactor
+    real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
+    complex(dpc) :: Fmm(-(L-1):L-1, 0:L-1)
+    complex(dpc) :: fmt(-(L-1):L-1, 0:2*L-1)
+    integer*8 :: fftw_plan
+    character(len=STRING_LEN) :: format_spec
+
+
+real(dp) :: thetas(0:L-1)
+real(dp) :: weights(0:L-1)
+
+
+!**TODO: update messages here and below
+    ! Print messages depending on verbosity level.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Computing inverse transform using Driscoll and Healy sampling with'
+          write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', digit(spin),',a)'
+          write(*,trim(format_spec)) SSHT_PROMPT, &
+               'parameters (L,spin,reality) = (', &
+               L, ',', spin, ',FALSE)...'
+       end if
+       if (verbosity > 1) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Using routine ssht_core_dh_inverse_sov_sym...'
+       end if
+    end if
+
+
+
+
+
+! pass these around but just compute here for now.
+    call ssht_sampling_gl_thetas_weights(thetas, weights, L)
+
+
+    ! Compute Fmm.
+    Fmm(-(L-1):L-1, 0:L-1) = cmplx(0d0, 0d0)
+    do el = abs(spin), L-1
+       call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+       elfactor = sqrt((2d0*el+1d0)/(4d0*PI))
+       do m = -el, el
+          call ssht_sampling_elm2ind(ind, el, m)
+          do mm = 0, el
+             Fmm(m,mm) = Fmm(m,mm) + &
+                  (-1)**spin * elfactor &
+                  * exp(-I*PION2*(m+spin)) &
+                  * dl(mm,m) * dl(mm,-spin) &
+                  * flm(ind)
+          end do
+       end do
+    end do
+
+    ! Use symmetry to compute Fmm for negative mm.
+!!$    do m = -(L-1), L-1       
+!!$       do mm = -(L-1), -1
+!!$          Fmm(m,mm) = (-1)**(m+spin) * Fmm(m,-mm)
+!!$       end do
+!!$    end do
+
+    ! Compute fmt.
+!!$    fmt(-(L-1):L-1, 0:2*L-1) = cmplx(0d0, 0d0)
+!!$    do t = 0, 2*L-1     
+!!$       theta = ssht_sampling_dh_t2theta(t, L)       
+!!$       do m = -(L-1), L-1          
+!!$          do mm = -(L-1), L-1
+!!$             fmt(m,t) = fmt(m,t) + &
+!!$                  Fmm(m,mm) * exp(I*mm*theta)
+!!$          end do
+!!$       end do
+!!$    end do
+
+
+    fmt(-(L-1):L-1, 0:2*L-1) = cmplx(0d0, 0d0)
+    do t = 0, L-1     
+       theta = thetas(t)
+       do m = -(L-1), L-1          
+          fmt(m,t) = fmt(m,t) + Fmm(m,0)
+          do mm = 1, L-1
+             fmt(m,t) = fmt(m,t) + &
+!!$                  Fmm(m,mm) * exp(I*mm*theta) &
+!!$                  + Fmm(m,-mm) * exp(-I*mm*theta)
+                  Fmm(m,mm) * (exp(I*mm*theta)  + (-1)**(m+spin) * exp(-I*mm*theta))
+
+          end do
+       end do
+    end do
+
+
+    ! Compute f using FFT.
+    f(0:2*L-1 ,0:2*L-2) = cmplx(0d0, 0d0)
+    call dfftw_plan_dft_1d(fftw_plan, 2*L-1, f(0,0:2*L-2), &
+         f(0,0:2*L-2), FFTW_BACKWARD, FFTW_MEASURE)
+    do t = 0, L-1       
+
+       ! Spatial shift in frequency.
+       f(t,0:L-1) = fmt(0:L-1,t)
+       f(t,L:2*L-2) = fmt(-(L-1):-1,t)
+
+       call dfftw_execute_dft(fftw_plan, f(t,0:2*L-2), f(t,0:2*L-2))
+
+    end do
+    call dfftw_destroy_plan(fftw_plan)
+
+    ! Print finished if verbosity set.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Inverse transform computed!'
+       end if
+    end if
+
+  end subroutine ssht_core_gl_inverse_sov_sym
 
   !----------------------------------------------------------------------------
   ! MWEO
@@ -2182,6 +2321,125 @@ contains
 
   end subroutine ssht_core_dh_forward_sov_sym_real
 
+
+
+
+  !----------------------------------------------------------------------------
+  ! GL
+  !----------------------------------------------------------------------------
+
+
+  subroutine ssht_core_gl_forward_sov_sym(flm, f, L, spin, verbosity)
+
+    integer, intent(in) :: L
+    integer, intent(in) :: spin
+    integer, intent(in), optional :: verbosity
+    complex(dpc), intent(in) :: f(0:L-1 ,0:2*L-2)
+    complex(dpc), intent(out) :: flm(0:L**2-1)
+
+    integer :: p, m, t, mm, el, ind
+    real(dp) :: theta, phi
+    real(dp) :: elfactor
+    real(dp) :: w
+    complex(dpc) :: fmt(-(L-1):L-1, 0:2*L-1)
+    complex(dpc) :: Fmm(-(L-1):L-1, -(L-1):L-1)
+    real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
+    integer*8 :: fftw_plan
+    complex(dpc) :: tmp(0:2*L-2)
+    character(len=STRING_LEN) :: format_spec
+
+
+real(dp) :: thetas(0:L-1)
+real(dp) :: weights(0:L-1)
+
+
+!**TODO: update messages here and below
+    ! Print messages depending on verbosity level.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Computing forward transform using Driscoll and Healy sampling with'
+          write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', digit(spin),',a)'
+          write(*,trim(format_spec)) SSHT_PROMPT, &
+               'parameters (L,spin,reality) = (', &
+               L, ',', spin, ',FALSE)...'
+       end if
+       if (verbosity > 1) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Using routine ssht_core_dh_forward_sov_sym...'
+       end if
+    end if
+
+
+
+
+! pass these around but just compute here for now.
+    call ssht_sampling_gl_thetas_weights(thetas, weights, L)
+
+
+
+    ! Compute fmt using FFT.     
+    call dfftw_plan_dft_1d(fftw_plan, 2*L-1, fmt(-(L-1):L-1,0), &
+         fmt(-(L-1):L-1,0), FFTW_FORWARD, FFTW_MEASURE)
+    do t = 0, 2*L-1             
+
+       call dfftw_execute_dft(fftw_plan, f(t,0:2*L-2), tmp(0:2*L-2))
+
+       ! Spatial shift in frequency.
+       fmt(0:L-1, t) = tmp(0:L-1)
+       fmt(-(L-1):-1, t) = tmp(L:2*L-2)
+    end do
+    call dfftw_destroy_plan(fftw_plan)
+    fmt(-(L-1):L-1, 0:2*L-1) = fmt(-(L-1):L-1, 0:2*L-1) &
+         * 2d0*PI / (2d0*L-1d0)
+
+    ! Compute Fmm.
+    Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
+    do t = 0, L-1
+       theta = thetas(t) !ssht_sampling_dh_t2theta(t, L)
+       w = weights(t) !weight_dh(theta, L)
+       do m = -(L-1), L-1
+          do mm = -(L-1), L-1
+             Fmm(m,mm) = Fmm(m,mm) + &
+                  fmt(m,t) * exp(-I*mm*theta) * w
+          end do
+       end do
+    end do
+
+    ! Compute flm.
+    flm(0::L**2-1) = cmplx(0d0, 0d0)
+    do el = abs(spin), L-1
+       call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+       elfactor = sqrt((2d0*el+1d0)/(4d0*PI))
+       do m = -el, el
+          call ssht_sampling_elm2ind(ind, el, m)
+
+          flm(ind) = flm(ind) + &
+               (-1)**spin * elfactor &
+               * exp(I*PION2*(m+spin)) &
+               * dl(0,m) * dl(0,-spin) &
+               * Fmm(m,0)
+
+          do mm = 1, el
+             flm(ind) = flm(ind) + &
+                  (-1)**spin * elfactor &
+                  * exp(I*PION2*(m+spin)) &
+                  * dl(mm,m) * dl(mm,-spin) &
+                  * (Fmm(m,mm) + (-1)**(m+spin)*Fmm(m,-mm))
+
+          end do
+       end do
+    end do
+
+    ! Print finished if verbosity set.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Forward transform computed!'
+       end if
+    end if
+
+  end subroutine ssht_core_gl_forward_sov_sym
 
   !----------------------------------------------------------------------------
   ! MWEO

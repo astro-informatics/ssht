@@ -54,6 +54,9 @@ program ssht_test
   real(dp) :: errors_dh(0:N_repeat-1)
   real :: durations_forward_dh(0:N_repeat-1)
   real :: durations_inverse_dh(0:N_repeat-1)
+  real(dp) :: errors_gl(0:N_repeat-1)
+  real :: durations_forward_gl(0:N_repeat-1)
+  real :: durations_inverse_gl(0:N_repeat-1)
   real(dp) :: errors_mweo(0:N_repeat-1)
   real :: durations_forward_mweo(0:N_repeat-1)
   real :: durations_inverse_mweo(0:N_repeat-1)
@@ -74,7 +77,7 @@ program ssht_test
   integer :: L, ind, ind_check, el, el_check, m, m_check
   integer :: spin
   complex(dpc), allocatable :: flm_orig(:), flm_syn(:)
-  complex(dpc), allocatable :: f_dh(:,:), f_mweo(:,:), f_mw(:,:)
+  complex(dpc), allocatable :: f_dh(:,:), f_gl(:,:), f_mweo(:,:), f_mw(:,:)
   real(dpc), allocatable :: f_dh_real(:,:), f_mweo_real(:,:), f_mw_real(:,:)
   real(dp) :: phi_sp_mw, phi_sp_mweo
   complex(dpc) :: f_sp_mw, f_sp_mweo
@@ -91,17 +94,24 @@ program ssht_test
   allocate(flm_orig(0:L**2-1), stat=fail)
   allocate(flm_syn(0:L**2-1), stat=fail)  
   allocate(f_dh(0:2*L-1, 0:2*L-2), stat=fail)
+
+allocate(f_gl(0:L-1, 0:2*L-2), stat=fail)
+
+
   allocate(f_mweo(0:L-1, 0:2*L-2), stat=fail)
-  allocate(f_mw(0:L-1, 0:2*L-2), stat=fail)
+  allocate(f_mw(0:L-2, 0:2*L-2), stat=fail)
   allocate(f_dh_real(0:2*L-1, 0:2*L-2), stat=fail)
-  allocate(f_mweo_real(0:L-1, 0:2*L-2), stat=fail)
-  allocate(f_mw_real(0:L-1, 0:2*L-2), stat=fail)
+  allocate(f_mweo_real(0:L-2, 0:2*L-2), stat=fail)
+  allocate(f_mw_real(0:L-2, 0:2*L-2), stat=fail)
   if(fail /= 0) then
      call ssht_error(SSHT_ERROR_MEM_ALLOC_FAIL, 'ssht_test')
   end if
   flm_orig(0:L**2-1) = cmplx(0d0, 0d0)
   flm_syn(0:L**2-1) = cmplx(0d0, 0d0)
   f_dh(0:2*L-1, 0:2*L-2) = cmplx(0d0, 0d0)
+
+f_gl(0:L-1, 0:2*L-2) = cmplx(0d0, 0d0)
+
   f_mweo(0:L-2, 0:2*L-2) = cmplx(0d0, 0d0)
   f_mw(0:L-2, 0:2*L-2) = cmplx(0d0, 0d0)
   f_dh_real(0:2*L-1, 0:2*L-2) = 0d0
@@ -255,6 +265,34 @@ program ssht_test
      write(*,*)
 
      !=========================================================================
+     ! GL
+     write(*,'(a,i2)') 'GL test no.', i_repeat
+     flm_orig(0:L**2-1) = cmplx(0d0, 0d0)
+     flm_syn(0:L**2-1) = cmplx(0d0, 0d0)
+     call ssht_test_gen_flm_complex(L, spin, flm_orig, seed)
+     call cpu_time(time_start)
+     !-------------------------------------------------------------------------
+     call ssht_core_gl_inverse_sov_sym(f_gl, flm_orig, L, spin, verbosity)
+     !-------------------------------------------------------------------------
+     call cpu_time(time_end)
+     durations_inverse_gl(i_repeat) = time_end - time_start
+     call cpu_time(time_start)
+     !-------------------------------------------------------------------------
+     call ssht_core_gl_forward_sov_sym(flm_syn, f_gl, L, spin, verbosity)
+     !-------------------------------------------------------------------------
+     call cpu_time(time_end)
+     durations_forward_gl(i_repeat) = time_end - time_start
+     errors_gl(i_repeat) = maxval(abs(flm_orig(0:L**2-1) - flm_syn(0:L**2-1)))
+     write(*,'(a,f40.4)') ' duration_inverse (s) =', &
+          durations_inverse_gl(i_repeat)
+     write(*,'(a,f40.4)') ' duration_forward (s) =', &
+          durations_forward_gl(i_repeat)
+     write(*,'(a,e40.5)') ' error                =', &
+          errors_gl(i_repeat)
+     write(*,*)
+
+
+     !=========================================================================
      ! MWEO
      write(*,'(a,i2)') 'MWEO test no.', i_repeat
      flm_orig(0:L**2-1) = cmplx(0d0, 0d0)
@@ -361,6 +399,15 @@ program ssht_test
        sum(errors_dh(0:N_repeat-1)) / real(N_repeat)
   write(*,*)
 
+  write(*,'(a,i2)') 'GL'
+  write(*,'(a,f30.5)') ' Average forward transform time =', &
+       sum(durations_forward_gl(0:N_repeat-1)) / real(N_repeat)
+  write(*,'(a,f30.5)') ' Average inverse transform time =', &
+       sum(durations_inverse_gl(0:N_repeat-1)) / real(N_repeat)
+  write(*,'(a,e30.5)') ' Average max error              =', &
+       sum(errors_gl(0:N_repeat-1)) / real(N_repeat)
+  write(*,*)
+
   write(*,'(a,i2)') 'MWEO'
   write(*,'(a,f30.5)') ' Average forward transform time =', &
        sum(durations_forward_mweo(0:N_repeat-1)) / real(N_repeat)
@@ -381,7 +428,8 @@ program ssht_test
 
   ! Deallocate memory.
   deallocate(flm_orig, flm_syn)
-  deallocate(f_dh, f_mweo, f_mw)
+  deallocate(f_dh, f_gl, f_mweo, f_mw)
+  deallocate(f_dh_real, f_mweo_real, f_mw_real)
 
 end program ssht_test
 

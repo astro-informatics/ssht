@@ -32,7 +32,9 @@ module ssht_sampling_mod
        ssht_sampling_mw_t2theta, &
        ssht_sampling_mw_p2phi, &
        ssht_sampling_mweo_t2theta, &
-       ssht_sampling_mweo_p2phi
+       ssht_sampling_mweo_p2phi, &
+ssht_sampling_gl_thetas_weights, &
+ssht_sampling_gl_p2phi
 
 
   !---------------------------------------
@@ -62,6 +64,80 @@ module ssht_sampling_mod
   !----------------------------------------------------------------------------
 
 contains
+
+
+
+  function ssht_sampling_gl_p2phi(p, L) result (phi)
+
+    integer, intent(in) :: p
+    integer, intent(in) :: L
+    real(dp) :: phi
+
+    phi = 2d0*p*PI / (2d0*L - 1d0)	
+
+  end function ssht_sampling_gl_p2phi
+
+
+
+  subroutine ssht_sampling_gl_thetas_weights(thetas, weights, L)
+
+    integer, intent(in) :: L
+    real(dp), intent(out) :: thetas(0:L-1)
+    real(dp), intent(out) :: weights(0:L-1)
+    
+    real(dp) :: znodes(0:L-1)
+    integer :: p
+
+    call gauleg(-1d0, 1d0, znodes(0:L-1), weights(0:L-1), L)
+
+    do p = 0, L-1
+       thetas(p) = acos(znodes(p))
+    end do
+
+  end subroutine ssht_sampling_gl_thetas_weights
+
+
+
+      SUBROUTINE gauleg(x1,x2,x,w,n)
+      INTEGER n
+      REAL(dp) :: x1,x2,x(1:n),w(1:n)
+!      DOUBLE PRECISION EPS
+!      PARAMETER (EPS=3.d-14)
+      real(dp), parameter :: EPS = 1d-14
+      INTEGER i,j,m
+!      DOUBLE PRECISION 
+      real(dp) :: p1,p2,p3,pp,xl,xm,z,z1
+      m=(n+1)/2
+      xm=0.5d0*(x2+x1)
+      xl=0.5d0*(x2-x1)
+!      do 12 i=1,m
+      do i=1,m
+        z=cos(3.141592654d0*(i-.25d0)/(n+.5d0))
+
+        do 
+!1       continue
+          p1=1.d0
+          p2=0.d0
+          do j=1,n
+            p3=p2
+            p2=p1
+            p1=((2.d0*j-1.d0)*z*p2-(j-1.d0)*p3)/j
+!11        continue
+         end do
+          pp=n*(z*p1-p2)/(z*z-1.d0)
+          z1=z
+          z=z1-p1/pp
+          if(abs(z-z1) <= EPS) exit !goto 1
+       end do
+        x(i)=xm-xl*z
+        x(n+1-i)=xm+xl*z
+        w(i)=2.d0*xl/((1.d0-z*z)*pp*pp)
+        w(n+1-i)=w(i)
+!12    continue
+     end do
+!      return
+!   END do
+  end subroutine gauleg
 
 
   !============================================================================
