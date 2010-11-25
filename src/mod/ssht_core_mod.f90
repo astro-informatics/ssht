@@ -991,17 +991,14 @@ contains
     integer*8 :: fftw_plan
     character(len=STRING_LEN) :: format_spec
 
+    real(dp) :: thetas(0:L-1)
+    real(dp) :: weights(0:L-1)
 
-real(dp) :: thetas(0:L-1)
-real(dp) :: weights(0:L-1)
-
-
-!**TODO: update messages here and below
     ! Print messages depending on verbosity level.
     if (present(verbosity)) then
        if (verbosity > 0) then
           write(*,'(a,a)') SSHT_PROMPT, &
-               'Computing inverse transform using Driscoll and Healy sampling with'
+               'Computing inverse transform using Gauss-Legendre sampling with'
           write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', digit(spin),',a)'
           write(*,trim(format_spec)) SSHT_PROMPT, &
                'parameters (L,spin,reality) = (', &
@@ -1009,17 +1006,12 @@ real(dp) :: weights(0:L-1)
        end if
        if (verbosity > 1) then
           write(*,'(a,a)') SSHT_PROMPT, &
-               'Using routine ssht_core_dh_inverse_sov_sym...'
+               'Using routine ssht_core_gl_inverse_sov_sym...'
        end if
     end if
 
-
-
-
-
-! pass these around but just compute here for now.
+    ! Compute weights and theta positions.
     call ssht_sampling_gl_thetas_weights(thetas, weights, L)
-
 
     ! Compute Fmm.
     Fmm(-(L-1):L-1, 0:L-1) = cmplx(0d0, 0d0)
@@ -1072,7 +1064,6 @@ real(dp) :: weights(0:L-1)
           end do
        end do
     end do
-
 
     ! Compute f using FFT.
     f(0:2*L-1 ,0:2*L-2) = cmplx(0d0, 0d0)
@@ -1987,7 +1978,7 @@ real(dp) :: weights(0:L-1)
     Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
     do t = 0, 2*L-1
        theta = ssht_sampling_dh_t2theta(t, L)
-       w = weight_dh(theta, L)
+       w = ssht_sampling_weight_dh(theta, L)
        do m = -(L-1), L-1
           do mm = -(L-1), L-1
              Fmm(m,mm) = Fmm(m,mm) + &
@@ -2078,7 +2069,7 @@ real(dp) :: weights(0:L-1)
     Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
     do t = 0, 2*L-1
        theta = ssht_sampling_dh_t2theta(t, L)
-       w = weight_dh(theta, L)
+       w = ssht_sampling_weight_dh(theta, L)
        do m = -(L-1), L-1
           do mm = -(L-1), L-1
              Fmm(m,mm) = Fmm(m,mm) + &
@@ -2170,7 +2161,7 @@ real(dp) :: weights(0:L-1)
     Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
     do t = 0, 2*L-1
        theta = ssht_sampling_dh_t2theta(t, L)
-       w = weight_dh(theta, L)
+       w = ssht_sampling_weight_dh(theta, L)
        do m = -(L-1), L-1
           do mm = -(L-1), L-1
              Fmm(m,mm) = Fmm(m,mm) + &
@@ -2268,7 +2259,7 @@ real(dp) :: weights(0:L-1)
     Fmm(0:L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
     do t = 0, 2*L-1
        theta = ssht_sampling_dh_t2theta(t, L)
-       w = weight_dh(theta, L)
+       w = ssht_sampling_weight_dh(theta, L)
        do m = 0, L-1
           do mm = -(L-1), L-1
              Fmm(m,mm) = Fmm(m,mm) + &
@@ -2348,17 +2339,14 @@ real(dp) :: weights(0:L-1)
     complex(dpc) :: tmp(0:2*L-2)
     character(len=STRING_LEN) :: format_spec
 
+    real(dp) :: thetas(0:L-1)
+    real(dp) :: weights(0:L-1)
 
-real(dp) :: thetas(0:L-1)
-real(dp) :: weights(0:L-1)
-
-
-!**TODO: update messages here and below
     ! Print messages depending on verbosity level.
     if (present(verbosity)) then
        if (verbosity > 0) then
           write(*,'(a,a)') SSHT_PROMPT, &
-               'Computing forward transform using Driscoll and Healy sampling with'
+               'Computing forward transform using Gauss-Legendre sampling with'
           write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', digit(spin),',a)'
           write(*,trim(format_spec)) SSHT_PROMPT, &
                'parameters (L,spin,reality) = (', &
@@ -2366,17 +2354,12 @@ real(dp) :: weights(0:L-1)
        end if
        if (verbosity > 1) then
           write(*,'(a,a)') SSHT_PROMPT, &
-               'Using routine ssht_core_dh_forward_sov_sym...'
+               'Using routine ssht_core_gl_forward_sov_sym...'
        end if
     end if
 
-
-
-
-! pass these around but just compute here for now.
+    ! Compute weights and theta positions.
     call ssht_sampling_gl_thetas_weights(thetas, weights, L)
-
-
 
     ! Compute fmt using FFT.     
     call dfftw_plan_dft_1d(fftw_plan, 2*L-1, fmt(-(L-1):L-1,0), &
@@ -2396,8 +2379,8 @@ real(dp) :: weights(0:L-1)
     ! Compute Fmm.
     Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
     do t = 0, L-1
-       theta = thetas(t) !ssht_sampling_dh_t2theta(t, L)
-       w = weights(t) !weight_dh(theta, L)
+       theta = thetas(t)
+       w = weights(t)
        do m = -(L-1), L-1
           do mm = -(L-1), L-1
              Fmm(m,mm) = Fmm(m,mm) + &
@@ -2440,6 +2423,7 @@ real(dp) :: weights(0:L-1)
     end if
 
   end subroutine ssht_core_gl_forward_sov_sym
+
 
   !----------------------------------------------------------------------------
   ! MWEO
@@ -2524,9 +2508,9 @@ real(dp) :: weights(0:L-1)
        do mm = -(L-1), L-1
           do k = -(L-1), L-1 
              Gmme(m,mm) = Gmme(m,mm) + &
-                  Fmme(m,k) * weight_mw(k - mm) * 2d0 * PI
+                  Fmme(m,k) * ssht_sampling_weight_mw(k - mm) * 2d0 * PI
              Gmmo(m,mm) = Gmmo(m,mm) + &
-                  Fmmo(m,k) * weight_mw(k - mm) * 2d0 * PI
+                  Fmmo(m,k) *ssht_sampling_weight_mw(k - mm) * 2d0 * PI
           end do
        end do
     end do
@@ -2672,9 +2656,9 @@ real(dp) :: weights(0:L-1)
        do mm = -(L-1), L-1
           do k = -(L-1), L-1 
              Gmme(m,mm) = Gmme(m,mm) + &
-                  Fmme(m,k) * weight_mw(k - mm) * 2d0 * PI
+                  Fmme(m,k) * ssht_sampling_weight_mw(k - mm) * 2d0 * PI
              Gmmo(m,mm) = Gmmo(m,mm) + &
-                  Fmmo(m,k) * weight_mw(k - mm) * 2d0 * PI
+                  Fmmo(m,k) * ssht_sampling_weight_mw(k - mm) * 2d0 * PI
           end do
        end do
     end do
@@ -2819,7 +2803,7 @@ real(dp) :: weights(0:L-1)
 
     ! Compute weights.
     do mm = -2*(L-1), 2*(L-1)
-       w(mm) = weight_mw(mm)
+       w(mm) = ssht_sampling_weight_mw(mm)
     end do
 
     ! Compute IFFT of w to give wr.
@@ -3052,7 +3036,7 @@ real(dp) :: weights(0:L-1)
 
     ! Compute weights.
     do mm = -2*(L-1), 2*(L-1)
-       w(mm) = weight_mw(mm)
+       w(mm) = ssht_sampling_weight_mw(mm)
     end do
 
     ! Compute IFFT of w to give wr.
@@ -3279,7 +3263,7 @@ real(dp) :: weights(0:L-1)
 
     ! Compute weights.
     do mm = -2*(L-1), 2*(L-1)
-       w(mm) = weight_mw(mm)
+       w(mm) = ssht_sampling_weight_mw(mm)
     end do
 
     ! Compute IFFT of w to give wr.
@@ -3504,7 +3488,7 @@ real(dp) :: weights(0:L-1)
        do mm = -(L-1), L-1
           do k = -(L-1), L-1 
              Gmm(m,mm) = Gmm(m,mm) + &
-                  Fmm(m,k) * weight_mw(k - mm) * 2d0 * PI
+                  Fmm(m,k) * ssht_sampling_weight_mw(k - mm) * 2d0 * PI
           end do
        end do
     end do
@@ -3613,7 +3597,7 @@ real(dp) :: weights(0:L-1)
        do mm = -(L-1), L-1
           do k = -(L-1), L-1 
              Gmm(m,mm) = Gmm(m,mm) + &
-                  Fmm(m,k) * weight_mw(k - mm) * 2d0 * PI
+                  Fmm(m,k) * ssht_sampling_weight_mw(k - mm) * 2d0 * PI
           end do
        end do
     end do
@@ -3722,7 +3706,7 @@ real(dp) :: weights(0:L-1)
 
     ! Compute weights.
     do mm = -2*(L-1), 2*(L-1)
-       w(mm) = weight_mw(mm)
+       w(mm) = ssht_sampling_weight_mw(mm)
     end do
 
     ! Compute IFFT of w to give wr.
@@ -3883,7 +3867,7 @@ real(dp) :: weights(0:L-1)
 
     ! Compute weights.
     do mm = -2*(L-1), 2*(L-1)
-       w(mm) = weight_mw(mm)
+       w(mm) = ssht_sampling_weight_mw(mm)
     end do
 
     ! Compute IFFT of w to give wr.
@@ -4058,7 +4042,7 @@ real(dp) :: weights(0:L-1)
 
     ! Compute weights.
     do mm = -2*(L-1), 2*(L-1)
-       w(mm) = weight_mw(mm)
+       w(mm) = ssht_sampling_weight_mw(mm)
     end do
 
     ! Compute IFFT of w to give wr.
@@ -4187,76 +4171,6 @@ real(dp) :: weights(0:L-1)
     end if
  
   end function digit
-
-
-  !--------------------------------------------------------------------------
-  ! weight_dh
-  !
-  !! Compute Discoll and Healy weights.
-  !!
-  !! Variables:
-  !!  - theta_t: Theta value to compute weight for [input].
-  !!  - L: Harmonic band-limit [input].
-  !!  - w: Corresponding weight [output]
-  !
-  !! @author J. D. McEwen
-  !! @version 0.1 October 2007
-  !
-  ! Revisions:
-  !   October 2007 - Written by Jason McEwen
-  !--------------------------------------------------------------------------
-
-  function weight_dh(theta_t, L) result(w)
-
-    real(dp), intent(in) :: theta_t
-    integer, intent(in) :: L
-    real(dp) :: w	
-
-    integer :: k
-
-    w = 0d0
-    do k = 0,L-1
-       w = w + sin((2d0*k+1d0)*theta_t) / real(2d0*k+1d0,dp)
-    end do
-    w = (2d0/real(L,dp)) * sin(theta_t) * w
-
-  end function weight_dh
-
-
-  !--------------------------------------------------------------------------
-  ! weight_mw
-  !
-  !! Compute weights for toroidal extension.
-  !!
-  !! Variables:
-  !!  - p: Integer index to compute weight for [input].
-  !!  - w: Corresponding weight [output]
-  !
-  !! @author J. D. McEwen
-  !! @version 0.1 October 2010
-  !
-  ! Revisions:
-  !   October 2010 - Written by Jason McEwen
-  !--------------------------------------------------------------------------
-
-  function weight_mw(p) result(w)
-
-    integer, intent(in) :: p
-    complex(dpc) :: w
-
-    if(p == 1) then
-       w = I * PION2
-    elseif(p == -1) then
-       w = - I * PION2
-    elseif(mod(p,2) == 0 ) then
-       ! Even case
-       w = 2d0 / (1d0 - p**2)
-    else
-       ! Odd case (|p| /= 1)
-       w = 0d0
-    end if
-
-  end function weight_mw
 
 
 end module ssht_core_mod
