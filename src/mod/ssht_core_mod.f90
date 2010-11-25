@@ -28,18 +28,21 @@ module ssht_core_mod
   public :: &
        ssht_core_dh_inverse, &
        ssht_core_dh_forward, &
+       ssht_core_gl_inverse, &
+       ssht_core_gl_forward, &
        ssht_core_mweo_inverse, &
        ssht_core_mweo_forward, &
        ssht_core_mw_inverse, &
        ssht_core_mw_forward, &
        ssht_core_dh_inverse_real, &
        ssht_core_dh_forward_real, &
+       ssht_core_gl_inverse_real, &
+       ssht_core_gl_forward_real, &
        ssht_core_mweo_inverse_real, &
        ssht_core_mweo_forward_real, &
        ssht_core_mw_inverse_real, &
-       ssht_core_mw_forward_real,&
-ssht_core_gl_inverse_sov_sym, &
-ssht_core_gl_forward_sov_sym
+       ssht_core_mw_forward_real
+
 
 
 !, &
@@ -106,6 +109,22 @@ ssht_core_gl_forward_sov_sym
   end interface
 
 
+
+  interface ssht_core_gl_inverse
+     module procedure ssht_core_gl_inverse_sov_sym
+  end interface
+
+  interface ssht_core_gl_forward
+     module procedure ssht_core_gl_forward_sov_sym
+  end interface
+
+  interface ssht_core_gl_inverse_real
+     module procedure ssht_core_gl_inverse_sov_sym_real
+  end interface
+
+  interface ssht_core_gl_forward_real
+     module procedure ssht_core_gl_forward_sov_sym_real
+  end interface
 
 
 
@@ -987,7 +1006,7 @@ contains
     real(dp) :: elfactor
     real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
     complex(dpc) :: Fmm(-(L-1):L-1, 0:L-1)
-    complex(dpc) :: fmt(-(L-1):L-1, 0:2*L-1)
+    complex(dpc) :: fmt(-(L-1):L-1, 0:L-1)
     integer*8 :: fftw_plan
     character(len=STRING_LEN) :: format_spec
 
@@ -1050,7 +1069,7 @@ contains
 !!$    end do
 
 
-    fmt(-(L-1):L-1, 0:2*L-1) = cmplx(0d0, 0d0)
+    fmt(-(L-1):L-1, 0:L-1) = cmplx(0d0, 0d0)
     do t = 0, L-1     
        theta = thetas(t)
        do m = -(L-1), L-1          
@@ -1066,7 +1085,7 @@ contains
     end do
 
     ! Compute f using FFT.
-    f(0:2*L-1 ,0:2*L-2) = cmplx(0d0, 0d0)
+    f(0:L-1 ,0:2*L-2) = cmplx(0d0, 0d0)
     call dfftw_plan_dft_1d(fftw_plan, 2*L-1, f(0,0:2*L-2), &
          f(0,0:2*L-2), FFTW_BACKWARD, FFTW_MEASURE)
     do t = 0, L-1       
@@ -1089,6 +1108,101 @@ contains
     end if
 
   end subroutine ssht_core_gl_inverse_sov_sym
+
+  subroutine ssht_core_gl_inverse_sov_sym_real(f, flm, L, verbosity)
+    
+    integer, intent(in) :: L
+    integer, intent(in), optional :: verbosity
+    complex(dpc), intent(in) :: flm(0:L**2-1)
+    real(dp), intent(out) :: f(0:L-1, 0:2*L-2)
+
+    integer :: el, m, mm, t, p, ind
+    real(dp) :: theta, phi
+    real(dp) :: elfactor
+    real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
+    complex(dpc) :: Fmm(0:L-1, 0:L-1)
+    complex(dpc) :: fmt(0:L-1, 0:L-1)
+    integer*8 :: fftw_plan
+
+    character(len=STRING_LEN) :: format_spec
+
+    real(dp) :: thetas(0:L-1)
+    real(dp) :: weights(0:L-1)
+
+    integer :: spin
+
+    spin = 0
+    
+    ! Print messages depending on verbosity level.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Computing inverse transform using Gauss-Legendre sampling with'
+          write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', digit(spin),',a)'
+          write(*,trim(format_spec)) SSHT_PROMPT, &
+               'parameters (L,spin,reality) = (', &
+               L, ',', spin, ',TRUE)...'
+       end if
+       if (verbosity > 1) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Using routine ssht_core_gl_inverse_sov_sym_real...'
+       end if
+    end if
+
+    ! Compute weights and theta positions.
+    call ssht_sampling_gl_thetas_weights(thetas, weights, L)
+
+    ! Compute Fmm.
+    Fmm(0:L-1, 0:L-1) = cmplx(0d0, 0d0)
+    do el = abs(spin), L-1
+       call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+       elfactor = sqrt((2d0*el+1d0)/(4d0*PI))
+       do m = 0, el
+          call ssht_sampling_elm2ind(ind, el, m)
+          do mm = 0, el
+             Fmm(m,mm) = Fmm(m,mm) + &
+                  (-1)**spin * elfactor &
+                  * exp(-I*PION2*(m+spin)) &
+                  * dl(mm,m) * dl(mm,-spin) &
+                  * flm(ind)
+          end do
+       end do
+    end do
+
+    ! Compute fmt.
+    fmt(0:L-1, 0:L-1) = cmplx(0d0, 0d0)
+    do t = 0, L-1     
+       theta = thetas(t)
+       do m = 0, L-1          
+          fmt(m,t) = fmt(m,t) + Fmm(m,0)
+          do mm = 1, L-1
+             fmt(m,t) = fmt(m,t) + &
+                  Fmm(m,mm) * (exp(I*mm*theta)  + (-1)**(m+spin) * exp(-I*mm*theta))
+          end do
+       end do
+    end do
+
+    ! Compute f using FFT.
+    f(0:L-1 ,0:2*L-2) = cmplx(0d0, 0d0)
+    call dfftw_plan_dft_c2r_1d(fftw_plan, 2*L-1, Fmm(0:L-1,0), &
+         f(0,0:2*L-2), FFTW_MEASURE)
+    do t = 0, L-1       
+       call dfftw_execute_dft_c2r(fftw_plan, fmt(0:L-1,t), f(t,0:2*L-2))
+    end do
+    call dfftw_destroy_plan(fftw_plan)
+
+    ! Print finished if verbosity set.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Inverse transform computed!'
+       end if
+    end if
+
+  end subroutine ssht_core_gl_inverse_sov_sym_real
+
+
+
 
   !----------------------------------------------------------------------------
   ! MWEO
@@ -2332,7 +2446,7 @@ contains
     real(dp) :: theta, phi
     real(dp) :: elfactor
     real(dp) :: w
-    complex(dpc) :: fmt(-(L-1):L-1, 0:2*L-1)
+    complex(dpc) :: fmt(-(L-1):L-1, 0:L-1)
     complex(dpc) :: Fmm(-(L-1):L-1, -(L-1):L-1)
     real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
     integer*8 :: fftw_plan
@@ -2364,7 +2478,7 @@ contains
     ! Compute fmt using FFT.     
     call dfftw_plan_dft_1d(fftw_plan, 2*L-1, fmt(-(L-1):L-1,0), &
          fmt(-(L-1):L-1,0), FFTW_FORWARD, FFTW_MEASURE)
-    do t = 0, 2*L-1             
+    do t = 0, L-1             
 
        call dfftw_execute_dft(fftw_plan, f(t,0:2*L-2), tmp(0:2*L-2))
 
@@ -2373,7 +2487,7 @@ contains
        fmt(-(L-1):-1, t) = tmp(L:2*L-2)
     end do
     call dfftw_destroy_plan(fftw_plan)
-    fmt(-(L-1):L-1, 0:2*L-1) = fmt(-(L-1):L-1, 0:2*L-1) &
+    fmt(-(L-1):L-1, 0:L-1) = fmt(-(L-1):L-1, 0:L-1) &
          * 2d0*PI / (2d0*L-1d0)
 
     ! Compute Fmm.
@@ -2423,6 +2537,119 @@ contains
     end if
 
   end subroutine ssht_core_gl_forward_sov_sym
+
+
+  subroutine ssht_core_gl_forward_sov_sym_real(flm, f, L, verbosity)
+
+    integer, intent(in) :: L
+    integer, intent(in), optional :: verbosity
+    real(dp), intent(in) :: f(0:L-1 ,0:2*L-2)
+    complex(dpc), intent(out) :: flm(0:L**2-1)
+
+    integer :: p, m, t, mm, el, ind
+    real(dp) :: theta, phi
+    real(dp) :: elfactor
+    real(dp) :: w
+    complex(dpc) :: fmt(0:L-1, 0:L-1)
+    complex(dpc) :: Fmm(0:L-1, -(L-1):L-1)
+    real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
+    integer*8 :: fftw_plan
+
+    integer :: spin
+    real(dp) :: tmp(0:2*L-2)
+    integer :: ind_nm
+    character(len=STRING_LEN) :: format_spec
+
+    real(dp) :: thetas(0:L-1)
+    real(dp) :: weights(0:L-1)
+
+    spin = 0
+
+    ! Print messages depending on verbosity level.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Computing forward transform using Gauss-Legendre sampling with'
+          write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', digit(spin),',a)'
+          write(*,trim(format_spec)) SSHT_PROMPT, &
+               'parameters (L,spin,reality) = (', &
+               L, ',', spin, ',TRUE)...'
+       end if
+       if (verbosity > 1) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Using routine ssht_core_gl_forward_sov_sym_real...'
+       end if
+    end if
+
+    ! Compute weights and theta positions.
+    call ssht_sampling_gl_thetas_weights(thetas, weights, L)
+
+    ! Compute fmt using FFT.     
+    call dfftw_plan_dft_r2c_1d(fftw_plan, 2*L-1, tmp(0:2*L-2), &
+         fmt(0:L-1,0), FFTW_MEASURE)
+    do t = 0, L-1             
+       call dfftw_execute_dft_r2c(fftw_plan, f(t,0:2*L-2), fmt(0:L-1,t))
+    end do
+    call dfftw_destroy_plan(fftw_plan)
+    fmt(0:L-1, 0:L-1) = fmt(0:L-1, 0:L-1) &
+         * 2d0*PI / (2d0*L-1d0)
+
+    ! Compute Fmm.
+    Fmm(0:L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
+    do t = 0, L-1
+       theta = thetas(t)
+       w = weights(t)
+       do m = 0, L-1
+          do mm = -(L-1), L-1
+             Fmm(m,mm) = Fmm(m,mm) + &
+                  fmt(m,t) * exp(-I*mm*theta) * w
+          end do
+       end do
+    end do
+
+    ! Compute flm.
+    flm(0::L**2-1) = cmplx(0d0, 0d0)
+    do el = abs(spin), L-1
+       call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+       elfactor = sqrt((2d0*el+1d0)/(4d0*PI))
+       do m = 0, el
+          call ssht_sampling_elm2ind(ind, el, m)
+
+          flm(ind) = flm(ind) + &
+               (-1)**spin * elfactor &
+               * exp(I*PION2*(m+spin)) &
+               * dl(0,m) * dl(0,-spin) &
+               * Fmm(m,0)
+
+          do mm = 1, el
+             flm(ind) = flm(ind) + &
+                  (-1)**spin * elfactor &
+                  * exp(I*PION2*(m+spin)) &
+                  * dl(mm,m) * dl(mm,-spin) &
+                  * (Fmm(m,mm) + (-1)**(m+spin)*Fmm(m,-mm))
+
+          end do
+       end do
+    end do
+
+    ! Set flm values for negative m using conjugate symmetry.
+    do el = abs(spin), L-1
+       do m = 1, el
+          call ssht_sampling_elm2ind(ind, el, m)
+          call ssht_sampling_elm2ind(ind_nm, el, -m)
+          flm(ind_nm) = (-1)**m * conjg(flm(ind))
+       end do
+    end do
+
+    ! Print finished if verbosity set.
+    if (present(verbosity)) then
+       if (verbosity > 0) then
+          write(*,'(a,a)') SSHT_PROMPT, &
+               'Forward transform computed!'
+       end if
+    end if
+
+  end subroutine ssht_core_gl_forward_sov_sym_real
 
 
   !----------------------------------------------------------------------------

@@ -67,6 +67,9 @@ program ssht_test
   real(dp) :: errors_dh_real(0:N_repeat-1)
   real :: durations_forward_dh_real(0:N_repeat-1)
   real :: durations_inverse_dh_real(0:N_repeat-1)
+  real(dp) :: errors_gl_real(0:N_repeat-1)
+  real :: durations_forward_gl_real(0:N_repeat-1)
+  real :: durations_inverse_gl_real(0:N_repeat-1)
   real(dp) :: errors_mweo_real(0:N_repeat-1)
   real :: durations_forward_mweo_real(0:N_repeat-1)
   real :: durations_inverse_mweo_real(0:N_repeat-1)
@@ -78,7 +81,7 @@ program ssht_test
   integer :: spin
   complex(dpc), allocatable :: flm_orig(:), flm_syn(:)
   complex(dpc), allocatable :: f_dh(:,:), f_gl(:,:), f_mweo(:,:), f_mw(:,:)
-  real(dpc), allocatable :: f_dh_real(:,:), f_mweo_real(:,:), f_mw_real(:,:)
+  real(dpc), allocatable :: f_dh_real(:,:), f_gl_real(:,:), f_mweo_real(:,:), f_mw_real(:,:)
   real(dp) :: phi_sp_mw, phi_sp_mweo
   complex(dpc) :: f_sp_mw, f_sp_mweo
   real(dp) :: f_real_sp_mw, f_real_sp_mweo
@@ -94,13 +97,11 @@ program ssht_test
   allocate(flm_orig(0:L**2-1), stat=fail)
   allocate(flm_syn(0:L**2-1), stat=fail)  
   allocate(f_dh(0:2*L-1, 0:2*L-2), stat=fail)
-
-allocate(f_gl(0:L-1, 0:2*L-2), stat=fail)
-
-
+  allocate(f_gl(0:L-1, 0:2*L-2), stat=fail)
   allocate(f_mweo(0:L-1, 0:2*L-2), stat=fail)
   allocate(f_mw(0:L-2, 0:2*L-2), stat=fail)
   allocate(f_dh_real(0:2*L-1, 0:2*L-2), stat=fail)
+  allocate(f_gl_real(0:L-1, 0:2*L-2), stat=fail)
   allocate(f_mweo_real(0:L-2, 0:2*L-2), stat=fail)
   allocate(f_mw_real(0:L-2, 0:2*L-2), stat=fail)
   if(fail /= 0) then
@@ -109,12 +110,11 @@ allocate(f_gl(0:L-1, 0:2*L-2), stat=fail)
   flm_orig(0:L**2-1) = cmplx(0d0, 0d0)
   flm_syn(0:L**2-1) = cmplx(0d0, 0d0)
   f_dh(0:2*L-1, 0:2*L-2) = cmplx(0d0, 0d0)
-
-f_gl(0:L-1, 0:2*L-2) = cmplx(0d0, 0d0)
-
+  f_gl(0:L-1, 0:2*L-2) = cmplx(0d0, 0d0)
   f_mweo(0:L-2, 0:2*L-2) = cmplx(0d0, 0d0)
   f_mw(0:L-2, 0:2*L-2) = cmplx(0d0, 0d0)
   f_dh_real(0:2*L-1, 0:2*L-2) = 0d0
+  f_gl_real(0:L-1, 0:2*L-2) = 0d0
   f_mweo_real(0:L-2, 0:2*L-2) = 0d0
   f_mw_real(0:L-2, 0:2*L-2) = 0d0
 
@@ -174,6 +174,33 @@ f_gl(0:L-1, 0:2*L-2) = cmplx(0d0, 0d0)
              durations_forward_dh_real(i_repeat)
         write(*,'(a,e40.5)') ' error                =', &
              errors_dh_real(i_repeat)
+        write(*,*)
+
+        !=========================================================================
+        ! GL real spin=0
+        write(*,'(a,i2)') 'DH real spin=0 test no.', i_repeat
+        flm_orig(0:L**2-1) = cmplx(0d0, 0d0)
+        flm_syn(0:L**2-1) = cmplx(0d0, 0d0)
+        call ssht_test_gen_flm_real(L, flm_orig, seed)
+        call cpu_time(time_start)
+        !-------------------------------------------------------------------------
+        call ssht_core_gl_inverse_real(f_gl_real, flm_orig, L, verbosity)
+        !-------------------------------------------------------------------------
+        call cpu_time(time_end)
+        durations_inverse_gl_real(i_repeat) = time_end - time_start
+        call cpu_time(time_start)
+        !-------------------------------------------------------------------------
+        call ssht_core_gl_forward_real(flm_syn, f_gl_real, L, verbosity)
+        !-------------------------------------------------------------------------
+        call cpu_time(time_end)
+        durations_forward_gl_real(i_repeat) = time_end - time_start
+        errors_gl_real(i_repeat) = maxval(abs(flm_orig(0:L**2-1) - flm_syn(0:L**2-1)))
+        write(*,'(a,f40.4)') ' duration_inverse (s) =', &
+             durations_inverse_gl_real(i_repeat)
+        write(*,'(a,f40.4)') ' duration_forward (s) =', &
+             durations_forward_gl_real(i_repeat)
+        write(*,'(a,e40.5)') ' error                =', &
+             errors_gl_real(i_repeat)
         write(*,*)
 
         !=========================================================================
@@ -272,13 +299,13 @@ f_gl(0:L-1, 0:2*L-2) = cmplx(0d0, 0d0)
      call ssht_test_gen_flm_complex(L, spin, flm_orig, seed)
      call cpu_time(time_start)
      !-------------------------------------------------------------------------
-     call ssht_core_gl_inverse_sov_sym(f_gl, flm_orig, L, spin, verbosity)
+     call ssht_core_gl_inverse(f_gl, flm_orig, L, spin, verbosity)
      !-------------------------------------------------------------------------
      call cpu_time(time_end)
      durations_inverse_gl(i_repeat) = time_end - time_start
      call cpu_time(time_start)
      !-------------------------------------------------------------------------
-     call ssht_core_gl_forward_sov_sym(flm_syn, f_gl, L, spin, verbosity)
+     call ssht_core_gl_forward(flm_syn, f_gl, L, spin, verbosity)
      !-------------------------------------------------------------------------
      call cpu_time(time_end)
      durations_forward_gl(i_repeat) = time_end - time_start
@@ -371,6 +398,15 @@ f_gl(0:L-1, 0:2*L-2) = cmplx(0d0, 0d0)
           sum(errors_dh_real(0:N_repeat-1)) / real(N_repeat)
      write(*,*)
 
+     write(*,'(a,i2)') 'GL real'
+     write(*,'(a,f30.5)') ' Average forward transform time =', &
+          sum(durations_forward_gl_real(0:N_repeat-1)) / real(N_repeat)
+     write(*,'(a,f30.5)') ' Average inverse transform time =', &
+          sum(durations_inverse_gl_real(0:N_repeat-1)) / real(N_repeat)
+     write(*,'(a,e30.5)') ' Average max error              =', &
+          sum(errors_gl_real(0:N_repeat-1)) / real(N_repeat)
+     write(*,*)
+
      write(*,'(a,i2)') 'MWEO real'
      write(*,'(a,f30.5)') ' Average forward transform time =', &
           sum(durations_forward_mweo_real(0:N_repeat-1)) / real(N_repeat)
@@ -429,7 +465,7 @@ f_gl(0:L-1, 0:2*L-2) = cmplx(0d0, 0d0)
   ! Deallocate memory.
   deallocate(flm_orig, flm_syn)
   deallocate(f_dh, f_gl, f_mweo, f_mw)
-  deallocate(f_dh_real, f_mweo_real, f_mw_real)
+  deallocate(f_dh_real, f_gl_real, f_mweo_real, f_mw_real)
 
 end program ssht_test
 
