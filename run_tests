@@ -1,9 +1,20 @@
 #!/bin/sh
 
-bin/ssht_test 256 0 > test_L256_s0.txt
-bin/ssht_test 128 0 > test_L128_s0.txt
-bin/ssht_test 64 0 > test_L064_s0.txt
+./bin/ssht_test 16 0 > test_L0064_s00.txt
+./bin/ssht_test 32 0 > test_L0064_s00.txt
+./bin/ssht_test 64 0 > test_L0064_s00.txt
+./bin/ssht_test 128 0 > test_L0128_s00.txt
+./bin/ssht_test 256 0 > test_L0256_s00.txt
+./bin/ssht_test 512 0 > test_L0512_s00.txt
+./bin/ssht_test 1024 0 > test_L1024_s00.txt
 
-bin/ssht_test 256 2 > test_L256_s2.txt
-bin/ssht_test 128 2 > test_L128_s2.txt
-bin/ssht_test 64 2 > test_L064_s2.txt
+./bin/ssht_test 16 10 > test_L0016_s10.txt
+./bin/ssht_test 32 10 > test_L0032_s10.txt
+./bin/ssht_test 64 10 > test_L0064_s10.txt
+./bin/ssht_test 128 10 > test_L0128_s10.txt
+./bin/ssht_test 256 10 > test_L0256_s10.txt
+./bin/ssht_test 512 10 > test_L0512_s10.txt
+./bin/ssht_test 1024 10 > test_L1024_s10.txt
+
+./bin/ssht_test 2048 0 > test_L2048_s00.txt
+./bin/ssht_test 2048 10 > test_L2048_s10.txt
