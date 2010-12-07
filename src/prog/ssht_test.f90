@@ -178,7 +178,7 @@ program ssht_test
 
         !=========================================================================
         ! GL real spin=0
-        write(*,'(a,i2)') 'DH real spin=0 test no.', i_repeat
+        write(*,'(a,i2)') 'GL real spin=0 test no.', i_repeat
         flm_orig(0:L**2-1) = cmplx(0d0, 0d0)
         flm_syn(0:L**2-1) = cmplx(0d0, 0d0)
         call ssht_test_gen_flm_real(L, flm_orig, seed)
