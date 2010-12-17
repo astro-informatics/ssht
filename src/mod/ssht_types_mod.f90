@@ -54,6 +54,9 @@ module ssht_types_mod
   !! PI/2 definition.
   real(dp), public, parameter :: PION2 = 1.570796326794896619231321691639751442099_dp
 
+  !! SQRT(2) definition.
+  real(dp), public, parameter :: SQRT2 = 1.41421356237309504880168872420969807856967_dp
+
   !! Complex unit definition.
   complex(dpc), public, parameter :: I = (0.0_dp, 1.0_dp)
 

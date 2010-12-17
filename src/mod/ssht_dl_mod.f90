@@ -14,7 +14,8 @@
 
 module ssht_dl_mod
 
-  use ssht_types_mod, only: dp
+  use ssht_types_mod, only: dp, SQRT2
+  use ssht_error_mod
 
   implicit none
 
@@ -26,7 +27,8 @@ module ssht_dl_mod
   !---------------------------------------
 
   public :: &
-    ssht_dl_beta_operator
+    ssht_dl_beta_operator, &
+    ssht_dl_beta_recursion
 
 
   !----------------------------------------------------------------------------
@@ -46,10 +48,10 @@ module ssht_dl_mod
     !!   - l: Plane of dl matrix to compute values for.
     !
     !! @author D. J. Mortlock
-    !! @version 0.1 Compiled in ssht library by JDM October 2007
     !
     ! Revisions:
-    !   September 2005 - Written by Daniel Mortlock 
+    !   September 2005 - Written by Daniel Mortlock  (compiled into
+    !     ssht library by JDM September 2005)
     !--------------------------------------------------------------------------
     
     subroutine ssht_dl_beta_operator(dl, beta, l)
@@ -82,13 +84,14 @@ module ssht_dl_mod
     !!   - l: Plane of dl matrix to compute values for.
     !
     !! @author D. J. Mortlock
-    !! @version 0.1 Compiled in ssht library by JDM September 2005
     !
     ! Revisions:
-    !   September 2005 - Written by Daniel Mortlock 
+    !   September 2005 - Written by Daniel Mortlock  (compiled into
+    !     ssht library by JDM September 2005)
     !--------------------------------------------------------------------------
 
     subroutine ssht_dl_beta_operator_core(dl, beta, l)
+
       integer, intent(in) :: l
       real(kind = dp), intent(out) :: dl(-l:l,-l:l)
       real(kind = dp), intent(in) :: beta
@@ -248,10 +251,10 @@ module ssht_dl_mod
     !!   - beta: Beta euler angle to compute dl matrix for.
     !
     !! @author D. J. Mortlock
-    !! @version 0.1 Compiled in ssht library by JDM September 2005
     !
     ! Revisions:
-    !   September 2005 - Written by Daniel Mortlock 
+    !   September 2005 - Written by Daniel Mortlock  (compiled into
+    !     ssht library by JDM September 2005)
     !--------------------------------------------------------------------------
 
     subroutine ssht_dl_beta_operator_fill(dl, l)
@@ -301,6 +304,136 @@ module ssht_dl_mod
       end do
   
     end subroutine ssht_dl_beta_operator_fill
+
+
+    !--------------------------------------------------------------------------
+    ! ssht_dl_beta_recursion
+    !
+    !! Calculates the lth plane of a d-matrix using Risbo's recursion method.
+    !! For l>1, required the dl plane to be computed already with values for
+    !! l-1.
+    !!
+    !! Variables:
+    !!   - dl: Dl matrix values computed for lth plane.
+    !!   - beta: Beta euler angle to compute dl matrix for.
+    !!   - l: Plane of dl matrix to compute values for.
+    !
+    !! @author D. J. Mortlock
+    !
+    ! Revisions:
+    !   September 2005 - Written by Daniel Mortlock (compiled into
+    !     ssht library by JDM December 2010)
+    !--------------------------------------------------------------------------
+
+    subroutine ssht_dl_beta_recursion(dl, beta, l)
+
+      integer, intent(in) :: l
+      real(kind = dp), intent(out) :: dl(-l:l,-l:l)
+      real(kind = dp), intent(in) :: beta
+
+      integer :: sign, i, j, k, m, mm
+      real(kind = dp) :: sinb, cosb, sinhb, coshb, rj, dlj, ddj
+      real(kind = dp) :: sqrt_jmk, sqrt_kp1, sqrt_jmi, sqrt_ip1
+!      real(kind = dp), pointer :: dd(:, :) => null()
+      real(kind=dp) :: dd(0: 2 * l + 1, 0: 2 * l + 1)
+
+
+      if (l < 0) then
+
+         call ssht_error(SSHT_ERROR_ARG_INVALID, 'ssht_dl_beta_recursion', &
+              comment_add='el < 0');
+
+      ! For the special cases of l = 0 use the direct formula.
+      else if (l == 0) then
+
+         dl(0, 0) = 1.0_dp
+
+      ! For the special cases of l = 1 use the direct formula.
+      else if (l == 1) then
+
+         ! These formulae are taken directly from Brink & Satchler.
+
+         cosb = cos(beta)
+         sinb = sin(beta)
+
+         coshb = cos(beta / 2.0)
+         sinhb = sin(beta / 2.0)
+
+         dl(- 1, - 1) = coshb**2
+         dl(- 1, 0) = sinb / SQRT2
+         dl(- 1, 1) = sinhb**2
+
+         dl(0, - 1) = - sinb / SQRT2
+         dl(0, 0) = cosb
+         dl(0, 1) = sinb / SQRT2
+
+         dl(1, - 1) = sinhb**2
+         dl(1, 0) = - sinb / SQRT2
+         dl(1, 1) = coshb**2
+
+      else
+
+!         allocate(dd(0: 2 * l + 1, 0: 2 * l + 1))
+         sinhb = sin(beta / 2.0)
+         coshb = - cos(beta / 2.0)
+
+         ! Initialise the plane of the dl-matrix to 0.0 for the recursion
+         ! from l - 1 to l - 1/2.
+
+         dd(0: 2 * l + 1, 0: 2 * l + 1) = 0.0_dp
+
+         j = 2 * l - 1
+         rj = real(j)
+         do k = 0, j - 1
+            sqrt_jmk = dsqrt(real(j-k,kind=dp))
+            sqrt_kp1 = dsqrt(real(k+1,kind=dp))
+            do i = 0, j - 1
+               sqrt_jmi = dsqrt(real(j-i,kind=dp))
+               sqrt_ip1 = dsqrt(real(i+1,kind=dp))
+               dlj = dl(k - (l - 1), i - (l - 1)) / rj
+               dd(i, k) = dd(i, k) &
+                    + sqrt_jmi * sqrt_jmk * dlj * coshb
+               dd(i + 1, k) = dd(i + 1, k) &
+                    - sqrt_ip1 * sqrt_jmk * dlj * sinhb
+               dd(i, k + 1) = dd(i, k + 1) &
+                    + sqrt_jmi * sqrt_kp1 * dlj * sinhb
+               dd(i + 1, k + 1) = dd(i + 1, k + 1) &
+                    + sqrt_ip1 * sqrt_kp1 * dlj * coshb
+            end do
+         end do
+
+         ! Having constructed the d^(l+1/2) matrix in dd, do the second
+         ! half-step recursion from dd to dl. Start by initilalising  
+         ! the plane of the dl-matrix to 0.0.
+
+         dl(- l: l, - l: l) = 0.0_dp
+
+         j = 2 * l
+         rj = real(j)
+         do k = 0, j - 1
+            sqrt_jmk = dsqrt(real(j-k,kind=dp))
+            sqrt_kp1 = dsqrt(real(k+1,kind=dp))
+            do i = 0, j - 1
+               sqrt_jmi = dsqrt(real(j-i,kind=dp))
+               sqrt_ip1 = dsqrt(real(i+1,kind=dp))
+               ddj = dd(i, k) / rj
+               dl(k - l, i - l) = dl(k - l, i - l) &
+                    + sqrt_jmi * sqrt_jmk * ddj * coshb
+               dl(k - l, i + 1 - l) = dl(k - l, i + 1 - l) &
+                    - sqrt_ip1 * sqrt_jmk * ddj * sinhb
+               dl(k + 1 - l, i - l) = dl(k + 1 - l, i - l) &
+                    + sqrt_jmi * sqrt_kp1 * ddj * sinhb
+               dl(k + 1 - l, i + 1 - l) = dl(k + 1 - l, i + 1 - l) &
+                    + sqrt_ip1 * sqrt_kp1 * ddj * coshb
+            end do
+         end do
+
+         ! Free temporary matrix.
+!         deallocate(dd)
+
+      end if
+
+    end subroutine ssht_dl_beta_recursion
 
 
 end module ssht_dl_mod

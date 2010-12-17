@@ -46,7 +46,7 @@ program ssht_test
   end interface
 
   character(len=64) :: arg
-  integer, parameter :: N_repeat = 10
+  integer, parameter :: N_repeat = 1
   integer :: verbosity = 0
   integer :: fail = 0, seed, i_repeat
   real :: time_start, time_end

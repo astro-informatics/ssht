@@ -1975,7 +1975,16 @@ contains
     ! Compute Fmm.
     Fmm(0:L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
     do el = abs(spin), L-1
-       call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+
+       if (el == abs(spin)) then
+          call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+       else
+          call ssht_dl_beta_recursion(dl(-el:el,-el:el), PION2, el)
+       end if
+
+
+!TODO: for real signal only need quarter plane of dl and use symmetry to get value for -spin.
+
        elfactor = sqrt((2d0*el+1d0)/(4d0*PI))
        do m = 0, el
           call ssht_sampling_elm2ind(ind, el, m)
@@ -4329,7 +4338,15 @@ contains
     ! Compute flm.
     flm(0::L**2-1) = cmplx(0d0, 0d0)
     do el = abs(spin), L-1
-       call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+       if (el == abs(spin)) then
+          call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+       else
+          call ssht_dl_beta_recursion(dl(-el:el,-el:el), PION2, el)
+       end if
+
+
+
+
        elfactor = sqrt((2d0*el+1d0)/(4d0*PI))
        do m = 0, el
           call ssht_sampling_elm2ind(ind, el, m)
