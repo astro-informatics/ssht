@@ -99,9 +99,13 @@ module ssht_dl_mod
   
       real(kind = dp) :: lambda, xllp1, xm, big, bigi, bigi2, c, s, omc, &
         lbig, expo, renorm, ratio, c2, t, si, ang, big_const
-      real(kind = dp), pointer :: cp(:) => null(), cpi(:) => null(), &
-        cp2(:) => null(), log_first_row(:) => null(), sign(:) => null(), &
-        lrenorm(:) => null()
+      real(kind = dp) :: cp(1:2 * l + 1)
+      real(kind = dp) :: cpi(1:2 * l + 1)
+      real(kind = dp) :: cp2(1:2 * l + 1)
+      real(kind = dp) :: log_first_row(1:2 * l + 1)
+      real(kind = dp) :: sign(1:2 * l + 1)
+      real(kind = dp) :: lrenorm(1:2 * l + 1)
+
       integer :: index, i, m, im, j, lp1
   
       ! Added by Jason McEwen 19/11/05
@@ -117,13 +121,6 @@ module ssht_dl_mod
   
       lp1 = l + 1
       big_const = 1.0d150
-  
-      allocate(cp(2 * l + 1))
-      allocate(cpi(2 * l + 1))
-      allocate(cp2(2 * l + 1))
-      allocate(log_first_row(2 * l + 1))
-      allocate(sign(2 * l + 1))
-      allocate(lrenorm(2 * l + 1))
 
       ang=beta
       c=dcos(ang)
@@ -228,15 +225,6 @@ module ssht_dl_mod
         end do
       end do
   
-      ! Free memory.
-      ! (Added by JDM 07/06/2004)
-      deallocate(cp)
-      deallocate(cpi)
-      deallocate(cp2)
-      deallocate(log_first_row)
-      deallocate(sign)
-      deallocate(lrenorm)
-  
     end subroutine ssht_dl_beta_operator_core
 
     
@@ -334,7 +322,6 @@ module ssht_dl_mod
       integer :: sign, i, j, k, m, mm
       real(kind = dp) :: sinb, cosb, sinhb, coshb, rj, dlj, ddj
       real(kind = dp) :: sqrt_jmk, sqrt_kp1, sqrt_jmi, sqrt_ip1
-!      real(kind = dp), pointer :: dd(:, :) => null()
       real(kind=dp) :: dd(0: 2 * l + 1, 0: 2 * l + 1)
 
 
@@ -373,7 +360,6 @@ module ssht_dl_mod
 
       else
 
-!         allocate(dd(0: 2 * l + 1, 0: 2 * l + 1))
          sinhb = sin(beta / 2.0)
          coshb = - cos(beta / 2.0)
 
@@ -427,9 +413,6 @@ module ssht_dl_mod
                     + sqrt_ip1 * sqrt_kp1 * ddj * coshb
             end do
          end do
-
-         ! Free temporary matrix.
-!         deallocate(dd)
 
       end if
 
