@@ -30,8 +30,11 @@ module ssht_dl_mod
     ssht_dl_beta_operator, &
     ssht_dl_beta_recursion, &
     ssht_dl_beta_recursion_sqrttable, &
+    ssht_dl_beta_recursion_sqrttable_halfpi, &
     ssht_dl_beta_recursion_fill, &
-    ssht_dl_beta_recursion_fill_pion2
+    ssht_dl_beta_recursion_fill_halfpi, &
+    ssht_dl_halfpi_trapani_eighth, &
+    ssht_dl_halfpi_trapani_fill_eighth2all
 
 
   !----------------------------------------------------------------------------
@@ -524,6 +527,7 @@ module ssht_dl_mod
     end subroutine ssht_dl_beta_recursion_sqrttable
 
 
+    ! computed for m = -l:l, mm=-l:0
     subroutine ssht_dl_beta_recursion_fill(dl, l)
 
       integer, intent(in) :: l
@@ -540,8 +544,137 @@ module ssht_dl_mod
 
     end subroutine ssht_dl_beta_recursion_fill
 
+
+    subroutine ssht_dl_beta_recursion_sqrttable_halfpi(dl, beta, l, sqrt_tbl)
+
+      integer, intent(in) :: l
+      real(kind = dp), intent(out) :: dl(-l:l,-l:l)
+      real(kind = dp), intent(in) :: beta
+      real(kind = dp), intent(in) :: sqrt_tbl(0:2*l)
+
+      integer :: sign, i, j, k, m, mm
+      real(kind = dp) :: sinb, cosb, sinhb, coshb, rj, dlj, ddj
+      real(kind = dp) :: sqrt_jmk, sqrt_kp1, sqrt_jmi, sqrt_ip1
+      real(kind=dp) :: dd(0: 2 * l + 1, 0: 2 * l + 1)
+
+
+      if (l < 0) then
+
+         call ssht_error(SSHT_ERROR_ARG_INVALID, 'ssht_dl_beta_recursion', &
+              comment_add='el < 0');
+
+      ! For the special cases of l = 0 use the direct formula.
+      else if (l == 0) then
+
+         dl(0, 0) = 1.0_dp
+
+      ! For the special cases of l = 1 use the direct formula.
+      else if (l == 1) then
+
+         ! These formulae are taken directly from Brink & Satchler.
+
+         cosb = cos(beta)
+         sinb = sin(beta)
+
+         coshb = cos(beta / 2.0)
+         sinhb = sin(beta / 2.0)
+
+         dl(- 1, - 1) = coshb**2
+         dl(- 1, 0) = sinb / SQRT2
+         dl(- 1, 1) = sinhb**2
+
+         dl(0, - 1) = - sinb / SQRT2
+         dl(0, 0) = cosb
+         dl(0, 1) = sinb / SQRT2
+
+         dl(1, - 1) = sinhb**2
+         dl(1, 0) = - sinb / SQRT2
+         dl(1, 1) = coshb**2
+
+      else
+
+         sinhb = sin(beta / 2.0) ! p
+         coshb = - cos(beta / 2.0) !-q
+
+         ! Initialise the plane of the dl-matrix to 0.0 for the recursion
+         ! from l - 1 to l - 1/2.
+
+         dd(0: 2 * l + 1, 0: 2 * l + 1) = 0.0_dp
+
+         j = 2 * l - 1
+         rj = real(j)
+         do k = 0, j - 1
+!            do i = 0, j - 1
+            do i = 0, l!j/2 + 1
+               dlj = dl(k - (l - 1), i - (l - 1)) / rj
+               dd(i, k) = dd(i, k) &
+                    + sqrt_tbl(j-i) * sqrt_tbl(j-k) * dlj * coshb
+               dd(i + 1, k) = dd(i + 1, k) &
+                    - sqrt_tbl(i+1) * sqrt_tbl(j-k) * dlj * sinhb
+               dd(i, k + 1) = dd(i, k + 1) &
+                    + sqrt_tbl(j-i) * sqrt_tbl(k+1) * dlj * sinhb
+               dd(i + 1, k + 1) = dd(i + 1, k + 1) &
+                    + sqrt_tbl(i+1) * sqrt_tbl(k+1) * dlj * coshb
+            end do
+         end do
+
+         ! Having constructed the d^(l+1/2) matrix in dd, do the second
+         ! half-step recursion from dd to dl. Start by initilalising  
+         ! the plane of the dl-matrix to 0.0.
+
+         dl(- l: l, - l: l) = 0.0_dp
+
+         j = 2 * l
+         rj = real(j)
+!         do k = 0, j - 1
+         do k = 0, j - 1
+!            do i = 0, j - 1
+            do i = 0, l!j/2
+               ddj = dd(i, k) / rj
+               dl(k - l, i - l) = dl(k - l, i - l) &
+                    + sqrt_tbl(j-i) * sqrt_tbl(j-k) * ddj * coshb
+               dl(k - l, i + 1 - l) = dl(k - l, i + 1 - l) &
+                    - sqrt_tbl(i+1) * sqrt_tbl(j-k) * ddj * sinhb
+               dl(k + 1 - l, i - l) = dl(k + 1 - l, i - l) &
+                    + sqrt_tbl(j-i) * sqrt_tbl(k+1) * ddj * sinhb
+               dl(k + 1 - l, i + 1 - l) = dl(k + 1 - l, i + 1 - l) &
+                    + sqrt_tbl(i+1) * sqrt_tbl(k+1) * ddj * coshb
+            end do
+         end do
+
+      end if
+
+    end subroutine ssht_dl_beta_recursion_sqrttable_halfpi
+
+
+
+    ! computed for m = -l:0, mm=-l:0
+    subroutine ssht_dl_beta_recursion_fill_halfpi(dl, l)
+
+      integer, intent(in) :: l
+      real(kind = dp), intent(inout) :: dl(-l:l,-l:l)
+
+      integer :: m, mm
+
+      ! Symmetry in m.
+!!$      do m = 1, l
+!!$         do mm = -l, -1
+!!$            dl(m,mm) = (-1)**(l+mm) * dl(-m,mm)
+!!$         end do
+!!$      end do
+
+      ! Symmetry in mm.
+      do m = -l, l
+         do mm = 1, l
+            dl(m,mm) = (-1)**(l+m) * dl(m,-mm)
+         end do
+      end do
+
+    end subroutine ssht_dl_beta_recursion_fill_halfpi
+
+
     ! computed for m = 0:l, mm=0:m
-    subroutine ssht_dl_beta_recursion_fill_pion2(dl, l)
+    subroutine ssht_dl_beta_recursion_fill_pion2_old(dl, l)
 
       integer, intent(in) :: l
       real(kind = dp), intent(inout) :: dl(-l:l,-l:l)
@@ -569,6 +702,192 @@ module ssht_dl_mod
          end do
       end do
 
-    end subroutine ssht_dl_beta_recursion_fill_pion2
+    end subroutine ssht_dl_beta_recursion_fill_pion2_old
+
+
+
+    ! put the healpix implementation in
+
+
+
+
+!!$    subroutine ssht_dl_beta_risbo_healpix_sqrttable(dl, beta, l, sqrt_tbl)
+!!$
+!!$      integer, intent(in) :: l
+!!$      real(kind = dp), intent(out) :: dl(-l:l,-l:l)
+!!$      real(kind = dp), intent(in) :: beta
+!!$      real(kind = dp), intent(in) :: sqrt_tbl(0:2*l)
+!!$
+!!$
+!!$      allocate(d (-1:2*lmax,   -1:lmax),   stat = status)
+!!$      call assert_alloc(status,code,'d')
+!!$      allocate(dd(-1:2*lmax, -1:lmax), stat = status)
+!!$
+!!$
+!!$
+!!$
+!!$    ! Note: theta has the correct sign.
+!!$    p = sin(theta/2.d0)
+!!$    q = cos(theta/2.d0)
+!!$
+!!$    d  = 0.0_dp ! very important for gather scheme
+!!$    dd = 0.0_dp
+!!$    do ll=0,lmax
+!!$
+!!$
+!!$
+!!$ ! ------ build d-matrix of order l ------
+!!$       if (ll == 0) then
+!!$          d(0,0) = 1.d0
+!!$          goto 2000
+!!$       endif
+!!$       if (ll == 1) then
+!!$          !     initialize d-matrix degree 1/2
+!!$          dd(0,0)  =  q
+!!$          dd(1,0)  = -p
+!!$          dd(0,1)  =  p
+!!$          dd(1,1)  =  q
+!!$          goto 1000
+!!$       endif
+!!$
+!!$       !  l - 1 --> l - 1/2
+!!$       j = 2*ll - 1
+!!$       rsqt(0:j) = sqt(j:0:-1)
+!!$       fj = DBLE(j)
+!!$       qj = q / fj
+!!$       pj = p / fj
+!!$!$OMP parallel default(none) &
+!!$!$OMP   shared(j, fj, d, dd, rsqt, sqt, q, p, qj, pj) &
+!!$!$OMP   private(k)
+!!$!$OMP do schedule(dynamic,100)
+!!$       do k = 0, j/2 ! keep only m' <= -1/2
+!!$          dd(0:j,k) = rsqt(0:j) * ( d(0:j,k)      * (sqt(j-k)  * qj)   &
+!!$               &                  + d(0:j,k-1)    * (sqt(k)    * pj) ) &
+!!$               &    +  sqt(0:j) * ( d(-1:j-1,k-1) * (sqt(k)    * qj)   &
+!!$               &                  - d(-1:j-1,k)   * (sqt(j-k)  * pj) )
+!!$       enddo ! loop on k
+!!$!$OMP end do
+!!$!$OMP end parallel
+!!$       ! l=half-integer, reconstruct m'= 1/2 by symmetry
+!!$       hj = ll-1
+!!$       if (mod(ll,2) == 0) then
+!!$          do k = 0, j-1, 2
+!!$             dd(k,   ll) =   dd(j-k,   hj)
+!!$             dd(k+1, ll) = - dd(j-k-1, hj)
+!!$          enddo
+!!$       else
+!!$          do k = 0, j-1, 2
+!!$             dd(k,   ll) = - dd(j-k,   hj)
+!!$             dd(k+1, ll) =   dd(j-k-1, hj)
+!!$          enddo
+!!$       endif
+!!$
+!!$1000   continue
+!!$
+!!$       !  l - 1/2 --> l
+!!$       j = 2*ll
+!!$       rsqt(0:j) = sqt(j:0:-1)
+!!$       fj = DBLE(j)
+!!$       qj = q / fj
+!!$       pj = p / fj
+!!$!$OMP parallel default(none) &
+!!$!$OMP   shared(j, fj, d, dd, rsqt, sqt, q, p, qj, pj) &
+!!$!$OMP   private(k)
+!!$!$OMP do schedule(dynamic,100)
+!!$       do k = 0, j/2 ! keep only m' <= 0
+!!$          d (0:j,k) = rsqt(0:j) * ( dd(0:j,k)      * (sqt(j-k)  * qj)   &
+!!$               &                  + dd(0:j,k-1)    * (sqt(k)    * pj) ) &
+!!$               &    +  sqt(0:j) * ( dd(-1:j-1,k-1) * (sqt(k)    * qj)   &
+!!$               &                  - dd(-1:j-1,k)   * (sqt(j-k)  * pj) )
+!!$       enddo ! loop on k
+!!$
+!!$
+!!$
+!!$    end subroutine ssht_dl_beta_risbo_healpix_sqrttable
+
+
+
+
+    subroutine ssht_dl_halfpi_trapani_eighth(dl, el)
+
+      integer, intent(in) :: el
+      real(dp), intent(out) :: dl(-el:el,-el:el)
+
+      real(dp) :: ddl(-el:el,-el:el)
+      integer :: m, mm
+      real(dp) :: t1, t2
+
+      if (el == 0) then
+
+         dl(0,0) = 1d0
+
+      else
+
+         ! Eqn (9)
+         ddl(el,0) = - sqrt( (2d0*el-1d0) / real(2d0*el,dp) ) &
+              * dl(el-1,0)
+
+         ! Eqn (10)
+         do mm = 1, el
+            ddl(el,mm) = sqrt( el/2d0 * (2d0*el-1d0) / real((el+mm) * (el+mm-1), dp) ) &
+                 * dl(el-1,mm-1)
+         end do
+
+         ! Eqn (11)
+         do mm = 0, el
+            do m = el-1, mm, -1
+               t1 = ( 2e0 * mm / sqrt(real((el-m) * (el+m+1), dp)) ) * &
+                    dl(m+1,mm)
+               if ((m + 2) > el) then
+                  t2 = 0d0
+               else
+                  t2 = sqrt( (el-m-1) * (el+m+2) / real((el-m) * (el+m+1), dp) ) * &
+                       dl(m+2,mm)
+               end if
+               ddl(m,mm) = t1 - t2
+            end do
+         end do
+
+         dl(-el:el,-el:el) = ddl(-el:el,-el:el)
+
+         ! todo: optimise edge by reducing m sum to start from el-2
+         ! todo: optimise memory by using ddl(0:el) for Eqn (9) and (10), then overwirte dl from (11)
+      end if
+
+    end subroutine ssht_dl_halfpi_trapani_eighth
+
+
+ 
+    ! computed for m = 0:l, mm=0:m
+    subroutine ssht_dl_halfpi_trapani_fill_eighth2all(dl, el)
+
+      integer, intent(in) :: el
+      real(kind = dp), intent(inout) :: dl(-el:el,-el:el)
+
+      integer :: m, mm
+
+      ! Diagonal symmetry.
+      do m = 0, el
+         do mm = m+1, el
+            dl(m,mm) = (-1)**(m+mm) * dl(mm,m)
+         end do
+      end do
+
+      ! Symmetry in m.
+      do m = -el, -1
+         do mm = 0, el
+            dl(m,mm) = (-1)**(el+mm) * dl(-m,mm)
+         end do
+      end do
+
+      ! Symmetry in mm.
+      do m = -el, el
+         do mm = -el, -1
+            dl(m,mm) = (-1)**(el+m) * dl(m,-mm)
+         end do
+      end do
+
+    end subroutine ssht_dl_halfpi_trapani_fill_eighth2all
+
 
 end module ssht_dl_mod
