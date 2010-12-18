@@ -482,7 +482,8 @@ module ssht_dl_mod
          j = 2 * l - 1
          rj = real(j)
          do k = 0, j - 1
-            do i = 0, j - 1
+!            do i = 0, j - 1
+            do i = 0, l!j/2 + 1
                dlj = dl(k - (l - 1), i - (l - 1)) / rj
                dd(i, k) = dd(i, k) &
                     + sqrt_tbl(j-i) * sqrt_tbl(j-k) * dlj * coshb
@@ -504,8 +505,8 @@ module ssht_dl_mod
          j = 2 * l
          rj = real(j)
          do k = 0, j - 1
-            do i = 0, j - 1
-!            do i = 0, j/2 - 1
+!            do i = 0, j - 1
+            do i = 0, l!j/2
                ddj = dd(i, k) / rj
                dl(k - l, i - l) = dl(k - l, i - l) &
                     + sqrt_tbl(j-i) * sqrt_tbl(j-k) * ddj * coshb
@@ -530,16 +531,9 @@ module ssht_dl_mod
 
       integer :: m, mm
 
-      ! Diagonal symmetry.
-      do m = -l, -1
-         do mm = -l, l
-            dl(m,mm) = (-1)**(m+mm) * dl(mm,m)
-         end do
-      end do
-
       ! Symmetry through origin.
-      do m = -l, -1
-         do mm = -l, l
+      do m = -l, l
+         do mm = 1, l
             dl(m,mm) = (-1)**(m+mm) * dl(-m,-mm)
          end do
       end do

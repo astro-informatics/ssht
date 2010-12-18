@@ -2047,7 +2047,7 @@ end do
 !       else
           call ssht_dl_beta_recursion_sqrttable(dl(-el:el,-el:el), PION2, el, sqrt_tbl(0:2*el))
 !       end if
-call ssht_dl_beta_recursion_fill_pion2(dl(-el:el,-el:el), el)
+call ssht_dl_beta_recursion_fill(dl(-el:el,-el:el), el)
 
 !TODO: for real signal only need quarter plane of dl and use symmetry to get value for -spin.
 
@@ -4530,7 +4530,7 @@ end do
 !       else
           call ssht_dl_beta_recursion_sqrttable(dl(-el:el,-el:el), PION2, el, sqrt_tbl(0:2*el))
 !       end if
-call ssht_dl_beta_recursion_fill_pion2(dl(-el:el,-el:el), el)
+call ssht_dl_beta_recursion_fill(dl(-el:el,-el:el), el)
 
 
 
