@@ -2053,9 +2053,15 @@ end do
 !       if (el == abs(spin)) then
 !          call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
 !       else
-          call ssht_dl_beta_recursion_sqrttable_half(dl(-el:el,-el:el), PION2, el, sqrt_tbl(0:2*el))
-call ssht_dl_beta_recursion_fill_halfpi(dl(-el:el,-el:el), el)
 
+
+
+!call ssht_dl_halfpi_risbo_eighth_table(dl(-el:el,-el:el), el, sqrt_tbl(0:2*el))
+!call ssht_dl_halfpi_risbo_fill_eighth2full(dl(-el:el,-el:el), el)
+
+
+call ssht_dl_halfpi_trapani_eighth_table(dl(-el:el,-el:el), el, sqrt_tbl(0:2*el))
+call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(-el:el,-el:el), el)
 
 !call ssht_dl_beta_risbo_healpix_sqrttable(dl(-el:el,-el:el), PION2, el, sqrt_tbl(0:2*el))
 !call ssht_dl_beta_recursion_fill(dl(-el:el,-el:el), el)
@@ -4560,10 +4566,15 @@ end do
     flm(0::L**2-1) = cmplx(0d0, 0d0)
     do el = abs(spin), L-1
 !       if (el == abs(spin)) then
+! must use operator if start from spin not 0
 !          call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
 !       else
-          call ssht_dl_beta_recursion_sqrttable_half(dl(-el:el,-el:el), PION2, el, sqrt_tbl(0:2*el))
-call ssht_dl_beta_recursion_fill_halfpi(dl(-el:el,-el:el), el)
+
+!call ssht_dl_halfpi_risbo_eighth_table(dl(-el:el,-el:el), el, sqrt_tbl(0:2*el))
+!call ssht_dl_halfpi_risbo_fill_eighth2full(dl(-el:el,-el:el), el)
+
+call ssht_dl_halfpi_trapani_eighth_table(dl(-el:el,-el:el), el, sqrt_tbl(0:2*el))
+call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(-el:el,-el:el), el)
 
 
 !call ssht_dl_beta_risbo_healpix_sqrttable(dl(-el:el,-el:el), PION2, el, sqrt_tbl(0:2*el))
