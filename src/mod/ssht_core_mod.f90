@@ -2011,12 +2011,18 @@ contains
     integer :: spin
 
 
+
+real(dp) :: dl_mm_spin
+
+
 !!$real(dp) :: sqrt_tbl(0:2*(L-1))
 !!$do el = 0, 2*(L-1)
 !!$   sqrt_tbl(el) = dsqrt(real(el,kind=dp))
 !!$end do
-
-real(dp) :: dl_mm_spin
+real(dp) :: sqrt_tbl(0:2*(L-1)+1)
+do el = 0, 2*(L-1) + 1
+   sqrt_tbl(el) = dsqrt(real(el,kind=dp))
+end do
 
     spin = 0
 
@@ -2050,7 +2056,9 @@ real(dp) :: dl_mm_spin
 !          call ssht_dl_beta_recursion_sqrttable_halfpi(dl(-el:el,-el:el), PION2, el, sqrt_tbl(0:2*el))
 !call ssht_dl_beta_recursion_fill_halfpi(dl(-el:el,-el:el), el)
 
-call ssht_dl_halfpi_trapani_eighth(dl(-el:el,-el:el), el)
+!call ssht_dl_halfpi_trapani_eighth(dl(-el:el,-el:el), el)
+call ssht_dl_halfpi_trapani_eighth_sqrt_table(dl(-el:el,-el:el), el, sqrt_tbl(0:2*el+1))
+
 !call ssht_dl_halfpi_trapani_fill_eighth2all(dl(-el:el,-el:el), el)
 call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(-el:el,-el:el), el)
 
@@ -4417,15 +4425,20 @@ call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(-el:el,-el:el), el)
 
 
 
-
+real(dp) :: dl_mm_spin
 
 
 !!$real(dp) :: sqrt_tbl(0:2*(L-1))
 !!$do el = 0, 2*(L-1)
 !!$   sqrt_tbl(el) = dsqrt(real(el,kind=dp))
 !!$end do
+real(dp) :: sqrt_tbl(0:2*(L-1)+1)
+do el = 0, 2*(L-1) + 1
+   sqrt_tbl(el) = dsqrt(real(el,kind=dp))
+end do
 
-real(dp) :: dl_mm_spin
+
+
 
     spin = 0
 
@@ -4546,7 +4559,8 @@ real(dp) :: dl_mm_spin
 !          call ssht_dl_beta_recursion_sqrttable_halfpi(dl(-el:el,-el:el), PION2, el, sqrt_tbl(0:2*el))
 !call ssht_dl_beta_recursion_fill_halfpi(dl(-el:el,-el:el), el)
 
-call ssht_dl_halfpi_trapani_eighth(dl(-el:el,-el:el), el)
+!call ssht_dl_halfpi_trapani_eighth(dl(-el:el,-el:el), el)
+call ssht_dl_halfpi_trapani_eighth_sqrt_table(dl(-el:el,-el:el), el, sqrt_tbl(0:2*el+1))
 !call ssht_dl_halfpi_trapani_fill_eighth2all(dl(-el:el,-el:el), el)
 call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(-el:el,-el:el), el)
 !       end if

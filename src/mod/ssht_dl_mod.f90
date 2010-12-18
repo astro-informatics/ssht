@@ -34,6 +34,7 @@ module ssht_dl_mod
     ssht_dl_beta_recursion_fill, &
     ssht_dl_beta_recursion_fill_halfpi, &
     ssht_dl_halfpi_trapani_eighth, &
+    ssht_dl_halfpi_trapani_eighth_sqrt_table, &
     ssht_dl_halfpi_trapani_fill_eighth2all, &
     ssht_dl_halfpi_trapani_fill_eighth2quarter
 
@@ -673,38 +674,6 @@ module ssht_dl_mod
     end subroutine ssht_dl_beta_recursion_fill_halfpi
 
 
-    ! computed for m = 0:l, mm=0:m
-    subroutine ssht_dl_beta_recursion_fill_pion2_old(dl, l)
-
-      integer, intent(in) :: l
-      real(kind = dp), intent(inout) :: dl(-l:l,-l:l)
-
-      integer :: m, mm
-
-      ! Diagonal symmetry.
-      do m = 0, l
-         do mm = m+1, l
-            dl(m,mm) = (-1)**(m+mm) * dl(mm,m)
-         end do
-      end do
-
-      ! Symmetry in m.
-      do m = -l, -1
-         do mm = 0, l
-            dl(m,mm) = (-1)**(l+mm) * dl(-m,mm)
-         end do
-      end do
-
-      ! Symmetry in mm.
-      do m = -l, l
-         do mm = -l, -1
-            dl(m,mm) = (-1)**(l+m) * dl(m,-mm)
-         end do
-      end do
-
-    end subroutine ssht_dl_beta_recursion_fill_pion2_old
-
-
 
     ! put the healpix implementation in
 
@@ -857,6 +826,60 @@ module ssht_dl_mod
       end if
 
     end subroutine ssht_dl_halfpi_trapani_eighth
+
+
+    subroutine ssht_dl_halfpi_trapani_eighth_sqrt_table(dl, el, sqrt_tbl)
+
+      integer, intent(in) :: el
+      real(dp), intent(inout) :: dl(-el:el,-el:el)
+      real(kind = dp), intent(in) :: sqrt_tbl(0:2*el+1)
+
+
+      real(dp) :: dmm(0:el)
+      integer :: m, mm
+      real(dp) :: t1, t2
+
+      if (el == 0) then
+
+         dl(0,0) = 1d0
+
+      else
+
+         ! Eqn (9)
+         dmm(0) = - sqrt_tbl(2*el-1) / sqrt_tbl(2*el) &
+              * dl(el-1,0)
+
+         ! Eqn (10)
+         do mm = 1, el
+            dmm(mm) = sqrt_tbl(el) / SQRT2 &
+                 * sqrt_tbl(2*el-1) / sqrt_tbl(el+mm) / sqrt_tbl(el+mm-1) &
+                 * dl(el-1,mm-1)
+         end do
+
+         dl(el,0:el) = dmm(0:el)
+
+         ! Eqn (11)
+         do mm = 0, el
+
+            ! m = el-1 case (t2 = 0). 
+            m = el-1
+            dl(m,mm) = 2e0 * mm / sqrt_tbl(el-m) / sqrt_tbl(el+m+1) &
+                 * dl(m+1,mm)
+
+            ! Remaining m cases.
+            do m = el-2, mm, -1
+               t1 = 2e0 * mm / sqrt_tbl(el-m) / sqrt_tbl(el+m+1) &
+                    * dl(m+1,mm)
+               t2 = sqrt_tbl(el-m-1) * sqrt_tbl(el+m+2) / sqrt_tbl(el-m) / sqrt_tbl(el+m+1) &
+                    * dl(m+2,mm)
+               dl(m,mm) = t1 - t2
+            end do
+         end do
+
+      end if
+
+    end subroutine ssht_dl_halfpi_trapani_eighth_sqrt_table
+
 
 
  
