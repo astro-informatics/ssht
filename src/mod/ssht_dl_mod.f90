@@ -34,8 +34,8 @@ module ssht_dl_mod
     ssht_dl_beta_recursion_fill, &
     ssht_dl_beta_recursion_fill_halfpi, &
     ssht_dl_halfpi_trapani_eighth, &
-    ssht_dl_halfpi_trapani_fill_eighth2all
-
+    ssht_dl_halfpi_trapani_fill_eighth2all, &
+    ssht_dl_halfpi_trapani_fill_eighth2quarter
 
   !----------------------------------------------------------------------------
 
@@ -833,29 +833,27 @@ module ssht_dl_mod
                  * dl(el-1,mm-1)
          end do
 
-!todo: remove         
-         dl(-el:el,-el:el) = 0d0 ! remove this
          dl(el,0:el) = dmm(0:el)
 
          ! Eqn (11)
          do mm = 0, el
-            do m = el-1, mm, -1
+
+            ! m = el - 1 case (t2 = 0). 
+            m = el-1
+            t1 = ( 2e0 * mm / sqrt(real((el-m) * (el+m+1), dp)) ) * &
+                 dl(m+1,mm)
+            dl(m,mm) = t1
+
+            ! Remaining m cases.
+            do m = el-2, mm, -1
                t1 = ( 2e0 * mm / sqrt(real((el-m) * (el+m+1), dp)) ) * &
                     dl(m+1,mm)
-               if ((m + 2) > el) then
-                  t2 = 0d0
-               else
-                  t2 = sqrt( (el-m-1) * (el+m+2) / real((el-m) * (el+m+1), dp) ) * &
-                       dl(m+2,mm)
-               end if
+               t2 = sqrt( (el-m-1) * (el+m+2) / real((el-m) * (el+m+1), dp) ) * &
+                    dl(m+2,mm)
                dl(m,mm) = t1 - t2
             end do
          end do
 
-
-
-         ! todo: optimise edge by reducing m sum to start from el-2
-         ! todo: optimise memory by using ddl(0:el) for Eqn (9) and (10), then overwirte dl from (11)
       end if
 
     end subroutine ssht_dl_halfpi_trapani_eighth
@@ -892,6 +890,24 @@ module ssht_dl_mod
       end do
 
     end subroutine ssht_dl_halfpi_trapani_fill_eighth2all
+
+
+    ! computed for m = 0:l, mm=0:m
+    subroutine ssht_dl_halfpi_trapani_fill_eighth2quarter(dl, el)
+
+      integer, intent(in) :: el
+      real(kind = dp), intent(inout) :: dl(-el:el,-el:el)
+
+      integer :: m, mm
+
+      ! Diagonal symmetry.
+      do m = 0, el
+         do mm = m+1, el
+            dl(m,mm) = (-1)**(m+mm) * dl(mm,m)
+         end do
+      end do
+
+    end subroutine ssht_dl_halfpi_trapani_fill_eighth2quarter
 
 
 end module ssht_dl_mod

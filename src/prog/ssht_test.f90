@@ -121,8 +121,8 @@ program ssht_test
 
 
 
-  allocate(dlmn(0:L-1, -(L-1):L-1, -(L-1):L-1), stat=fail)
-
+!  allocate(dlmn(0:L-1, -(L-1):L-1, -(L-1):L-1), stat=fail)
+!deallocate!
 
 
 
@@ -261,11 +261,11 @@ program ssht_test
         flm_syn(0:L**2-1) = cmplx(0d0, 0d0)
 
 
-        write(*,*) 'Precomputing dlmn...'
-        do el = 0,L-1
-           call ssht_dl_beta_operator(dlmn(el, -el:el,-el:el), PION2, el)
-        end do
-        write(*,*) 'Finished precomputing dlmn!'
+!!$        write(*,*) 'Precomputing dlmn...'
+!!$        do el = 0,L-1
+!!$           call ssht_dl_beta_operator(dlmn(el, -el:el,-el:el), PION2, el)
+!!$        end do
+!!$        write(*,*) 'Finished precomputing dlmn!'
 
 
         call ssht_test_gen_flm_real(L, flm_orig, seed)

@@ -2011,10 +2011,12 @@ contains
     integer :: spin
 
 
-real(dp) :: sqrt_tbl(0:2*(L-1))
-do el = 0, 2*(L-1)
-   sqrt_tbl(el) = dsqrt(real(el,kind=dp))
-end do
+!!$real(dp) :: sqrt_tbl(0:2*(L-1))
+!!$do el = 0, 2*(L-1)
+!!$   sqrt_tbl(el) = dsqrt(real(el,kind=dp))
+!!$end do
+
+real(dp) :: dl_mm_spin
 
     spin = 0
 
@@ -2049,8 +2051,8 @@ end do
 !call ssht_dl_beta_recursion_fill_halfpi(dl(-el:el,-el:el), el)
 
 call ssht_dl_halfpi_trapani_eighth(dl(-el:el,-el:el), el)
-call ssht_dl_halfpi_trapani_fill_eighth2all(dl(-el:el,-el:el), el)
-
+!call ssht_dl_halfpi_trapani_fill_eighth2all(dl(-el:el,-el:el), el)
+call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(-el:el,-el:el), el)
 
 !       end if
 
@@ -2061,10 +2063,17 @@ call ssht_dl_halfpi_trapani_fill_eighth2all(dl(-el:el,-el:el), el)
        do m = 0, el
           call ssht_sampling_elm2ind(ind, el, m)
           do mm = 0, el
+             if (spin <= 0) then
+                dl_mm_spin = dl(mm,-spin)
+             else
+                dl_mm_spin = (-1)**(el+mm) * dl(mm,spin)
+             end if
+
              Fmm(m,mm) = Fmm(m,mm) + &
                   (-1)**spin * elfactor &
                   * exp(-I*PION2*(m+spin)) &
-                  * dl(mm,m) * dl(mm,-spin) &
+!!$                  * dl(mm,m) * dl(mm,-spin) &
+                  * dl(mm,m) * dl_mm_spin &
                   * flm(ind)
           end do
        end do
@@ -4411,12 +4420,12 @@ call ssht_dl_halfpi_trapani_fill_eighth2all(dl(-el:el,-el:el), el)
 
 
 
-real(dp) :: sqrt_tbl(0:2*(L-1))
-do el = 0, 2*(L-1)
-   sqrt_tbl(el) = dsqrt(real(el,kind=dp))
-end do
+!!$real(dp) :: sqrt_tbl(0:2*(L-1))
+!!$do el = 0, 2*(L-1)
+!!$   sqrt_tbl(el) = dsqrt(real(el,kind=dp))
+!!$end do
 
-
+real(dp) :: dl_mm_spin
 
     spin = 0
 
@@ -4538,8 +4547,8 @@ end do
 !call ssht_dl_beta_recursion_fill_halfpi(dl(-el:el,-el:el), el)
 
 call ssht_dl_halfpi_trapani_eighth(dl(-el:el,-el:el), el)
-call ssht_dl_halfpi_trapani_fill_eighth2all(dl(-el:el,-el:el), el)
-
+!call ssht_dl_halfpi_trapani_fill_eighth2all(dl(-el:el,-el:el), el)
+call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(-el:el,-el:el), el)
 !       end if
 
 
@@ -4555,11 +4564,19 @@ call ssht_dl_halfpi_trapani_fill_eighth2all(dl(-el:el,-el:el), el)
                * dl(0,m) * dl(0,-spin) &
                * Gmm(m,0)
 
-          do mm = 1, el             
+          do mm = 1, el 
+
+             if (spin <= 0) then
+                dl_mm_spin = dl(mm,-spin)
+             else
+                dl_mm_spin = (-1)**(el+mm) * dl(mm,spin)
+             end if
+            
              flm(ind) = flm(ind) + &
                   (-1)**spin * elfactor &
                   * exp(I*PION2*(m+spin)) &
-                  * dl(mm,m) * dl(mm,-spin) &
+!!$                  * dl(mm,m) * dl(mm,-spin) &
+                  * dl(mm,m) * dl_mm_spin &
                   * (Gmm(m,mm) + (-1)**(m+spin)*Gmm(m,-mm))
           end do
        end do
