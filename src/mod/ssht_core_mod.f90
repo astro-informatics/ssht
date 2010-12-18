@@ -2042,12 +2042,12 @@ end do
 
     do el = abs(spin), L-1
 
-       if (el == abs(spin)) then
-          call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
-       else
+!       if (el == abs(spin)) then
+!          call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+!       else
           call ssht_dl_beta_recursion_sqrttable(dl(-el:el,-el:el), PION2, el, sqrt_tbl(0:2*el))
-       end if
-
+!       end if
+call ssht_dl_beta_recursion_fill_pion2(dl(-el:el,-el:el), el)
 
 !TODO: for real signal only need quarter plane of dl and use symmetry to get value for -spin.
 
@@ -4525,12 +4525,12 @@ end do
     ! Compute flm.
     flm(0::L**2-1) = cmplx(0d0, 0d0)
     do el = abs(spin), L-1
-       if (el == abs(spin)) then
-          call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
-       else
+!       if (el == abs(spin)) then
+!          call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+!       else
           call ssht_dl_beta_recursion_sqrttable(dl(-el:el,-el:el), PION2, el, sqrt_tbl(0:2*el))
-       end if
-
+!       end if
+call ssht_dl_beta_recursion_fill_pion2(dl(-el:el,-el:el), el)
 
 
 

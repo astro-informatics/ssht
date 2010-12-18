@@ -29,7 +29,9 @@ module ssht_dl_mod
   public :: &
     ssht_dl_beta_operator, &
     ssht_dl_beta_recursion, &
-    ssht_dl_beta_recursion_sqrttable
+    ssht_dl_beta_recursion_sqrttable, &
+    ssht_dl_beta_recursion_fill, &
+    ssht_dl_beta_recursion_fill_pion2
 
 
   !----------------------------------------------------------------------------
@@ -421,7 +423,7 @@ module ssht_dl_mod
 
 
 
- subroutine ssht_dl_beta_recursion_sqrttable(dl, beta, l, sqrt_tbl)
+    subroutine ssht_dl_beta_recursion_sqrttable(dl, beta, l, sqrt_tbl)
 
       integer, intent(in) :: l
       real(kind = dp), intent(out) :: dl(-l:l,-l:l)
@@ -503,6 +505,7 @@ module ssht_dl_mod
          rj = real(j)
          do k = 0, j - 1
             do i = 0, j - 1
+!            do i = 0, j/2 - 1
                ddj = dd(i, k) / rj
                dl(k - l, i - l) = dl(k - l, i - l) &
                     + sqrt_tbl(j-i) * sqrt_tbl(j-k) * ddj * coshb
@@ -518,5 +521,60 @@ module ssht_dl_mod
       end if
 
     end subroutine ssht_dl_beta_recursion_sqrttable
+
+
+    subroutine ssht_dl_beta_recursion_fill(dl, l)
+
+      integer, intent(in) :: l
+      real(kind = dp), intent(inout) :: dl(-l:l,-l:l)
+
+      integer :: m, mm
+
+      ! Diagonal symmetry.
+      do m = -l, -1
+         do mm = -l, l
+            dl(m,mm) = (-1)**(m+mm) * dl(mm,m)
+         end do
+      end do
+
+      ! Symmetry through origin.
+      do m = -l, -1
+         do mm = -l, l
+            dl(m,mm) = (-1)**(m+mm) * dl(-m,-mm)
+         end do
+      end do
+
+    end subroutine ssht_dl_beta_recursion_fill
+
+    ! computed for m = 0:l, mm=0:m
+    subroutine ssht_dl_beta_recursion_fill_pion2(dl, l)
+
+      integer, intent(in) :: l
+      real(kind = dp), intent(inout) :: dl(-l:l,-l:l)
+
+      integer :: m, mm
+
+      ! Diagonal symmetry.
+      do m = 0, l
+         do mm = m+1, l
+            dl(m,mm) = (-1)**(m+mm) * dl(mm,m)
+         end do
+      end do
+
+      ! Symmetry in m.
+      do m = -l, -1
+         do mm = 0, l
+            dl(m,mm) = (-1)**(l+mm) * dl(-m,mm)
+         end do
+      end do
+
+      ! Symmetry in mm.
+      do m = -l, l
+         do mm = -l, -1
+            dl(m,mm) = (-1)**(l+m) * dl(m,-mm)
+         end do
+      end do
+
+    end subroutine ssht_dl_beta_recursion_fill_pion2
 
 end module ssht_dl_mod
