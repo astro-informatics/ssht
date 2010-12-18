@@ -811,9 +811,9 @@ module ssht_dl_mod
     subroutine ssht_dl_halfpi_trapani_eighth(dl, el)
 
       integer, intent(in) :: el
-      real(dp), intent(out) :: dl(-el:el,-el:el)
+      real(dp), intent(inout) :: dl(-el:el,-el:el)
 
-      real(dp) :: ddl(-el:el,-el:el)
+      real(dp) :: dmm(0:el)
       integer :: m, mm
       real(dp) :: t1, t2
 
@@ -824,14 +824,18 @@ module ssht_dl_mod
       else
 
          ! Eqn (9)
-         ddl(el,0) = - sqrt( (2d0*el-1d0) / real(2d0*el,dp) ) &
+         dmm(0) = - sqrt( (2d0*el-1d0) / real(2d0*el,dp) ) &
               * dl(el-1,0)
 
          ! Eqn (10)
          do mm = 1, el
-            ddl(el,mm) = sqrt( el/2d0 * (2d0*el-1d0) / real((el+mm) * (el+mm-1), dp) ) &
+            dmm(mm) = sqrt( el/2d0 * (2d0*el-1d0) / real((el+mm) * (el+mm-1), dp) ) &
                  * dl(el-1,mm-1)
          end do
+
+!todo: remove         
+         dl(-el:el,-el:el) = 0d0 ! remove this
+         dl(el,0:el) = dmm(0:el)
 
          ! Eqn (11)
          do mm = 0, el
@@ -844,11 +848,11 @@ module ssht_dl_mod
                   t2 = sqrt( (el-m-1) * (el+m+2) / real((el-m) * (el+m+1), dp) ) * &
                        dl(m+2,mm)
                end if
-               ddl(m,mm) = t1 - t2
+               dl(m,mm) = t1 - t2
             end do
          end do
 
-         dl(-el:el,-el:el) = ddl(-el:el,-el:el)
+
 
          ! todo: optimise edge by reducing m sum to start from el-2
          ! todo: optimise memory by using ddl(0:el) for Eqn (9) and (10), then overwirte dl from (11)

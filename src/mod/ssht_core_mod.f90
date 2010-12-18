@@ -2045,9 +2045,15 @@ end do
 !       if (el == abs(spin)) then
 !          call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
 !       else
-          call ssht_dl_beta_recursion_sqrttable_halfpi(dl(-el:el,-el:el), PION2, el, sqrt_tbl(0:2*el))
+!          call ssht_dl_beta_recursion_sqrttable_halfpi(dl(-el:el,-el:el), PION2, el, sqrt_tbl(0:2*el))
+!call ssht_dl_beta_recursion_fill_halfpi(dl(-el:el,-el:el), el)
+
+call ssht_dl_halfpi_trapani_eighth(dl(-el:el,-el:el), el)
+call ssht_dl_halfpi_trapani_fill_eighth2all(dl(-el:el,-el:el), el)
+
+
 !       end if
-call ssht_dl_beta_recursion_fill_halfpi(dl(-el:el,-el:el), el)
+
 
 !TODO: for real signal only need quarter plane of dl and use symmetry to get value for -spin.
 
@@ -4528,9 +4534,14 @@ end do
 !       if (el == abs(spin)) then
 !          call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
 !       else
-          call ssht_dl_beta_recursion_sqrttable_halfpi(dl(-el:el,-el:el), PION2, el, sqrt_tbl(0:2*el))
+!          call ssht_dl_beta_recursion_sqrttable_halfpi(dl(-el:el,-el:el), PION2, el, sqrt_tbl(0:2*el))
+!call ssht_dl_beta_recursion_fill_halfpi(dl(-el:el,-el:el), el)
+
+call ssht_dl_halfpi_trapani_eighth(dl(-el:el,-el:el), el)
+call ssht_dl_halfpi_trapani_fill_eighth2all(dl(-el:el,-el:el), el)
+
 !       end if
-call ssht_dl_beta_recursion_fill_halfpi(dl(-el:el,-el:el), el)
+
 
 
 
