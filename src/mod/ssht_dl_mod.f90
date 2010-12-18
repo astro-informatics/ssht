@@ -888,7 +888,7 @@ module ssht_dl_mod
     !! square roots of integers to avoid recomputing them.
     !!
     !! Notes:
-    !!   - Adapted from Healpix.
+    !!   - Adapted from Healpix rotate_alm_d from alm_map_dd_inc.f90.
     !!   -  **** DOES NOT WORK PRESENTLY (PERHAPS DIFFERENT CONVENTIONS?) ****
     !!
     !! Variables:
