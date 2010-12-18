@@ -28,7 +28,8 @@ module ssht_dl_mod
 
   public :: &
     ssht_dl_beta_operator, &
-    ssht_dl_beta_recursion
+    ssht_dl_beta_recursion, &
+    ssht_dl_beta_recursion_sqrttable
 
 
   !----------------------------------------------------------------------------
@@ -298,7 +299,7 @@ module ssht_dl_mod
     ! ssht_dl_beta_recursion
     !
     !! Calculates the lth plane of a d-matrix using Risbo's recursion method.
-    !! For l>1, required the dl plane to be computed already with values for
+    !! For l>1, require the dl plane to be computed already with values for
     !! l-1.
     !!
     !! Variables:
@@ -360,8 +361,8 @@ module ssht_dl_mod
 
       else
 
-         sinhb = sin(beta / 2.0)
-         coshb = - cos(beta / 2.0)
+         sinhb = sin(beta / 2.0) ! p
+         coshb = - cos(beta / 2.0) !-q
 
          ! Initialise the plane of the dl-matrix to 0.0 for the recursion
          ! from l - 1 to l - 1/2.
@@ -418,5 +419,104 @@ module ssht_dl_mod
 
     end subroutine ssht_dl_beta_recursion
 
+
+
+ subroutine ssht_dl_beta_recursion_sqrttable(dl, beta, l, sqrt_tbl)
+
+      integer, intent(in) :: l
+      real(kind = dp), intent(out) :: dl(-l:l,-l:l)
+      real(kind = dp), intent(in) :: beta
+      real(kind = dp), intent(in) :: sqrt_tbl(0:2*l)
+
+      integer :: sign, i, j, k, m, mm
+      real(kind = dp) :: sinb, cosb, sinhb, coshb, rj, dlj, ddj
+      real(kind = dp) :: sqrt_jmk, sqrt_kp1, sqrt_jmi, sqrt_ip1
+      real(kind=dp) :: dd(0: 2 * l + 1, 0: 2 * l + 1)
+
+
+      if (l < 0) then
+
+         call ssht_error(SSHT_ERROR_ARG_INVALID, 'ssht_dl_beta_recursion', &
+              comment_add='el < 0');
+
+      ! For the special cases of l = 0 use the direct formula.
+      else if (l == 0) then
+
+         dl(0, 0) = 1.0_dp
+
+      ! For the special cases of l = 1 use the direct formula.
+      else if (l == 1) then
+
+         ! These formulae are taken directly from Brink & Satchler.
+
+         cosb = cos(beta)
+         sinb = sin(beta)
+
+         coshb = cos(beta / 2.0)
+         sinhb = sin(beta / 2.0)
+
+         dl(- 1, - 1) = coshb**2
+         dl(- 1, 0) = sinb / SQRT2
+         dl(- 1, 1) = sinhb**2
+
+         dl(0, - 1) = - sinb / SQRT2
+         dl(0, 0) = cosb
+         dl(0, 1) = sinb / SQRT2
+
+         dl(1, - 1) = sinhb**2
+         dl(1, 0) = - sinb / SQRT2
+         dl(1, 1) = coshb**2
+
+      else
+
+         sinhb = sin(beta / 2.0) ! p
+         coshb = - cos(beta / 2.0) !-q
+
+         ! Initialise the plane of the dl-matrix to 0.0 for the recursion
+         ! from l - 1 to l - 1/2.
+
+         dd(0: 2 * l + 1, 0: 2 * l + 1) = 0.0_dp
+
+         j = 2 * l - 1
+         rj = real(j)
+         do k = 0, j - 1
+            do i = 0, j - 1
+               dlj = dl(k - (l - 1), i - (l - 1)) / rj
+               dd(i, k) = dd(i, k) &
+                    + sqrt_tbl(j-i) * sqrt_tbl(j-k) * dlj * coshb
+               dd(i + 1, k) = dd(i + 1, k) &
+                    - sqrt_tbl(i+1) * sqrt_tbl(j-k) * dlj * sinhb
+               dd(i, k + 1) = dd(i, k + 1) &
+                    + sqrt_tbl(j-i) * sqrt_tbl(k+1) * dlj * sinhb
+               dd(i + 1, k + 1) = dd(i + 1, k + 1) &
+                    + sqrt_tbl(i+1) * sqrt_tbl(k+1) * dlj * coshb
+            end do
+         end do
+
+         ! Having constructed the d^(l+1/2) matrix in dd, do the second
+         ! half-step recursion from dd to dl. Start by initilalising  
+         ! the plane of the dl-matrix to 0.0.
+
+         dl(- l: l, - l: l) = 0.0_dp
+
+         j = 2 * l
+         rj = real(j)
+         do k = 0, j - 1
+            do i = 0, j - 1
+               ddj = dd(i, k) / rj
+               dl(k - l, i - l) = dl(k - l, i - l) &
+                    + sqrt_tbl(j-i) * sqrt_tbl(j-k) * ddj * coshb
+               dl(k - l, i + 1 - l) = dl(k - l, i + 1 - l) &
+                    - sqrt_tbl(i+1) * sqrt_tbl(j-k) * ddj * sinhb
+               dl(k + 1 - l, i - l) = dl(k + 1 - l, i - l) &
+                    + sqrt_tbl(j-i) * sqrt_tbl(k+1) * ddj * sinhb
+               dl(k + 1 - l, i + 1 - l) = dl(k + 1 - l, i + 1 - l) &
+                    + sqrt_tbl(i+1) * sqrt_tbl(k+1) * ddj * coshb
+            end do
+         end do
+
+      end if
+
+    end subroutine ssht_dl_beta_recursion_sqrttable
 
 end module ssht_dl_mod
