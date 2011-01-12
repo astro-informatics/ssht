@@ -1084,7 +1084,7 @@ module ssht_dl_mod
     subroutine ssht_dl_halfpi_trapani_eighth_table(dl, el, sqrt_tbl)
 
       integer, intent(in) :: el
-      real(dp), intent(inout) :: dl(-el:el,-el:el)
+      real(dp), intent(inout) :: dl(0:el,0:el)
       real(kind = dp), intent(in) :: sqrt_tbl(0:2*el+1)
 
 
@@ -1200,16 +1200,29 @@ module ssht_dl_mod
     subroutine ssht_dl_halfpi_trapani_fill_eighth2quarter(dl, el)
 
       integer, intent(in) :: el
-      real(kind = dp), intent(inout) :: dl(-el:el,-el:el)
+!!$      real(kind = dp), intent(inout) :: dl(-el:el,-el:el)
+      real(kind = dp), intent(inout) :: dl(0:el,0:el)
 
       integer :: m, mm
+      real(dp) :: signs(0:el+1)
+
+      ! Compute signs.
+      do m = 0, el, 2
+         signs(m)   =  1.0_dp
+         signs(m+1) = -1.0_dp
+      enddo
 
       ! Diagonal symmetry to fill in quarter.
       do m = 0, el
          do mm = m+1, el
-            dl(m,mm) = (-1)**(m+mm) * dl(mm,m)
+            dl(m,mm) = signs(m) * signs(mm) * dl(mm,m)
          end do
       end do
+!!$      do mm = 0, el
+!!$         do m = 0, mm-1
+!!$            dl(m,mm) = signs(m) * signs(mm) * dl(mm,m)
+!!$         end do
+!!$      end do
 
     end subroutine ssht_dl_halfpi_trapani_fill_eighth2quarter
 

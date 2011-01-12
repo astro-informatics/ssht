@@ -55,7 +55,7 @@ program ssht_test
   end interface
 
   character(len=64) :: arg
-  integer, parameter :: N_repeat = 100
+  integer, parameter :: N_repeat = 6
   integer :: verbosity = 0
   integer :: fail = 0, seed, i_repeat
   real :: time_start, time_end
@@ -428,78 +428,80 @@ program ssht_test
   write(*,*)
 
   if (spin == 0) then
-     write(*,'(a,i2)') 'DH real'
-     write(*,'(a,f30.5)') ' Average forward transform time =', &
-          sum(durations_forward_dh_real(0:N_repeat-1)) / real(N_repeat)
-     write(*,'(a,f30.5)') ' Average inverse transform time =', &
-          sum(durations_inverse_dh_real(0:N_repeat-1)) / real(N_repeat)
-     write(*,'(a,e30.5)') ' Average max error              =', &
-          sum(errors_dh_real(0:N_repeat-1)) / real(N_repeat)
-     write(*,*)
-
-     write(*,'(a,i2)') 'GL real'
-     write(*,'(a,f30.5)') ' Average forward transform time =', &
-          sum(durations_forward_gl_real(0:N_repeat-1)) / real(N_repeat)
-     write(*,'(a,f30.5)') ' Average inverse transform time =', &
-          sum(durations_inverse_gl_real(0:N_repeat-1)) / real(N_repeat)
-     write(*,'(a,e30.5)') ' Average max error              =', &
-          sum(errors_gl_real(0:N_repeat-1)) / real(N_repeat)
-     write(*,*)
-
-     write(*,'(a,i2)') 'MWEO real'
-     write(*,'(a,f30.5)') ' Average forward transform time =', &
-          sum(durations_forward_mweo_real(0:N_repeat-1)) / real(N_repeat)
-     write(*,'(a,f30.5)') ' Average inverse transform time =', &
-          sum(durations_inverse_mweo_real(0:N_repeat-1)) / real(N_repeat)
-     write(*,'(a,e30.5)') ' Average max error              =', &
-          sum(errors_mweo_real(0:N_repeat-1)) / real(N_repeat)
-     write(*,*)
+!!$     write(*,'(a,i2)') 'DH real'
+!!$     write(*,'(a,f30.5)') ' Average forward transform time =', &
+!!$          sum(durations_forward_dh_real(0:N_repeat-1)) / real(N_repeat)
+!!$     write(*,'(a,f30.5)') ' Average inverse transform time =', &
+!!$          sum(durations_inverse_dh_real(0:N_repeat-1)) / real(N_repeat)
+!!$     write(*,'(a,e30.5)') ' Average max error              =', &
+!!$          sum(errors_dh_real(0:N_repeat-1)) / real(N_repeat)
+!!$     write(*,*)
+!!$
+!!$     write(*,'(a,i2)') 'GL real'
+!!$     write(*,'(a,f30.5)') ' Average forward transform time =', &
+!!$          sum(durations_forward_gl_real(0:N_repeat-1)) / real(N_repeat)
+!!$     write(*,'(a,f30.5)') ' Average inverse transform time =', &
+!!$          sum(durations_inverse_gl_real(0:N_repeat-1)) / real(N_repeat)
+!!$     write(*,'(a,e30.5)') ' Average max error              =', &
+!!$          sum(errors_gl_real(0:N_repeat-1)) / real(N_repeat)
+!!$     write(*,*)
+!!$
+!!$     write(*,'(a,i2)') 'MWEO real'
+!!$     write(*,'(a,f30.5)') ' Average forward transform time =', &
+!!$          sum(durations_forward_mweo_real(0:N_repeat-1)) / real(N_repeat)
+!!$     write(*,'(a,f30.5)') ' Average inverse transform time =', &
+!!$          sum(durations_inverse_mweo_real(0:N_repeat-1)) / real(N_repeat)
+!!$     write(*,'(a,e30.5)') ' Average max error              =', &
+!!$          sum(errors_mweo_real(0:N_repeat-1)) / real(N_repeat)
+!!$     write(*,*)
 
      write(*,'(a,i2)') 'MW real'
      write(*,'(a,f30.5)') ' Average forward transform time =', &
-          sum(durations_forward_mw_real(0:N_repeat-1)) / real(N_repeat)
+          sum(durations_forward_mw_real(1:N_repeat-1)) / real(N_repeat-1)
+!          sum(durations_forward_mw_real(0:N_repeat-1)) / real(N_repeat)
      write(*,'(a,f30.5)') ' Average inverse transform time =', &
-          sum(durations_inverse_mw_real(0:N_repeat-1)) / real(N_repeat)
+          sum(durations_inverse_mw_real(1:N_repeat-1)) / real(N_repeat-1)
+!          sum(durations_inverse_mw_real(0:N_repeat-1)) / real(N_repeat)
      write(*,'(a,e30.5)') ' Average max error              =', &
           sum(errors_mw_real(0:N_repeat-1)) / real(N_repeat)
      write(*,*)
   end if
 
-  write(*,'(a,i2)') 'DH'
-  write(*,'(a,f30.5)') ' Average forward transform time =', &
-       sum(durations_forward_dh(0:N_repeat-1)) / real(N_repeat)
-  write(*,'(a,f30.5)') ' Average inverse transform time =', &
-       sum(durations_inverse_dh(0:N_repeat-1)) / real(N_repeat)
-  write(*,'(a,e30.5)') ' Average max error              =', &
-       sum(errors_dh(0:N_repeat-1)) / real(N_repeat)
-  write(*,*)
-
-  write(*,'(a,i2)') 'GL'
-  write(*,'(a,f30.5)') ' Average forward transform time =', &
-       sum(durations_forward_gl(0:N_repeat-1)) / real(N_repeat)
-  write(*,'(a,f30.5)') ' Average inverse transform time =', &
-       sum(durations_inverse_gl(0:N_repeat-1)) / real(N_repeat)
-  write(*,'(a,e30.5)') ' Average max error              =', &
-       sum(errors_gl(0:N_repeat-1)) / real(N_repeat)
-  write(*,*)
-
-  write(*,'(a,i2)') 'MWEO'
-  write(*,'(a,f30.5)') ' Average forward transform time =', &
-       sum(durations_forward_mweo(0:N_repeat-1)) / real(N_repeat)
-  write(*,'(a,f30.5)') ' Average inverse transform time =', &
-       sum(durations_inverse_mweo(0:N_repeat-1)) / real(N_repeat)
-  write(*,'(a,e30.5)') ' Average max error              =', &
-       sum(errors_mweo(0:N_repeat-1)) / real(N_repeat)
-  write(*,*)
-
-  write(*,'(a,i2)') 'MW'
-  write(*,'(a,f30.5)') ' Average forward transform time =', &
-       sum(durations_forward_mw(0:N_repeat-1)) / real(N_repeat)
-  write(*,'(a,f30.5)') ' Average inverse transform time =', &
-       sum(durations_inverse_mw(0:N_repeat-1)) / real(N_repeat)
-  write(*,'(a,e30.5)') ' Average max error              =', &
-       sum(errors_mw(0:N_repeat-1)) / real(N_repeat)
-  write(*,*)
+!!$  write(*,'(a,i2)') 'DH'
+!!$  write(*,'(a,f30.5)') ' Average forward transform time =', &
+!!$       sum(durations_forward_dh(0:N_repeat-1)) / real(N_repeat)
+!!$  write(*,'(a,f30.5)') ' Average inverse transform time =', &
+!!$       sum(durations_inverse_dh(0:N_repeat-1)) / real(N_repeat)
+!!$  write(*,'(a,e30.5)') ' Average max error              =', &
+!!$       sum(errors_dh(0:N_repeat-1)) / real(N_repeat)
+!!$  write(*,*)
+!!$
+!!$  write(*,'(a,i2)') 'GL'
+!!$  write(*,'(a,f30.5)') ' Average forward transform time =', &
+!!$       sum(durations_forward_gl(0:N_repeat-1)) / real(N_repeat)
+!!$  write(*,'(a,f30.5)') ' Average inverse transform time =', &
+!!$       sum(durations_inverse_gl(0:N_repeat-1)) / real(N_repeat)
+!!$  write(*,'(a,e30.5)') ' Average max error              =', &
+!!$       sum(errors_gl(0:N_repeat-1)) / real(N_repeat)
+!!$  write(*,*)
+!!$
+!!$  write(*,'(a,i2)') 'MWEO'
+!!$  write(*,'(a,f30.5)') ' Average forward transform time =', &
+!!$       sum(durations_forward_mweo(0:N_repeat-1)) / real(N_repeat)
+!!$  write(*,'(a,f30.5)') ' Average inverse transform time =', &
+!!$       sum(durations_inverse_mweo(0:N_repeat-1)) / real(N_repeat)
+!!$  write(*,'(a,e30.5)') ' Average max error              =', &
+!!$       sum(errors_mweo(0:N_repeat-1)) / real(N_repeat)
+!!$  write(*,*)
+!!$
+!!$  write(*,'(a,i2)') 'MW'
+!!$  write(*,'(a,f30.5)') ' Average forward transform time =', &
+!!$       sum(durations_forward_mw(0:N_repeat-1)) / real(N_repeat)
+!!$  write(*,'(a,f30.5)') ' Average inverse transform time =', &
+!!$       sum(durations_inverse_mw(0:N_repeat-1)) / real(N_repeat)
+!!$  write(*,'(a,e30.5)') ' Average max error              =', &
+!!$       sum(errors_mw(0:N_repeat-1)) / real(N_repeat)
+!!$  write(*,*)
 
   ! Deallocate memory.
   deallocate(flm_orig, flm_syn)

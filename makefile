@@ -8,7 +8,7 @@ ifeq ($(FC),f95)
   OPTF95 = -w=x95
 endif
 
-OPT = $(OPTF95) -m64
+OPT = $(OPTF95) -m64 -O3
 
 
 # ======== LINKS ========
@@ -92,7 +92,7 @@ all:     lib prog test
 
 lib:	 $(SSHTLIB)/lib$(SSHTLIBNM).a
 
-test:    $(SSHTBIN)/ssht_test
+test:    $(SSHTBIN)/ssht_test $(SSHTBIN)/ssht_trapani
 
 runtest: test
 	$(SSHTBIN)/ssht_test 64 0
@@ -169,6 +169,13 @@ $(SSHTBIN)/ssht_test:       $(SSHTINC)/ssht_test.o
 	$(FC)                                          \
 	-o $(SSHTBIN)/ssht_test                          \
 	$(SSHTINC)/ssht_test.o $(LDFLAGS) $(PPFLAGS)
+
+$(SSHTINC)/ssht_trapani.o:     $(SSHTPROG)/ssht_trapani.f90 lib
+$(SSHTBIN)/ssht_trapani:       $(SSHTINC)/ssht_trapani.o
+	$(FC)                                          \
+	-o $(SSHTBIN)/ssht_trapani                          \
+	$(SSHTINC)/ssht_trapani.o $(LDFLAGS) $(PPFLAGS)
+
 
 $(SSHTINC)/ssht_wav2sky.o:     $(SSHTPROG)/ssht_wav2sky.f90 lib
 $(SSHTBIN)/ssht_wav2sky:       $(SSHTINC)/ssht_wav2sky.o
