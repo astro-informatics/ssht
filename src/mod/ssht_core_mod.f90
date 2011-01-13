@@ -666,7 +666,6 @@ contains
 
   subroutine ssht_core_mweo_forward_sp(flm, f, f_sp, phi_sp, L, spin, verbosity)
 
-
     integer, intent(in) :: L
     integer, intent(in) :: spin
     integer, intent(in), optional :: verbosity
@@ -1004,32 +1003,25 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_dh_inverse_direct
   !
-  !! Compute inverse transform using direct method based on 
-  !!   f(t,p) = \sum_{el,m} sflm 
-  !!              * (-1)^s * sqrt((2*el+1)/(4*pi)) * dlm(-s)(theta) 
-  !!              * exp(I*m*phi)
-  !! (equation 8a in notes).
-!** TODO: 
-!** - update to reflect equation in paper
+  !! Compute inverse transform for DH method using direct evaluation
+  !! with dlmn evaluated for each theta.
   !!
   !! Notes:
-  !!  - Used for code verification puposes only.
+  !!   - Used for code verification purposes (extremely slow!).
   !!
   !! Variables:
-  !!  - f(0:2*L-1 ,0:2*L-2): Complex signal f(theta, phi) [output].
-  !!  - flm
-
-!!(0:L**2+2*L): Harmonic coefficients of signal ordered by 
-  !!    ind = el**2 + el + m [input].
-  !!  - L: Harmonic band-limit [input].
-  !!  - spin: Spin order [input].
+  !!   - f(0:2*L-1, 0:2*L-2): Function on sphere [output].
+  !!   - flm(0:L**2-1): Harmonic coefficients [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
   !
   !! @author J. D. McEwen
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
   !----------------------------------------------------------------------------
-  
+
   subroutine ssht_core_dh_inverse_direct(f, flm, L, spin, verbosity)
     
     integer, intent(in) :: L
@@ -1094,33 +1086,25 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_dh_inverse_direct_factored
   !
-  !! Compute inverse transform using direct method based on 
-  !!   f(t,p) = \sum_{el,m,mm} sflm 
-  !!              * (-1)^s * sqrt((2*el+1)/(4*pi)) * I^(-(m+spin))
-  !!              * dlm(mm,m)(PI/2) * dlm(mm,-spin)(PI/2)
-  !!              * exp(I*m*phi + I*mm*theta)
-  !! (equation 8b in notes).
-!** TODO: 
-!** - update to reflect equation in paper
+  !! Compute inverse transform for DH method using direct evaluation
+  !! but dlmn factored, i.e. dlmn evaluated at PI/2.
   !!
   !! Notes:
-  !!  - Used for code verification puposes only.
+  !!   - Used for code verification purposes (extremely slow!).
   !!
   !! Variables:
-  !!  - f(0:2*L-1 ,0:2*L-2): Complex signal f(theta, phi) [output].
-  !!  - flm
-
-!!(0:L**2+2*L): Harmonic coefficients of signal ordered by 
-  !!    ind = el**2 + el + m [input].
-  !!  - L: Harmonic band-limit [input].
-  !!  - spin: Spin order [input].
+  !!   - f(0:2*L-1, 0:2*L-2): Function on sphere [output].
+  !!   - flm(0:L**2-1): Harmonic coefficients [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
   !
   !! @author J. D. McEwen
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
   !----------------------------------------------------------------------------
-  
+
   subroutine ssht_core_dh_inverse_direct_factored(f, flm, L, spin, verbosity)
     
     integer, intent(in) :: L
@@ -1185,7 +1169,28 @@ contains
   end subroutine ssht_core_dh_inverse_direct_factored
 
 
-! Eqns (9), (10) and (11)
+  !----------------------------------------------------------------------------
+  ! ssht_core_dh_inverse_sov_direct
+  !
+  !! Compute inverse transform for DH method using separation of
+  !! variables but only discrete (not fast) Fourier transforms.
+  !!
+  !! Notes:
+  !!   - Used for code verification purposes (slow!).
+  !!
+  !! Variables:
+  !!   - f(0:2*L-1, 0:2*L-2): Function on sphere [output].
+  !!   - flm(0:L**2-1): Harmonic coefficients [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
+
   subroutine ssht_core_dh_inverse_sov_direct(f, flm, L, spin, verbosity)
     
     integer, intent(in) :: L
@@ -1270,7 +1275,26 @@ contains
 
   end subroutine ssht_core_dh_inverse_sov_direct
 
-! Eqns (9), (10) and (11), with FFT
+
+  !----------------------------------------------------------------------------
+  ! ssht_core_dh_inverse_sov
+  !
+  !! Compute inverse transform for DH method using separation of
+  !! variables and fast Fourier transforms.
+  !!
+  !! Variables:
+  !!   - f(0:2*L-1, 0:2*L-2): Function on sphere [output].
+  !!   - flm(0:L**2-1): Harmonic coefficients [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
+
   subroutine ssht_core_dh_inverse_sov(f, flm, L, spin, verbosity)
     
     integer, intent(in) :: L
@@ -1359,7 +1383,27 @@ contains
 
   end subroutine ssht_core_dh_inverse_sov
 
-! Eqns (9), (10) and (11), with FFT
+
+  !----------------------------------------------------------------------------
+  ! ssht_core_dh_inverse_sov_sym
+  !
+  !! Compute inverse transform for DH method using separation of
+  !! variables, fast Fourier transforms and exploiting all symmetries
+  !! (for complex spin signal).
+  !!
+  !! Variables:
+  !!   - f(0:2*L-1, 0:2*L-2): Function on sphere [output].
+  !!   - flm(0:L**2-1): Harmonic coefficients [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
+
   subroutine ssht_core_dh_inverse_sov_sym(f, flm, L, spin, verbosity)
     
     integer, intent(in) :: L
@@ -1472,7 +1516,27 @@ contains
   end subroutine ssht_core_dh_inverse_sov_sym
 
 
-! Eqns (9), (10) and (11), with FFT
+  !----------------------------------------------------------------------------
+  ! ssht_core_dh_inverse_sov_sym_real
+  !
+  !! Compute inverse transform for DH method of real scalar signal
+  !! using separation of variables, fast Fourier transforms and
+  !! exploiting all symmetries (including additional symmetries for
+  !! real signals).
+  !!
+  !! Variables:
+  !!   - f(0:2*L-1, 0:2*L-2): Function on sphere [output].
+  !!   - flm(0:L**2-1): Harmonic coefficients [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
+
   subroutine ssht_core_dh_inverse_sov_sym_real(f, flm, L, verbosity)
     
     integer, intent(in) :: L
@@ -1561,14 +1625,30 @@ contains
   end subroutine ssht_core_dh_inverse_sov_sym_real
 
 
-
-
-
-
   !----------------------------------------------------------------------------
   ! GL
   !----------------------------------------------------------------------------
 
+
+  !----------------------------------------------------------------------------
+  ! ssht_core_gl_inverse_sov_sym
+  !
+  !! Compute inverse transform for GL method using separation of
+  !! variables, fast Fourier transforms and exploiting all symmetries
+  !! (for complex spin signal).
+  !!
+  !! Variables:
+  !!   - f(0:L-1, 0:2*L-2): Function on sphere [output].
+  !!   - flm(0:L**2-1): Harmonic coefficients [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
 
   subroutine ssht_core_gl_inverse_sov_sym(f, flm, L, spin, verbosity)
     
@@ -1686,6 +1766,28 @@ contains
 
   end subroutine ssht_core_gl_inverse_sov_sym
 
+
+  !----------------------------------------------------------------------------
+  ! ssht_core_gl_inverse_sov_sym_real
+  !
+  !! Compute inverse transform for GL method of real scalar signal
+  !! using separation of variables, fast Fourier transforms and
+  !! exploiting all symmetries (including additional symmetries for
+  !! real signals).
+  !!
+  !! Variables:
+  !!   - f(0:L-1, 0:2*L-2): Function on sphere [output].
+  !!   - flm(0:L**2-1): Harmonic coefficients [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
+
   subroutine ssht_core_gl_inverse_sov_sym_real(f, flm, L, verbosity)
     
     integer, intent(in) :: L
@@ -1779,12 +1881,32 @@ contains
   end subroutine ssht_core_gl_inverse_sov_sym_real
 
 
-
-
   !----------------------------------------------------------------------------
   ! MWEO
   !----------------------------------------------------------------------------
 
+
+  !----------------------------------------------------------------------------
+  ! ssht_core_mweo_inverse_direct
+  !
+  !! Compute inverse transform for MWEO method using direct evaluation
+  !! with dlmn evaluated for each theta.
+  !!
+  !! Notes:
+  !!   - Used for code verification purposes (extremely slow!).
+  !!
+  !! Variables:
+  !!   - f(0:L-1, 0:2*L-2): Function on sphere [output].
+  !!   - flm(0:L**2-1): Harmonic coefficients [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
 
   subroutine ssht_core_mweo_inverse_direct(f, flm, L, spin, verbosity)
     
@@ -1849,8 +1971,27 @@ contains
   end subroutine ssht_core_mweo_inverse_direct
 
 
-
-
+  !----------------------------------------------------------------------------
+  ! ssht_core_mweo_inverse_sov_direct
+  !
+  !! Compute inverse transform for MWEO method using separation of
+  !! variables but only discrete (not fast) Fourier transforms.
+  !!
+  !! Notes:
+  !!   - Used for code verification purposes (slow!).
+  !!
+  !! Variables:
+  !!   - f(0:L-1, 0:2*L-2): Function on sphere [output].
+  !!   - flm(0:L**2-1): Harmonic coefficients [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
 
   subroutine ssht_core_mweo_inverse_sov_direct(f, flm, L, spin, verbosity)
     
@@ -1932,6 +2073,24 @@ contains
   end subroutine ssht_core_mweo_inverse_sov_direct
 
 
+  !----------------------------------------------------------------------------
+  ! ssht_core_mweo_inverse_sov
+  !
+  !! Compute inverse transform for MWEO method using separation of
+  !! variables and fast Fourier transforms.
+  !!
+  !! Variables:
+  !!   - f(0:L-1, 0:2*L-2): Function on sphere [output].
+  !!   - flm(0:L**2-1): Harmonic coefficients [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
 
   subroutine ssht_core_mweo_inverse_sov(f, flm, L, spin, verbosity)
     
@@ -2037,6 +2196,27 @@ contains
     end if
 
   end subroutine ssht_core_mweo_inverse_sov
+
+
+  !----------------------------------------------------------------------------
+  ! ssht_core_mweo_inverse_sov_sym
+  !
+  !! Compute inverse transform for MWEO method using separation of
+  !! variables, fast Fourier transforms and exploiting all symmetries
+  !! (for complex spin signal).
+  !!
+  !! Variables:
+  !!   - f(0:L-1, 0:2*L-2): Function on sphere [output].
+  !!   - flm(0:L**2-1): Harmonic coefficients [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
 
   subroutine ssht_core_mweo_inverse_sov_sym(f, flm, L, spin, verbosity)
     
@@ -2152,6 +2332,26 @@ contains
   end subroutine ssht_core_mweo_inverse_sov_sym
 
 
+  !----------------------------------------------------------------------------
+  ! ssht_core_mweo_inverse_sov_sym_real
+  !
+  !! Compute inverse transform for MWEO method of real scalar signal
+  !! using separation of variables, fast Fourier transforms and
+  !! exploiting all symmetries (including additional symmetries for
+  !! real signals).
+  !!
+  !! Variables:
+  !!   - f(0:L-1, 0:2*L-2): Function on sphere [output].
+  !!   - flm(0:L**2-1): Harmonic coefficients [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
 
   subroutine ssht_core_mweo_inverse_sov_sym_real(f, flm, L, verbosity)
     
@@ -2251,11 +2451,32 @@ contains
   end subroutine ssht_core_mweo_inverse_sov_sym_real
 
 
-
   !----------------------------------------------------------------------------
   ! MW
   !----------------------------------------------------------------------------
 
+
+  !----------------------------------------------------------------------------
+  ! ssht_core_mw_inverse_sov_direct
+  !
+  !! Compute inverse transform for MW method using separation of
+  !! variables but only discrete (not fast) Fourier transforms.
+  !!
+  !! Notes:
+  !!   - Used for code verification purposes (slow!).
+  !!
+  !! Variables:
+  !!   - f(0:L-1, 0:2*L-2): Function on sphere [output].
+  !!   - flm(0:L**2-1): Harmonic coefficients [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
 
   subroutine ssht_core_mw_inverse_sov_direct(f, flm, L, spin, verbosity)
     
@@ -2336,6 +2557,25 @@ contains
 
   end subroutine ssht_core_mw_inverse_sov_direct
 
+
+  !----------------------------------------------------------------------------
+  ! ssht_core_mw_inverse_sov
+  !
+  !! Compute inverse transform for MW method using separation of
+  !! variables and fast Fourier transforms.
+  !!
+  !! Variables:
+  !!   - f(0:L-1, 0:2*L-2): Function on sphere [output].
+  !!   - flm(0:L**2-1): Harmonic coefficients [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
 
   subroutine ssht_core_mw_inverse_sov(f, flm, L, spin, verbosity)
     
@@ -2419,6 +2659,27 @@ contains
     end if
 
   end subroutine ssht_core_mw_inverse_sov
+
+
+  !----------------------------------------------------------------------------
+  ! ssht_core_mw_inverse_sov_sym
+  !
+  !! Compute inverse transform for MW method using separation of
+  !! variables, fast Fourier transforms and exploiting all symmetries
+  !! (for complex spin signal).
+  !!
+  !! Variables:
+  !!   - f(0:L-1, 0:2*L-2): Function on sphere [output].
+  !!   - flm(0:L**2-1): Harmonic coefficients [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
 
   subroutine ssht_core_mw_inverse_sov_sym(f, flm, L, spin, verbosity)
     
@@ -2509,6 +2770,28 @@ contains
     end if
 
   end subroutine ssht_core_mw_inverse_sov_sym
+
+
+  !----------------------------------------------------------------------------
+  ! ssht_core_mw_inverse_sov_sym_real
+  !
+  !! Compute inverse transform for MW method of real scalar signal
+  !! using separation of variables, fast Fourier transforms and
+  !! exploiting all symmetries (including additional symmetries for
+  !! real signals).
+  !!
+  !! Variables:
+  !!   - f(0:L-1, 0:2*L-2): Function on sphere [output].
+  !!   - flm(0:L**2-1): Harmonic coefficients [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
 
   subroutine ssht_core_mw_inverse_sov_sym_real(f, flm, L, verbosity)
     
@@ -2901,12 +3184,10 @@ call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(-el:el,-el:el), el)
 
   end subroutine ssht_core_mw_inverse_sov_sym_real_precomp
 
+
   !============================================================================
   ! Forward transforms
   !============================================================================
-
-
-
 
 
   !----------------------------------------------------------------------------
@@ -2914,7 +3195,27 @@ call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(-el:el,-el:el), el)
   !----------------------------------------------------------------------------
 
 
-
+  !----------------------------------------------------------------------------
+  ! ssht_core_dh_forward_sov_direct
+  !
+  !! Compute forward transform for DH method using separation of
+  !! variables but only discrete (not fast) Fourier transforms.
+  !!
+  !! Notes:
+  !!   - Used for code verification purposes (extremely slow!).
+  !!
+  !! Variables:
+  !!   - flm(0:L**2-1): Harmonic coefficients [output].
+  !!   - f(0:2*L-1, 0:2*L-2): Function on sphere [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
 
   subroutine ssht_core_dh_forward_sov_direct(flm, f, L, spin, verbosity)
 
@@ -3003,6 +3304,25 @@ call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(-el:el,-el:el), el)
 
   end subroutine ssht_core_dh_forward_sov_direct
 
+
+  !----------------------------------------------------------------------------
+  ! ssht_core_dh_forward_sov
+  !
+  !! Compute forward transform for DH method using separation of
+  !! variables and fast Fourier transforms.
+  !!
+  !! Variables:
+  !!   - flm(0:L**2-1): Harmonic coefficients [output].
+  !!   - f(0:2*L-1, 0:2*L-2): Function on sphere [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
 
   subroutine ssht_core_dh_forward_sov(flm, f, L, spin, verbosity)
 
@@ -3095,6 +3415,25 @@ call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(-el:el,-el:el), el)
   end subroutine ssht_core_dh_forward_sov
 
 
+  !----------------------------------------------------------------------------
+  ! ssht_core_dh_forward_sov_sym
+  !
+  !! Compute forward transform for DH method using separation of
+  !! variables, fast Fourier transforms and exploiting all symmetries
+  !! (for complex spin signal).
+  !!
+  !! Variables:
+  !!   - flm(0:L**2-1): Harmonic coefficients [output].
+  !!   - f(0:2*L-1, 0:2*L-2): Function on sphere [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
 
   subroutine ssht_core_dh_forward_sov_sym(flm, f, L, spin, verbosity)
 
@@ -3194,6 +3533,27 @@ call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(-el:el,-el:el), el)
 
   end subroutine ssht_core_dh_forward_sov_sym
 
+
+  !----------------------------------------------------------------------------
+  ! ssht_core_dh_forward_sov_sym_real
+  !
+  !! Compute forward transform for DH method of real scalar signal
+  !! using separation of variables, fast Fourier transforms and
+  !! exploiting all symmetries (including additional symmetries for
+  !! real signals).
+  !!
+  !! Variables:
+  !!   - flm(0:L**2-1): Harmonic coefficients [output].
+  !!   - f(0:2*L-1, 0:2*L-2): Function on sphere [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
 
   subroutine ssht_core_dh_forward_sov_sym_real(flm, f, L, verbosity)
 
@@ -3302,12 +3662,30 @@ call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(-el:el,-el:el), el)
   end subroutine ssht_core_dh_forward_sov_sym_real
 
 
-
-
   !----------------------------------------------------------------------------
   ! GL
   !----------------------------------------------------------------------------
 
+
+  !----------------------------------------------------------------------------
+  ! ssht_core_gl_forward_sov_sym
+  !
+  !! Compute forward transform for GL method using separation of
+  !! variables, fast Fourier transforms and exploiting all symmetries
+  !! (for complex spin signal).
+  !!
+  !! Variables:
+  !!   - flm(0:L**2-1): Harmonic coefficients [output].
+  !!   - f(0:L-1, 0:2*L-2): Function on sphere [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
 
   subroutine ssht_core_gl_forward_sov_sym(flm, f, L, spin, verbosity)
 
@@ -3413,6 +3791,27 @@ call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(-el:el,-el:el), el)
 
   end subroutine ssht_core_gl_forward_sov_sym
 
+
+  !----------------------------------------------------------------------------
+  ! ssht_core_gl_forward_sov_sym_real
+  !
+  !! Compute forward transform for GL method of real scalar signal
+  !! using separation of variables, fast Fourier transforms and
+  !! exploiting all symmetries (including additional symmetries for
+  !! real signals).
+  !!
+  !! Variables:
+  !!   - flm(0:L**2-1): Harmonic coefficients [output].
+  !!   - f(0:L-1, 0:2*L-2): Function on sphere [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
 
   subroutine ssht_core_gl_forward_sov_sym_real(flm, f, L, verbosity)
 
@@ -3531,6 +3930,28 @@ call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(-el:el,-el:el), el)
   ! MWEO
   !----------------------------------------------------------------------------
 
+
+  !----------------------------------------------------------------------------
+  ! ssht_core_mweo_forward_sov_direct
+  !
+  !! Compute forward transform for MWEO method using separation of
+  !! variables but only discrete (not fast) Fourier transforms.
+  !!
+  !! Notes:
+  !!   - Used for code verification purposes (extremely slow!).
+  !!
+  !! Variables:
+  !!   - flm(0:L**2-1): Harmonic coefficients [output].
+  !!   - f(0:L-1, 0:2*L-2): Function on sphere [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
 
   subroutine ssht_core_mweo_forward_sov_direct(flm, f, L, spin, verbosity)
 
@@ -3653,6 +4074,25 @@ call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(-el:el,-el:el), el)
 
   end subroutine ssht_core_mweo_forward_sov_direct
 
+
+  !----------------------------------------------------------------------------
+  ! ssht_core_mweo_forward_sov
+  !
+  !! Compute forward transform for MWEO method using separation of
+  !! variables and fast Fourier transforms.
+  !!
+  !! Variables:
+  !!   - flm(0:L**2-1): Harmonic coefficients [output].
+  !!   - f(0:L-1, 0:2*L-2): Function on sphere [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
 
   subroutine ssht_core_mweo_forward_sov(flm, f, L, spin, verbosity)
 
@@ -3800,6 +4240,27 @@ call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(-el:el,-el:el), el)
     end if
 
   end subroutine ssht_core_mweo_forward_sov
+
+
+  !----------------------------------------------------------------------------
+  ! ssht_core_mweo_forward_sov_conv
+  !
+  !! Compute forward transform for MWEO method using separation of
+  !! variables, fast Fourier transforms and performing convolution with
+  !! weights as product in transformed space.
+  !!
+  !! Variables:
+  !!   - flm(0:L**2-1): Harmonic coefficients [output].
+  !!   - f(0:L-1, 0:2*L-2): Function on sphere [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
 
   subroutine ssht_core_mweo_forward_sov_conv(flm, f, L, spin, verbosity)
 
@@ -4033,6 +4494,28 @@ call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(-el:el,-el:el), el)
     end if
 
   end subroutine ssht_core_mweo_forward_sov_conv
+
+
+  !----------------------------------------------------------------------------
+  ! ssht_core_mweo_forward_sov_conv_sym
+  !
+  !! Compute forward transform for MWEO method using separation of
+  !! variables, fast Fourier transforms, performing convolution with
+  !! weights as product in transformed space and exploiting all symmetries
+  !! (for complex spin signal).
+  !!
+  !! Variables:
+  !!   - flm(0:L**2-1): Harmonic coefficients [output].
+  !!   - f(0:L-1, 0:2*L-2): Function on sphere [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
 
   subroutine ssht_core_mweo_forward_sov_conv_sym(flm, f, L, spin, verbosity)
 
@@ -4275,6 +4758,28 @@ call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(-el:el,-el:el), el)
   end subroutine ssht_core_mweo_forward_sov_conv_sym
 
 
+  !----------------------------------------------------------------------------
+  ! ssht_core_mweo_forward_sov_conv_sym_real
+  !
+  !! Compute forward transform for MWEO method of real scalar signal
+  !! using separation of variables, fast Fourier transforms,
+  !! performing convolution with weights as product in transformed
+  !! space and exploiting all symmetries (including additional symmetries for
+  !! real signals).
+  !!
+  !! Variables:
+  !!   - flm(0:L**2-1): Harmonic coefficients [output].
+  !!   - f(0:L-1, 0:2*L-2): Function on sphere [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
+
   subroutine ssht_core_mweo_forward_sov_conv_sym_real(flm, f, L, verbosity)
 
     integer, intent(in) :: L
@@ -4511,11 +5016,32 @@ call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(-el:el,-el:el), el)
   end subroutine ssht_core_mweo_forward_sov_conv_sym_real
 
 
-
   !----------------------------------------------------------------------------
   ! MW
   !----------------------------------------------------------------------------
 
+
+  !----------------------------------------------------------------------------
+  ! ssht_core_mw_forward_sov_direct
+  !
+  !! Compute forward transform for MW method using separation of
+  !! variables but only discrete (not fast) Fourier transforms.
+  !!
+  !! Notes:
+  !!   - Used for code verification purposes (extremely slow!).
+  !!
+  !! Variables:
+  !!   - flm(0:L**2-1): Harmonic coefficients [output].
+  !!   - f(0:L-1, 0:2*L-2): Function on sphere [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
 
   subroutine ssht_core_mw_forward_sov_direct(flm, f, L, spin, verbosity)
 
@@ -4623,7 +5149,24 @@ call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(-el:el,-el:el), el)
   end subroutine ssht_core_mw_forward_sov_direct
 
 
-
+  !----------------------------------------------------------------------------
+  ! ssht_core_mw_forward_sov
+  !
+  !! Compute forward transform for MW method using separation of
+  !! variables and fast Fourier transforms.
+  !!
+  !! Variables:
+  !!   - flm(0:L**2-1): Harmonic coefficients [output].
+  !!   - f(0:L-1, 0:2*L-2): Function on sphere [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
 
   subroutine ssht_core_mw_forward_sov(flm, f, L, spin, verbosity)
 
@@ -4731,6 +5274,26 @@ call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(-el:el,-el:el), el)
 
   end subroutine ssht_core_mw_forward_sov
 
+
+  !----------------------------------------------------------------------------
+  ! ssht_core_mw_forward_sov_conv
+  !
+  !! Compute forward transform for MW method using separation of
+  !! variables, fast Fourier transforms and performing convolution with
+  !! weights as product in transformed space.
+  !!
+  !! Variables:
+  !!   - flm(0:L**2-1): Harmonic coefficients [output].
+  !!   - f(0:L-1, 0:2*L-2): Function on sphere [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
 
   subroutine ssht_core_mw_forward_sov_conv(flm, f, L, spin, verbosity)
 
@@ -4892,6 +5455,27 @@ call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(-el:el,-el:el), el)
 
   end subroutine ssht_core_mw_forward_sov_conv
 
+
+  !----------------------------------------------------------------------------
+  ! ssht_core_mw_forward_sov_conv_sym
+  !
+  !! Compute forward transform for MW method using separation of
+  !! variables, fast Fourier transforms, performing convolution with
+  !! weights as product in transformed space and exploiting all symmetries
+  !! (for complex spin signal).
+  !!
+  !! Variables:
+  !!   - flm(0:L**2-1): Harmonic coefficients [output].
+  !!   - f(0:L-1, 0:2*L-2): Function on sphere [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
 
   subroutine ssht_core_mw_forward_sov_conv_sym(flm, f, L, spin, verbosity)
 
@@ -5060,6 +5644,28 @@ call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(-el:el,-el:el), el)
 
   end subroutine ssht_core_mw_forward_sov_conv_sym
 
+
+  !----------------------------------------------------------------------------
+  ! ssht_core_mw_forward_sov_conv_sym_real
+  !
+  !! Compute forward transform for MW method of real scalar signal
+  !! using separation of variables, fast Fourier transforms,
+  !! performing convolution with weights as product in transformed
+  !! space and exploiting all symmetries (including additional symmetries for
+  !! real signals).
+  !!
+  !! Variables:
+  !!   - flm(0:L**2-1): Harmonic coefficients [output].
+  !!   - f(0:L-1, 0:2*L-2): Function on sphere [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
 
   subroutine ssht_core_mw_forward_sov_conv_sym_real(flm, f, L, verbosity)
 
@@ -5315,6 +5921,14 @@ call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(0:el,0:el), el)
     end if
 
   end subroutine ssht_core_mw_forward_sov_conv_sym_real
+
+
+
+
+
+
+
+
 
 
 
@@ -5759,10 +6373,30 @@ call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(-el:el,-el:el), el)
 
 
 
+
+
+
+
   !--------------------------------------------------------------------------
   ! Utility routines
   !--------------------------------------------------------------------------
 
+
+  !----------------------------------------------------------------------------
+  ! digit
+  !
+  !! Compute number of digits required to display integer (must be
+  !! less than 25).
+  !!
+  !! Variables:
+  !!   - L: Integer considered [input].
+  !!   - d: Number of digits [output].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   October 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
 
   function digit(L) result(d)
 
