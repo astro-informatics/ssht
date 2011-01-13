@@ -46,54 +46,12 @@ module ssht_core_mod
        ssht_core_mw_forward_real_precomp
 
 
+  !----------------------------------------------------------------------------
+  ! DH interfaces
+  !----------------------------------------------------------------------------
 
-!, &
-!!$       ssht_core_mw_inverse_sp, &
-!!$       ssht_core_mw_forward_sp, &
-!!$       ssht_core_mweo_inverse_sp, &
-!!$       ssht_core_mweo_forward_sp, &
-!!$       ssht_core_mw_inverse_real_sp, &
-!!$       ssht_core_mw_forward_real_sp, &
-!!$       ssht_core_mweo_inverse_real_sp, &
-!!$       ssht_core_mweo_forward_real_sp
+  ! Define implementations available publicly.
 
-
-!!$       ssht_core_dh_inverse_direct, &
-!!$       ssht_core_dh_inverse_direct_factored, &
-!!$       ssht_core_dh_inverse_sov_direct, &
-!!$       ssht_core_dh_inverse_sov, &
-!!$       ssht_core_dh_inverse_sov_sym, &
-!!$       ssht_core_dh_inverse_sov_sym_real, &
-!!$       ssht_core_dh_forward_sov_direct, &
-!!$       ssht_core_dh_forward_sov, &
-!!$       ssht_core_dh_forward_sov_sym, &
-!!$       ssht_core_dh_forward_sov_sym_real, &
-!!$       ssht_core_mweo_inverse_direct, &
-!!$       ssht_core_mweo_inverse_sov_direct, &
-!!$       ssht_core_mweo_inverse_sov, &
-!!$       ssht_core_mweo_inverse_sov_sym, &
-!!$       ssht_core_mweo_inverse_sov_sym_real, &
-!!$       ssht_core_mweo_forward_sov_direct, &
-!!$       ssht_core_mweo_forward_sov, &
-!!$       ssht_core_mweo_forward_sov_conv, &
-!!$       ssht_core_mweo_forward_sov_conv_sym, &
-!!$       ssht_core_mweo_forward_sov_conv_sym_real, &
-!!$       ssht_core_mw_forward_sov_direct, &
-!!$       ssht_core_mw_forward_sov, &
-!!$       ssht_core_mw_forward_sov_conv, &
-!!$       ssht_core_mw_forward_sov_conv_sym, &
-!!$       ssht_core_mw_forward_sov_conv_sym_real, &
-!!$       ssht_core_mw_inverse_sov_direct, &
-!!$       ssht_core_mw_inverse_sov, &
-!!$       ssht_core_mw_inverse_sov_sym, &
-!!$       ssht_core_mw_inverse_sov_sym_real
-
-
-  !---------------------------------------
-  ! Interfaces
-  ! (Define default implementations)
-  !---------------------------------------
-  
   interface ssht_core_dh_inverse
      module procedure ssht_core_dh_inverse_sov_sym
   end interface
@@ -110,7 +68,30 @@ module ssht_core_mod
      module procedure ssht_core_dh_forward_sov_sym_real
   end interface
 
+  ! Define implementations to use in south pole wrapper routines.
 
+  interface ssht_core_dh_inverse_rsp
+     module procedure ssht_core_dh_inverse_sov_sym
+  end interface
+
+  interface ssht_core_dh_forward_rsp
+     module procedure ssht_core_dh_forward_sov_sym
+  end interface
+
+  interface ssht_core_dh_inverse_real_rsp
+     module procedure ssht_core_dh_inverse_sov_sym_real
+  end interface
+
+  interface ssht_core_dh_forward_real_rsp
+     module procedure ssht_core_dh_forward_sov_sym_real
+  end interface
+
+
+  !----------------------------------------------------------------------------
+  ! GL interfaces
+  !----------------------------------------------------------------------------
+
+  ! Define implementations available publicly.
 
   interface ssht_core_gl_inverse
      module procedure ssht_core_gl_inverse_sov_sym
@@ -128,7 +109,48 @@ module ssht_core_mod
      module procedure ssht_core_gl_forward_sov_sym_real
   end interface
 
+  ! Define implementations to use in south pole wrapper routines.
 
+  interface ssht_core_gl_inverse_rsp
+     module procedure ssht_core_gl_inverse_sov_sym
+  end interface
+
+  interface ssht_core_gl_forward_rsp
+     module procedure ssht_core_gl_forward_sov_sym
+  end interface
+
+  interface ssht_core_gl_inverse_real_rsp
+     module procedure ssht_core_gl_inverse_sov_sym_real
+  end interface
+
+  interface ssht_core_gl_forward_real_rsp
+     module procedure ssht_core_gl_forward_sov_sym_real
+  end interface
+
+
+  !----------------------------------------------------------------------------
+  ! MWEO interfaces
+  !----------------------------------------------------------------------------
+
+  ! Define implementations available publicly.
+
+  interface ssht_core_mweo_inverse
+     module procedure ssht_core_mweo_inverse_sp
+  end interface
+
+  interface ssht_core_mweo_forward
+     module procedure ssht_core_mweo_forward_sp
+  end interface
+
+  interface ssht_core_mweo_inverse_real
+     module procedure ssht_core_mweo_inverse_real_sp
+  end interface
+
+  interface ssht_core_mweo_forward_real
+     module procedure ssht_core_mweo_forward_real_sp
+  end interface
+
+  ! Define implementations to use in south pole wrapper routines.
 
   interface ssht_core_mweo_inverse_rsp
      module procedure ssht_core_mweo_inverse_sov_sym
@@ -147,28 +169,37 @@ module ssht_core_mod
   end interface
 
 
-  interface ssht_core_mweo_inverse
-     module procedure ssht_core_mweo_inverse_sp
+  !----------------------------------------------------------------------------
+  ! MW interfaces
+  !----------------------------------------------------------------------------
+
+  ! Define implementations available publicly.
+
+  interface ssht_core_mw_inverse
+     module procedure ssht_core_mw_inverse_sp
   end interface
 
-  interface ssht_core_mweo_forward
-     module procedure ssht_core_mweo_forward_sp
+  interface ssht_core_mw_forward
+     module procedure ssht_core_mw_forward_sp
   end interface
 
-  interface ssht_core_mweo_inverse_real
-     module procedure ssht_core_mweo_inverse_real_sp
+  interface ssht_core_mw_inverse_real
+     module procedure ssht_core_mw_inverse_real_sp
   end interface
 
-  interface ssht_core_mweo_forward_real
-     module procedure ssht_core_mweo_forward_real_sp
+  interface ssht_core_mw_forward_real
+     module procedure ssht_core_mw_forward_real_sp
   end interface
 
+  interface ssht_core_mw_inverse_real_precomp
+     module procedure ssht_core_mw_inverse_real_sp_precomp
+  end interface
 
+  interface ssht_core_mw_forward_real_precomp
+     module procedure ssht_core_mw_forward_real_sp_precomp
+  end interface
 
-
-
-
-
+  ! Define implementations to use in south pole wrapper routines.
 
   interface ssht_core_mw_inverse_rsp
      module procedure ssht_core_mw_inverse_sov_sym
@@ -195,33 +226,6 @@ module ssht_core_mod
   end interface
 
 
-
-
-  interface ssht_core_mw_inverse
-     module procedure ssht_core_mw_inverse_sp
-  end interface
-
-  interface ssht_core_mw_forward
-     module procedure ssht_core_mw_forward_sp
-  end interface
-
-  interface ssht_core_mw_inverse_real
-     module procedure ssht_core_mw_inverse_real_sp
-  end interface
-
-  interface ssht_core_mw_forward_real
-     module procedure ssht_core_mw_forward_real_sp
-  end interface
-
-  interface ssht_core_mw_inverse_real_precomp
-     module procedure ssht_core_mw_inverse_real_sp_precomp
-  end interface
-
-  interface ssht_core_mw_forward_real_precomp
-     module procedure ssht_core_mw_forward_real_sp_precomp
-  end interface
-
-
   !---------------------------------------
   ! Global variables
   !---------------------------------------
@@ -242,7 +246,381 @@ module ssht_core_mod
 contains
 
 
+  !============================================================================
+  ! South pole interface routines
+  !============================================================================
 
+
+  !----------------------------------------------------------------------------
+  ! DH
+  !----------------------------------------------------------------------------
+
+
+  !----------------------------------------------------------------------------
+  ! ssht_core_dh_inverse_sp
+  !
+  !! South pole wrapper for inverse transform using DH method.
+  !!
+  !! Variables:
+  !!   - f(0:2*L-2, 0:2*L-2): Function on sphere (excluding sample on
+  !!     South pole) [output].
+  !!   - f_sp: Function on sphere South pole sample [output].
+  !!   - phi_sp: Phi angle corresponding to quoted sample at South pole 
+  !!     [output].
+  !!   - flm(0:L**2-1): Harmonic coefficients [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   December 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
+
+
+  subroutine ssht_core_dh_inverse_sp(f, f_sp, phi_sp, flm, L, spin, verbosity) 
+
+    integer, intent(in) :: L
+    integer, intent(in) :: spin
+    integer, intent(in), optional :: verbosity
+    complex(dpc), intent(in) :: flm(0:L**2-1)
+    real(dp), intent(out) :: phi_sp
+    complex(dpc), intent(out) :: f_sp
+    complex(dpc), intent(out) :: f(0:2*L-2, 0:2*L-2)
+   
+    complex(dpc) :: f_ext(0:2*L-1, 0:2*L-2)
+
+    call ssht_core_dh_inverse_rsp(f_ext, flm, L, spin, verbosity)
+
+    f(0:2*L-2, 0:2*L-2) = f_ext(0:2*L-2, 0:2*L-2)
+    f_sp = f_ext(2*L-1, 0)
+    phi_sp = ssht_sampling_dh_p2phi(0, L)
+
+  end subroutine ssht_core_dh_inverse_sp
+
+
+  !----------------------------------------------------------------------------
+  ! ssht_core_dh_forward_sp
+  !
+  !! South pole wrapper for forward transform using DH method.
+  !!
+  !! Variables:
+  !!   - flm(0:L**2-1): Harmonic coefficients [output].
+  !!   - f(0:2*L-2, 0:2*L-2): Function on sphere (excluding sample on
+  !!     South pole) [input].
+  !!   - f_sp: Function on sphere South pole sample [input].
+  !!   - phi_sp: Phi angle corresponding to quoted sample at South pole 
+  !!     [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   December 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
+
+  subroutine ssht_core_dh_forward_sp(flm, f, f_sp, phi_sp, L, spin, verbosity)
+
+    integer, intent(in) :: L
+    integer, intent(in) :: spin
+    integer, intent(in), optional :: verbosity
+    complex(dpc), intent(in) :: f(0:2*L-2 ,0:2*L-2)
+    real(dp), intent(in) :: phi_sp
+    complex(dpc), intent(in) :: f_sp
+    complex(dpc), intent(out) :: flm(0:L**2-1)
+
+    complex(dpc) :: f_ext(0:2*L-1, 0:2*L-2)
+    integer :: p
+    real(dp) :: phi
+  
+    f_ext(0:2*L-2 ,0:2*L-2) = f(0:2*L-2 ,0:2*L-2)
+    do p = 0, 2*L-2
+       phi = ssht_sampling_dh_p2phi(p, L)
+       f_ext(2*L-1, p) = f_sp * exp(I*spin*(phi-phi_sp))
+    end do
+
+    call ssht_core_dh_forward_rsp(flm, f_ext, L, spin, verbosity)
+
+  end subroutine ssht_core_dh_forward_sp
+
+
+  !----------------------------------------------------------------------------
+  ! ssht_core_dh_inverse_real_sp
+  !
+  !! South pole wrapper for inverse transform of real scalar function
+  !! using DH method.
+  !!
+  !! Variables:
+  !!   - f(0:2*L-2, 0:2*L-2): Function on sphere (excluding sample on
+  !!     South pole) [output].
+  !!   - f_sp: Function on sphere South pole sample [output].
+  !!   - flm(0:L**2-1): Harmonic coefficients [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   December 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
+
+  subroutine ssht_core_dh_inverse_real_sp(f, f_sp, flm, L, verbosity) 
+
+    integer, intent(in) :: L
+    integer, intent(in), optional :: verbosity
+    complex(dpc), intent(in) :: flm(0:L**2-1)
+    real(dp), intent(out) :: f_sp
+    real(dp), intent(out) :: f(0:2*L-2, 0:2*L-2)
+   
+    real(dp) :: f_ext(0:2*L-1, 0:2*L-2)
+
+    call ssht_core_dh_inverse_real_rsp(f_ext, flm, L, verbosity)
+
+    f(0:2*L-2, 0:2*L-2) = f_ext(0:2*L-2, 0:2*L-2)
+    f_sp = f_ext(2*L-1, 0)
+
+  end subroutine ssht_core_dh_inverse_real_sp
+
+
+  !----------------------------------------------------------------------------
+  ! ssht_core_dh_forward_real_sp
+  !
+  !! South pole wrapper for forward transform of real scalar function
+  !! using DH method.
+  !!
+  !! Variables:
+  !!   - flm(0:L**2-1): Harmonic coefficients [input].
+  !!   - f(0:2*L-2, 0:2*L-2): Function on sphere (excluding sample on
+  !!     South pole) [output].
+  !!   - f_sp: Function on sphere South pole sample [output].
+  !!   - L: Harmonic band-limit [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   December 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
+
+  subroutine ssht_core_dh_forward_real_sp(flm, f, f_sp, L, verbosity)
+
+    integer, intent(in) :: L
+    integer, intent(in), optional :: verbosity
+    real(dp), intent(in) :: f(0:2*L-2, 0:2*L-2)
+    real(dp), intent(in) :: f_sp
+    complex(dpc), intent(out) :: flm(0:L**2-1)
+
+    real(dp) :: f_ext(0:2*L-1, 0:2*L-2)
+
+    f_ext(0:2*L-2, 0:2*L-2) = f(0:2*L-2, 0:2*L-2)
+    f_ext(2*L-1, 0:2*L-2) = f_sp
+
+    call ssht_core_dh_forward_real_rsp(flm, f_ext, L, verbosity)
+
+  end subroutine ssht_core_dh_forward_real_sp
+
+
+  !----------------------------------------------------------------------------
+  ! GL
+  !----------------------------------------------------------------------------
+
+
+  !----------------------------------------------------------------------------
+  ! ssht_core_gl_inverse_sp
+  !
+  !! South pole wrapper for inverse transform using GL method.
+  !!
+  !! Variables:
+  !!   - f(0:L-2, 0:2*L-2): Function on sphere (excluding sample on
+  !!     South pole) [output].
+  !!   - f_sp: Function on sphere South pole sample [output].
+  !!   - phi_sp: Phi angle corresponding to quoted sample at South pole 
+  !!     [output].
+  !!   - flm(0:L**2-1): Harmonic coefficients [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   December 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
+
+  subroutine ssht_core_gl_inverse_sp(f, f_sp, phi_sp, flm, L, spin, verbosity) 
+
+    integer, intent(in) :: L
+    integer, intent(in) :: spin
+    integer, intent(in), optional :: verbosity
+    complex(dpc), intent(in) :: flm(0:L**2-1)
+    real(dp), intent(out) :: phi_sp
+    complex(dpc), intent(out) :: f_sp
+    complex(dpc), intent(out) :: f(0:L-2, 0:2*L-2)
+   
+    complex(dpc) :: f_ext(0:L-1, 0:L-2)
+
+    call ssht_core_gl_inverse_rsp(f_ext, flm, L, spin, verbosity)
+
+    f(0:L-2, 0:2*L-2) = f_ext(0:L-2, 0:2*L-2)
+    f_sp = f_ext(L-1, 0)
+    phi_sp = ssht_sampling_gl_p2phi(0, L)
+
+  end subroutine ssht_core_gl_inverse_sp
+
+
+  !----------------------------------------------------------------------------
+  ! ssht_core_gl_forward_sp
+  !
+  !! South pole wrapper for forward transform using GL method.
+  !!
+  !! Variables:
+  !!   - flm(0:L**2-1): Harmonic coefficients [output].
+  !!   - f(0:L-2, 0:2*L-2): Function on sphere (excluding sample on
+  !!     South pole) [input].
+  !!   - f_sp: Function on sphere South pole sample [input].
+  !!   - phi_sp: Phi angle corresponding to quoted sample at South pole 
+  !!     [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   December 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
+
+  subroutine ssht_core_gl_forward_sp(flm, f, f_sp, phi_sp, L, spin, verbosity)
+
+    integer, intent(in) :: L
+    integer, intent(in) :: spin
+    integer, intent(in), optional :: verbosity
+    complex(dpc), intent(in) :: f(0:L-2 ,0:2*L-2)
+    real(dp), intent(in) :: phi_sp
+    complex(dpc), intent(in) :: f_sp
+    complex(dpc), intent(out) :: flm(0:L**2-1)
+
+    complex(dpc) :: f_ext(0:L-1, 0:2*L-2)
+    integer :: p
+    real(dp) :: phi
+  
+    f_ext(0:L-2 ,0:2*L-2) = f(0:L-2 ,0:2*L-2)
+    do p = 0, 2*L-2
+       phi = ssht_sampling_gl_p2phi(p, L)
+       f_ext(L-1, p) = f_sp * exp(I*spin*(phi-phi_sp))
+    end do
+
+    call ssht_core_gl_forward_rsp(flm, f_ext, L, spin, verbosity)
+
+  end subroutine ssht_core_gl_forward_sp
+
+
+  !----------------------------------------------------------------------------
+  ! ssht_core_gl_inverse_real_sp
+  !
+  !! South pole wrapper for inverse transform of real scalar function
+  !! using GL method.
+  !!
+  !! Variables:
+  !!   - f(0:L-2, 0:2*L-2): Function on sphere (excluding sample on
+  !!     South pole) [output].
+  !!   - f_sp: Function on sphere South pole sample [output].
+  !!   - flm(0:L**2-1): Harmonic coefficients [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   December 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
+
+  subroutine ssht_core_gl_inverse_real_sp(f, f_sp, flm, L, verbosity) 
+
+    integer, intent(in) :: L
+    integer, intent(in), optional :: verbosity
+    complex(dpc), intent(in) :: flm(0:L**2-1)
+    real(dp), intent(out) :: f_sp
+    real(dp), intent(out) :: f(0:L-2, 0:2*L-2)
+   
+    real(dp) :: f_ext(0:L-1, 0:2*L-2)
+
+    call ssht_core_gl_inverse_real_rsp(f_ext, flm, L, verbosity)
+
+    f(0:L-2, 0:2*L-2) = f_ext(0:L-2, 0:2*L-2)
+    f_sp = f_ext(L-1, 0)
+
+  end subroutine ssht_core_gl_inverse_real_sp
+
+
+  !----------------------------------------------------------------------------
+  ! ssht_core_gl_forward_real_sp
+  !
+  !! South pole wrapper for forward transform of real scalar function
+  !! using GL method.
+  !!
+  !! Variables:
+  !!   - flm(0:L**2-1): Harmonic coefficients [input].
+  !!   - f(0:L-2, 0:2*L-2): Function on sphere (excluding sample on
+  !!     South pole) [output].
+  !!   - f_sp: Function on sphere South pole sample [output].
+  !!   - L: Harmonic band-limit [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   December 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
+
+  subroutine ssht_core_gl_forward_real_sp(flm, f, f_sp, L, verbosity)
+
+    integer, intent(in) :: L
+    integer, intent(in), optional :: verbosity
+    real(dp), intent(in) :: f(0:L-2, 0:2*L-2)
+    real(dp), intent(in) :: f_sp
+    complex(dpc), intent(out) :: flm(0:L**2-1)
+
+    real(dp) :: f_ext(0:L-1, 0:2*L-2)
+
+    f_ext(0:L-2, 0:2*L-2) = f(0:L-2, 0:2*L-2)
+    f_ext(L-1, 0:2*L-2) = f_sp
+
+    call ssht_core_gl_forward_real_rsp(flm, f_ext, L, verbosity)
+
+  end subroutine ssht_core_gl_forward_real_sp
+
+
+  !----------------------------------------------------------------------------
+  ! MWEO
+  !----------------------------------------------------------------------------
+
+ 
+  !----------------------------------------------------------------------------
+  ! ssht_core_mweo_inverse_sp
+  !
+  !! South pole wrapper for inverse transform using MWEO method.
+  !!
+  !! Variables:
+  !!   - f(0:L-2, 0:2*L-2): Function on sphere (excluding sample on
+  !!     South pole) [output].
+  !!   - f_sp: Function on sphere South pole sample [output].
+  !!   - phi_sp: Phi angle corresponding to quoted sample at South pole 
+  !!     [output].
+  !!   - flm(0:L**2-1): Harmonic coefficients [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   December 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
+  
   subroutine ssht_core_mweo_inverse_sp(f, f_sp, phi_sp, flm, L, spin, verbosity) 
 
     integer, intent(in) :: L
@@ -251,7 +629,6 @@ contains
     complex(dpc), intent(in) :: flm(0:L**2-1)
     real(dp), intent(out) :: phi_sp
     complex(dpc), intent(out) :: f_sp
-!    complex(dpc), intent(out) :: f(0:L-1, 0:2*L-2)
     complex(dpc), intent(out) :: f(0:L-2, 0:2*L-2)
     
     complex(dpc) :: f_ext(0:L-1, 0:2*L-2)
@@ -265,13 +642,34 @@ contains
   end subroutine ssht_core_mweo_inverse_sp
 
 
+  !----------------------------------------------------------------------------
+  ! ssht_core_mweo_forward_sp
+  !
+  !! South pole wrapper for forward transform using MWEO method.
+  !!
+  !! Variables:
+  !!   - flm(0:L**2-1): Harmonic coefficients [output].
+  !!   - f(0:L-2, 0:2*L-2): Function on sphere (excluding sample on
+  !!     South pole) [input].
+  !!   - f_sp: Function on sphere South pole sample [input].
+  !!   - phi_sp: Phi angle corresponding to quoted sample at South pole 
+  !!     [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   December 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
 
   subroutine ssht_core_mweo_forward_sp(flm, f, f_sp, phi_sp, L, spin, verbosity)
+
 
     integer, intent(in) :: L
     integer, intent(in) :: spin
     integer, intent(in), optional :: verbosity
-!    complex(dpc), intent(in) :: f(0:L-1 ,0:2*L-2)
     complex(dpc), intent(in) :: f(0:L-2 ,0:2*L-2)
     real(dp), intent(in) :: phi_sp
     complex(dpc), intent(in) :: f_sp
@@ -292,6 +690,25 @@ contains
   end subroutine ssht_core_mweo_forward_sp
 
 
+  !----------------------------------------------------------------------------
+  ! ssht_core_mweo_inverse_real_sp
+  !
+  !! South pole wrapper for inverse transform of real scalar function
+  !! using MWEO method.
+  !!
+  !! Variables:
+  !!   - f(0:L-2, 0:2*L-2): Function on sphere (excluding sample on
+  !!     South pole) [output].
+  !!   - f_sp: Function on sphere South pole sample [output].
+  !!   - flm(0:L**2-1): Harmonic coefficients [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   December 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
 
   subroutine ssht_core_mweo_inverse_real_sp(f, f_sp, flm, L, verbosity)
     
@@ -299,7 +716,6 @@ contains
     integer, intent(in), optional :: verbosity
     complex(dpc), intent(in) :: flm(0:L**2-1)
     real(dp), intent(out) :: f_sp
-!    real(dp), intent(out) :: f(0:L-1, 0:2*L-2)
     real(dp), intent(out) :: f(0:L-2, 0:2*L-2)
 
     real(dp) :: f_ext(0:L-1, 0:2*L-2)
@@ -312,12 +728,30 @@ contains
   end subroutine ssht_core_mweo_inverse_real_sp
 
 
+  !----------------------------------------------------------------------------
+  ! ssht_core_mweo_forward_real_sp
+  !
+  !! South pole wrapper for forward transform of real scalar function
+  !! using MWEO method.
+  !!
+  !! Variables:
+  !!   - flm(0:L**2-1): Harmonic coefficients [input].
+  !!   - f(0:L-2, 0:2*L-2): Function on sphere (excluding sample on
+  !!     South pole) [output].
+  !!   - f_sp: Function on sphere South pole sample [output].
+  !!   - L: Harmonic band-limit [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   December 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
 
   subroutine ssht_core_mweo_forward_real_sp(flm, f, f_sp, L, verbosity)
 
     integer, intent(in) :: L
     integer, intent(in), optional :: verbosity
-!    real(dp), intent(in) :: f(0:L-1 ,0:2*L-2)
     real(dp), intent(in) :: f(0:L-2, 0:2*L-2)
     real(dp), intent(in) :: f_sp
     complex(dpc), intent(out) :: flm(0:L**2-1)
@@ -332,11 +766,32 @@ contains
   end subroutine ssht_core_mweo_forward_real_sp
 
 
+  !----------------------------------------------------------------------------
+  ! MW
+  !----------------------------------------------------------------------------
 
 
-
-
-
+  !----------------------------------------------------------------------------
+  ! ssht_core_mw_inverse_sp
+  !
+  !! South pole wrapper for inverse transform using MW method.
+  !!
+  !! Variables:
+  !!   - f(0:L-2, 0:2*L-2): Function on sphere (excluding sample on
+  !!     South pole) [output].
+  !!   - f_sp: Function on sphere South pole sample [output].
+  !!   - phi_sp: Phi angle corresponding to quoted sample at South pole 
+  !!     [output].
+  !!   - flm(0:L**2-1): Harmonic coefficients [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   December 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
 
   subroutine ssht_core_mw_inverse_sp(f, f_sp, phi_sp, flm, L, spin, verbosity) 
 
@@ -346,7 +801,6 @@ contains
     complex(dpc), intent(in) :: flm(0:L**2-1)
     real(dp), intent(out) :: phi_sp
     complex(dpc), intent(out) :: f_sp
-!    complex(dpc), intent(out) :: f(0:L-1, 0:2*L-2)
     complex(dpc), intent(out) :: f(0:L-2, 0:2*L-2)
     
     complex(dpc) :: f_ext(0:L-1, 0:2*L-2)
@@ -360,13 +814,33 @@ contains
   end subroutine ssht_core_mw_inverse_sp
 
 
+  !----------------------------------------------------------------------------
+  ! ssht_core_mw_forward_sp
+  !
+  !! South pole wrapper for forward transform using MW method.
+  !!
+  !! Variables:
+  !!   - flm(0:L**2-1): Harmonic coefficients [output].
+  !!   - f(0:L-2, 0:2*L-2): Function on sphere (excluding sample on
+  !!     South pole) [input].
+  !!   - f_sp: Function on sphere South pole sample [input].
+  !!   - phi_sp: Phi angle corresponding to quoted sample at South pole 
+  !!     [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - spin: Spin number [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   December 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
 
   subroutine ssht_core_mw_forward_sp(flm, f, f_sp, phi_sp, L, spin, verbosity)
 
     integer, intent(in) :: L
     integer, intent(in) :: spin
     integer, intent(in), optional :: verbosity
-!    complex(dpc), intent(in) :: f(0:L-1 ,0:2*L-2)
     complex(dpc), intent(in) :: f(0:L-2 ,0:2*L-2)
     real(dp), intent(in) :: phi_sp
     complex(dpc), intent(in) :: f_sp
@@ -387,9 +861,25 @@ contains
   end subroutine ssht_core_mw_forward_sp
 
 
-
-
-
+  !----------------------------------------------------------------------------
+  ! ssht_core_mw_inverse_real_sp
+  !
+  !! South pole wrapper for inverse transform of real scalar function
+  !! using MW method.
+  !!
+  !! Variables:
+  !!   - f(0:L-2, 0:2*L-2): Function on sphere (excluding sample on
+  !!     South pole) [output].
+  !!   - f_sp: Function on sphere South pole sample [output].
+  !!   - flm(0:L**2-1): Harmonic coefficients [input].
+  !!   - L: Harmonic band-limit [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   December 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
 
   subroutine ssht_core_mw_inverse_real_sp(f, f_sp, flm, L, verbosity)
     
@@ -397,7 +887,6 @@ contains
     integer, intent(in), optional :: verbosity
     complex(dpc), intent(in) :: flm(0:L**2-1)
     real(dp), intent(out) :: f_sp
-!    real(dp), intent(out) :: f(0:L-1, 0:2*L-2)
     real(dp), intent(out) :: f(0:L-2, 0:2*L-2)
 
     real(dp) :: f_ext(0:L-1, 0:2*L-2)
@@ -410,12 +899,30 @@ contains
   end subroutine ssht_core_mw_inverse_real_sp
 
 
+  !----------------------------------------------------------------------------
+  ! ssht_core_mw_forward_real_sp
+  !
+  !! South pole wrapper for forward transform of real scalar function
+  !! using MW method.
+  !!
+  !! Variables:
+  !!   - flm(0:L**2-1): Harmonic coefficients [input].
+  !!   - f(0:L-2, 0:2*L-2): Function on sphere (excluding sample on
+  !!     South pole) [output].
+  !!   - f_sp: Function on sphere South pole sample [output].
+  !!   - L: Harmonic band-limit [input].
+  !!   - verbosity: Verbosity flag [optional input].
+  !
+  !! @author J. D. McEwen
+  !
+  ! Revisions:
+  !   December 2010 - Written by Jason McEwen
+  !----------------------------------------------------------------------------
 
   subroutine ssht_core_mw_forward_real_sp(flm, f, f_sp, L, verbosity)
 
     integer, intent(in) :: L
     integer, intent(in), optional :: verbosity
-!    real(dp), intent(in) :: f(0:L-1 ,0:2*L-2)
     real(dp), intent(in) :: f(0:L-2, 0:2*L-2)
     real(dp), intent(in) :: f_sp
     complex(dpc), intent(out) :: flm(0:L**2-1)
@@ -430,6 +937,15 @@ contains
   end subroutine ssht_core_mw_forward_real_sp
 
 
+
+
+
+
+
+
+
+
+
   subroutine ssht_core_mw_inverse_real_sp_precomp(f, f_sp, flm, L, dlmn, verbosity)
     
     integer, intent(in) :: L
@@ -437,7 +953,6 @@ contains
     real(dp), intent(in) :: dlmn(0:L-1, -(L-1):L-1, -(L-1):L-1)
     complex(dpc), intent(in) :: flm(0:L**2-1)
     real(dp), intent(out) :: f_sp
-!    real(dp), intent(out) :: f(0:L-1, 0:2*L-2)
     real(dp), intent(out) :: f(0:L-2, 0:2*L-2)
 
     real(dp) :: f_ext(0:L-1, 0:2*L-2)
@@ -450,13 +965,11 @@ contains
   end subroutine ssht_core_mw_inverse_real_sp_precomp
 
 
-
   subroutine ssht_core_mw_forward_real_sp_precomp(flm, f, f_sp, L, dlmn, verbosity)
 
     integer, intent(in) :: L
     integer, intent(in), optional :: verbosity
     real(dp), intent(in) :: dlmn(0:L-1, -(L-1):L-1, -(L-1):L-1)
-!    real(dp), intent(in) :: f(0:L-1 ,0:2*L-2)
     real(dp), intent(in) :: f(0:L-2, 0:2*L-2)
     real(dp), intent(in) :: f_sp
     complex(dpc), intent(out) :: flm(0:L**2-1)
@@ -469,6 +982,12 @@ contains
     call ssht_core_mw_forward_real_rsp_precomp(flm, f_ext, L, dlmn, verbosity)
 
   end subroutine ssht_core_mw_forward_real_sp_precomp
+
+
+
+
+
+
 
 
 
