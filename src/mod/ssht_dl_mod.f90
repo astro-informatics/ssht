@@ -32,12 +32,10 @@ module ssht_dl_mod
        ssht_dl_beta_risbo_full_table, &
        ssht_dl_beta_risbo_half_table, &
        ssht_dl_beta_risbo_fill_half2full, &
-       ssht_dl_halfpi_risbo_eighth_table, &
-       ssht_dl_halfpi_risbo_fill_eighth2full, &
-       ssht_dl_beta_risbo_healpix_half_table, &
        ssht_dl_halfpi_trapani_eighth, &
        ssht_dl_halfpi_trapani_eighth_table, &
        ssht_dl_halfpi_trapani_fill_eighth2full, &
+       ssht_dl_halfpi_trapani_fill_eighth2half, &
        ssht_dl_halfpi_trapani_fill_eighth2quarter
 
 
@@ -903,6 +901,45 @@ module ssht_dl_mod
       end do
 
     end subroutine ssht_dl_halfpi_trapani_fill_eighth2full
+
+ !--------------------------------------------------------------------------
+    ! ssht_dl_halfpi_trapani_fill_eighth2full
+    !
+    !! Fill in the full Wigner plane from the eighth m = 0:l and 
+    !! mm = 0:m.
+    !!
+    !! Variables:
+    !!   - dl: Dl matrix values for lth plane.
+    !!   - l: Plane of dl matrix to compute values for.
+    !
+    !! @author J. D. McEwen
+    !
+    ! Revisions:
+    !   December 2010 - Written by Jason McEwen
+    !--------------------------------------------------------------------------
+ 
+    subroutine ssht_dl_halfpi_trapani_fill_eighth2half(dl, el)
+
+      integer, intent(in) :: el
+      real(kind = dp), intent(inout) :: dl(-el:el,-el:el)
+
+      integer :: m, mm
+
+      ! Diagonal symmetry to fill in quarter.
+      do m = 0, el
+         do mm = m+1, el
+            dl(m,mm) = (-1)**(m+mm) * dl(mm,m)
+         end do
+      end do
+
+      ! Symmetry in m to fill in half.
+      do m = -el, -1
+         do mm = 0, el
+            dl(m,mm) = (-1)**(el+mm) * dl(-m,mm)
+         end do
+      end do
+
+    end subroutine ssht_dl_halfpi_trapani_fill_eighth2half
 
 
     !--------------------------------------------------------------------------
