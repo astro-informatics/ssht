@@ -35,8 +35,13 @@ module ssht_dl_mod
        ssht_dl_halfpi_trapani_eighth, &
        ssht_dl_halfpi_trapani_eighth_table, &
        ssht_dl_halfpi_trapani_fill_eighth2full, &
-       ssht_dl_halfpi_trapani_fill_eighth2half, &
-       ssht_dl_halfpi_trapani_fill_eighth2quarter
+       ssht_dl_halfpi_trapani_fill_eighth2full_table, &
+       ssht_dl_halfpi_trapani_fill_eighth2tophalf, &
+       ssht_dl_halfpi_trapani_fill_eighth2tophalf_table, &
+       ssht_dl_halfpi_trapani_fill_eighth2righthalf, &
+       ssht_dl_halfpi_trapani_fill_eighth2righthalf_table, &
+       ssht_dl_halfpi_trapani_fill_eighth2quarter, &
+       ssht_dl_halfpi_trapani_fill_eighth2quarter_table
 
 
   !----------------------------------------------------------------------------
@@ -887,26 +892,77 @@ module ssht_dl_mod
       end do
 
       ! Symmetry in m to fill in half.
-      do m = -el, -1
-         do mm = 0, el
+      do mm = 0, el
+         do m = -el, -1
             dl(m,mm) = (-1)**(el+mm) * dl(-m,mm)
          end do
       end do
 
       ! Symmetry in mm to fill in remaining plane.
-      do m = -el, el
-         do mm = -el, -1
+      do mm = -el, -1
+         do m = -el, el
             dl(m,mm) = (-1)**(el+m) * dl(m,-mm)
          end do
       end do
 
     end subroutine ssht_dl_halfpi_trapani_fill_eighth2full
 
- !--------------------------------------------------------------------------
-    ! ssht_dl_halfpi_trapani_fill_eighth2full
+
+    !--------------------------------------------------------------------------
+    ! ssht_dl_halfpi_trapani_fill_eighth2full_table
     !
-    !! Fill in the full Wigner plane from the eighth m = 0:l and 
-    !! mm = 0:m.
+    !! Fill in the full Wigner plane from the eighth m = 0:l and mm =
+    !! 0:m. Takes a table of precomputed signs to avoid recomputing
+    !! them.
+    !!
+    !! Variables:
+    !!   - dl: Dl matrix values for lth plane.
+    !!   - l: Plane of dl matrix to compute values for.
+    !!   - signs(0:l): Table of precompute terms (-1)^l.
+    !
+    !! @author J. D. McEwen
+    !
+    ! Revisions:
+    !   December 2010 - Written by Jason McEwen
+    !--------------------------------------------------------------------------
+ 
+    subroutine ssht_dl_halfpi_trapani_fill_eighth2full_table(dl, el, signs)
+
+      integer, intent(in) :: el
+      real(kind = dp), intent(inout) :: dl(-el:el,-el:el)
+      real(kind = dp), intent(in) :: signs(0:el)
+
+      integer :: m, mm
+
+      ! Diagonal symmetry to fill in quarter.
+      do m = 0, el
+         do mm = m+1, el
+            dl(m,mm) = signs(m) * signs(mm) * dl(mm,m)
+         end do
+      end do
+
+      ! Symmetry in m to fill in half.
+      do mm = 0, el
+         do m = -el, -1
+            dl(m,mm) = signs(el) * signs(mm) * dl(-m,mm)
+         end do
+      end do
+
+      ! Symmetry in mm to fill in remaining plane.
+      do mm = -el, -1
+         do m = -el, el
+            dl(m,mm) = signs(el) * signs(abs(m)) * dl(m,-mm)
+         end do
+      end do
+
+    end subroutine ssht_dl_halfpi_trapani_fill_eighth2full_table
+
+
+    !--------------------------------------------------------------------------
+    ! ssht_dl_halfpi_trapani_fill_eighth2tophalf
+    !
+    !! Fill in quarter Wigner plane for m = -l:l and mm = 0:l from the
+    !! eighth m = 0:l and mm = 0:m, i.e. compute positive mm's.
     !!
     !! Variables:
     !!   - dl: Dl matrix values for lth plane.
@@ -918,10 +974,10 @@ module ssht_dl_mod
     !   December 2010 - Written by Jason McEwen
     !--------------------------------------------------------------------------
  
-    subroutine ssht_dl_halfpi_trapani_fill_eighth2half(dl, el)
+    subroutine ssht_dl_halfpi_trapani_fill_eighth2tophalf(dl, el)
 
       integer, intent(in) :: el
-      real(kind = dp), intent(inout) :: dl(-el:el,-el:el)
+      real(kind = dp), intent(inout) :: dl(-el:el,0:el)
 
       integer :: m, mm
 
@@ -939,7 +995,133 @@ module ssht_dl_mod
          end do
       end do
 
-    end subroutine ssht_dl_halfpi_trapani_fill_eighth2half
+    end subroutine ssht_dl_halfpi_trapani_fill_eighth2tophalf
+
+
+    !--------------------------------------------------------------------------
+    ! ssht_dl_halfpi_trapani_fill_eighth2tophalf_table
+    !
+    !! Fill in quarter Wigner plane for m = -l:l and mm = 0:l from the
+    !! eighth m = 0:l and mm = 0:m, i.e. compute positive mm's.  Takes
+    !! a table of precomputed signs to avoid recomputing them.
+    !!
+    !! Variables:
+    !!   - dl: Dl matrix values for lth plane.
+    !!   - l: Plane of dl matrix to compute values for.
+    !!   - signs(0:l): Table of precompute terms (-1)^l.
+    !
+    !! @author J. D. McEwen
+    !
+    ! Revisions:
+    !   December 2010 - Written by Jason McEwen
+    !--------------------------------------------------------------------------
+ 
+    subroutine ssht_dl_halfpi_trapani_fill_eighth2tophalf_table(dl, el, signs)
+
+      integer, intent(in) :: el
+      real(kind = dp), intent(inout) :: dl(-el:el,0:el)
+      real(kind = dp), intent(in) :: signs(0:el)
+
+      integer :: m, mm
+
+      ! Diagonal symmetry to fill in quarter.
+      do m = 0, el
+         do mm = m+1, el
+            dl(m,mm) = signs(m) * signs(mm) * dl(mm,m)
+         end do
+      end do
+
+      ! Symmetry in m to fill in half.
+      do mm = 0, el
+         do m = -el, -1
+            dl(m,mm) = signs(el) * signs(mm) * dl(-m,mm)
+         end do
+      end do
+
+    end subroutine ssht_dl_halfpi_trapani_fill_eighth2tophalf_table
+
+
+    !--------------------------------------------------------------------------
+    ! ssht_dl_halfpi_trapani_fill_eighth2righthalf
+    !
+    !! Fill in quarter Wigner plane for m = 0:l and mm = -l:l from the
+    !! eighth m = 0:l and mm = 0:m.
+    !!
+    !! Variables:
+    !!   - dl: Dl matrix values for lth plane.
+    !!   - l: Plane of dl matrix to compute values for.
+    !
+    !! @author J. D. McEwen
+    !
+    ! Revisions:
+    !   December 2010 - Written by Jason McEwen
+    !--------------------------------------------------------------------------
+ 
+    subroutine ssht_dl_halfpi_trapani_fill_eighth2righthalf(dl, el)
+
+      integer, intent(in) :: el
+      real(kind = dp), intent(inout) :: dl(0:el,-el:el)
+
+      integer :: m, mm
+
+      ! Diagonal symmetry to fill in quarter.
+      do m = 0, el
+         do mm = m+1, el
+            dl(m,mm) = (-1)**(m+mm) * dl(mm,m)
+         end do
+      end do
+
+      ! Symmetry in mm to fill in half.
+      do m = 0, el
+         do mm = -el, -1
+            dl(m,mm) = (-1)**(el+m) * dl(m,-mm)
+         end do
+      end do
+
+    end subroutine ssht_dl_halfpi_trapani_fill_eighth2righthalf
+
+
+    !--------------------------------------------------------------------------
+    ! ssht_dl_halfpi_trapani_fill_eighth2righthalf_table
+    !
+    !! Fill in quarter Wigner plane for m = 0:l and mm = -l:l from the
+    !! eighth m = 0:l and mm = 0:m. Takes a table of precomputed signs
+    !! to avoid recomputing them.
+    !!
+    !! Variables:
+    !!   - dl: Dl matrix values for lth plane.
+    !!   - l: Plane of dl matrix to compute values for.
+    !!   - signs(0:l): Table of precompute terms (-1)^l.
+    !
+    !! @author J. D. McEwen
+    !
+    ! Revisions:
+    !   December 2010 - Written by Jason McEwen
+    !--------------------------------------------------------------------------
+ 
+    subroutine ssht_dl_halfpi_trapani_fill_eighth2righthalf_table(dl, el, signs)
+
+      integer, intent(in) :: el
+      real(kind = dp), intent(inout) :: dl(0:el,-el:el)
+      real(kind = dp), intent(in) :: signs(0:el)
+
+      integer :: m, mm
+
+      ! Diagonal symmetry to fill in quarter.
+      do m = 0, el
+         do mm = m+1, el
+            dl(m,mm) = signs(m) * signs(mm) * dl(mm,m)
+         end do
+      end do
+
+      ! Symmetry in mm to fill in half.
+      do mm = -el, -1
+         do m = 0, el
+            dl(m,mm) = signs(el) * signs(m) * dl(m,-mm)
+         end do
+      end do
+
+    end subroutine ssht_dl_halfpi_trapani_fill_eighth2righthalf_table
 
 
     !--------------------------------------------------------------------------
@@ -961,17 +1143,45 @@ module ssht_dl_mod
     subroutine ssht_dl_halfpi_trapani_fill_eighth2quarter(dl, el)
 
       integer, intent(in) :: el
-!!$      real(kind = dp), intent(inout) :: dl(-el:el,-el:el)
       real(kind = dp), intent(inout) :: dl(0:el,0:el)
 
       integer :: m, mm
-      real(dp) :: signs(0:el+1)
 
-      ! Compute signs.
-      do m = 0, el, 2
-         signs(m)   =  1.0_dp
-         signs(m+1) = -1.0_dp
-      enddo
+      ! Diagonal symmetry to fill in quarter.
+      do m = 0, el
+         do mm = m+1, el
+            dl(m,mm) = (-1)**(m+mm) * dl(mm,m)
+         end do
+      end do
+
+    end subroutine ssht_dl_halfpi_trapani_fill_eighth2quarter
+
+
+    !--------------------------------------------------------------------------
+    ! ssht_dl_halfpi_trapani_fill_eighth2quarter_table
+    !
+    !! Fill in quarter Wigner plane for m = 0:l and mm = 0:l from the
+    !! eighth m = 0:l and mm = 0:m, i.e. compute positive mm's.  Takes
+    !! a table of precomputed signs to avoid recomputing them.
+    !!
+    !! Variables:
+    !!   - dl: Dl matrix values for lth plane.
+    !!   - l: Plane of dl matrix to compute values for.
+    !!   - signs(0:l): Table of precompute terms (-1)^l.
+    !
+    !! @author J. D. McEwen
+    !
+    ! Revisions:
+    !   December 2010 - Written by Jason McEwen
+    !--------------------------------------------------------------------------
+
+    subroutine ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl, el, signs)
+
+      integer, intent(in) :: el
+      real(kind = dp), intent(inout) :: dl(0:el,0:el)
+      real(kind = dp), intent(in) :: signs(0:el)
+
+      integer :: m, mm
 
       ! Diagonal symmetry to fill in quarter.
       do m = 0, el
@@ -979,13 +1189,8 @@ module ssht_dl_mod
             dl(m,mm) = signs(m) * signs(mm) * dl(mm,m)
          end do
       end do
-!!$      do mm = 0, el
-!!$         do m = 0, mm-1
-!!$            dl(m,mm) = signs(m) * signs(mm) * dl(mm,m)
-!!$         end do
-!!$      end do
 
-    end subroutine ssht_dl_halfpi_trapani_fill_eighth2quarter
+    end subroutine ssht_dl_halfpi_trapani_fill_eighth2quarter_table
 
 
 end module ssht_dl_mod

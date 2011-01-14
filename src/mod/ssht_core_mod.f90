@@ -1153,7 +1153,8 @@ contains
        else
           call ssht_dl_halfpi_trapani_eighth_table(dl(0:el,0:el), el, &
                sqrt_tbl(0:2*el+1))
-          call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(0:el,0:el), el)
+          call ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl(0:el,0:el), &
+               el, signs(0:el))
        end if
 
 !       call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
@@ -1444,7 +1445,8 @@ contains
        else
           call ssht_dl_halfpi_trapani_eighth_table(dl(0:el,0:el), el, &
                sqrt_tbl(0:2*el+1))
-          call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(0:el,0:el), el)
+          call ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl(0:el,0:el), &
+               el, signs(0:el))
        end if
 
        elfactor = sqrt((2d0*el+1d0)/(4d0*PI))
@@ -2048,7 +2050,8 @@ contains
        else
           call ssht_dl_halfpi_trapani_eighth_table(dl(0:el,0:el), el, &
                sqrt_tbl(0:2*el+1))
-          call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(0:el,0:el), el)
+          call ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl(0:el,0:el), &
+               el, signs(0:el))
        end if
        elfactor = sqrt((2d0*el+1d0)/(4d0*PI))
        do m = 0, el
@@ -2358,6 +2361,21 @@ contains
     integer*8 :: fftw_plan
     character(len=STRING_LEN) :: format_spec
 
+    integer :: eltmp
+    real(dp) :: signs(0:L), ssign
+    real(dp) :: dl_mm_spin
+    real(dp) :: sqrt_tbl(0:2*(L-1)+1)
+
+    ! Perform precomputations.
+    do el = 0, 2*(L-1) + 1
+       sqrt_tbl(el) = dsqrt(real(el,kind=dp))
+    end do
+    do m = 0, L-1, 2
+       signs(m)   =  1.0_dp
+       signs(m+1) = -1.0_dp
+    enddo
+    ssign = signs(spin)
+
     ! Print messages depending on verbosity level.
     if (present(verbosity)) then
        if (verbosity > 0) then
@@ -2379,13 +2397,26 @@ contains
     ! Compute Fmm.
     Fmm(-(L-1):L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
     do el = abs(spin), L-1
-       call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+
+       if (el /= 0 .and. el == abs(spin)) then
+          ! Recurse Wigner plane from 0 up to first el, i.e. abs(spin).
+          do eltmp = 0, abs(spin)
+             call ssht_dl_halfpi_trapani_eighth_table(dl(0:eltmp,0:eltmp), eltmp, &
+                  sqrt_tbl(0:2*eltmp+1))
+          end do       
+       else
+          call ssht_dl_halfpi_trapani_eighth_table(dl(0:el,0:el), el, &
+               sqrt_tbl(0:2*el+1))
+          call ssht_dl_halfpi_trapani_fill_eighth2righthalf_table(dl(0:el,-el:el), &
+               el, signs)
+       end if
+
        elfactor = sqrt((2d0*el+1d0)/(4d0*PI))
        do m = -el, el
           call ssht_sampling_elm2ind(ind, el, m)
           do mm = 0, el
              Fmm(m,mm) = Fmm(m,mm) + &
-                  (-1)**spin * elfactor &
+                  ssign * elfactor &
                   * exp(-I*PION2*(m+spin)) &
                   * dl(mm,m) * dl(mm,-spin) &
                   * flm(ind)
@@ -2394,9 +2425,9 @@ contains
     end do
 
     ! Use symmetry to compute Fmm for negative mm.
-    do m = -(L-1), L-1       
-       do mm = -(L-1), -1
-          Fmm(m,mm) = (-1)**(m+spin) * Fmm(m,-mm)
+    do mm = -(L-1), -1
+       do m = -(L-1), L-1       
+          Fmm(m,mm) = signs(abs(m)) * ssign * Fmm(m,-mm)
        end do
     end do
 
@@ -2519,7 +2550,8 @@ contains
        else
           call ssht_dl_halfpi_trapani_eighth_table(dl(0:el,0:el), el, &
                sqrt_tbl(0:2*el+1))
-          call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(0:el,0:el), el)
+          call ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl(0:el,0:el), &
+               el, signs(0:el))
        end if
 
        elfactor = sqrt((2d0*el+1d0)/(4d0*PI))
@@ -3040,7 +3072,8 @@ contains
        else
           call ssht_dl_halfpi_trapani_eighth_table(dl(0:el,0:el), el, &
                sqrt_tbl(0:2*el+1))
-          call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(0:el,0:el), el)
+          call ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl(0:el,0:el), &
+               el, signs(0:el))
        end if
       
        elfactor = sqrt((2d0*el+1d0)/(4d0*PI))
@@ -3344,7 +3377,8 @@ contains
        else
           call ssht_dl_halfpi_trapani_eighth_table(dl(0:el,0:el), el, &
                sqrt_tbl(0:2*el+1))
-          call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(0:el,0:el), el)
+          call ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl(0:el,0:el), &
+               el, signs(0:el))
        end if
 
        elfactor = sqrt((2d0*el+1d0)/(4d0*PI))
@@ -4467,7 +4501,8 @@ contains
        else
           call ssht_dl_halfpi_trapani_eighth_table(dl(0:el,0:el), el, &
                sqrt_tbl(0:2*el+1))
-          call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(0:el,0:el), el)
+          call ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl(0:el,0:el), &
+               el, signs(0:el))
        end if
 
        elfactor = sqrt((2d0*el+1d0)/(4d0*PI))
@@ -5354,7 +5389,8 @@ contains
        else
           call ssht_dl_halfpi_trapani_eighth_table(dl(0:el,0:el), el, &
                sqrt_tbl(0:2*el+1))
-          call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(0:el,0:el), el)
+          call ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl(0:el,0:el), &
+               el, signs(0:el))
        end if
 
        elfactor = sqrt((2d0*el+1d0)/(4d0*PI))
