@@ -2740,21 +2740,22 @@ contains
 
     integer :: spin
 
+    real(dp) :: signs(0:L), ssign
+    real(dp) :: dl_mm_spin
+    real(dp) :: sqrt_tbl(0:2*(L-1)+1)
 
+    ! Perform precomputations.
+    do el = 0, 2*(L-1) + 1
+       sqrt_tbl(el) = dsqrt(real(el,kind=dp))
+    end do
+    do m = 0, L-1, 2
+       signs(m)   =  1.0_dp
+       signs(m+1) = -1.0_dp
+    enddo
 
-real(dp) :: dl_mm_spin
-
-
-!!$real(dp) :: sqrt_tbl(0:2*(L-1))
-!!$do el = 0, 2*(L-1)
-!!$   sqrt_tbl(el) = dsqrt(real(el,kind=dp))
-!!$end do
-real(dp) :: sqrt_tbl(0:2*(L-1)+1)
-do el = 0, 2*(L-1) + 1
-   sqrt_tbl(el) = dsqrt(real(el,kind=dp))
-end do
-
+    ! Set spin to zero.
     spin = 0
+    ssign = signs(spin)
 
     ! Print messages depending on verbosity level.
     if (present(verbosity)) then
@@ -2779,35 +2780,14 @@ end do
 
 
     do el = abs(spin), L-1
-
-!       if (el == abs(spin)) then
-!          call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
-!       else
-
-
-
-!call ssht_dl_halfpi_risbo_eighth_table(dl(-el:el,-el:el), el, sqrt_tbl(0:2*el))
-!call ssht_dl_halfpi_risbo_fill_eighth2full(dl(-el:el,-el:el), el)
-
-
-call ssht_dl_halfpi_trapani_eighth_table(dl(0:el,0:el), el, sqrt_tbl(0:2*el+1))
-call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(0:el,0:el), el)
-
-!call ssht_dl_beta_risbo_healpix_sqrttable(dl(-el:el,-el:el), PION2, el, sqrt_tbl(0:2*el))
-!call ssht_dl_beta_recursion_fill(dl(-el:el,-el:el), el)
-
-
-
-!call ssht_dl_halfpi_trapani_eighth(dl(-el:el,-el:el), el)
-!call ssht_dl_halfpi_trapani_eighth_sqrt_table(dl(-el:el,-el:el), el, sqrt_tbl(0:2*el+1))
-
-!call ssht_dl_halfpi_trapani_fill_eighth2all(dl(-el:el,-el:el), el)
-!call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(-el:el,-el:el), el)
-
-!       end if
-
-
-!TODO: for real signal only need quarter plane of dl and use symmetry to get value for -spin.
+       if (el /= 0 .and. el == abs(spin)) then
+          ! Must use operator if start from non-zero spin.
+          call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+       else
+          call ssht_dl_halfpi_trapani_eighth_table(dl(0:el,0:el), el, &
+               sqrt_tbl(0:2*el+1))
+          call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(0:el,0:el), el)
+       end if
 
        elfactor = sqrt((2d0*el+1d0)/(4d0*PI))
        do m = 0, el
@@ -2816,11 +2796,11 @@ call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(0:el,0:el), el)
              if (spin <= 0) then
                 dl_mm_spin = dl(mm,-spin)
              else
-                dl_mm_spin = (-1)**(el+mm) * dl(mm,spin)
+                dl_mm_spin =  signs(el) * signs(mm) * dl(mm,spin)
              end if
 
              Fmm(m,mm) = Fmm(m,mm) + &
-                  (-1)**spin * elfactor &
+                  ssign * elfactor &
                   * exp(-I*PION2*(m+spin)) &
 !!$                  * dl(mm,m) * dl(mm,-spin) &
                   * dl(mm,m) * dl_mm_spin &
@@ -2832,7 +2812,7 @@ call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(0:el,0:el), el)
     ! Use symmetry to compute Fmm for negative mm.
     do m = 0, L-1       
        do mm = -(L-1), -1
-          Fmm(m,mm) = (-1)**(m+spin) * Fmm(m,-mm)
+          Fmm(m,mm) = signs(m) * ssign * Fmm(m,-mm)
        end do
     end do
 
@@ -2864,150 +2844,6 @@ call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(0:el,0:el), el)
     end if
 
   end subroutine ssht_core_mw_inverse_sov_sym_real
-
-  subroutine ssht_core_mw_inverse_sov_sym_real_ORIG(f, flm, L, verbosity)
-    
-    integer, intent(in) :: L
-    integer, intent(in), optional :: verbosity
-    complex(dpc), intent(in) :: flm(0:L**2-1)
-    real(dp), intent(out) :: f(0:L-1, 0:2*L-2)
-
-    integer :: el, m, mm, t, p, ind
-    real(dp) :: theta, phi
-    real(dp) :: elfactor
-    real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
-    complex(dpc) :: Fmm(0:L-1, -(L-1):L-1)
-    complex(dpc) :: fext(0:L-1, 0:2*L-2)
-    real(dp) :: fext_real(0:2*L-2,0:2*L-2)
-    integer*8 :: fftw_plan
-    character(len=STRING_LEN) :: format_spec
-
-    integer :: spin
-
-
-
-real(dp) :: dl_mm_spin
-
-
-!!$real(dp) :: sqrt_tbl(0:2*(L-1))
-!!$do el = 0, 2*(L-1)
-!!$   sqrt_tbl(el) = dsqrt(real(el,kind=dp))
-!!$end do
-real(dp) :: sqrt_tbl(0:2*(L-1)+1)
-do el = 0, 2*(L-1) + 1
-   sqrt_tbl(el) = dsqrt(real(el,kind=dp))
-end do
-
-    spin = 0
-
-    ! Print messages depending on verbosity level.
-    if (present(verbosity)) then
-       if (verbosity > 0) then
-          write(*,'(a,a,a)') SSHT_PROMPT, &
-               'Computing inverse transform using McEwen and Wiaux', &
-               ' sampling with'
-          write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', &
-               digit(spin),',a)'
-          write(*,trim(format_spec)) SSHT_PROMPT, &
-               'parameters (L,spin,reality) = (', &
-               L, ',', spin, ',TRUE)...'
-       end if
-       if (verbosity > 1) then
-          write(*,'(a,a)') SSHT_PROMPT, &
-               'Using routine ssht_core_mw_inverse_sov_sym...'
-       end if
-    end if
-
-    ! Compute Fmm.
-    Fmm(0:L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
-
-
-    do el = abs(spin), L-1
-
-!       if (el == abs(spin)) then
-!          call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
-!       else
-
-
-
-!call ssht_dl_halfpi_risbo_eighth_table(dl(-el:el,-el:el), el, sqrt_tbl(0:2*el))
-!call ssht_dl_halfpi_risbo_fill_eighth2full(dl(-el:el,-el:el), el)
-
-
-call ssht_dl_halfpi_trapani_eighth_table(dl(-el:el,-el:el), el, sqrt_tbl(0:2*el))
-call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(-el:el,-el:el), el)
-
-!call ssht_dl_beta_risbo_healpix_sqrttable(dl(-el:el,-el:el), PION2, el, sqrt_tbl(0:2*el))
-!call ssht_dl_beta_recursion_fill(dl(-el:el,-el:el), el)
-
-
-
-!call ssht_dl_halfpi_trapani_eighth(dl(-el:el,-el:el), el)
-!call ssht_dl_halfpi_trapani_eighth_sqrt_table(dl(-el:el,-el:el), el, sqrt_tbl(0:2*el+1))
-
-!call ssht_dl_halfpi_trapani_fill_eighth2all(dl(-el:el,-el:el), el)
-!call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(-el:el,-el:el), el)
-
-!       end if
-
-
-!TODO: for real signal only need quarter plane of dl and use symmetry to get value for -spin.
-
-       elfactor = sqrt((2d0*el+1d0)/(4d0*PI))
-       do m = 0, el
-          call ssht_sampling_elm2ind(ind, el, m)
-          do mm = 0, el
-             if (spin <= 0) then
-                dl_mm_spin = dl(mm,-spin)
-             else
-                dl_mm_spin = (-1)**(el+mm) * dl(mm,spin)
-             end if
-
-             Fmm(m,mm) = Fmm(m,mm) + &
-                  (-1)**spin * elfactor &
-                  * exp(-I*PION2*(m+spin)) &
-!!$                  * dl(mm,m) * dl(mm,-spin) &
-                  * dl(mm,m) * dl_mm_spin &
-                  * flm(ind)
-          end do
-       end do
-    end do
-
-    ! Use symmetry to compute Fmm for negative mm.
-    do m = 0, L-1       
-       do mm = -(L-1), -1
-          Fmm(m,mm) = (-1)**(m+spin) * Fmm(m,-mm)
-       end do
-    end do
-
-    ! Apply phase modulation to account for sampling offset.
-    do mm = -(L-1), L-1
-       Fmm(0:L-1,mm) = Fmm(0:L-1,mm) * exp(I*mm*PI/(2d0*L-1d0))
-    end do
-
-    ! Apply spatial shift.
-    fext(0:L-1, 0:L-1) = Fmm(0:L-1,0:L-1)
-    fext(0:L-1, L:2*L-2) = Fmm(0:L-1,-(L-1):-1)
-
-    ! Perform 2D FFT.
-    ! ** NOTE THAT 2D FFTW SWITCHES DIMENSIONS! HENCE TRANSPOSE BELOW. **
-    call dfftw_plan_dft_c2r_2d(fftw_plan, 2*L-1, 2*L-1, fext(0:L-1,0:2*L-2), &
-         fext_real(0:2*L-2,0:2*L-2), FFTW_ESTIMATE)
-    call dfftw_execute_dft_c2r(fftw_plan, fext(0:L-1,0:2*L-2), fext_real(0:2*L-2,0:2*L-2))
-    call dfftw_destroy_plan(fftw_plan)
-
-    ! Extract f from version of f extended to the torus (fext).
-    f(0:L-1, 0:2*L-2) = transpose(fext_real(0:2*L-2, 0:L-1))
-
-    ! Print finished if verbosity set.
-    if (present(verbosity)) then
-       if (verbosity > 0) then
-          write(*,'(a,a)') SSHT_PROMPT, &
-               'Inverse transform computed!'
-       end if
-    end if
-
-  end subroutine ssht_core_mw_inverse_sov_sym_real_ORIG
 
 
   !============================================================================
@@ -5654,7 +5490,7 @@ call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(-el:el,-el:el), el)
     ! Compute flm.
     flm(0::L**2-1) = cmplx(0d0, 0d0)
     do el = abs(spin), L-1
-       if (el == abs(spin)) then
+       if (el /= 0 .and. el == abs(spin)) then
           ! Must use operator if start from non-zero spin.
           call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
        else
@@ -5673,7 +5509,6 @@ call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(-el:el,-el:el), el)
              dl_0_spin = signs(el) * dl(0,spin)
           end if
           
-
           flm(ind) = flm(ind) + &
                ssign * elfactor &
                * exp(I*PION2*(m+spin)) &
@@ -5690,7 +5525,7 @@ call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(-el:el,-el:el), el)
              end if
             
              flm(ind) = flm(ind) + &
-                  (-1)**spin * elfactor &
+                  ssign * elfactor &
                   * exp(I*PION2*(m+spin)) &
 !!$                  * dl(mm,m) * dl(mm,-spin) &
                   * dl(mm,m) * dl_mm_spin &
