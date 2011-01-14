@@ -82,9 +82,9 @@ program ssht_test
   complex(dpc), allocatable :: flm_orig(:), flm_syn(:)
   complex(dpc), allocatable :: f_dh(:,:), f_gl(:,:), f_mweo(:,:), f_mw(:,:)
   real(dp), allocatable :: f_dh_real(:,:), f_gl_real(:,:), f_mweo_real(:,:), f_mw_real(:,:)
-  real(dp) :: phi_sp_mw, phi_sp_mweo
-  complex(dpc) :: f_sp_mw, f_sp_mweo
-  real(dp) :: f_real_sp_mw, f_real_sp_mweo
+  real(dp) :: phi_sp_mweo, phi_sp_mw
+  complex(dpc) :: f_sp_mweo, f_sp_mw
+  real(dp) :: f_real_sp_dh, f_real_sp_gl, f_real_sp_mweo, f_real_sp_mw
 
   ! Initialise parameters.
   call getarg(1, arg)
@@ -98,7 +98,7 @@ program ssht_test
   allocate(flm_syn(0:L**2-1), stat=fail)  
   allocate(f_dh(0:2*L-1, 0:2*L-2), stat=fail)
   allocate(f_gl(0:L-1, 0:2*L-2), stat=fail)
-  allocate(f_mweo(0:L-1, 0:2*L-2), stat=fail)
+  allocate(f_mweo(0:L-2, 0:2*L-2), stat=fail)
   allocate(f_mw(0:L-2, 0:2*L-2), stat=fail)
   allocate(f_dh_real(0:2*L-1, 0:2*L-2), stat=fail)
   allocate(f_gl_real(0:L-1, 0:2*L-2), stat=fail)
