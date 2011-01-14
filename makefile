@@ -8,7 +8,7 @@ ifeq ($(FC),f95)
   OPTF95 = -w=x95
 endif
 
-OPT = $(OPTF95) -m64 #-O3
+OPT = $(OPTF95) -m64 -O3
 
 
 # ======== LINKS ========

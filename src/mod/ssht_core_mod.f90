@@ -5522,40 +5522,22 @@ call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(-el:el,-el:el), el)
     integer :: spin
     character(len=STRING_LEN) :: format_spec
 
+    real(dp) :: signs(0:L), ssign
+    real(dp) :: dl_mm_spin, dl_0_spin
+    real(dp) :: sqrt_tbl(0:2*(L-1)+1)
 
+    ! Perform precomputations.
+    do el = 0, 2*(L-1) + 1
+       sqrt_tbl(el) = dsqrt(real(el,kind=dp))
+    end do
+    do m = 0, L-1, 2
+       signs(m)   =  1.0_dp
+       signs(m+1) = -1.0_dp
+    enddo
 
-
-
-real(dp) :: signs(0:L), ssign
-
-complex(dpc) :: expipion2(0:L-1), sexpipion2
-
-
-real(dp) :: dl_mm_spin
-
-
-!!$real(dp) :: sqrt_tbl(0:2*(L-1))
-!!$do el = 0, 2*(L-1)
-!!$   sqrt_tbl(el) = dsqrt(real(el,kind=dp))
-!!$end do
-real(dp) :: sqrt_tbl(0:2*(L-1)+1)
-do el = 0, 2*(L-1) + 1
-   sqrt_tbl(el) = dsqrt(real(el,kind=dp))
-end do
-
-! Compute signs.
-do m = 0, L-1, 2
-   signs(m)   =  1.0_dp
-   signs(m+1) = -1.0_dp
-enddo
-
-do m = 0, L-1
-   expipion2(m) = exp(I*PION2*m)
-end do
-
+    ! Set spin to zero.
     spin = 0
     ssign = signs(spin)
-    sexpipion2 = expipion2(spin)
 
     ! Print messages depending on verbosity level.
     if (present(verbosity)) then
@@ -5672,41 +5654,31 @@ end do
     ! Compute flm.
     flm(0::L**2-1) = cmplx(0d0, 0d0)
     do el = abs(spin), L-1
-!       if (el == abs(spin)) then
-! must use operator if start from spin not 0
-!          call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
-!       else
-
-!call ssht_dl_halfpi_risbo_eighth_table(dl(-el:el,-el:el), el, sqrt_tbl(0:2*el))
-!call ssht_dl_halfpi_risbo_fill_eighth2full(dl(-el:el,-el:el), el)
-
-call ssht_dl_halfpi_trapani_eighth_table(dl(0:el,0:el), el, sqrt_tbl(0:2*el+1))
-call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(0:el,0:el), el)
-
-
-!call ssht_dl_beta_risbo_healpix_sqrttable(dl(-el:el,-el:el), PION2, el, sqrt_tbl(0:2*el))
-!call ssht_dl_beta_recursion_fill(dl(-el:el,-el:el), el)
-
-
-!call ssht_dl_halfpi_trapani_eighth(dl(-el:el,-el:el), el)
-!call ssht_dl_halfpi_trapani_eighth_sqrt_table(dl(-el:el,-el:el), el, sqrt_tbl(0:2*el+1))
-!call ssht_dl_halfpi_trapani_fill_eighth2all(dl(-el:el,-el:el), el)
-!call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(-el:el,-el:el), el)
-!       end if
-
-
-
+       if (el == abs(spin)) then
+          ! Must use operator if start from non-zero spin.
+          call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+       else
+          call ssht_dl_halfpi_trapani_eighth_table(dl(0:el,0:el), el, &
+               sqrt_tbl(0:2*el+1))
+          call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(0:el,0:el), el)
+       end if
 
        elfactor = sqrt((2d0*el+1d0)/(4d0*PI))
        do m = 0, el
           call ssht_sampling_elm2ind(ind, el, m)
 
+          if (spin <= 0) then
+             dl_0_spin = dl(0,-spin)
+          else
+             dl_0_spin = signs(el) * dl(0,spin)
+          end if
+          
+
           flm(ind) = flm(ind) + &
                ssign * elfactor &
-!               * exp(I*PION2*(m+spin)) &
-               * expipion2(m) * sexpipion2 &
-!TODO: bug here!! for spin (haven't computed -spin values. update as below.
-               * dl(0,m) * dl(0,-spin) &
+               * exp(I*PION2*(m+spin)) &
+!               * dl(0,m) * dl(0,-spin) &
+               * dl(0,m) * dl_0_spin &
                * Gmm(m,0)
 
           do mm = 1, el 
@@ -5719,8 +5691,7 @@ call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(0:el,0:el), el)
             
              flm(ind) = flm(ind) + &
                   (-1)**spin * elfactor &
-!                  * exp(I*PION2*(m+spin)) &
-                  * expipion2(m) * sexpipion2 &
+                  * exp(I*PION2*(m+spin)) &
 !!$                  * dl(mm,m) * dl(mm,-spin) &
                   * dl(mm,m) * dl_mm_spin &
                   * (Gmm(m,mm) + ssign * signs(m) * Gmm(m,-mm))
@@ -5746,263 +5717,6 @@ call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(0:el,0:el), el)
     end if
 
   end subroutine ssht_core_mw_forward_sov_conv_sym_real
-
-
-
-
-
-
-
-
-
-
-
-
-  subroutine ssht_core_mw_forward_sov_conv_sym_real_ORIG(flm, f, L, verbosity)
-
-    integer, intent(in) :: L
-    integer, intent(in), optional :: verbosity
-    real(dp), intent(in) :: f(0:L-1 ,0:2*L-2)
-    complex(dpc), intent(out) :: flm(0:L**2-1)
-
-    integer :: p, m, t, mm, el, ind, k
-    real(dp) :: theta, phi
-    real(dp) :: elfactor
-
-    real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
-    complex(dpc) :: Fmt(0:L-1, 0:2*L-2)
-    complex(dpc) :: Fmm(0:L-1, -(L-1):L-1)
-    complex(dpc) :: Gmm(0:L-1, -(L-1):L-1) 
-    integer*8 :: fftw_plan
-    complex(dpc) :: tmp(0:2*L-2)
-
-    integer :: r
-    complex(dpc) :: Fmm_pad(-2*(L-1):2*(L-1))
-    complex(dpc) :: tmp_pad(-2*(L-1):2*(L-1))
-    complex(dpc) :: w(-2*(L-1):2*(L-1))
-    complex(dpc) :: wr(-2*(L-1):2*(L-1))
-    integer*8 :: fftw_plan_fwd, fftw_plan_bwd
-
-    real(dp) :: tmpr(0:2*L-2)
-    integer :: ind_nm
-    integer :: spin
-    character(len=STRING_LEN) :: format_spec
-
-
-
-
-
-
-
-
-
-real(dp) :: dl_mm_spin
-
-
-!!$real(dp) :: sqrt_tbl(0:2*(L-1))
-!!$do el = 0, 2*(L-1)
-!!$   sqrt_tbl(el) = dsqrt(real(el,kind=dp))
-!!$end do
-real(dp) :: sqrt_tbl(0:2*(L-1)+1)
-do el = 0, 2*(L-1) + 1
-   sqrt_tbl(el) = dsqrt(real(el,kind=dp))
-end do
-
-
-
-
-    spin = 0
-
-    ! Print messages depending on verbosity level.
-    if (present(verbosity)) then
-       if (verbosity > 0) then
-          write(*,'(a,a,a)') SSHT_PROMPT, &
-               'Computing forward transform using McEwen and Wiaux', &
-               ' sampling with'
-          write(format_spec,'(a,i20,a,i20,a)') '(a,a,i', digit(L),',a,i', &
-               digit(spin),',a)'
-          write(*,trim(format_spec)) SSHT_PROMPT, &
-               'parameters (L,spin,reality) = (', &
-               L, ',', spin, ',TRUE)...'
-       end if
-       if (verbosity > 1) then
-          write(*,'(a,a)') SSHT_PROMPT, &
-               'Using routine ssht_core_mw_forward_sov_conv_sym_real...'
-       end if
-    end if
-
-    ! Compute Fourier transform over phi, i.e. compute Fmt.
-    call dfftw_plan_dft_r2c_1d(fftw_plan, 2*L-1, tmpr(0:2*L-2), &
-         Fmt(0:L-1,0), FFTW_MEASURE)
-    do t = 0, L-1             
-       call dfftw_execute_dft_r2c(fftw_plan, f(t,0:2*L-2), tmp(0:L-1))
-       Fmt(0:L-1,t) = tmp(0:L-1)
-    end do
-    call dfftw_destroy_plan(fftw_plan)
-    Fmt(0:L-1, 0:L-1) = Fmt(0:L-1, 0:L-1) / (2d0*L-1d0)
-
-    ! Extend Fmt periodically.
-    do m = 0, L-1
-       Fmt(m, L:2*L-2) = (-1)**(m+spin) * Fmt(m, L-2:0:-1)
-    end do
-
-    ! Compute Fourier transform over theta, i.e. compute Fmm.
-    call dfftw_plan_dft_1d(fftw_plan, 2*L-1, tmp(0:2*L-2), &
-         tmp(0:2*L-2), FFTW_FORWARD, FFTW_MEASURE)
-    do m = 0, L-1
-       call dfftw_execute_dft(fftw_plan, Fmt(m,0:2*L-2), tmp(0:2*L-2))
-       Fmm(m,0:L-1) = tmp(0:L-1)
-       Fmm(m,-(L-1):-1) = tmp(L:2*L-2)
-    end do
-    Fmm(0:L-1, -(L-1):L-1) = Fmm(0:L-1, -(L-1):L-1) / (2d0*L-1d0)
-    call dfftw_destroy_plan(fftw_plan)
-
-    ! Apply phase modulation to account for sampling offset.
-    do mm = -(L-1), L-1
-       Fmm(0:L-1,mm) = Fmm(0:L-1, mm) * exp(-I*mm*PI/(2d0*L - 1d0))
-    end do
-
-    ! Compute weights.
-    do mm = -2*(L-1), 2*(L-1)
-       w(mm) = ssht_sampling_weight_mw(mm)
-    end do
-
-    ! Compute IFFT of w to give wr.
-    wr(1:2*(L-1)) = w(-2*(L-1):-1)
-    wr(-2*(L-1):0) = w(0:2*(L-1))
-    w(-2*(L-1):2*(L-1)) = wr(-2*(L-1):2*(L-1))
-    call dfftw_plan_dft_1d(fftw_plan_bwd, 4*L-3, wr(-2*(L-1):2*(L-1)), &
-         wr(-2*(L-1):2*(L-1)), FFTW_BACKWARD, FFTW_MEASURE)
-    call dfftw_execute_dft(fftw_plan_bwd, w(-2*(L-1):2*(L-1)), w(-2*(L-1):2*(L-1)))
-    wr(0:2*(L-1)) = w(-2*(L-1):0)
-    wr(-2*(L-1):-1) = w(1:2*(L-1))
-
-    ! Plan forward FFT.
-    call dfftw_plan_dft_1d(fftw_plan_fwd, 4*L-3, w(-2*(L-1):2*(L-1)), &
-         w(-2*(L-1):2*(L-1)), FFTW_FORWARD, FFTW_MEASURE)
-
-    ! Compute Gmm by convolution implemented as product in real space.
-    do m = 0, L-1
-
-       ! Zero-pad Fmm.
-       Fmm_pad(-2*(L-1):-L) = cmplx(0d0, 0d0)
-       Fmm_pad(-(L-1):L-1) = Fmm(m,-(L-1):L-1)
-       Fmm_pad(L:2*(L-1)) = cmplx(0d0, 0d0)
-       
-       ! Compute IFFT of Fmm.
-       tmp_pad(1:2*(L-1)) = Fmm_pad(-2*(L-1):-1)
-       tmp_pad(-2*(L-1):0) = Fmm_pad(0:2*(L-1))
-       Fmm_pad(-2*(L-1):2*(L-1)) = tmp_pad(-2*(L-1):2*(L-1))
-       call dfftw_execute_dft(fftw_plan_bwd, Fmm_pad(-2*(L-1):2*(L-1)), &
-            Fmm_pad(-2*(L-1):2*(L-1)))
-       tmp_pad(0:2*(L-1)) = Fmm_pad(-2*(L-1):0)
-       tmp_pad(-2*(L-1):-1) = Fmm_pad(1:2*(L-1))
-       Fmm_pad(-2*(L-1):2*(L-1)) = tmp_pad(-2*(L-1):2*(L-1))
-
-       ! Compute product of Fmm and weight in real space.
-       do r = -2*(L-1), 2*(L-1)
-          Fmm_pad(r) = Fmm_pad(r) * wr(-r)
-       end do
-
-       ! Compute Gmm by FFT.
-       tmp_pad(1:2*(L-1)) = Fmm_pad(-2*(L-1):-1)
-       tmp_pad(-2*(L-1):0) = Fmm_pad(0:2*(L-1))
-       Fmm_pad(-2*(L-1):2*(L-1)) = tmp_pad(-2*(L-1):2*(L-1))
-       call dfftw_execute_dft(fftw_plan_fwd, Fmm_pad(-2*(L-1):2*(L-1)), &
-            Fmm_pad(-2*(L-1):2*(L-1)))
-       tmp_pad(0:2*(L-1)) = Fmm_pad(-2*(L-1):0)
-       tmp_pad(-2*(L-1):-1) = Fmm_pad(1:2*(L-1))
-       Fmm_pad(-2*(L-1):2*(L-1)) = tmp_pad(-2*(L-1):2*(L-1))
-
-       ! Extract section of Gmm of interest.
-       Gmm(m,-(L-1):(L-1)) = Fmm_pad(-(L-1):(L-1)) * 2d0 * PI / (4d0*L-3d0)
-
-    end do
-    call dfftw_destroy_plan(fftw_plan_bwd)
-    call dfftw_destroy_plan(fftw_plan_fwd)   
-
-    ! Compute flm.
-    flm(0::L**2-1) = cmplx(0d0, 0d0)
-    do el = abs(spin), L-1
-!       if (el == abs(spin)) then
-! must use operator if start from spin not 0
-!          call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
-!       else
-
-!call ssht_dl_halfpi_risbo_eighth_table(dl(-el:el,-el:el), el, sqrt_tbl(0:2*el))
-!call ssht_dl_halfpi_risbo_fill_eighth2full(dl(-el:el,-el:el), el)
-
-call ssht_dl_halfpi_trapani_eighth_table(dl(-el:el,-el:el), el, sqrt_tbl(0:2*el))
-call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(-el:el,-el:el), el)
-
-
-!call ssht_dl_beta_risbo_healpix_sqrttable(dl(-el:el,-el:el), PION2, el, sqrt_tbl(0:2*el))
-!call ssht_dl_beta_recursion_fill(dl(-el:el,-el:el), el)
-
-
-!call ssht_dl_halfpi_trapani_eighth(dl(-el:el,-el:el), el)
-!call ssht_dl_halfpi_trapani_eighth_sqrt_table(dl(-el:el,-el:el), el, sqrt_tbl(0:2*el+1))
-!call ssht_dl_halfpi_trapani_fill_eighth2all(dl(-el:el,-el:el), el)
-!call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(-el:el,-el:el), el)
-!       end if
-
-
-
-
-       elfactor = sqrt((2d0*el+1d0)/(4d0*PI))
-       do m = 0, el
-          call ssht_sampling_elm2ind(ind, el, m)
-
-          flm(ind) = flm(ind) + &
-               (-1)**spin * elfactor &
-               * exp(I*PION2*(m+spin)) &
-! bug here!! for spin
-               * dl(0,m) * dl(0,-spin) &
-               * Gmm(m,0)
-
-          do mm = 1, el 
-
-             if (spin <= 0) then
-                dl_mm_spin = dl(mm,-spin)
-             else
-                dl_mm_spin = (-1)**(el+mm) * dl(mm,spin)
-             end if
-            
-             flm(ind) = flm(ind) + &
-                  (-1)**spin * elfactor &
-                  * exp(I*PION2*(m+spin)) &
-!!$                  * dl(mm,m) * dl(mm,-spin) &
-                  * dl(mm,m) * dl_mm_spin &
-                  * (Gmm(m,mm) + (-1)**(m+spin)*Gmm(m,-mm))
-          end do
-       end do
-    end do
-
-    ! Set flm values for negative m using conjugate symmetry.
-    do el = abs(spin), L-1
-       do m = 1, el
-          call ssht_sampling_elm2ind(ind, el, m)
-          call ssht_sampling_elm2ind(ind_nm, el, -m)
-          flm(ind_nm) = (-1)**m * conjg(flm(ind))
-       end do
-    end do
-
-    ! Print finished if verbosity set.
-    if (present(verbosity)) then
-       if (verbosity > 0) then
-          write(*,'(a,a)') SSHT_PROMPT, &
-               'Forward transform computed!'
-       end if
-    end if
-
-  end subroutine ssht_core_mw_forward_sov_conv_sym_real_ORIG
-
-
-
-
-
-
-
 
 
 
