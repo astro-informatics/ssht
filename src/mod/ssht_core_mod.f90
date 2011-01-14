@@ -1475,7 +1475,7 @@ contains
     integer :: el, m, mm, t, p, ind
     real(dp) :: theta, phi
     real(dp) :: elfactor
-    real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
+    real(dp) :: dl(0:L-1, 0:L-1)
     complex(dpc) :: Fmm(0:L-1, 0:L-1)
     complex(dpc) :: fmt(0:L-1, 0:2*L-1)
     integer*8 :: fftw_plan
@@ -1483,9 +1483,24 @@ contains
     character(len=STRING_LEN) :: format_spec
 
     integer :: spin
+    integer :: eltmp
+    real(dp) :: signs(0:L), ssign
+    real(dp) :: dl_mm_spin
+    real(dp) :: sqrt_tbl(0:2*(L-1)+1)
 
+    ! Perform precomputations.
+    do el = 0, 2*(L-1) + 1
+       sqrt_tbl(el) = dsqrt(real(el,kind=dp))
+    end do
+    do m = 0, L-1, 2
+       signs(m)   =  1.0_dp
+       signs(m+1) = -1.0_dp
+    enddo
+
+    ! Set spin to zero.
     spin = 0
-    
+    ssign = signs(spin)    
+
     ! Print messages depending on verbosity level.
     if (present(verbosity)) then
        if (verbosity > 0) then
@@ -1502,19 +1517,35 @@ contains
        end if
     end if
 
-
     ! Compute Fmm.
     Fmm(0:L-1, 0:L-1) = cmplx(0d0, 0d0)
     do el = abs(spin), L-1
-       call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+       if (el /= 0 .and. el == abs(spin)) then
+          ! Recurse Wigner plane from 0 up to first el, i.e. abs(spin).
+          do eltmp = 0, abs(spin)
+             call ssht_dl_halfpi_trapani_eighth_table(dl(0:eltmp,0:eltmp), eltmp, &
+                  sqrt_tbl(0:2*eltmp+1))
+          end do
+       else
+          call ssht_dl_halfpi_trapani_eighth_table(dl(0:el,0:el), el, &
+               sqrt_tbl(0:2*el+1))
+          call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(0:el,0:el), el)
+       end if
+
+!       call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
        elfactor = sqrt((2d0*el+1d0)/(4d0*PI))
        do m = 0, el
           call ssht_sampling_elm2ind(ind, el, m)
           do mm = 0, el
+             if (spin <= 0) then
+                dl_mm_spin = dl(mm,-spin)
+             else
+                dl_mm_spin =  signs(el) * signs(mm) * dl(mm,spin)
+             end if
              Fmm(m,mm) = Fmm(m,mm) + &
-                  (-1)**spin * elfactor &
+                  ssign * elfactor &
                   * exp(-I*PION2*(m+spin)) &
-                  * dl(mm,m) * dl(mm,-spin) &
+                  * dl(mm,m) * dl_mm_spin &
                   * flm(ind)
           end do
        end do
@@ -1524,11 +1555,14 @@ contains
     fmt(0:L-1, 0:2*L-1) = cmplx(0d0, 0d0)
     do t = 0, 2*L-1     
        theta = ssht_sampling_dh_t2theta(t, L)       
+! Switching order of mm and m loops changes computation time by a factor of ~10!
        do m = 0, L-1          
           fmt(m,t) = fmt(m,t) + Fmm(m,0)
-          do mm = 1, L-1
+       end do
+       do mm = 1, L-1
+          do m = 0, L-1          
              fmt(m,t) = fmt(m,t) + &
-                  Fmm(m,mm) * (exp(I*mm*theta)  + (-1)**(m+spin) * exp(-I*mm*theta))
+                  Fmm(m,mm) * (exp(I*mm*theta)  + signs(m) * ssign * exp(-I*mm*theta))
           end do
        end do
     end do
@@ -2739,7 +2773,7 @@ contains
     character(len=STRING_LEN) :: format_spec
 
     integer :: spin
-
+    integer :: eltmp
     real(dp) :: signs(0:L), ssign
     real(dp) :: dl_mm_spin
     real(dp) :: sqrt_tbl(0:2*(L-1)+1)
@@ -2781,8 +2815,11 @@ contains
 
     do el = abs(spin), L-1
        if (el /= 0 .and. el == abs(spin)) then
-          ! Must use operator if start from non-zero spin.
-          call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+          ! Recurse Wigner plane from 0 up to first el, i.e. abs(spin).
+          do eltmp = 0, abs(spin)
+             call ssht_dl_halfpi_trapani_eighth_table(dl(0:eltmp,0:eltmp), eltmp, &
+                  sqrt_tbl(0:2*eltmp+1))
+          end do       
        else
           call ssht_dl_halfpi_trapani_eighth_table(dl(0:el,0:el), el, &
                sqrt_tbl(0:2*el+1))
@@ -3229,15 +3266,31 @@ contains
     real(dp) :: w
     complex(dpc) :: fmt(0:L-1, 0:2*L-1)
     complex(dpc) :: Fmm(0:L-1, -(L-1):L-1)
-    real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
+    real(dp) :: dl(0:L-1, 0:L-1)
     integer*8 :: fftw_plan
 
     integer :: spin
     real(dp) :: tmp(0:2*L-2)
     integer :: ind_nm
     character(len=STRING_LEN) :: format_spec
+    integer :: eltmp
 
+    real(dp) :: signs(0:L), ssign
+    real(dp) :: dl_mm_spin, dl_0_spin
+    real(dp) :: sqrt_tbl(0:2*(L-1)+1)
+
+    ! Perform precomputations.
+    do el = 0, 2*(L-1) + 1
+       sqrt_tbl(el) = dsqrt(real(el,kind=dp))
+    end do
+    do m = 0, L-1, 2
+       signs(m)   =  1.0_dp
+       signs(m+1) = -1.0_dp
+    enddo
+
+    ! Set spin to zero.
     spin = 0
+    ssign = signs(spin)
 
     ! Print messages depending on verbosity level.
     if (present(verbosity)) then
@@ -3270,8 +3323,9 @@ contains
     do t = 0, 2*L-1
        theta = ssht_sampling_dh_t2theta(t, L)
        w = ssht_sampling_weight_dh(theta, L)
-       do m = 0, L-1
-          do mm = -(L-1), L-1
+! Switching order of mm and m loops changes computation time by a factor of ~10!
+       do mm = -(L-1), L-1
+          do m = 0, L-1
              Fmm(m,mm) = Fmm(m,mm) + &
                   fmt(m,t) * exp(-I*mm*theta) * w
           end do
@@ -3281,23 +3335,47 @@ contains
     ! Compute flm.
     flm(0::L**2-1) = cmplx(0d0, 0d0)
     do el = abs(spin), L-1
-       call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+       if (el /= 0 .and. el == abs(spin)) then
+          ! Recurse Wigner plane from 0 up to first el, i.e. abs(spin).
+          do eltmp = 0, abs(spin)
+             call ssht_dl_halfpi_trapani_eighth_table(dl(0:eltmp,0:eltmp), eltmp, &
+                  sqrt_tbl(0:2*eltmp+1))
+          end do
+       else
+          call ssht_dl_halfpi_trapani_eighth_table(dl(0:el,0:el), el, &
+               sqrt_tbl(0:2*el+1))
+          call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(0:el,0:el), el)
+       end if
+      
        elfactor = sqrt((2d0*el+1d0)/(4d0*PI))
        do m = 0, el
           call ssht_sampling_elm2ind(ind, el, m)
 
+          if (spin <= 0) then
+             dl_0_spin = dl(0,-spin)
+          else
+             dl_0_spin = signs(el) * dl(0,spin)
+          end if
+
           flm(ind) = flm(ind) + &
                (-1)**spin * elfactor &
                * exp(I*PION2*(m+spin)) &
-               * dl(0,m) * dl(0,-spin) &
+               * dl(0,m) * dl_0_spin &
                * Fmm(m,0)
 
           do mm = 1, el
+
+             if (spin <= 0) then
+                dl_mm_spin = dl(mm,-spin)
+             else
+                dl_mm_spin = signs(el) * signs(mm) * dl(mm,spin)
+             end if
+
              flm(ind) = flm(ind) + &
                   (-1)**spin * elfactor &
                   * exp(I*PION2*(m+spin)) &
-                  * dl(mm,m) * dl(mm,-spin) &
-                  * (Fmm(m,mm) + (-1)**(m+spin)*Fmm(m,-mm))
+                  * dl(mm,m) * dl_mm_spin &
+                  * (Fmm(m,mm) + signs(m) * ssign * Fmm(m,-mm))
 
           end do
        end do
@@ -5361,6 +5439,7 @@ contains
     real(dp) :: signs(0:L), ssign
     real(dp) :: dl_mm_spin, dl_0_spin
     real(dp) :: sqrt_tbl(0:2*(L-1)+1)
+    integer :: eltmp
 
     ! Perform precomputations.
     do el = 0, 2*(L-1) + 1
@@ -5491,8 +5570,11 @@ contains
     flm(0::L**2-1) = cmplx(0d0, 0d0)
     do el = abs(spin), L-1
        if (el /= 0 .and. el == abs(spin)) then
-          ! Must use operator if start from non-zero spin.
-          call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+          ! Recurse Wigner plane from 0 up to first el, i.e. abs(spin).
+          do eltmp = 0, abs(spin)
+             call ssht_dl_halfpi_trapani_eighth_table(dl(0:eltmp,0:eltmp), eltmp, &
+                  sqrt_tbl(0:2*eltmp+1))
+          end do
        else
           call ssht_dl_halfpi_trapani_eighth_table(dl(0:el,0:el), el, &
                sqrt_tbl(0:2*el+1))

@@ -73,7 +73,7 @@ module ssht_dl_mod
       real(dp), intent(in) :: beta
   
       ! Fill in the top quarter of the d-matrix.
-      call ssht_dl_beta_operator_core(dl(-l:l,-l:l), beta, l)
+      call ssht_dl_beta_operator_quarter(dl(-l:l,-l:l), beta, l)
   
       ! Use its symmetry properties to fill in the rest of it.
       call ssht_dl_beta_operator_fill(dl(-l:l,-l:l), l)
@@ -82,7 +82,7 @@ module ssht_dl_mod
 
 
     !--------------------------------------------------------------------------
-    ! ssht_dl_beta_operator_core
+    ! ssht_dl_beta_operator_quarter
     !
     !! Does the left quarter of the d-matrix. Beta is the angle of rotation,
     !! l is the plane of the matrix required and dl is the two dimensional 
@@ -102,7 +102,7 @@ module ssht_dl_mod
     !     ssht library by JDM September 2005)
     !--------------------------------------------------------------------------
 
-    subroutine ssht_dl_beta_operator_core(dl, beta, l)
+    subroutine ssht_dl_beta_operator_quarter(dl, beta, l)
 
       integer, intent(in) :: l
       real(kind = dp), intent(out) :: dl(-l:l,-l:l)
@@ -237,7 +237,7 @@ module ssht_dl_mod
         end do
       end do
   
-    end subroutine ssht_dl_beta_operator_core
+    end subroutine ssht_dl_beta_operator_quarter
 
     
     !--------------------------------------------------------------------------
@@ -986,11 +986,6 @@ module ssht_dl_mod
 !!$      end do
 
     end subroutine ssht_dl_halfpi_trapani_fill_eighth2quarter
-
-
-
-!eighth2half
-
 
 
 end module ssht_dl_mod
