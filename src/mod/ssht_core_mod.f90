@@ -2359,7 +2359,7 @@ contains
     integer :: el, m, mm, t, p, ind
     real(dp) :: theta, phi
     real(dp) :: elfactor
-    real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
+    real(dp) :: dl(0:L-1, 0:L-1)
     complex(dpc) :: Fmm(0:L-1, -(L-1):L-1)
     complex(dpc) :: fext(0:2*L-2, 0:2*L-2)
     real(dp) :: fext_real(0:2*L-2,0:2*L-2)
@@ -2367,8 +2367,32 @@ contains
     character(len=STRING_LEN) :: format_spec
 
     integer :: spin
+    integer :: eltmp
+    real(dp) :: signs(0:L), ssign
+    real(dp) :: dl_mm_spin
+    real(dp) :: sqrt_tbl(0:2*(L-1)+1)
 
+    ! Perform precomputations.
+    do el = 0, 2*(L-1) + 1
+       sqrt_tbl(el) = dsqrt(real(el,kind=dp))
+    end do
+    do m = 0, L-1, 2
+       signs(m)   =  1.0_dp
+       signs(m+1) = -1.0_dp
+    enddo
+
+    ! Perform precomputations.
+    do el = 0, 2*(L-1) + 1
+       sqrt_tbl(el) = dsqrt(real(el,kind=dp))
+    end do
+    do m = 0, L-1, 2
+       signs(m)   =  1.0_dp
+       signs(m+1) = -1.0_dp
+    enddo
+
+    ! Set spin to zero.
     spin = 0
+    ssign = signs(spin)
 
     ! Print messages depending on verbosity level.
     if (present(verbosity)) then
@@ -2391,15 +2415,31 @@ contains
     ! Compute Fmm.
     Fmm(0:L-1, -(L-1):L-1) = cmplx(0d0, 0d0)
     do el = abs(spin), L-1
-       call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+       if (el /= 0 .and. el == abs(spin)) then
+          ! Recurse Wigner plane from 0 up to first el, i.e. abs(spin).
+          do eltmp = 0, abs(spin)
+             call ssht_dl_halfpi_trapani_eighth_table(dl(0:eltmp,0:eltmp), eltmp, &
+                  sqrt_tbl(0:2*eltmp+1))
+          end do       
+       else
+          call ssht_dl_halfpi_trapani_eighth_table(dl(0:el,0:el), el, &
+               sqrt_tbl(0:2*el+1))
+          call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(0:el,0:el), el)
+       end if
        elfactor = sqrt((2d0*el+1d0)/(4d0*PI))
        do m = 0, el
           call ssht_sampling_elm2ind(ind, el, m)
           do mm = 0, el
+             if (spin <= 0) then
+                dl_mm_spin = dl(mm,-spin)
+             else
+                dl_mm_spin =  signs(el) * signs(mm) * dl(mm,spin)
+             end if
+
              Fmm(m,mm) = Fmm(m,mm) + &
-                  (-1)**spin * elfactor &
+                  ssign * elfactor &
                   * exp(-I*PION2*(m+spin)) &
-                  * dl(mm,m) * dl(mm,-spin) &
+                  * dl(mm,m) * dl_mm_spin &
                   * flm(ind)
           end do
        end do
@@ -2408,13 +2448,13 @@ contains
     ! Use symmetry to compute Fmm for negative mm.
     do m = 0, L-1       
        do mm = -(L-1), -1
-          Fmm(m,mm) = (-1)**(m+spin) * Fmm(m,-mm)
+          Fmm(m,mm) = signs(m) * ssign * Fmm(m,-mm)
        end do
     end do
 
     ! Apply phase modulation to account for sampling offset.
-    do m = 0, L-1
-       do mm = -(L-1), L-1
+    do mm = -(L-1), L-1
+       do m = 0, L-1
           Fmm(m,mm) = Fmm(m,mm) * exp(I*(m+mm)*PI/(2d0*L-1d0))
        end do
     end do
@@ -2879,8 +2919,8 @@ contains
     end do
 
     ! Use symmetry to compute Fmm for negative mm.
-    do m = 0, L-1       
-       do mm = -(L-1), -1
+    do mm = -(L-1), -1
+       do m = 0, L-1       
           Fmm(m,mm) = signs(m) * ssign * Fmm(m,-mm)
        end do
     end do
@@ -4604,7 +4644,7 @@ contains
     real(dp) :: theta, phi
     real(dp) :: elfactor
 
-    real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
+    real(dp) :: dl(0:L-1, 0:L-1)
     real(dp) :: fe(0:2*L-2 ,0:2*L-2)
     real(dp) :: fo(0:2*L-2 ,0:2*L-2)
     complex(dpc) :: Fmme(0:L-1, -(L-1):L-1)
@@ -4625,7 +4665,23 @@ contains
     complex(dpc) :: tmp(0:L-1,0:2*L-2)
     character(len=STRING_LEN) :: format_spec
 
+    real(dp) :: signs(0:L), ssign
+    real(dp) :: dl_mm_spin, dl_0_spin
+    real(dp) :: sqrt_tbl(0:2*(L-1)+1)
+    integer :: eltmp
+
+    ! Perform precomputations.
+    do el = 0, 2*(L-1) + 1
+       sqrt_tbl(el) = dsqrt(real(el,kind=dp))
+    end do
+    do m = 0, L-1, 2
+       signs(m)   =  1.0_dp
+       signs(m+1) = -1.0_dp
+    enddo
+
+    ! Set spin to zero.
     spin = 0
+    ssign = signs(spin)
 
     ! Print messages depending on verbosity level.
     if (present(verbosity)) then
@@ -4674,8 +4730,9 @@ contains
          / (2d0*L-1d0)**2
 
     ! Apply phase modulation to account for sampling offset.
-    do m = 0, L-1
-       do mm = -(L-1), L-1
+
+    do mm = -(L-1), L-1
+       do m = 0, L-1
           Fmme(m,mm) = Fmme(m,mm) * exp(-I*(m+mm)*PI/(2d0*L-1d0))
           Fmmo(m,mm) = Fmmo(m,mm) * exp(-I*(m+mm)*PI/(2d0*L-1d0))
        end do
@@ -4779,30 +4836,53 @@ contains
     ! Compute flm.
     flm(0::L**2-1) = cmplx(0d0, 0d0)
     do el = abs(spin), L-1
-       call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+       if (el /= 0 .and. el == abs(spin)) then
+          ! Recurse Wigner plane from 0 up to first el, i.e. abs(spin).
+          do eltmp = 0, abs(spin)
+             call ssht_dl_halfpi_trapani_eighth_table(dl(0:eltmp,0:eltmp), eltmp, &
+                  sqrt_tbl(0:2*eltmp+1))
+          end do
+       else
+          call ssht_dl_halfpi_trapani_eighth_table(dl(0:el,0:el), el, &
+               sqrt_tbl(0:2*el+1))
+          call ssht_dl_halfpi_trapani_fill_eighth2quarter(dl(0:el,0:el), el)
+       end if
+
        elfactor = sqrt((2d0*el+1d0)/(4d0*PI))
        do m = 0, el
           call ssht_sampling_elm2ind(ind, el, m)
 
+          if (spin <= 0) then
+             dl_0_spin = dl(0,-spin)
+          else
+             dl_0_spin = signs(el) * dl(0,spin)
+          end if
+
           flm(ind) = flm(ind) + &
                (-1)**spin * elfactor &
                * exp(I*PION2*(m+spin)) &
-               * dl(0,m) * dl(0,-spin) &
+               * dl(0,m) * dl_0_spin &
                * Gmme(m,0)
 
           do mm = 1, el
              if (mod(m+spin,2) == 0) then
                 ! m+spin even
-                Gmm_term = Gmme(m,mm) + (-1)**(m+spin)*Gmme(m,-mm)
+                Gmm_term = Gmme(m,mm) + signs(m) * ssign * Gmme(m,-mm)
              else
                 ! m+spin odd
-                Gmm_term = Gmmo(m,mm) + (-1)**(m+spin)*Gmmo(m,-mm)
+                Gmm_term = Gmmo(m,mm) + signs(m) * ssign * Gmmo(m,-mm)
+             end if
+
+             if (spin <= 0) then
+                dl_mm_spin = dl(mm,-spin)
+             else
+                dl_mm_spin = signs(el) * signs(mm) * dl(mm,spin)
              end if
 
              flm(ind) = flm(ind) + &
                   (-1)**spin * elfactor &
                   * exp(I*PION2*(m+spin)) &
-                  * dl(mm,m) * dl(mm,-spin) &
+                  * dl(mm,m) * dl_mm_spin &
                   * Gmm_term
 
           end do
@@ -4814,7 +4894,7 @@ contains
        do m = 1, el
           call ssht_sampling_elm2ind(ind, el, m)
           call ssht_sampling_elm2ind(ind_nm, el, -m)
-          flm(ind_nm) = (-1)**m * conjg(flm(ind))
+          flm(ind_nm) = signs(m) * conjg(flm(ind))
        end do
     end do
 
