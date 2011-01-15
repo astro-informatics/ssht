@@ -1150,6 +1150,8 @@ contains
              call ssht_dl_halfpi_trapani_eighth_table(dl(0:eltmp,0:eltmp), eltmp, &
                   sqrt_tbl(0:2*eltmp+1))
           end do
+          call ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl(0:el,0:el), &
+               el, signs(0:el))
        else
           call ssht_dl_halfpi_trapani_eighth_table(dl(0:el,0:el), el, &
                sqrt_tbl(0:2*el+1))
@@ -1442,6 +1444,8 @@ contains
              call ssht_dl_halfpi_trapani_eighth_table(dl(0:eltmp,0:eltmp), eltmp, &
                   sqrt_tbl(0:2*eltmp+1))
           end do       
+          call ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl(0:el,0:el), &
+               el, signs(0:el))
        else
           call ssht_dl_halfpi_trapani_eighth_table(dl(0:el,0:el), el, &
                sqrt_tbl(0:2*el+1))
@@ -2074,6 +2078,8 @@ contains
              call ssht_dl_halfpi_trapani_eighth_table(dl(0:eltmp,0:eltmp), eltmp, &
                   sqrt_tbl(0:2*eltmp+1))
           end do       
+          call ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl(0:el,0:el), &
+               el, signs(0:el))
        else
           call ssht_dl_halfpi_trapani_eighth_table(dl(0:el,0:el), el, &
                sqrt_tbl(0:2*el+1))
@@ -2575,6 +2581,8 @@ contains
              call ssht_dl_halfpi_trapani_eighth_table(dl(0:eltmp,0:eltmp), eltmp, &
                   sqrt_tbl(0:2*eltmp+1))
           end do       
+          call ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl(0:el,0:el), &
+               el, signs(0:el))
        else
           call ssht_dl_halfpi_trapani_eighth_table(dl(0:el,0:el), el, &
                sqrt_tbl(0:2*el+1))
@@ -3097,6 +3105,8 @@ contains
              call ssht_dl_halfpi_trapani_eighth_table(dl(0:eltmp,0:eltmp), eltmp, &
                   sqrt_tbl(0:2*eltmp+1))
           end do
+          call ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl(0:el,0:el), &
+               el, signs(0:el))
        else
           call ssht_dl_halfpi_trapani_eighth_table(dl(0:el,0:el), el, &
                sqrt_tbl(0:2*el+1))
@@ -3402,6 +3412,8 @@ contains
              call ssht_dl_halfpi_trapani_eighth_table(dl(0:eltmp,0:eltmp), eltmp, &
                   sqrt_tbl(0:2*eltmp+1))
           end do
+          call ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl(0:el,0:el), &
+               el, signs(0:el))
        else
           call ssht_dl_halfpi_trapani_eighth_table(dl(0:el,0:el), el, &
                sqrt_tbl(0:2*el+1))
@@ -4556,6 +4568,8 @@ contains
              call ssht_dl_halfpi_trapani_eighth_table(dl(0:eltmp,0:eltmp), eltmp, &
                   sqrt_tbl(0:2*eltmp+1))
           end do
+          call ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl(0:el,0:el), &
+               el, signs(0:el))
        else
           call ssht_dl_halfpi_trapani_eighth_table(dl(0:el,0:el), el, &
                sqrt_tbl(0:2*el+1))
@@ -5474,6 +5488,8 @@ contains
              call ssht_dl_halfpi_trapani_eighth_table(dl(0:eltmp,0:eltmp), eltmp, &
                   sqrt_tbl(0:2*eltmp+1))
           end do
+          call ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl(0:el,0:el), &
+               el, signs(0:el))
        else
           call ssht_dl_halfpi_trapani_eighth_table(dl(0:el,0:el), el, &
                sqrt_tbl(0:2*el+1))
