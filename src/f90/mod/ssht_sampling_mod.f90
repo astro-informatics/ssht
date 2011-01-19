@@ -249,7 +249,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_sampling_dh_t2theta
   !
-  !! Covert theta index to angle for Driscoll and Healy sampling.
+  !! Convert theta index to angle for Driscoll and Healy sampling.
   !!
   !! Notes:
   !!  - t ranges from [0 .. 2*L-1] => 2*L points in (0,pi).
@@ -279,7 +279,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_sampling_dh_p2phi
   !
-  !! Covert phi index to angle for Driscoll and Healy sampling.
+  !! Convert phi index to angle for Driscoll and Healy sampling.
   !!
   !! Notes:
   !!  - p ranges from [0 .. 2*L-2] => 2*L-1 points in [0,2*pi).
@@ -309,7 +309,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_sampling_gl_p2phi
   !
-  !! Covert phi index to angle for Gauss-Legendre sampling.
+  !! Convert phi index to angle for Gauss-Legendre sampling.
   !!
   !! Notes:
   !!  - p ranges from [0 .. 2*L-2] => 2*L-1 points in [0,2*pi).
@@ -339,7 +339,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_sampling_mw_t2theta
   !
-  !! Covert theta index to angle for McEwen and Wiaux sampling.
+  !! Convert theta index to angle for McEwen and Wiaux sampling.
   !!
   !! Notes:
   !!  - t ranges from [0 .. 2*L-2] => 2*L-1 points in (0,2*pi).
@@ -369,7 +369,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_sampling_mw_p2phi
   !
-  !! Covert phi index to angle for McEwen and Wiaux sampling.
+  !! Convert phi index to angle for McEwen and Wiaux sampling.
   !!
   !! Notes:
   !!  - p ranges from [0 .. 2*L-2] => 2*L-1 points in [0,2*pi).
@@ -399,7 +399,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_sampling_mweo_t2theta
   !
-  !! Covert theta index to angle for McEwen and Wiaux even-odd sampling.
+  !! Convert theta index to angle for McEwen and Wiaux even-odd sampling.
   !!
   !! Notes:
   !!  - t ranges from [0 .. 2*L-2] => 2*L-1 points in (0,2*pi).
@@ -429,7 +429,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_sampling_mweo_p2phi
   !
-  !! Covert phi index to angle for McEwen and Wiaux even-odd sampling.
+  !! Convert phi index to angle for McEwen and Wiaux even-odd sampling.
   !!
   !! Notes:
   !!  - p ranges from [0 .. 2*L-2] => 2*L-1 points in (0,2*pi).
@@ -464,12 +464,12 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_sampling_elm2ind
   !
-  !! Covert (el,m) harmonic indices to 1D index used to access flm array.
+  !! Convert (el,m) harmonic indices to 1D index used to access flm array.
   !!
   !! Notes:
   !!  - el ranges from [0 .. L-1].
   !!  - m ranges from [-el .. el].
-  !!  - ind ranges from [0 .. L**2-1]
+  !!  - ind ranges from [0 .. L**2-1].
   !!
   !! Variables:
   !!  - ind: 1D index to access flm array [output].
@@ -495,12 +495,12 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_sampling_ind2elm
   !
-  !! Covert 1D index used to access flm array to (el,m) harmonic indices.
+  !! Convert 1D index used to access flm array to (el,m) harmonic indices.
   !!
   !! Notes:
   !!  - el ranges from [0 .. L-1].
   !!  - m ranges from [-el .. el].
-  !!  - ind ranges from [0 .. L**2-1]
+  !!  - ind ranges from [0 .. L**2-1].
   !!
   !! Variables:
   !!  - el: Harmonic index [output].
