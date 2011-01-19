@@ -8,7 +8,7 @@ ifeq ($(FC),f95)
   OPTF95 = -w=x95
 endif
 
-OPT = $(OPTF95) -m64 -O3
+OPT = $(OPTF95) -m64 #-O3
 
 
 # ======== LINKS ========
@@ -25,8 +25,8 @@ SSHTDIR  = $(PROGDIR)/ssht
 SSHTLIB  = $(SSHTDIR)/lib
 SSHTLIBNM= ssht
 SSHTINC  = $(SSHTDIR)/include
-SSHTSRC  = $(SSHTDIR)/src/mod
-SSHTPROG = $(SSHTDIR)/src/prog
+SSHTSRC  = $(SSHTDIR)/src/f90/mod
+SSHTPROG = $(SSHTDIR)/src/f90/prog
 SSHTBIN  = $(SSHTDIR)/bin
 SSHTDOC  = $(SSHTDIR)/doc
 
@@ -175,43 +175,6 @@ $(SSHTBIN)/ssht_trapani:       $(SSHTINC)/ssht_trapani.o
 	$(FC)                                          \
 	-o $(SSHTBIN)/ssht_trapani                          \
 	$(SSHTINC)/ssht_trapani.o $(LDFLAGS) $(PPFLAGS)
-
-
-$(SSHTINC)/ssht_wav2sky.o:     $(SSHTPROG)/ssht_wav2sky.f90 lib
-$(SSHTBIN)/ssht_wav2sky:       $(SSHTINC)/ssht_wav2sky.o
-	$(FC)                                          \
-	-o $(SSHTBIN)/ssht_wav2sky                       \
-	$(SSHTINC)/ssht_wav2sky.o $(LDFLAGSPROG) $(LDFLAGS) $(PPFLAGS)
-
-$(SSHTINC)/ssht_analysis.o:     $(SSHTPROG)/ssht_analysis.f90 lib
-$(SSHTBIN)/ssht_analysis:       $(SSHTINC)/ssht_analysis.o
-	$(FC)                                          \
-	 -o $(SSHTBIN)/ssht_analysis                     \
-	$(SSHTINC)/ssht_analysis.o $(LDFLAGSPROG) $(LDFLAGS) $(PPFLAGS)               
-
-$(SSHTINC)/ssht_synthesis.o:     $(SSHTPROG)/ssht_synthesis.f90 lib
-$(SSHTBIN)/ssht_synthesis:       $(SSHTINC)/ssht_synthesis.o
-	$(FC)                                          \
-	-o $(SSHTBIN)/ssht_synthesis                     \
-	$(SSHTINC)/ssht_synthesis.o $(LDFLAGSPROG) $(LDFLAGS) $(PPFLAGS)                
-
-$(SSHTINC)/ssht_wavplot.o:     $(SSHTPROG)/ssht_wavplot.f90 lib
-$(SSHTBIN)/ssht_wavplot:       $(SSHTINC)/ssht_wavplot.o
-	$(FC)                                          \
-	-o $(SSHTBIN)/ssht_wavplot                       \
-	$(SSHTINC)/ssht_wavplot.o $(LDFLAGSPROG) $(LDFLAGS) $(PPFLAGS)                       
-
-$(SSHTINC)/ssht_mat2fits.o:     $(SSHTPROG)/ssht_mat2fits.f90 lib
-$(SSHTBIN)/ssht_mat2fits:       $(SSHTINC)/ssht_mat2fits.o
-	$(FC)                                          \
-	-o $(SSHTBIN)/ssht_mat2fits                       \
-	$(SSHTINC)/ssht_mat2fits.o $(LDFLAGSPROG) $(LDFLAGS) $(PPFLAGS)  
-
-$(SSHTINC)/ssht_fits2mat.o:     $(SSHTPROG)/ssht_fits2mat.f90 lib
-$(SSHTBIN)/ssht_fits2mat:       $(SSHTINC)/ssht_fits2mat.o
-	$(FC)                                          \
-	-o $(SSHTBIN)/ssht_fits2mat                       \
-	$(SSHTINC)/ssht_fits2mat.o $(LDFLAGSPROG) $(LDFLAGS) $(PPFLAGS)
 
 $(SSHTINC)/ssht_forward.o:     $(SSHTPROG)/ssht_forward.f90 lib
 $(SSHTBIN)/ssht_forward:       $(SSHTINC)/ssht_forward.o
