@@ -967,11 +967,25 @@ contains
     integer :: el, m, mm, t, p, ind
     real(dp) :: theta, phi
     real(dp) :: elfactor
-    real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
+    real(dp) :: dl(0:L-1, -(L-1):L-1)
     complex(dpc) :: Fmm(-(L-1):L-1, 0:L-1)
     complex(dpc) :: fmt(-(L-1):L-1, 0:2*L-1)
     integer*8 :: fftw_plan
     character(len=STRING_LEN) :: format_spec
+
+    integer :: eltmp
+    real(dp) :: signs(0:L), ssign
+    real(dp) :: sqrt_tbl(0:2*(L-1)+1)
+
+    ! Perform precomputations.
+    do el = 0, 2*(L-1) + 1
+       sqrt_tbl(el) = dsqrt(real(el,kind=dp))
+    end do
+    do m = 0, L-1, 2
+       signs(m)   =  1.0_dp
+       signs(m+1) = -1.0_dp
+    enddo
+    ssign = signs(abs(spin))
 
     ! Print messages depending on verbosity level.
     if (present(verbosity)) then
@@ -992,13 +1006,27 @@ contains
     ! Compute Fmm.
     Fmm(-(L-1):L-1, 0:L-1) = cmplx(0d0, 0d0)
     do el = abs(spin), L-1
-       call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+       if (el /= 0 .and. el == abs(spin)) then
+          ! Recurse Wigner plane from 0 up to first el, i.e. abs(spin).
+          do eltmp = 0, abs(spin)
+             call ssht_dl_halfpi_trapani_eighth_table(dl(0:eltmp,0:eltmp), eltmp, &
+                  sqrt_tbl(0:2*eltmp+1))
+          end do       
+          call ssht_dl_halfpi_trapani_fill_eighth2righthalf_table(dl(0:el,-el:el), &
+               el, signs)
+       else
+          call ssht_dl_halfpi_trapani_eighth_table(dl(0:el,0:el), el, &
+               sqrt_tbl(0:2*el+1))
+          call ssht_dl_halfpi_trapani_fill_eighth2righthalf_table(dl(0:el,-el:el), &
+               el, signs)
+       end if
+
        elfactor = sqrt((2d0*el+1d0)/(4d0*PI))
        do m = -el, el
           call ssht_sampling_elm2ind(ind, el, m)
           do mm = 0, el
              Fmm(m,mm) = Fmm(m,mm) + &
-                  (-1)**spin * elfactor &
+                  ssign * elfactor &
                   * exp(-I*PION2*(m+spin)) &
                   * dl(mm,m) * dl(mm,-spin) &
                   * flm(ind)
@@ -1031,12 +1059,14 @@ contains
        theta = ssht_sampling_dh_t2theta(t, L)       
        do m = -(L-1), L-1          
           fmt(m,t) = fmt(m,t) + Fmm(m,0)
-          do mm = 1, L-1
+       end do
+       do mm = 1, L-1
+          do m = -(L-1), L-1          
              fmt(m,t) = fmt(m,t) + &
 !!$                  Fmm(m,mm) * exp(I*mm*theta) &
 !!$                  + Fmm(m,-mm) * exp(-I*mm*theta)
-                  Fmm(m,mm) * (exp(I*mm*theta)  + (-1)**(m+spin) * exp(-I*mm*theta))
-
+                  Fmm(m,mm) * &
+                  (exp(I*mm*theta) + signs(abs(m)) * ssign * exp(-I*mm*theta))
           end do
        end do
     end do
@@ -1250,7 +1280,7 @@ contains
     integer :: el, m, mm, t, p, ind
     real(dp) :: theta, phi
     real(dp) :: elfactor
-    real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
+    real(dp) :: dl(0:L-1, -(L-1):L-1)
     complex(dpc) :: Fmm(-(L-1):L-1, 0:L-1)
     complex(dpc) :: fmt(-(L-1):L-1, 0:L-1)
     integer*8 :: fftw_plan
@@ -1258,6 +1288,20 @@ contains
 
     real(dp) :: thetas(0:L-1)
     real(dp) :: weights(0:L-1)
+
+    integer :: eltmp
+    real(dp) :: signs(0:L), ssign
+    real(dp) :: sqrt_tbl(0:2*(L-1)+1)
+
+    ! Perform precomputations.
+    do el = 0, 2*(L-1) + 1
+       sqrt_tbl(el) = dsqrt(real(el,kind=dp))
+    end do
+    do m = 0, L-1, 2
+       signs(m)   =  1.0_dp
+       signs(m+1) = -1.0_dp
+    enddo
+    ssign = signs(abs(spin))
 
     ! Print messages depending on verbosity level.
     if (present(verbosity)) then
@@ -1281,13 +1325,27 @@ contains
     ! Compute Fmm.
     Fmm(-(L-1):L-1, 0:L-1) = cmplx(0d0, 0d0)
     do el = abs(spin), L-1
-       call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+       if (el /= 0 .and. el == abs(spin)) then
+          ! Recurse Wigner plane from 0 up to first el, i.e. abs(spin).
+          do eltmp = 0, abs(spin)
+             call ssht_dl_halfpi_trapani_eighth_table(dl(0:eltmp,0:eltmp), eltmp, &
+                  sqrt_tbl(0:2*eltmp+1))
+          end do       
+          call ssht_dl_halfpi_trapani_fill_eighth2righthalf_table(dl(0:el,-el:el), &
+               el, signs)
+       else
+          call ssht_dl_halfpi_trapani_eighth_table(dl(0:el,0:el), el, &
+               sqrt_tbl(0:2*el+1))
+          call ssht_dl_halfpi_trapani_fill_eighth2righthalf_table(dl(0:el,-el:el), &
+               el, signs)
+       end if
+ 
        elfactor = sqrt((2d0*el+1d0)/(4d0*PI))
        do m = -el, el
           call ssht_sampling_elm2ind(ind, el, m)
           do mm = 0, el
              Fmm(m,mm) = Fmm(m,mm) + &
-                  (-1)**spin * elfactor &
+                  ssign * elfactor &
                   * exp(-I*PION2*(m+spin)) &
                   * dl(mm,m) * dl(mm,-spin) &
                   * flm(ind)
@@ -1320,12 +1378,14 @@ contains
        theta = thetas(t)
        do m = -(L-1), L-1          
           fmt(m,t) = fmt(m,t) + Fmm(m,0)
-          do mm = 1, L-1
+       end do
+       do mm = 1, L-1
+          do m = -(L-1), L-1    
              fmt(m,t) = fmt(m,t) + &
 !!$                  Fmm(m,mm) * exp(I*mm*theta) &
 !!$                  + Fmm(m,-mm) * exp(-I*mm*theta)
-                  Fmm(m,mm) * (exp(I*mm*theta)  + (-1)**(m+spin) * exp(-I*mm*theta))
-
+                  Fmm(m,mm) * &
+                  (exp(I*mm*theta) + signs(abs(m)) * ssign * exp(-I*mm*theta))
           end do
        end do
     end do
@@ -2028,15 +2088,6 @@ contains
     real(dp) :: signs(0:L), ssign
     real(dp) :: dl_mm_spin
     real(dp) :: sqrt_tbl(0:2*(L-1)+1)
-
-    ! Perform precomputations.
-    do el = 0, 2*(L-1) + 1
-       sqrt_tbl(el) = dsqrt(real(el,kind=dp))
-    end do
-    do m = 0, L-1, 2
-       signs(m)   =  1.0_dp
-       signs(m+1) = -1.0_dp
-    enddo
 
     ! Perform precomputations.
     do el = 0, 2*(L-1) + 1
@@ -2911,10 +2962,26 @@ contains
     real(dp) :: w
     complex(dpc) :: fmt(-(L-1):L-1, 0:2*L-1)
     complex(dpc) :: Fmm(-(L-1):L-1, -(L-1):L-1)
-    real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
+    real(dp) :: dl(0:L-1, -(L-1):L-1)
     integer*8 :: fftw_plan
     complex(dpc) :: tmp(0:2*L-2)
     character(len=STRING_LEN) :: format_spec
+
+    real(dp) :: signs(0:L), ssign
+    real(dp) :: sqrt_tbl(0:2*(L-1)+1)
+    integer :: eltmp
+
+    ! Perform precomputations.
+    do el = 0, 2*(L-1) + 1
+       sqrt_tbl(el) = dsqrt(real(el,kind=dp))
+    end do
+    do m = 0, L-1, 2
+       signs(m)   =  1.0_dp
+       signs(m+1) = -1.0_dp
+    enddo
+
+    ! Set spin sign.
+    ssign = signs(abs(spin))
 
     ! Print messages depending on verbosity level.
     if (present(verbosity)) then
@@ -2952,8 +3019,8 @@ contains
     do t = 0, 2*L-1
        theta = ssht_sampling_dh_t2theta(t, L)
        w = ssht_sampling_weight_dh(theta, L)
-       do m = -(L-1), L-1
-          do mm = -(L-1), L-1
+       do mm = -(L-1), L-1
+          do m = -(L-1), L-1
              Fmm(m,mm) = Fmm(m,mm) + &
                   fmt(m,t) * exp(-I*mm*theta) * w
           end do
@@ -2963,23 +3030,37 @@ contains
     ! Compute flm.
     flm(0::L**2-1) = cmplx(0d0, 0d0)
     do el = abs(spin), L-1
-       call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+       if (el /= 0 .and. el == abs(spin)) then
+          ! Recurse Wigner plane from 0 up to first el, i.e. abs(spin).
+          do eltmp = 0, abs(spin)
+             call ssht_dl_halfpi_trapani_eighth_table(dl(0:eltmp,0:eltmp), eltmp, &
+                  sqrt_tbl(0:2*eltmp+1))
+          end do
+          call ssht_dl_halfpi_trapani_fill_eighth2righthalf_table(dl(0:el,-el:el), &
+               el, signs(0:el))
+       else
+          call ssht_dl_halfpi_trapani_eighth_table(dl(0:el,0:el), el, &
+               sqrt_tbl(0:2*el+1))
+          call ssht_dl_halfpi_trapani_fill_eighth2righthalf_table(dl(0:el,-el:el), &
+               el, signs(0:el))
+       end if
+
        elfactor = sqrt((2d0*el+1d0)/(4d0*PI))
        do m = -el, el
           call ssht_sampling_elm2ind(ind, el, m)
 
           flm(ind) = flm(ind) + &
-               (-1)**spin * elfactor &
+               ssign * elfactor &
                * exp(I*PION2*(m+spin)) &
                * dl(0,m) * dl(0,-spin) &
                * Fmm(m,0)
 
           do mm = 1, el
              flm(ind) = flm(ind) + &
-                  (-1)**spin * elfactor &
+                  ssign * elfactor &
                   * exp(I*PION2*(m+spin)) &
                   * dl(mm,m) * dl(mm,-spin) &
-                  * (Fmm(m,mm) + (-1)**(m+spin)*Fmm(m,-mm))
+                  * (Fmm(m,mm) + signs(abs(m)) * ssign * Fmm(m,-mm))
 
           end do
        end do
@@ -3125,7 +3206,7 @@ contains
           end if
 
           flm(ind) = flm(ind) + &
-               (-1)**spin * elfactor &
+               ssign * elfactor &
                * exp(I*PION2*(m+spin)) &
                * dl(0,m) * dl_0_spin &
                * Fmm(m,0)
@@ -3153,7 +3234,7 @@ contains
        do m = 1, el
           call ssht_sampling_elm2ind(ind, el, m)
           call ssht_sampling_elm2ind(ind_nm, el, -m)
-          flm(ind_nm) = (-1)**m * conjg(flm(ind))
+          flm(ind_nm) = signs(m) * conjg(flm(ind))
        end do
     end do
 
@@ -3207,13 +3288,29 @@ contains
     real(dp) :: w
     complex(dpc) :: fmt(-(L-1):L-1, 0:L-1)
     complex(dpc) :: Fmm(-(L-1):L-1, -(L-1):L-1)
-    real(dp) :: dl(-(L-1):L-1, -(L-1):L-1)
+    real(dp) :: dl(0:L-1, -(L-1):L-1)
     integer*8 :: fftw_plan
     complex(dpc) :: tmp(0:2*L-2)
     character(len=STRING_LEN) :: format_spec
 
     real(dp) :: thetas(0:L-1)
     real(dp) :: weights(0:L-1)
+
+    real(dp) :: signs(0:L), ssign
+    real(dp) :: sqrt_tbl(0:2*(L-1)+1)
+    integer :: eltmp
+
+    ! Perform precomputations.
+    do el = 0, 2*(L-1) + 1
+       sqrt_tbl(el) = dsqrt(real(el,kind=dp))
+    end do
+    do m = 0, L-1, 2
+       signs(m)   =  1.0_dp
+       signs(m+1) = -1.0_dp
+    enddo
+
+    ! Set spin sign.
+    ssign = signs(abs(spin))
 
     ! Print messages depending on verbosity level.
     if (present(verbosity)) then
@@ -3254,8 +3351,8 @@ contains
     do t = 0, L-1
        theta = thetas(t)
        w = weights(t)
-       do m = -(L-1), L-1
-          do mm = -(L-1), L-1
+       do mm = -(L-1), L-1
+          do m = -(L-1), L-1
              Fmm(m,mm) = Fmm(m,mm) + &
                   fmt(m,t) * exp(-I*mm*theta) * w
           end do
@@ -3265,23 +3362,38 @@ contains
     ! Compute flm.
     flm(0::L**2-1) = cmplx(0d0, 0d0)
     do el = abs(spin), L-1
-       call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
+       if (el /= 0 .and. el == abs(spin)) then
+          ! Recurse Wigner plane from 0 up to first el, i.e. abs(spin).
+          do eltmp = 0, abs(spin)
+             call ssht_dl_halfpi_trapani_eighth_table(dl(0:eltmp,0:eltmp), eltmp, &
+                  sqrt_tbl(0:2*eltmp+1))
+          end do
+          call ssht_dl_halfpi_trapani_fill_eighth2righthalf_table(dl(0:el,-el:el), &
+               el, signs(0:el))
+       else
+          call ssht_dl_halfpi_trapani_eighth_table(dl(0:el,0:el), el, &
+               sqrt_tbl(0:2*el+1))
+          call ssht_dl_halfpi_trapani_fill_eighth2righthalf_table(dl(0:el,-el:el), &
+               el, signs(0:el))
+       end if
+
+       !call ssht_dl_beta_operator(dl(-el:el,-el:el), PION2, el)
        elfactor = sqrt((2d0*el+1d0)/(4d0*PI))
        do m = -el, el
           call ssht_sampling_elm2ind(ind, el, m)
 
           flm(ind) = flm(ind) + &
-               (-1)**spin * elfactor &
+               ssign * elfactor &
                * exp(I*PION2*(m+spin)) &
                * dl(0,m) * dl(0,-spin) &
                * Fmm(m,0)
 
           do mm = 1, el
              flm(ind) = flm(ind) + &
-                  (-1)**spin * elfactor &
+                  ssign * elfactor &
                   * exp(I*PION2*(m+spin)) &
                   * dl(mm,m) * dl(mm,-spin) &
-                  * (Fmm(m,mm) + (-1)**(m+spin)*Fmm(m,-mm))
+                  * (Fmm(m,mm) + signs(abs(m)) * ssign * Fmm(m,-mm))
 
           end do
        end do
@@ -3555,7 +3667,7 @@ contains
     do p = 0, 2*L-2
        phi = ssht_sampling_mweo_p2phi(p, L)
        do t = 0, 2*L-2
-          theta = ssht_sampling_mw_t2theta(t, L)    
+          theta = ssht_sampling_mweo_t2theta(t, L)    
           do m = -(L-1), L-1
              do mm = -(L-1), L-1
                 Fmme(m,mm) = Fmme(m,mm) + &
@@ -4588,7 +4700,7 @@ contains
           end if
 
           flm(ind) = flm(ind) + &
-               (-1)**spin * elfactor &
+               ssign * elfactor &
                * exp(I*PION2*(m+spin)) &
                * dl(0,m) * dl_0_spin &
                * Gmme(m,0)
@@ -4609,7 +4721,7 @@ contains
              end if
 
              flm(ind) = flm(ind) + &
-                  (-1)**spin * elfactor &
+                  ssign * elfactor &
                   * exp(I*PION2*(m+spin)) &
                   * dl(mm,m) * dl_mm_spin &
                   * Gmm_term
@@ -5172,7 +5284,7 @@ contains
 
     ! Extend Fmt periodically.
     do m = -(L-1), L-1
-       Fmt(m, L:2*L-2) = (-1)**(m+spin) * Fmt(m, L-2:0:-1)
+       Fmt(m, L:2*L-2) = signs(abs(m)) * ssign * Fmt(m, L-2:0:-1)
     end do
 
     ! Compute Fourier transform over theta, i.e. compute Fmm.
@@ -5281,7 +5393,7 @@ contains
                   ssign * elfactor &
                   * exp(I*PION2*(m+spin)) &
                   * dl(mm,m) * dl(mm,-spin) &
-                  * (Gmm(m,mm) + signs(abs(m)) * ssign *Gmm(m,-mm))
+                  * (Gmm(m,mm) + signs(abs(m)) * ssign * Gmm(m,-mm))
           end do
        end do
     end do
