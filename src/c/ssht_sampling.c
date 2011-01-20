@@ -1,6 +1,7 @@
-/*! \file ssht_sampling.c
- *  Functionality to define sample positions for various algorithms,
- *  to compute weights and to convert 1D and 2D harmonic indices.
+/*! 
+ * \file ssht_sampling.c
+ * Functionality to define sample positions for various algorithms,
+ * to compute weights and to convert 1D and 2D harmonic indices.
  *
  * \author Jason McEwen
  */

@@ -1,3 +1,14 @@
+/*! \mainpage SSHT: Spin spherical harmonic transforms
+ *
+ * The SSHT package to provide functionality to compute forward and
+ * inverse harmonic transforms of spin functions on the sphere.
+ *   
+ * \author Jason McEwen
+ * \date January 2011
+ * \version 0.1
+ */
+
+
 /*! \file ssht_types.h
  *  Types used in SSHT package.
  *
