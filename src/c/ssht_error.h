@@ -10,7 +10,7 @@
 
 #define SSHT_ERROR_GENERIC(comment) 					\
   printf("ERROR: %s.\n", comment);					\
-  printf("ERROR: %s <%s> %s %s %s %d.\n",					\
+  printf("ERROR: %s <%s> %s %s %s %d.\n",				\
 	 "Occurred in function",					\
 	   __PRETTY_FUNCTION__,						\
 	   "of file", __FILE__,						\
