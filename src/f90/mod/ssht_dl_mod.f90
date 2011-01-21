@@ -790,7 +790,7 @@ module ssht_dl_mod
     !--------------------------------------------------------------------------
     ! ssht_dl_halfpi_trapani_eighth_table
     !
-    !! Calculates *eighth* (for m = 0:l and mm = 0:m of lth plane of a
+    !! Calculates *eighth* (for m = 0:l and mm = 0:m) of lth plane of a
     !! d-matrix for PI/2 using Trapani & Navaza's recursion method.  For l>0,
     !! require the dl plane to be computed already with values for
     !! l-1.  Also takes a table of precomputed square roots of
@@ -961,7 +961,7 @@ module ssht_dl_mod
     !--------------------------------------------------------------------------
     ! ssht_dl_halfpi_trapani_fill_eighth2tophalf
     !
-    !! Fill in quarter Wigner plane for m = -l:l and mm = 0:l from the
+    !! Fill in half Wigner plane for m = -l:l and mm = 0:l from the
     !! eighth m = 0:l and mm = 0:m, i.e. compute positive mm's.
     !!
     !! Variables:
@@ -1001,7 +1001,7 @@ module ssht_dl_mod
     !--------------------------------------------------------------------------
     ! ssht_dl_halfpi_trapani_fill_eighth2tophalf_table
     !
-    !! Fill in quarter Wigner plane for m = -l:l and mm = 0:l from the
+    !! Fill in half Wigner plane for m = -l:l and mm = 0:l from the
     !! eighth m = 0:l and mm = 0:m, i.e. compute positive mm's.  Takes
     !! a table of precomputed signs to avoid recomputing them.
     !!
@@ -1044,7 +1044,7 @@ module ssht_dl_mod
     !--------------------------------------------------------------------------
     ! ssht_dl_halfpi_trapani_fill_eighth2righthalf
     !
-    !! Fill in quarter Wigner plane for m = 0:l and mm = -l:l from the
+    !! Fill in half Wigner plane for m = 0:l and mm = -l:l from the
     !! eighth m = 0:l and mm = 0:m.
     !!
     !! Variables:
@@ -1084,7 +1084,7 @@ module ssht_dl_mod
     !--------------------------------------------------------------------------
     ! ssht_dl_halfpi_trapani_fill_eighth2righthalf_table
     !
-    !! Fill in quarter Wigner plane for m = 0:l and mm = -l:l from the
+    !! Fill in half Wigner plane for m = 0:l and mm = -l:l from the
     !! eighth m = 0:l and mm = 0:m. Takes a table of precomputed signs
     !! to avoid recomputing them.
     !!
