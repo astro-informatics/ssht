@@ -21,10 +21,12 @@ void ssht_test_gen_flm_real(complex double *flm, int L, int seed);
 int main(int argc, char *argv[]) {
 
   complex double *flm_orig, *flm_syn;
+  complex double *f_mw;
   int L = 128;
   int spin = 0;
   int irepeat;
   int seed = 1;
+  int verbosity = 0;
 
   double max_err[NREPEAT];
   double tmp;
@@ -43,6 +45,8 @@ int main(int argc, char *argv[]) {
   SSHT_ERROR_MEM_ALLOC_CHECK(flm_orig)
   flm_syn = (complex double*)calloc(L*L, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(flm_syn)
+  f_mw = (complex double*)calloc(L*(2*L-1), sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(f_mw)
 
   // Write program name.
   printf("\n");
@@ -62,11 +66,11 @@ int main(int argc, char *argv[]) {
 
     // =========================================================================
     // MW
-    printf("MW test no. %d", irepeat);
+    printf("MW test no. %d\n", irepeat);
 
     ssht_test_gen_flm_complex(flm_orig, L, spin, seed);
 
-    //ssht_core_mw_inverse();
+    ssht_core_mw_inverse_sov_sym(f_mw, flm_orig, L, spin, verbosity);
     //ssht_core_mw_forward();
 
     max_err[irepeat] = 0.0;
@@ -92,6 +96,7 @@ int main(int argc, char *argv[]) {
   // Free memory.
   free(flm_orig);
   free(flm_syn);
+  free(f_mw);
 }
 
 
