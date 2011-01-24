@@ -71,11 +71,11 @@ int main(int argc, char *argv[]) {
     ssht_test_gen_flm_complex(flm_orig, L, spin, seed);
 
     ssht_core_mw_inverse_sov_sym(f_mw, flm_orig, L, spin, verbosity);
-    //ssht_core_mw_forward();
+    ssht_core_mw_forward_sov_conv_sym(flm_syn, f_mw, L, spin, verbosity);
 
     max_err[irepeat] = 0.0;
     for (i = 0; i < L*L; i++) {
-      tmp = abs(flm_orig[i] - flm_syn[i]);
+      tmp = cabs(flm_orig[i] - flm_syn[i]);
       max_err[irepeat] = tmp > max_err[irepeat] ? tmp : max_err[irepeat];
     }
     printf(" error %40.5e\n", max_err[irepeat]);
