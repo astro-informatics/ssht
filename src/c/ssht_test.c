@@ -11,47 +11,126 @@
 #include "ssht_sampling.h"
 #include "ssht_error.h"
 
+#define NREPEAT 2
 
 double ran2_dp(int idum);
+void ssht_test_gen_flm_complex(complex double *flm, int L, int spin, int seed);
+void ssht_test_gen_flm_real(complex double *flm, int L, int seed);
 
 
 int main(int argc, char *argv[]) {
 
-  complex *flm;
+  complex double *flm_orig, *flm_syn;
   int L = 128;
+  int spin = 0;
+  int irepeat;
+  int seed = 1;
+
+  double max_err[NREPEAT];
+  double tmp;
+
+
+
+
   int i;
-  int seed = 100;
 
-  printf("hello world!\n");
+  // Parse problem sizes.
+  L = atoi(argv[1]);
+  spin = atoi(argv[2]);
+
+  // Allocate memory.
+  flm_orig = (complex double*)calloc(L*L, sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(flm_orig)
+  flm_syn = (complex double*)calloc(L*L, sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(flm_syn)
+
+  // Write program name.
+  printf("\n");
+  printf("SSHT test program (C implementation)\n");
+  printf("===============================================================\n");
+
+  // Run algorithm error and timing tests.
+  for (irepeat = 0; irepeat < NREPEAT; irepeat++) {
+
+    // If spin=0 run tests on algorithms optimised for real spin=0 signal.
+    if (spin == 0) {
+
+      printf("TODO\n");
+      printf("L=%d, spin=%d\n", L, spin);
+
+    }
+
+    // =========================================================================
+    // MW
+    printf("MW test no. %d", irepeat);
+
+    ssht_test_gen_flm_complex(flm_orig, L, spin, seed);
+
+    //ssht_core_mw_inverse();
+    //ssht_core_mw_forward();
+
+    max_err[irepeat] = 0.0;
+    for (i = 0; i < L*L; i++) {
+      tmp = abs(flm_orig[i] - flm_syn[i]);
+      max_err[irepeat] = tmp > max_err[irepeat] ? tmp : max_err[irepeat];
+    }
+    printf(" error %40.5e\n", max_err[irepeat]);
+
+
+  }
 
 
 
 
 
-  flm = (complex*)calloc(L*L, sizeof(complex));
-  SSHT_ERROR_MEM_ALLOC_CHECK(flm)
 
- 
+
   for(i=0; i<10; i++) {
     printf("ran2_dp = %f\n", ran2_dp(seed));
   }
 
   // Free memory.
-  free(flm);
+  free(flm_orig);
+  free(flm_syn);
 }
 
 
-void ssht_test_gen_flm_complex(complex *flm, int L, int spin, int seed) {
+
+
+
+
+void ssht_test_gen_flm_complex(complex double *flm, int L, int spin, int seed) {
 
   int i, i_lo;
 
   ssht_sampling_elm2ind(&i_lo, abs(spin), 0);
+  for (i=i_lo; i<L*L; i++) 
+    flm[i] = (2.0*ran2_dp(seed) - 1.0) + I * (2.0*ran2_dp(seed) - 1.0);
 
-  for (i=i_lo; i<L*L; i++) {
-    flm[i] = 1.0 + I * 1.0;
+}
+
+
+
+void ssht_test_gen_flm_real(complex double *flm, int L, int seed) {
+
+  int el, m, msign, i, i_op;
+
+  for (el=0; el<L; el++) {
+    m = 0;
+    ssht_sampling_elm2ind(&i, el, m);
+    flm[i] = (2.0*ran2_dp(seed) - 1.0);
+    for (m=1; m<=el; m++) {
+      ssht_sampling_elm2ind(&i, el, m);
+      flm[i] = (2.0*ran2_dp(seed) - 1.0) + I * (2.0*ran2_dp(seed) - 1.0);
+      ssht_sampling_elm2ind(&i_op, el, -m);
+      msign = m & 1;
+      msign = 1 - msign - msign; // (-1)^m
+      flm[i_op] = msign * conj(flm[i]);
+    }
   }
 
 }
+
 
 
 // update to use ran c generator from NR
