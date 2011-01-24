@@ -16,6 +16,11 @@ int ssht_dl_get_mmstride(int L, ssht_dl_size_t dl_size);
 void ssht_dl_halfpi_trapani_eighth_table(double *dl, int L, 
 					 ssht_dl_size_t dl_size,
 					 int el, double *sqrt_tbl);
-
+void ssht_dl_halfpi_trapani_fill_eighth2righthalf_table(double *dl, int L,
+							ssht_dl_size_t dl_size,
+							int el, double *signs);
+void ssht_dl_halfpi_trapani_fill_eight2quarter_table(double *dl, int L,
+						     ssht_dl_size_t dl_size,
+						     int el, double *signs);
 
 #endif
