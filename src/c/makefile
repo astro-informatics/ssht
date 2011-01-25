@@ -1,14 +1,14 @@
 # ======== COMPILER ========
 
 CC      = gcc
-
+OPT	= -g
 # OPT 	= -m64 -O3
 
 # ======== LINKS ========
 
 UNAME := $(shell uname)
 ifeq ($(UNAME), Linux)
-  PROGDIR = ..
+  PROGDIR = /users/jdm57/src
 endif
 ifeq ($(UNAME), Darwin)
   PROGDIR = /Users/mcewen/src
@@ -36,7 +36,7 @@ FFLAGS  = -I$(FFTWINC)
 
 # ======== LDFLAGS ========
 
-LDFLAGS = -L$(FFTWLIB) -l$(FFTWLIBNM)
+LDFLAGS = -L$(FFTWLIB) -l$(FFTWLIBNM) -lm
 
 
 # ======== OBJECT FILES TO MAKE ========
@@ -49,10 +49,10 @@ SSHTOBJ = ssht_sampling.o    \
 # ======== MAKE RULES ========
 
 %.o: %.c *.h
-	$(CC) $(FFLAGS) -c $< -o $@ 
+	$(CC) $(OPT) $(FFLAGS) -c $< -o $@ 
 
 ssht_test: ssht_test.o $(SSHTOBJ)
-	$(CC) $(LDFLAGS) ssht_test.o $(SSHTOBJ) -o ssht_test
+	$(CC) $(OPT) ssht_test.o $(SSHTOBJ) -o ssht_test $(LDFLAGS)
 
 default: ssht_test
 

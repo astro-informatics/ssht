@@ -11,7 +11,7 @@
 #include "ssht_sampling.h"
 #include "ssht_error.h"
 
-#define NREPEAT 2
+#define NREPEAT 3
 
 double ran2_dp(int idum);
 void ssht_test_gen_flm_complex(complex double *flm, int L, int spin, int seed);
@@ -72,6 +72,7 @@ int main(int argc, char *argv[]) {
 
     ssht_core_mw_inverse_sov_sym(f_mw, flm_orig, L, spin, verbosity);
     ssht_core_mw_forward_sov_conv_sym(flm_syn, f_mw, L, spin, verbosity);
+
 
     max_err[irepeat] = 0.0;
     for (i = 0; i < L*L; i++) {

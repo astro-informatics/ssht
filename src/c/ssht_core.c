@@ -320,9 +320,11 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
   for (m=-(L-1); m<=L-1; m++) {
 
     // Zero-pad Fmm.
-    memcpy(&Fmm_pad[-(L-1) + w_offset], 
-	   &Fmm[(m+Fmm_offset)*Fmm_stride], 
-	   (2*L-1)*sizeof(complex double));
+    for (mm=-(L-1); mm<=L-1; mm++)
+      Fmm_pad[mm + w_offset] = Fmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_stride];
+    //memcpy(&Fmm_pad[-(L-1) + w_offset], 
+    //	   &Fmm[(m+Fmm_offset)*Fmm_stride], 
+    //	   (2*L-1)*sizeof(complex double));
 
     // Compute IFFT of Fmm.
     for (mm=1; mm<=2*L-2; mm++) 
@@ -359,9 +361,12 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
 //**TODO: memcpy
 
     // Extract section of Gmm of interest.
-    memcpy(&Gmm[(m+Fmm_offset)*Fmm_stride], 
-	   &Fmm_pad[-(L-1) + w_offset], 
-	   (2*L-1)*sizeof(complex double));
+    for (mm=-(L-1); mm<=L-1; mm++)
+      Gmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_stride] = 
+	Fmm_pad[mm + w_offset];
+    //memcpy(&Gmm[(m+Fmm_offset)*Fmm_stride], 
+    //	   &Fmm_pad[-(L-1) + w_offset], 
+    //	   (2*L-1)*sizeof(complex double));
 
   }
   fftw_destroy_plan(plan_bwd);
@@ -422,7 +427,7 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
 	  * dl[mm*dl_stride - spin + dl_offset]
 	  * ( Gmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset]
 	      + signs[abs(m)] * ssign
-	        * Gmm[(m+Fmm_offset)*Fmm_stride - mm + Fmm_offset]);
+	      * Gmm[(m+Fmm_offset)*Fmm_stride - mm + Fmm_offset]);
     }  
 
   }
@@ -431,6 +436,12 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
   free(dl);
 
 
+  /* for (el=abs(spin); el<=L-1; el++) { */
+  /*   for (m=-el; m<=el; m++) { */
+  /*     ssht_sampling_elm2ind(&ind, el, m); */
+  /*     flm[ind] = 1.0 + I * 2.0; */
+  /*   } */
+  /* } */
 
 
 
