@@ -131,10 +131,6 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
   SSHT_ERROR_MEM_ALLOC_CHECK(fext)
   fext_stride = 2*L-1;
 
-  // Plan fftw before intialise memory.
-  plan = fftw_plan_dft_2d(2*L-1, 2*L-1, fext, fext, 
-			  FFTW_BACKWARD, FFTW_ESTIMATE);
-
   // Apply spatial shift.
   for (m=0; m<=L-1; m++)
     for (mm=0; mm<=L-1; mm++)
@@ -153,12 +149,14 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
       fext[(m+2*L-1)*fext_stride + mm + 2*L-1] = 
 	Fmm[(m + Fmm_offset)*Fmm_stride + mm + Fmm_offset];
 
+  // Perform 2D FFT.  
+  plan = fftw_plan_dft_2d(2*L-1, 2*L-1, Fmm, Fmm, 
+			  FFTW_BACKWARD, FFTW_ESTIMATE);
+  fftw_execute_dft(plan, fext, fext);
+  fftw_destroy_plan(plan);
+
   // Free Fmm memory.
   free(Fmm);
-
-  // Perform 2D FFT.  
-  fftw_execute(plan);
-  fftw_destroy_plan(plan);
   
   // Extract f from version of f extended to the torus (fext).
   for (t=0; t<=L-1; t++)
@@ -191,7 +189,8 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
   double *sqrt_tbl, *signs;
   double ssign, elfactor;
   fftw_plan plan, plan_bwd, plan_fwd;
-  complex double *in, *out, *in_bwd, *out_bwd, *in_fwd, *out_fwd;
+  //complex double *in, *out;
+  complex double *inout, *in_bwd, *out_bwd, *in_fwd, *out_fwd;
   complex double *Fmt, *Fmm, *Gmm;
   complex double *w, *wr;
   complex double *Fmm_pad, *tmp_pad;
@@ -232,17 +231,18 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
   Fmt_stride = 2*L-1;
   Fmt_offset = L-1;
   f_stride = 2*L-1;
-  in = &f[0];
-  out = (complex double*)calloc(2*L-1, sizeof(complex double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(out)
-  plan = fftw_plan_dft_1d(2*L-1, in, out, FFTW_FORWARD, FFTW_MEASURE);
+  //in = &f[0];
+  inout = (complex double*)calloc(2*L-1, sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(inout)
+  plan = fftw_plan_dft_1d(2*L-1, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
   for (t=0; t<=L-1; t++) {
-    in = &f[t*f_stride];
-    fftw_execute(plan);
+    //inout = &f[t*f_stride];
+    memcpy(inout, &f[t*f_stride], f_stride*sizeof(double complex*));
+    fftw_execute_dft(plan, inout, inout);
     for(m=0; m<=L-1; m++) 
-      Fmt[(m+Fmt_offset)*Fmt_stride + t] = out[m] / (2.0*L-1.0);
+      Fmt[(m+Fmt_offset)*Fmt_stride + t] = inout[m] / (2.0*L-1.0);
     for(m=-(L-1); m<=-1; m++) 
-      Fmt[(m+Fmt_offset)*Fmt_stride + t] = out[m+2*L-1] / (2.0*L-1.0);
+      Fmt[(m+Fmt_offset)*Fmt_stride + t] = inout[m+2*L-1] / (2.0*L-1.0);
   }
 
   // Extend Fmt periodically.
@@ -257,16 +257,18 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
   Fmm_stride = 2*L-1;
   Fmm_offset = L-1;
   for (m=-(L-1); m<=L-1; m++) {
-    in = &Fmt[(m+Fmt_offset)*Fmt_stride];
-    fftw_execute(plan);
+    //inout = &Fmt[(m+Fmt_offset)*Fmt_stride];
+    memcpy(inout, &Fmt[(m+Fmt_offset)*Fmt_stride], Fmt_stride*sizeof(complex double));
+    fftw_execute_dft(plan, inout, inout);
     for(mm=0; mm<=L-1; mm++) 
       Fmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset] = 
-	out[mm] / (2.0*L-1.0);
+	inout[mm] / (2.0*L-1.0);
     for(mm=-(L-1); mm<=-1; mm++) 
       Fmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset] = 
-	out[mm+2*L-1] / (2.0*L-1.0);
+	inout[mm+2*L-1] / (2.0*L-1.0);
   }
   fftw_destroy_plan(plan);
+  free(inout);
 
   // Apply phase modulation to account for sampling offset.
   for (m=-(L-1); m<=L-1; m++)
@@ -284,31 +286,33 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
   // Compute IFFT of w to give wr.
   wr = (double complex*)calloc(4*L-3, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(wr)
-  in_bwd = &wr[0];
-  out_bwd = &wr[0];
-  plan_bwd = fftw_plan_dft_1d(4*L-3, in_bwd, out_bwd, FFTW_BACKWARD, FFTW_MEASURE);
+  //in_bwd = &w[0];
+  //inout_bwd = &wr[0];
+  inout = (complex double*)calloc(4*L-3, sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(inout)
+  plan_bwd = fftw_plan_dft_1d(4*L-3, inout, inout, FFTW_BACKWARD, FFTW_MEASURE);
   for (mm=1; mm<=2*L-2; mm++) 
-    wr[mm + w_offset] = w[mm - 2*(L-1) - 1 + w_offset];
+    inout[mm + w_offset] = w[mm - 2*(L-1) - 1 + w_offset];
   for (mm=-2*(L-1); mm<=0; mm++) 
-    wr[mm + w_offset] = w[mm + 2*(L-1) + w_offset];
+    inout[mm + w_offset] = w[mm + 2*(L-1) + w_offset];
 //**TODO: use memcpy.
   //memcpy(&wr[w_offset+1], &w[0], (2*L-2)*sizeof(complex double));
   //memcpy(&wr[0], &w[w_offset], (2*L-1)*sizeof(complex double));
-  in_bwd = &wr[0];  
-  out_bwd = &w[0];
-  fftw_execute(plan_bwd);
+  //inout = &wr[0];  
+  //out_bwd = &w[0];
+  fftw_execute_dft(plan_bwd, inout, inout);
   for (mm=0; mm<=2*L-2; mm++) 
-    wr[mm + w_offset] = w[mm - 2*(L-1) + w_offset];
+    wr[mm + w_offset] = inout[mm - 2*(L-1) + w_offset];
   for (mm=-2*(L-1); mm<=-1; mm++) 
-    wr[mm + w_offset] = w[mm + 2*(L-1) + 1 + w_offset];
+    wr[mm + w_offset] = inout[mm + 2*(L-1) + 1 + w_offset];
 //**TODO: use memcpy.
   //memcpy(&wr[w_offset], &w[0], (2*L-1)*sizeof(complex double));
   //memcpy(&wr[0], &w[w_offset+1], (2*L-2)*sizeof(complex double));
 
   // Plan forward FFT.
-  in_fwd = &w[0];
-  out_fwd = &w[0];
-  plan_fwd = fftw_plan_dft_1d(4*L-3, in_fwd, out_fwd, FFTW_FORWARD, FFTW_MEASURE);
+  //in_fwd = &w[0];
+  //out_fwd = &w[0];
+  plan_fwd = fftw_plan_dft_1d(4*L-3, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
 
   // Compute Gmm by convolution implemented as product in real space.
   Fmm_pad = (complex double*)calloc(4*L-3, sizeof(complex double));
@@ -328,17 +332,17 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
 
     // Compute IFFT of Fmm.
     for (mm=1; mm<=2*L-2; mm++) 
-      tmp_pad[mm + w_offset] = Fmm_pad[mm - 2*(L-1) - 1 + w_offset];
+      inout[mm + w_offset] = Fmm_pad[mm - 2*(L-1) - 1 + w_offset];
     for (mm=-2*(L-1); mm<=0; mm++) 
-      tmp_pad[mm + w_offset] = Fmm_pad[mm + 2*(L-1) + w_offset];
+      inout[mm + w_offset] = Fmm_pad[mm + 2*(L-1) + w_offset];
 //**TODO: memcpy
-    in_bwd = &tmp_pad[0];
-    out_bwd = &tmp_pad[0];
-    fftw_execute(plan_bwd);
+    //in_bwd = &tmp_pad[0];
+    //out_bwd = &tmp_pad[0];
+    fftw_execute_dft(plan_bwd, inout, inout);
     for (mm=0; mm<=2*L-2; mm++) 
-      Fmm_pad[mm + w_offset] = tmp_pad[mm - 2*(L-1) + w_offset];
+      Fmm_pad[mm + w_offset] = inout[mm - 2*(L-1) + w_offset];
     for (mm=-2*(L-1); mm<=-1; mm++) 
-      Fmm_pad[mm + w_offset] = tmp_pad[mm + 2*(L-1) + 1 + w_offset];
+      Fmm_pad[mm + w_offset] = inout[mm + 2*(L-1) + 1 + w_offset];
 //**TODO: memcpy
 
     // Compute product of Fmm and weight in real space.
@@ -347,17 +351,17 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
 
     // Compute Gmm by FFT.
     for (mm=1; mm<=2*L-2; mm++) 
-      tmp_pad[mm + w_offset] = Fmm_pad[mm - 2*(L-1) - 1 + w_offset];
+      inout[mm + w_offset] = Fmm_pad[mm - 2*(L-1) - 1 + w_offset];
     for (mm=-2*(L-1); mm<=0; mm++) 
-      tmp_pad[mm + w_offset] = Fmm_pad[mm + 2*(L-1) + w_offset];
+      inout[mm + w_offset] = Fmm_pad[mm + 2*(L-1) + w_offset];
 //**TODO: memcpy
-    in_fwd = &tmp_pad[0];
-    out_fwd = &tmp_pad[0];
-    fftw_execute(plan_fwd);
+    //in_fwd = &tmp_pad[0];
+    //out_fwd = &tmp_pad[0];
+    fftw_execute_dft(plan_fwd, inout, inout);
     for (mm=0; mm<=2*L-2; mm++) 
-      Fmm_pad[mm + w_offset] = tmp_pad[mm - 2*(L-1) + w_offset];
+      Fmm_pad[mm + w_offset] = inout[mm - 2*(L-1) + w_offset];
     for (mm=-2*(L-1); mm<=-1; mm++) 
-      Fmm_pad[mm + w_offset] = tmp_pad[mm + 2*(L-1) + 1 + w_offset];
+      Fmm_pad[mm + w_offset] = inout[mm + 2*(L-1) + 1 + w_offset];
 //**TODO: memcpy
 
     // Extract section of Gmm of interest.
@@ -446,16 +450,19 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
 
 
 
-
+  
   free(Fmt);
   free(Fmm);
-  free(out);
+  //  free(out);
+  free(inout);
+  //  free(inout_bwd);
+
   free(w);
   free(wr);
   free(Fmm_pad);
   free(tmp_pad);
   free(Gmm);
-
+  
 
 
 
