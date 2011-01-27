@@ -2430,7 +2430,7 @@ contains
 
   subroutine ssht_core_mw_inverse_sov_sym(f, flm, LOLD, spin, verbosity)
 
-integer, parameter :: L = 4
+integer, parameter :: L = 2
     
     integer, intent(in) :: LOLD
     integer, intent(in) :: spin
@@ -2535,6 +2535,7 @@ integer, parameter :: L = 4
          fext(0:2*L-2,0:2*L-2), FFTW_BACKWARD, FFTW_ESTIMATE)
     call dfftw_execute_dft(fftw_plan, fext(0:2*L-2,0:2*L-2), fext(0:2*L-2,0:2*L-2))
     call dfftw_destroy_plan(fftw_plan)
+
 
     ! Extract f from version of f extended to the torus (fext).
     f(0:L-1, 0:2*L-2) = transpose(fext(0:2*L-2, 0:L-1))

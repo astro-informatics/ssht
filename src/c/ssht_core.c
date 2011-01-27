@@ -159,9 +159,10 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
   free(Fmm);
   
   // Extract f from version of f extended to the torus (fext).
+//TODO: NOTE APPLYING TRANSPOSE HERE AT PRESENT
   for (t=0; t<=L-1; t++)
     for (p=0; p<=2*L-2; p++)
-      f[t*fext_stride + p] = fext[t*fext_stride + p];
+      f[t*fext_stride + p] = fext[p*fext_stride + t];
 //**TODO: could be done more efficiently with memcpy? 
   //memcpy(f, fext, L*(2*L-1)*sizeof(complex double));
 
@@ -177,6 +178,13 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
   free(signs); 
 
 }
+
+
+
+
+
+
+
 
 
 
