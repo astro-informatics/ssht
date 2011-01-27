@@ -1,0 +1,251 @@
+
+SSHT test program
+===============================================================
+
+DH real spin=0 test no. 0
+ duration_inverse (s) =                                  9.6700
+ duration_forward (s) =                                 12.7100
+ error                =                             0.95304E-12
+
+DH real spin=0 test no. 0
+ duration_inverse (s) =                                  5.4900
+ duration_forward (s) =                                  7.2700
+ error                =                             0.39304E-11
+
+MWEO real spin=0 test no. 0
+ duration_inverse (s) =                                  1.5100
+ duration_forward (s) =                                  2.8800
+ error                =                             0.88368E-12
+
+MW real spin=0 test no. 0
+ duration_inverse (s) =                                  1.4600
+ duration_forward (s) =                                  1.9000
+ error                =                             0.87492E-12
+
+DH test no. 0
+ duration_inverse (s) =                                 17.8600
+ duration_forward (s) =                                 19.8600
+ error                =                             0.91476E-12
+
+GL test no. 0
+ duration_inverse (s) =                                 10.0500
+ duration_forward (s) =                                 11.3900
+ error                =                             0.57726E-11
+
+MWEO test no. 0
+ duration_inverse (s) =                                  2.3600
+ duration_forward (s) =                                  3.3400
+ error                =                             0.96310E-12
+
+MW test no. 0
+ duration_inverse (s) =                                  2.2900
+ duration_forward (s) =                                  2.7600
+ error                =                             0.91246E-12
+
+DH real spin=0 test no. 1
+ duration_inverse (s) =                                  9.2700
+ duration_forward (s) =                                 12.8400
+ error                =                             0.94378E-12
+
+DH real spin=0 test no. 1
+ duration_inverse (s) =                                  5.3200
+ duration_forward (s) =                                  7.2000
+ error                =                             0.65009E-11
+
+MWEO real spin=0 test no. 1
+ duration_inverse (s) =                                  1.4900
+ duration_forward (s) =                                  2.4000
+ error                =                             0.88319E-12
+
+MW real spin=0 test no. 1
+ duration_inverse (s) =                                  1.4700
+ duration_forward (s) =                                  1.9300
+ error                =                             0.88093E-12
+
+DH test no. 1
+ duration_inverse (s) =                                 17.8300
+ duration_forward (s) =                                 19.8600
+ error                =                             0.91648E-12
+
+GL test no. 1
+ duration_inverse (s) =                                 10.0500
+ duration_forward (s) =                                 11.3800
+ error                =                             0.57180E-11
+
+MWEO test no. 1
+ duration_inverse (s) =                                  2.3400
+ duration_forward (s) =                                  3.3100
+ error                =                             0.88692E-12
+
+MW test no. 1
+ duration_inverse (s) =                                  2.2900
+ duration_forward (s) =                                  2.7700
+ error                =                             0.86541E-12
+
+DH real spin=0 test no. 2
+ duration_inverse (s) =                                  9.2800
+ duration_forward (s) =                                 12.8400
+ error                =                             0.86284E-12
+
+DH real spin=0 test no. 2
+ duration_inverse (s) =                                  5.3100
+ duration_forward (s) =                                  7.2400
+ error                =                             0.52448E-11
+
+MWEO real spin=0 test no. 2
+ duration_inverse (s) =                                  1.4900
+ duration_forward (s) =                                  2.4200
+ error                =                             0.87671E-12
+
+MW real spin=0 test no. 2
+ duration_inverse (s) =                                  1.4600
+ duration_forward (s) =                                  1.9400
+ error                =                             0.90769E-12
+
+DH test no. 2
+ duration_inverse (s) =                                 17.8100
+ duration_forward (s) =                                 19.8700
+ error                =                             0.90710E-12
+
+GL test no. 2
+ duration_inverse (s) =                                 10.0400
+ duration_forward (s) =                                 11.3800
+ error                =                             0.69860E-11
+
+MWEO test no. 2
+ duration_inverse (s) =                                  2.3400
+ duration_forward (s) =                                  3.3100
+ error                =                             0.87573E-12
+
+MW test no. 2
+ duration_inverse (s) =                                  2.3000
+ duration_forward (s) =                                  2.7700
+ error                =                             0.93657E-12
+
+DH real spin=0 test no. 3
+ duration_inverse (s) =                                  9.2500
+ duration_forward (s) =                                 12.8300
+ error                =                             0.85247E-12
+
+DH real spin=0 test no. 3
+ duration_inverse (s) =                                  5.3100
+ duration_forward (s) =                                  7.2100
+ error                =                             0.56567E-11
+
+MWEO real spin=0 test no. 3
+ duration_inverse (s) =                                  1.4900
+ duration_forward (s) =                                  2.4000
+ error                =                             0.84619E-12
+
+MW real spin=0 test no. 3
+ duration_inverse (s) =                                  1.4700
+ duration_forward (s) =                                  1.9200
+ error                =                             0.85913E-12
+
+DH test no. 3
+ duration_inverse (s) =                                 17.8400
+ duration_forward (s) =                                 19.8500
+ error                =                             0.94549E-12
+
+GL test no. 3
+ duration_inverse (s) =                                 10.0400
+ duration_forward (s) =                                 11.3700
+ error                =                             0.51571E-11
+
+MWEO test no. 3
+ duration_inverse (s) =                                  2.3600
+ duration_forward (s) =                                  3.3000
+ error                =                             0.92958E-12
+
+MW test no. 3
+ duration_inverse (s) =                                  2.2800
+ duration_forward (s) =                                  2.7800
+ error                =                             0.89507E-12
+
+DH real spin=0 test no. 4
+ duration_inverse (s) =                                  9.2500
+ duration_forward (s) =                                 12.8300
+ error                =                             0.88634E-12
+
+DH real spin=0 test no. 4
+ duration_inverse (s) =                                  5.3200
+ duration_forward (s) =                                  7.2100
+ error                =                             0.46596E-11
+
+MWEO real spin=0 test no. 4
+ duration_inverse (s) =                                  1.4800
+ duration_forward (s) =                                  2.4000
+ error                =                             0.91289E-12
+
+MW real spin=0 test no. 4
+ duration_inverse (s) =                                  1.4600
+ duration_forward (s) =                                  1.9300
+ error                =                             0.91165E-12
+
+DH test no. 4
+ duration_inverse (s) =                                 17.8300
+ duration_forward (s) =                                 19.8500
+ error                =                             0.92566E-12
+
+GL test no. 4
+ duration_inverse (s) =                                 10.0400
+ duration_forward (s) =                                 11.3700
+ error                =                             0.63467E-11
+
+MWEO test no. 4
+ duration_inverse (s) =                                  2.3400
+ duration_forward (s) =                                  3.3200
+ error                =                             0.93444E-12
+
+MW test no. 4
+ duration_inverse (s) =                                  2.2900
+ duration_forward (s) =                                  2.7700
+ error                =                             0.92345E-12
+
+===============================================================
+Summary
+
+N_repeat              =                                       5
+L                     =                                     256
+spin                  =                                       0
+
+DH real
+ Average forward transform time =                      12.81000
+ Average inverse transform time =                       9.34400
+ Average max error              =                   0.89969E-12
+
+GL real
+ Average forward transform time =                       7.22600
+ Average inverse transform time =                       5.35000
+ Average max error              =                   0.51985E-11
+
+MWEO real
+ Average forward transform time =                       2.50000
+ Average inverse transform time =                       1.49200
+ Average max error              =                   0.88053E-12
+
+MW real
+ Average forward transform time =                       1.92400
+ Average inverse transform time =                       1.46400
+ Average max error              =                   0.88686E-12
+
+DH
+ Average forward transform time =                      19.85800
+ Average inverse transform time =                      17.83400
+ Average max error              =                   0.92190E-12
+
+GL
+ Average forward transform time =                      11.37799
+ Average inverse transform time =                      10.04401
+ Average max error              =                   0.59961E-11
+
+MWEO
+ Average forward transform time =                       3.31600
+ Average inverse transform time =                       2.34799
+ Average max error              =                   0.91796E-12
+
+MW
+ Average forward transform time =                       2.77001
+ Average inverse transform time =                       2.28999
+ Average max error              =                   0.90659E-12
+
