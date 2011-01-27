@@ -2428,9 +2428,11 @@ contains
   !   October 2010 - Written by Jason McEwen
   !----------------------------------------------------------------------------
 
-  subroutine ssht_core_mw_inverse_sov_sym(f, flm, L, spin, verbosity)
+  subroutine ssht_core_mw_inverse_sov_sym(f, flm, LOLD, spin, verbosity)
+
+integer, parameter :: L = 4
     
-    integer, intent(in) :: L
+    integer, intent(in) :: LOLD
     integer, intent(in) :: spin
     integer, intent(in), optional :: verbosity
     complex(dpc), intent(in) :: flm(0:L**2-1)

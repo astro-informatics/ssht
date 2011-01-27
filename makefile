@@ -9,7 +9,7 @@ ifeq ($(FC),f95)
   OPTF95 = -w=x95
 endif
 
-OPT = $(OPTF95) -g -m64 #3-ggdb #  -m64 -O3
+OPT = $(OPTF95) -g3 -ggdb -m64 #3-ggdb #  -m64 -O3
 
 
 # ======== LINKS ========
@@ -32,6 +32,7 @@ SSHTBIN  = $(SSHTDIR)/bin
 SSHTDOC  = $(SSHTDIR)/doc
 
 FFTWLIB      = $(PROGDIR)/fftw/lib
+#FFTWLIB      = $(PROGDIR)/fftw-3.2.2_m32/lib
 FFTWLIBNM    = fftw3
 
 HPIXDIR = $(PROGDIR)/Healpix
@@ -45,8 +46,8 @@ S2LIBNM= s2
 S2INC  = $(S2DIR)/include
 S2DOC  = $(S2DIR)/doc
 
-CFITSIOLIB   = $(PROGDIR)/cfitsio/lib
-CFITSIOLIBNM = cfitsio
+#CFITSIOLIB   = $(PROGDIR)/cfitsio/lib
+#CFITSIOLIBNM = cfitsio
 
 
 # ======== FFFLAGS ========
@@ -58,8 +59,8 @@ FFLAGSPROG = -I$(HPIXINC) -I$(S2INC)
 # ======== LDFLAGS ========
 
 LDFLAGS = -L$(SSHTLIB) -l$(SSHTLIBNM) \
-          -L$(FFTWLIB) -l$(FFTWLIBNM) \
-          -L$(CFITSIOLIB) -l$(CFITSIOLIBNM) 
+          -L$(FFTWLIB) -l$(FFTWLIBNM)
+#         -L$(CFITSIOLIB) -l$(CFITSIOLIBNM) 
 
 LDFLAGSPROG = -L$(S2LIB) -l$(S2LIBNM) \
            -L$(HPIXLIB) -l$(HPIXLIBNM) 
