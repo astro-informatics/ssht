@@ -1,6 +1,7 @@
 # ======== COMPILER ========
 
 #FC      = f95
+#FC	= /usr/bin/gfortran-4.3
 FC      = gfortran
 #FC      = g95
 
@@ -8,7 +9,7 @@ ifeq ($(FC),f95)
   OPTF95 = -w=x95
 endif
 
-OPT = $(OPTF95) -m64 #-O3
+OPT = $(OPTF95) -g3 #-ggdb #  -m64 -O3
 
 
 # ======== LINKS ========
@@ -30,7 +31,7 @@ SSHTPROG = $(SSHTDIR)/src/f90/prog
 SSHTBIN  = $(SSHTDIR)/bin
 SSHTDOC  = $(SSHTDIR)/doc
 
-FFTWLIB      = $(PROGDIR)/fftw/lib
+FFTWLIB      = $(PROGDIR)/fftw-3.2.2_m32/lib
 FFTWLIBNM    = fftw3
 
 HPIXDIR = $(PROGDIR)/Healpix
