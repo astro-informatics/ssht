@@ -83,6 +83,9 @@ C-----------------------------------------------------------------------
 C     Computational routine
 
       subroutine timestwo(y_output, x_input)
+
+      use ssht_error_mod
+
       real*8 x_input, y_output
 
       y_output = 2.0 * x_input
