@@ -360,11 +360,8 @@ end do
 
      call cpu_time(time_start)
      !-------------------------------------------------------------------------
-!     call ssht_core_mw_inverse(f_mw, f_sp_mw, phi_sp_mw, &
-!          flm_orig, L, spin, verbosity)
-     call ssht_core_mw_inverse_sp(f_mw, f_sp_mw, phi_sp_mw, &
+     call ssht_core_mw_inverse(f_mw, f_sp_mw, phi_sp_mw, &
           flm_orig, L, spin, verbosity)
-
      !-------------------------------------------------------------------------
      call cpu_time(time_end)
      durations_inverse_mw(i_repeat) = time_end - time_start

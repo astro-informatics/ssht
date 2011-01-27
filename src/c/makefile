@@ -8,7 +8,7 @@ OPT	= -g
 
 UNAME := $(shell uname)
 ifeq ($(UNAME), Linux)
-  PROGDIR = /users/jdm57/src
+  PROGDIR = /home/jdm57/src
 endif
 ifeq ($(UNAME), Darwin)
   PROGDIR = /Users/mcewen/src

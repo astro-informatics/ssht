@@ -9,14 +9,14 @@ ifeq ($(FC),f95)
   OPTF95 = -w=x95
 endif
 
-OPT = $(OPTF95) -g3 #-ggdb #  -m64 -O3
+OPT = $(OPTF95) -g -m64 #3-ggdb #  -m64 -O3
 
 
 # ======== LINKS ========
 
 UNAME := $(shell uname)
 ifeq ($(UNAME), Linux)
-  PROGDIR = ..
+  PROGDIR = /home/jdm57/src
 endif
 ifeq ($(UNAME), Darwin)
   PROGDIR = /Users/mcewen/src
@@ -31,7 +31,7 @@ SSHTPROG = $(SSHTDIR)/src/f90/prog
 SSHTBIN  = $(SSHTDIR)/bin
 SSHTDOC  = $(SSHTDIR)/doc
 
-FFTWLIB      = $(PROGDIR)/fftw-3.2.2_m32/lib
+FFTWLIB      = $(PROGDIR)/fftw/lib
 FFTWLIBNM    = fftw3
 
 HPIXDIR = $(PROGDIR)/Healpix
