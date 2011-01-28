@@ -245,7 +245,7 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
   plan = fftw_plan_dft_1d(2*L-1, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
   for (t=0; t<=L-1; t++) {
     //inout = &f[t*f_stride];
-    memcpy(inout, &f[t*f_stride], f_stride*sizeof(double complex*));
+    memcpy(inout, &f[t*f_stride], f_stride*sizeof(double complex));
     fftw_execute_dft(plan, inout, inout);
     for(m=0; m<=L-1; m++) 
       Fmt[(m+Fmt_offset)*Fmt_stride + t] = inout[m] / (2.0*L-1.0);
@@ -332,8 +332,12 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
   for (m=-(L-1); m<=L-1; m++) {
 
     // Zero-pad Fmm.
+    for (mm=-2*(L-1); mm<=-L; mm++)
+      Fmm_pad[mm+w_offset] = 0.0;
+    for (mm=L; mm<=2*(L-1); mm++)
+      Fmm_pad[mm+w_offset] = 0.0;
     for (mm=-(L-1); mm<=L-1; mm++)
-      Fmm_pad[mm + w_offset] = Fmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_stride];
+      Fmm_pad[mm + w_offset] = Fmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset];
     //memcpy(&Fmm_pad[-(L-1) + w_offset], 
     //	   &Fmm[(m+Fmm_offset)*Fmm_stride], 
     //	   (2*L-1)*sizeof(complex double));
@@ -374,8 +378,8 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
 
     // Extract section of Gmm of interest.
     for (mm=-(L-1); mm<=L-1; mm++)
-      Gmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_stride] = 
-	Fmm_pad[mm + w_offset];
+      Gmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset] = 
+	Fmm_pad[mm + w_offset] * 2.0 * SSHT_PI / (4.0*L-3.0);
     //memcpy(&Gmm[(m+Fmm_offset)*Fmm_stride], 
     //	   &Fmm_pad[-(L-1) + w_offset], 
     //	   (2*L-1)*sizeof(complex double));

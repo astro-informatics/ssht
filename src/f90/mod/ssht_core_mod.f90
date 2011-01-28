@@ -2536,7 +2536,6 @@ integer, parameter :: L = 2
     call dfftw_execute_dft(fftw_plan, fext(0:2*L-2,0:2*L-2), fext(0:2*L-2,0:2*L-2))
     call dfftw_destroy_plan(fftw_plan)
 
-
     ! Extract f from version of f extended to the torus (fext).
     f(0:L-1, 0:2*L-2) = transpose(fext(0:2*L-2, 0:L-1))
 
@@ -5214,9 +5213,11 @@ integer, parameter :: L = 2
   !   October 2010 - Written by Jason McEwen
   !----------------------------------------------------------------------------
 
-  subroutine ssht_core_mw_forward_sov_conv_sym(flm, f, L, spin, verbosity)
+  subroutine ssht_core_mw_forward_sov_conv_sym(flm, f, LOLD, spin, verbosity)
 
-    integer, intent(in) :: L
+integer, parameter :: L = 2
+
+    integer, intent(in) :: LOLD
     integer, intent(in) :: spin
     integer, intent(in), optional :: verbosity
     complex(dpc), intent(in) :: f(0:L-1 ,0:2*L-2)

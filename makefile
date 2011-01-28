@@ -12,7 +12,7 @@ ifeq ($(FC),gfortran)
   OPTGFORTRAN = -m64
 endif
 
-OPT = $(OPTNAGFOR)  $(OPTGFORTRAN) #-g3 -ggdb #3-ggdb #  -m64 -O3
+OPT = $(OPTNAGFOR)  $(OPTGFORTRAN) -g3 -ggdb # 3-ggdb #  -m64 -O3
 
 
 # ======== LINKS ========
