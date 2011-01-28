@@ -223,7 +223,8 @@ void ssht_dl_halfpi_trapani_eighth_table(double *dl, int L,
     for (m=el-2; m>=0; m--) {
       s1 = sqrt_tbl[el-m] * sqrt_tbl[el+m+1];
       s2 = sqrt_tbl[el-m-1] * sqrt_tbl[el+m+2] / sqrt_tbl[el-m] / sqrt_tbl[el+m+1];
-      for (mm=0; mm<=m; mm++) {
+      //      for (mm=0; mm<=m; mm++) {
+      for (mm=0; mm<=el; mm++) {
     	t1 = 2e0 * mm / s1
     	  * dl[(m+1)*mmstride + mm + mmoff];
     	t2 = s2
@@ -273,10 +274,10 @@ void ssht_dl_halfpi_trapani_fill_eighth2righthalf_table(double *dl, int L,
   mmstride = ssht_dl_get_mmstride(L, dl_size);
 
   // Diagonal symmetry to fill in quarter.
-  for (m=0; m<=el; m++)
-    for (mm=m+1; mm<=el; mm++)
-      dl[m*mmstride + mm + mmoff] = 
-	signs[m] * signs[mm] * dl[mm*mmstride + m + mmoff];
+  /* for (m=0; m<=el; m++) */
+  /*   for (mm=m+1; mm<=el; mm++) */
+  /*     dl[m*mmstride + mm + mmoff] =  */
+  /* 	signs[m] * signs[mm] * dl[mm*mmstride + m + mmoff]; */
 
   // Symmetry in mm to fill in half.
   for (m=0; m<=el; m++)
