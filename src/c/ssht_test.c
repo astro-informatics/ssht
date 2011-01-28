@@ -8,6 +8,9 @@
 #include <fftw3.h>
 // Since complex.h included before fftw3.h, fftw_complex is
 // defined to be the native complex type in complex.h.
+#include <time.h>
+
+
 #include "ssht_sampling.h"
 #include "ssht_error.h"
 
@@ -30,6 +33,10 @@ int main(int argc, char *argv[]) {
 
   double max_err[NREPEAT];
   double tmp;
+  time_t start, end;
+  double durations_forward_mw[NREPEAT];
+  double durations_inverse_mw[NREPEAT];
+
 
 
 
@@ -70,16 +77,24 @@ int main(int argc, char *argv[]) {
 
     ssht_test_gen_flm_complex(flm_orig, L, spin, seed);
 
+    time(&start);
     ssht_core_mw_inverse_sov_sym(f_mw, flm_orig, L, spin, verbosity);
+    time(&end);
+    durations_inverse_mw[irepeat] = difftime(end, start);
+    time(&start);
     ssht_core_mw_forward_sov_conv_sym(flm_syn, f_mw, L, spin, verbosity);
+    time(&end);
+    durations_forward_mw[irepeat] = difftime(end, start);
 
+    printf(" duration_inverse (s) = %40.4f\n", durations_inverse_mw[irepeat]);
+    printf(" duration_forward (s) = %40.4f\n", durations_forward_mw[irepeat]);
 
     max_err[irepeat] = 0.0;
     for (i = 0; i < L*L; i++) {
       tmp = cabs(flm_orig[i] - flm_syn[i]);
       max_err[irepeat] = tmp > max_err[irepeat] ? tmp : max_err[irepeat];
     }
-    printf(" error %40.5e\n", max_err[irepeat]);
+    printf(" error                = %40.5e\n", max_err[irepeat]);
 
 
   }
@@ -89,10 +104,6 @@ int main(int argc, char *argv[]) {
 
 
 
-
-  for(i=0; i<10; i++) {
-    printf("ran2_dp = %f\n", ran2_dp(seed));
-  }
 
   // Free memory.
   free(flm_orig);

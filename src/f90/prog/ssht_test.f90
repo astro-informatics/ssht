@@ -79,39 +79,38 @@ program ssht_test
   real :: durations_forward_mw_real(0:N_repeat-1)
   real :: durations_inverse_mw_real(0:N_repeat-1)
 
-integer, parameter :: L = 2
-  integer :: LOLD, ind, ind_check, el, el_check, m, m_check
+  integer :: L, ind, ind_check, el, el_check, m, m_check
   integer :: spin
-!!$  complex(dpc), allocatable :: flm_orig(:), flm_syn(:)
-!!$  complex(dpc), allocatable :: f_dh(:,:), f_gl(:,:), f_mweo(:,:), f_mw(:,:)
+  complex(dpc), allocatable :: flm_orig(:), flm_syn(:)
+  complex(dpc), allocatable :: f_dh(:,:), f_gl(:,:), f_mweo(:,:), f_mw(:,:)
   real(dp), allocatable :: f_dh_real(:,:), f_gl_real(:,:), f_mweo_real(:,:), f_mw_real(:,:)
   real(dp) :: phi_sp_mweo, phi_sp_mw
   complex(dpc) :: f_sp_mweo, f_sp_mw
   real(dp) :: f_real_sp_dh, f_real_sp_gl, f_real_sp_mweo, f_real_sp_mw
 
 
-  complex(dpc) :: flm_orig(0:L**2-1)
-  complex(dpc) :: flm_syn(0:L**2-1)  
-  complex(dpc) :: f_dh(0:2*L-1, 0:2*L-2)
-  complex(dpc) :: f_gl(0:L-1, 0:2*L-2)
-  complex(dpc) :: f_mweo(0:L-2, 0:2*L-2)
-  complex(dpc) :: f_mw(0:L-2, 0:2*L-2)
+!!$  complex(dpc) :: flm_orig(0:L**2-1)
+!!$  complex(dpc) :: flm_syn(0:L**2-1)  
+!!$  complex(dpc) :: f_dh(0:2*L-1, 0:2*L-2)
+!!$  complex(dpc) :: f_gl(0:L-1, 0:2*L-2)
+!!$  complex(dpc) :: f_mweo(0:L-2, 0:2*L-2)
+!!$  complex(dpc) :: f_mw(0:L-2, 0:2*L-2)
  
 
   ! Initialise parameters.
   call getarg(1, arg)
-  read(arg,*) LOLD
+  read(arg,*) L
   call getarg(2, arg)
   read(arg,*) spin
   seed = 1
 
   ! Allocate memory.
-!!$  allocate(flm_orig(0:L**2-1), stat=fail)
-!!$  allocate(flm_syn(0:L**2-1), stat=fail)  
-!!$  allocate(f_dh(0:2*L-1, 0:2*L-2), stat=fail)
-!!$  allocate(f_gl(0:L-1, 0:2*L-2), stat=fail)
-!!$  allocate(f_mweo(0:L-2, 0:2*L-2), stat=fail)
-!!$  allocate(f_mw(0:L-2, 0:2*L-2), stat=fail)
+  allocate(flm_orig(0:L**2-1), stat=fail)
+  allocate(flm_syn(0:L**2-1), stat=fail)  
+  allocate(f_dh(0:2*L-1, 0:2*L-2), stat=fail)
+  allocate(f_gl(0:L-1, 0:2*L-2), stat=fail)
+  allocate(f_mweo(0:L-2, 0:2*L-2), stat=fail)
+  allocate(f_mw(0:L-2, 0:2*L-2), stat=fail)
   allocate(f_dh_real(0:2*L-1, 0:2*L-2), stat=fail)
   allocate(f_gl_real(0:L-1, 0:2*L-2), stat=fail)
   allocate(f_mweo_real(0:L-2, 0:2*L-2), stat=fail)
@@ -366,10 +365,6 @@ integer, parameter :: L = 2
      flm_orig(0:L**2-1) = cmplx(0d0, 0d0)
      flm_syn(0:L**2-1) = cmplx(0d0, 0d0)
      call ssht_test_gen_flm_complex(L, spin, flm_orig, seed)
-do el = 0,L*L-1
-   write(*,*) 'flm_orig[el]=', flm_orig(el)
-end do
-
      call cpu_time(time_start)
      !-------------------------------------------------------------------------
      call ssht_core_mw_inverse(f_mw, f_sp_mw, phi_sp_mw, &
@@ -479,9 +474,9 @@ end do
   write(*,*)
 
   ! Deallocate memory.
-!!$  deallocate(flm_orig, flm_syn)
-!!$  deallocate(f_dh, f_gl, f_mweo, f_mw)
-!!$  deallocate(f_dh_real, f_gl_real, f_mweo_real, f_mw_real)
+  deallocate(flm_orig, flm_syn)
+  deallocate(f_dh, f_gl, f_mweo, f_mw)
+  deallocate(f_dh_real, f_gl_real, f_mweo_real, f_mw_real)
 
 end program ssht_test
 
