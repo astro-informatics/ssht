@@ -33,7 +33,7 @@ int main(int argc, char *argv[]) {
 
   double max_err[NREPEAT];
   double tmp;
-  time_t start, end;
+  clock_t time_start, time_end;
   double durations_forward_mw[NREPEAT];
   double durations_inverse_mw[NREPEAT];
 
@@ -77,14 +77,15 @@ int main(int argc, char *argv[]) {
 
     ssht_test_gen_flm_complex(flm_orig, L, spin, seed);
 
-    time(&start);
+    time_start = clock();
     ssht_core_mw_inverse_sov_sym(f_mw, flm_orig, L, spin, verbosity);
-    time(&end);
-    durations_inverse_mw[irepeat] = difftime(end, start);
-    time(&start);
+    time_end = clock();
+    durations_inverse_mw[irepeat] = (time_end - time_start) / (double)CLOCKS_PER_SEC;
+
+    time_start = clock();
     ssht_core_mw_forward_sov_conv_sym(flm_syn, f_mw, L, spin, verbosity);
-    time(&end);
-    durations_forward_mw[irepeat] = difftime(end, start);
+    time_end = clock();
+    durations_forward_mw[irepeat] = (time_end - time_start) / (double)CLOCKS_PER_SEC;
 
     printf(" duration_inverse (s) = %40.4f\n", durations_inverse_mw[irepeat]);
     printf(" duration_forward (s) = %40.4f\n", durations_forward_mw[irepeat]);
