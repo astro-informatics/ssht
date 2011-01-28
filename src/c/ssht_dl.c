@@ -253,8 +253,8 @@ void ssht_dl_halfpi_trapani_fill_eighth2righthalf_table(double *dl, int L,
 	signs[m] * signs[mm] * dl[mm*mmstride + m + mmoff];
 
   // Symmetry in mm to fill in half.
-  for (mm=-el; mm<=-1; mm++)
-    for (m=0; m<=el; m++)
+  for (m=0; m<=el; m++)
+    for (mm=-el; mm<=-1; mm++)
       dl[m*mmstride + mm + mmoff] = 
 	signs[el] * signs[m] * dl[m*mmstride - mm + mmoff];
 

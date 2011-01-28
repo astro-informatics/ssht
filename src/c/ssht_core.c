@@ -112,7 +112,6 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
       inds[m + inds_offset] = el2pel + m; 
     for (mm=0; mm<=el; mm++) {
       for (m=-el; m<=el; m++) {
-	//ssht_sampling_elm2ind(&ind, el, m);
 	ind = inds[m + inds_offset];
     	Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset] +=
     	  ssign
