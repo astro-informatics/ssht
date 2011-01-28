@@ -223,8 +223,9 @@ void ssht_dl_halfpi_trapani_eighth_table(double *dl, int L,
     for (m=el-2; m>=0; m--) {
       s1 = sqrt_tbl[el-m] * sqrt_tbl[el+m+1];
       s2 = sqrt_tbl[el-m-1] * sqrt_tbl[el+m+2] / sqrt_tbl[el-m] / sqrt_tbl[el+m+1];
-      //      for (mm=0; mm<=m; mm++) {
+      //      for (mm=0; mm<=m; mm++) {   
       for (mm=0; mm<=el; mm++) {
+   
     	t1 = 2e0 * mm / s1
     	  * dl[(m+1)*mmstride + mm + mmoff];
     	t2 = s2
@@ -234,6 +235,117 @@ void ssht_dl_halfpi_trapani_eighth_table(double *dl, int L,
 
     }
 
+  }
+
+  // Free memory.
+  free(dmm);
+
+}
+
+/*!  
+ * Calculates *quarter* (for m = 0:l and mm = 0:l) of lth plane of a
+ * d-matrix for PI/2 using Trapani & Navaza's recursion method.  For
+ * l>0, require the dl plane to be computed already with values for
+ * l-1.  Also takes a table of precomputed square roots of integers to
+ * avoid recomputing them.
+ *
+ * \param[in,out] dl Wigner plane.  On input this should be initialised
+ * to the plane computed for el-1.  On output this will be replaced
+ * with the computed plane for el.
+ * \param[in] L Harmonic band-limit.
+ * \param[in] dl_size Size type of the memory to allocate.
+ * \param[in] el Harmonic index to compute Wigner plane for.
+ * \param[in] sqrt_tbl Precomputed array of square roots.  The table
+ * element at index i should contain the value sqrt(i).  Values from 0
+ * to 2*el+1 must be precomputed (i.e. sqrt_tbl should contian 2*el+2
+ * elements).
+ * \retval none
+ *
+ * \author Jason McEwen
+ */
+void ssht_dl_halfpi_trapani_quarter_table(double *dl, int L, 
+					 ssht_dl_size_t dl_size,
+					 int el, double *sqrt_tbl) {
+
+  int m, mm, mmoff, mmstride;
+  double *dmm;
+  double t1, t2, s1, s2;
+
+  // Allocate temporary memory.
+  dmm = (double*)calloc(el+1, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(dmm)
+
+  // Get mm offset and stride for accessing dl data.
+  mmoff = ssht_dl_get_mmoffset(L, dl_size);
+  mmstride = ssht_dl_get_mmstride(L, dl_size);
+
+  // Compute Wigner plane.
+  if (el == 0) {
+    
+    dl[0*mmstride + 0 + mmoff] = 1.0;
+
+  }
+  else {
+
+    // Eqn (9) of T&N (2006).
+    dmm[0] = - sqrt_tbl[2*el-1] / sqrt_tbl[2*el]
+      * dl[(el-1)*mmstride + 0 + mmoff];
+
+    // Eqn (10) of T&N (2006).
+    for (mm=1; mm<=el; mm++) {
+      dmm[mm] = sqrt_tbl[el] / SSHT_SQRT2 
+        * sqrt_tbl[2*el-1] / sqrt_tbl[el+mm] / sqrt_tbl[el+mm-1]
+	* dl[(el-1)*mmstride + (mm-1) + mmoff];
+    }
+
+    // Initialise dl for next el.
+    for (mm=0; mm<=el; mm++) {     
+      dl[el*mmstride + mm + mmoff] = dmm[mm];
+    }
+
+/*  LOGICAL BUT *NOT* MOST EFFICIENT ALGORITHM
+    // Eqn (11) of T&N (2006).
+    for (mm=0; mm<=el; mm++) {
+
+      // m = el-1 case (t2 = 0).
+      m = el-1;
+      dl[m*mmstride + mm + mmoff] = 2e0 * mm / sqrt_tbl[el-m] / sqrt_tbl[el+m+1]
+    	* dl[(m+1)*mmstride + mm + mmoff];
+
+      // Remaining m cases.
+      for (m=el-2; m>=mm; m--) {
+    	t1 = 2e0 * mm / sqrt_tbl[el-m] / sqrt_tbl[el+m+1]
+    	  * dl[(m+1)*mmstride + mm + mmoff];
+    	t2 = sqrt_tbl[el-m-1] * sqrt_tbl[el+m+2] / sqrt_tbl[el-m] / sqrt_tbl[el+m+1]
+    	  * dl[(m+2)*mmstride + mm + mmoff];
+    	dl[m*mmstride + mm + mmoff] = t1 - t2;
+      }
+
+    }
+*/
+
+    // Eqn (11) of T&N (2006).
+    // OPTIMISED FOR MEMORY ACCESS.
+    m = el-1;
+    s1 = sqrt_tbl[el-m] * sqrt_tbl[el+m+1];
+    for (mm=0; mm<=el; mm++) {
+      // m = el-1 case (t2 = 0).
+      dl[m*mmstride + mm + mmoff] = 2e0 * mm / s1
+    	* dl[(m+1)*mmstride + mm + mmoff];
+    }
+
+    for (m=el-2; m>=0; m--) {
+      s1 = sqrt_tbl[el-m] * sqrt_tbl[el+m+1];
+      s2 = sqrt_tbl[el-m-1] * sqrt_tbl[el+m+2] / sqrt_tbl[el-m] / sqrt_tbl[el+m+1];
+      for (mm=0; mm<=el; mm++) {
+    	t1 = 2e0 * mm / s1
+    	  * dl[(m+1)*mmstride + mm + mmoff];
+    	t2 = s2
+    	  * dl[(m+2)*mmstride + mm + mmoff];
+    	dl[m*mmstride + mm + mmoff] = t1 - t2;
+      }
+
+    }
 
   }
 
@@ -274,10 +386,10 @@ void ssht_dl_halfpi_trapani_fill_eighth2righthalf_table(double *dl, int L,
   mmstride = ssht_dl_get_mmstride(L, dl_size);
 
   // Diagonal symmetry to fill in quarter.
-  /* for (m=0; m<=el; m++) */
-  /*   for (mm=m+1; mm<=el; mm++) */
-  /*     dl[m*mmstride + mm + mmoff] =  */
-  /* 	signs[m] * signs[mm] * dl[mm*mmstride + m + mmoff]; */
+  for (m=0; m<=el; m++)
+    for (mm=m+1; mm<=el; mm++)
+      dl[m*mmstride + mm + mmoff] =
+  	signs[m] * signs[mm] * dl[mm*mmstride + m + mmoff];
 
   // Symmetry in mm to fill in half.
   for (m=0; m<=el; m++)

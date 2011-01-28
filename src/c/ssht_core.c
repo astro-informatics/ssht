@@ -39,6 +39,8 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
 
 
 
+double elmmsign;
+
 
   // Allocate memory.
   sqrt_tbl = (double*)calloc(2*(L-1)+2, sizeof(double));
@@ -97,12 +99,12 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
     							 el, signs);
     }
     else {
-      ssht_dl_halfpi_trapani_eighth_table(dl, L,
+      ssht_dl_halfpi_trapani_quarter_table(dl, L,
     					  SSHT_DL_HALF,
     					  el, sqrt_tbl);
-      ssht_dl_halfpi_trapani_fill_eighth2righthalf_table(dl, L,
-    							SSHT_DL_HALF,
-    							el, signs);
+      /* ssht_dl_halfpi_trapani_fill_eighth2righthalf_table(dl, L, */
+      /* 							SSHT_DL_HALF, */
+      /* 							el, signs); */
     }
 
     // Compute Fmm.
@@ -111,6 +113,8 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
     for (m=-el; m<=el; m++)
       inds[m + inds_offset] = el2pel + m; 
     for (mm=0; mm<=el; mm++) {
+      elmmsign = signs[el] * signs[mm];
+/*
       for (m=-el; m<=el; m++) {
 	ind = inds[m + inds_offset];
     	Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset] +=
@@ -121,6 +125,30 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
     	  * dl[mm*dl_stride - spin + dl_offset]
     	  * flm[ind];
       }
+*/
+
+      for (m=-el; m<=-1; m++) {
+	ind = inds[m + inds_offset];
+    	Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset] +=
+    	  ssign
+    	  * elfactor
+	  * exps[m + exps_offset]    	  
+    	  * elmmsign * dl[mm*dl_stride - m + dl_offset]
+    	  * dl[mm*dl_stride - spin + dl_offset]
+    	  * flm[ind];
+      }
+      for (m=0; m<=el; m++) {
+	ind = inds[m + inds_offset];
+    	Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset] +=
+    	  ssign
+    	  * elfactor
+	  * exps[m + exps_offset]    	  
+    	  * dl[mm*dl_stride + m + dl_offset]
+    	  * dl[mm*dl_stride - spin + dl_offset]
+    	  * flm[ind];
+      }
+
+
     }
 
   }
