@@ -5,8 +5,9 @@ program ssht_trapani
   use ssht_error_mod
   use ssht_sampling_mod
   use ssht_core_mod
-  !use F90_UNIX_ENV
-
+#ifdef NAGFOR
+  use F90_UNIX_ENV
+#endif
 
 
 

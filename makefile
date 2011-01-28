@@ -1,15 +1,18 @@
 # ======== COMPILER ========
 
-#FC      = f95
+#FC      = nagfor
 #FC	= /usr/bin/gfortran-4.3
 FC      = gfortran
 #FC      = g95
 
-ifeq ($(FC),f95)
-  OPTF95 = -w=x95
+ifeq ($(FC),nagfor)
+  OPTNAGFOR = -w=x95 -DNAGFOR
+endif
+ifeq ($(FC),gfortran)
+  OPTGFORTRAN = -m64
 endif
 
-OPT = $(OPTF95) -g3 -ggdb -m64 #3-ggdb #  -m64 -O3
+OPT = $(OPTNAGFOR)  $(OPTGFORTRAN) #-g3 -ggdb #3-ggdb #  -m64 -O3
 
 
 # ======== LINKS ========
@@ -68,7 +71,7 @@ LDFLAGSPROG = -L$(S2LIB) -l$(S2LIBNM) \
 
 # ======== PPFLAGS ========
 
-ifeq ($(FC),f95)
+ifeq ($(FC),nagfor)
   PPFLAGS = -fpp $(OPT)
 else ifeq ($(FC),g95)
   PPFLAGS = -cpp $(OPT)
