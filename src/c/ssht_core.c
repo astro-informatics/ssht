@@ -25,7 +25,10 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
   int el, m, mm, ind, t, p;
   int eltmp;
   double *sqrt_tbl, *signs;
+  int el2pel, inds_offset;
+  int *inds;
   double ssign, elfactor;
+  complex double mmfactor;
   double *dl;
   int dl_offset, dl_stride;
   complex double *exps;
@@ -34,6 +37,9 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
   int Fmm_offset, Fmm_stride, fext_stride;
   fftw_plan plan;
 
+
+
+
   // Allocate memory.
   sqrt_tbl = (double*)calloc(2*(L-1)+2, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(sqrt_tbl)
@@ -41,6 +47,8 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
   SSHT_ERROR_MEM_ALLOC_CHECK(signs)
   exps = (complex double*)calloc(2*L-1, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(exps)
+  inds = (int*)calloc(2*L-1, sizeof(int));
+  SSHT_ERROR_MEM_ALLOC_CHECK(inds)
 
   // Perform precomputations.
   for (el=0; el<=2*(L-1)+1; el++)
@@ -74,6 +82,7 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
   SSHT_ERROR_MEM_ALLOC_CHECK(dl)
   dl_offset = ssht_dl_get_mmoffset(L, SSHT_DL_HALF);
   dl_stride = ssht_dl_get_mmstride(L, SSHT_DL_HALF);   
+  inds_offset = L-1;
   for (el=abs(spin); el<=L-1; el++) {
 
     // Compute Wigner plane.
@@ -98,10 +107,14 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
 
     // Compute Fmm.
     elfactor = sqrt((double)(2.0*el+1.0)/(4.0*SSHT_PI));
-    for (m=-el; m<=el; m++) {
-      ssht_sampling_elm2ind(&ind, el, m);
-      for (mm=0; mm<=el; mm++) {
-    	Fmm[(m + Fmm_offset)*Fmm_stride + mm + Fmm_offset] +=
+    el2pel = el *el + el;
+    for (m=-el; m<=el; m++)
+      inds[m + inds_offset] = el2pel + m; 
+    for (mm=0; mm<=el; mm++) {
+      for (m=-el; m<=el; m++) {
+	//ssht_sampling_elm2ind(&ind, el, m);
+	ind = inds[m + inds_offset];
+    	Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset] +=
     	  ssign
     	  * elfactor
 	  * exps[m + exps_offset]    	  
@@ -111,44 +124,26 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
       }
     }
 
-    /* elfactor = sqrt((double)(2.0*el+1.0)/(4.0*SSHT_PI)); */
-    /* for (mm=0; mm<=el; mm++) { */
-    /*   for (m=-el; m<=el; m++) { */
-    /* 	ssht_sampling_elm2ind(&ind, el, m); */
-      
-    /* 	Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset] += */
-    /* 	  ssign */
-    /* 	  * elfactor */
-    /* 	  * exps[m + exps_offset] */
-    /* 	  //\* cexp(-I*SSHT_PION2*(m+spin)) */
-    /* 	  * dl[mm*dl_stride + m + dl_offset] */
-    /* 	  * dl[mm*dl_stride - spin + dl_offset] */
-    /* 	  * flm[ind]; */
-    /*   } */
-    /* } */
-
-    
-
-
   }
 
   // Free dl memory.
   free(dl);
 
   // Use symmetry to compute Fmm for negative mm.
-  for (m=-(L-1); m<=L-1; m++) {
-    for (mm=-(L-1); mm<=-1; mm++) {
-      Fmm[(m + Fmm_offset)*Fmm_stride + mm + Fmm_offset] = 
+  for (mm=-(L-1); mm<=-1; mm++) 
+    for (m=-(L-1); m<=L-1; m++) 
+      Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset] = 
 	signs[abs(m)] * ssign 
-	* Fmm[(m + Fmm_offset)*Fmm_stride - mm + Fmm_offset];
-    }
-  }
+	* Fmm[(-mm + Fmm_offset)*Fmm_stride + m + Fmm_offset];
 
   // Apply phase modulation to account for sampling offset.
-  for (m=-(L-1); m<=L-1; m++) {
-    for (mm=-(L-1); mm<=L-1; mm++) {
-      Fmm[(m + Fmm_offset)*Fmm_stride + mm + Fmm_offset] *= 
-	cexp(I*mm*SSHT_PI/(2.0*L-1.0));
+  for (mm=-(L-1); mm<=L-1; mm++) {
+    mmfactor = cexp(I*mm*SSHT_PI/(2.0*L-1.0));
+    for (m=-(L-1); m<=L-1; m++) {
+      Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset] *= 
+	mmfactor;
+//	cexp(I*mm*SSHT_PI/(2.0*L-1.0));
+//**TODO: precompute
     }
   }
 
@@ -158,22 +153,22 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
   fext_stride = 2*L-1;
 
   // Apply spatial shift.
-  for (m=0; m<=L-1; m++)
-    for (mm=0; mm<=L-1; mm++)
-      fext[m*fext_stride + mm] = 
-	Fmm[(m + Fmm_offset)*Fmm_stride + mm + Fmm_offset];
-  for (m=-(L-1); m<=-1; m++)
-    for (mm=0; mm<=L-1; mm++)
-      fext[(m+2*L-1)*fext_stride + mm] = 
-	Fmm[(m + Fmm_offset)*Fmm_stride + mm + Fmm_offset];
-  for (m=0; m<=L-1; m++)
-    for (mm=-(L-1); mm<=-1; mm++)
-      fext[m*fext_stride + mm + 2*L-1] = 
-	Fmm[(m + Fmm_offset)*Fmm_stride + mm + Fmm_offset];
-  for (m=-(L-1); m<=-1; m++)
-    for (mm=-(L-1); mm<=-1; mm++)
-      fext[(m+2*L-1)*fext_stride + mm + 2*L-1] = 
-	Fmm[(m + Fmm_offset)*Fmm_stride + mm + Fmm_offset];
+  for (mm=0; mm<=L-1; mm++)
+    for (m=0; m<=L-1; m++)
+      fext[mm*fext_stride + m] = 
+	Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset];
+  for (mm=0; mm<=L-1; mm++)
+    for (m=-(L-1); m<=-1; m++)
+      fext[mm*fext_stride + (m+2*L-1)] = 
+	Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset];
+  for (mm=-(L-1); mm<=-1; mm++)
+    for (m=0; m<=L-1; m++)
+      fext[(mm + 2*L-1)*fext_stride + m] = 
+	Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset];
+  for (mm=-(L-1); mm<=-1; mm++)
+    for (m=-(L-1); m<=-1; m++)
+      fext[(mm+2*L-1)*fext_stride + m + 2*L-1] = 
+	Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset];
 
   // Perform 2D FFT.  
   plan = fftw_plan_dft_2d(2*L-1, 2*L-1, Fmm, Fmm, 
@@ -188,7 +183,8 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
 //TODO: NOTE APPLYING TRANSPOSE HERE AT PRESENT
   for (t=0; t<=L-1; t++)
     for (p=0; p<=2*L-2; p++)
-      f[t*fext_stride + p] = fext[p*fext_stride + t];
+      //f[t*fext_stride + p] = fext[p*fext_stride + t];
+      f[t*fext_stride + p] = fext[t*fext_stride + p];
 //**TODO: could be done more efficiently with memcpy? 
   //memcpy(f, fext, L*(2*L-1)*sizeof(complex double));
 
