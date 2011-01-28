@@ -28,6 +28,8 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
   double ssign, elfactor;
   double *dl;
   int dl_offset, dl_stride;
+  complex double *exps;
+  int exps_offset;
   complex double *Fmm, *fext;
   int Fmm_offset, Fmm_stride, fext_stride;
   fftw_plan plan;
@@ -37,6 +39,8 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
   SSHT_ERROR_MEM_ALLOC_CHECK(sqrt_tbl)
   signs = (double*)calloc(L+1, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(signs)
+  exps = (complex double*)calloc(2*L-1, sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(exps)
 
   // Perform precomputations.
   for (el=0; el<=2*(L-1)+1; el++)
@@ -46,6 +50,9 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
     signs[m+1] = -1.0;
   }
   ssign = signs[abs(spin)];
+  exps_offset = L-1;
+  for (m=-(L-1); m<=L-1; m++)
+    exps[m + exps_offset] = cexp(-I*SSHT_PION2*(m+spin));
 
   // Print messages depending on verbosity level.
   if (verbosity > 0) {
@@ -72,21 +79,21 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
     // Compute Wigner plane.
     if (el!=0 && el==abs(spin)) {
       for(eltmp=0; eltmp<=abs(spin); eltmp++) {
-	ssht_dl_halfpi_trapani_eighth_table(dl, L, 
-					    SSHT_DL_HALF,
-					    eltmp, sqrt_tbl);
+    	ssht_dl_halfpi_trapani_eighth_table(dl, L,
+    					    SSHT_DL_HALF,
+    					    eltmp, sqrt_tbl);
       }
       ssht_dl_halfpi_trapani_fill_eighth2righthalf_table(dl, L,
-							 SSHT_DL_HALF,
-							 el, signs);
+    							 SSHT_DL_HALF,
+    							 el, signs);
     }
     else {
-      ssht_dl_halfpi_trapani_eighth_table(dl, L, 
-					  SSHT_DL_HALF,
-					  el, sqrt_tbl);
+      ssht_dl_halfpi_trapani_eighth_table(dl, L,
+    					  SSHT_DL_HALF,
+    					  el, sqrt_tbl);
       ssht_dl_halfpi_trapani_fill_eighth2righthalf_table(dl, L,
-							SSHT_DL_HALF,
-							el, signs);
+    							SSHT_DL_HALF,
+    							el, signs);
     }
 
     // Compute Fmm.
@@ -94,15 +101,34 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
     for (m=-el; m<=el; m++) {
       ssht_sampling_elm2ind(&ind, el, m);
       for (mm=0; mm<=el; mm++) {
-	Fmm[(m + Fmm_offset)*Fmm_stride + mm + Fmm_offset] += 
-	  ssign 
-	  * elfactor
-	  * cexp(-I*SSHT_PION2*(m+spin))
-	  * dl[mm*dl_stride + m + dl_offset] 
-	  * dl[mm*dl_stride - spin + dl_offset]
-	  * flm[ind];
+    	Fmm[(m + Fmm_offset)*Fmm_stride + mm + Fmm_offset] +=
+    	  ssign
+    	  * elfactor
+	  * exps[m + exps_offset]    	  
+    	  * dl[mm*dl_stride + m + dl_offset]
+    	  * dl[mm*dl_stride - spin + dl_offset]
+    	  * flm[ind];
       }
-    }  
+    }
+
+    /* elfactor = sqrt((double)(2.0*el+1.0)/(4.0*SSHT_PI)); */
+    /* for (mm=0; mm<=el; mm++) { */
+    /*   for (m=-el; m<=el; m++) { */
+    /* 	ssht_sampling_elm2ind(&ind, el, m); */
+      
+    /* 	Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset] += */
+    /* 	  ssign */
+    /* 	  * elfactor */
+    /* 	  * exps[m + exps_offset] */
+    /* 	  //\* cexp(-I*SSHT_PION2*(m+spin)) */
+    /* 	  * dl[mm*dl_stride + m + dl_offset] */
+    /* 	  * dl[mm*dl_stride - spin + dl_offset] */
+    /* 	  * flm[ind]; */
+    /*   } */
+    /* } */
+
+    
+
 
   }
 
@@ -169,6 +195,11 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
   // Free fext memory.
   free(fext);
   
+
+
+free(exps);
+
+
   // Print finished if verbosity set.
   if (verbosity > 0) 
     printf("%s %s", SSHT_PROMPT, "Inverse transform computed!");  
