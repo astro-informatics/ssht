@@ -155,7 +155,7 @@ void ssht_dl_halfpi_trapani_eighth_table(double *dl, int L,
 
   int m, mm, mmoff, mmstride;
   double *dmm;
-  double t1, t2;
+  double t1, t2, s1, s2;
 
   // Allocate temporary memory.
   dmm = (double*)calloc(el+1, sizeof(double));
@@ -189,24 +189,50 @@ void ssht_dl_halfpi_trapani_eighth_table(double *dl, int L,
       dl[el*mmstride + mm + mmoff] = dmm[mm];
     }
 
+/*  LOGICAL BUT *NOT* MOST EFFICIENT ALGORITHM
     // Eqn (11) of T&N (2006).
-    for (mm=0; mm<=el; mm++) {     
+    for (mm=0; mm<=el; mm++) {
 
-      // m = el-1 case (t2 = 0). 
+      // m = el-1 case (t2 = 0).
       m = el-1;
       dl[m*mmstride + mm + mmoff] = 2e0 * mm / sqrt_tbl[el-m] / sqrt_tbl[el+m+1]
-	* dl[(m+1)*mmstride + mm + mmoff];
+    	* dl[(m+1)*mmstride + mm + mmoff];
 
       // Remaining m cases.
       for (m=el-2; m>=mm; m--) {
-	t1 = 2e0 * mm / sqrt_tbl[el-m] / sqrt_tbl[el+m+1]
-	  * dl[(m+1)*mmstride + mm + mmoff];
-	t2 = sqrt_tbl[el-m-1] * sqrt_tbl[el+m+2] / sqrt_tbl[el-m] / sqrt_tbl[el+m+1]
-	  * dl[(m+2)*mmstride + mm + mmoff];
-	dl[m*mmstride + mm + mmoff] = t1 - t2;
+    	t1 = 2e0 * mm / sqrt_tbl[el-m] / sqrt_tbl[el+m+1]
+    	  * dl[(m+1)*mmstride + mm + mmoff];
+    	t2 = sqrt_tbl[el-m-1] * sqrt_tbl[el+m+2] / sqrt_tbl[el-m] / sqrt_tbl[el+m+1]
+    	  * dl[(m+2)*mmstride + mm + mmoff];
+    	dl[m*mmstride + mm + mmoff] = t1 - t2;
       }
 
     }
+*/
+
+    // Eqn (11) of T&N (2006).
+    // OPTIMISED FOR MEMORY ACCESS.
+    m = el-1;
+    s1 = sqrt_tbl[el-m] * sqrt_tbl[el+m+1];
+    for (mm=0; mm<=el; mm++) {
+      // m = el-1 case (t2 = 0).
+      dl[m*mmstride + mm + mmoff] = 2e0 * mm / s1
+    	* dl[(m+1)*mmstride + mm + mmoff];
+    }
+
+    for (m=el-2; m>=0; m--) {
+      s1 = sqrt_tbl[el-m] * sqrt_tbl[el+m+1];
+      s2 = sqrt_tbl[el-m-1] * sqrt_tbl[el+m+2] / sqrt_tbl[el-m] / sqrt_tbl[el+m+1];
+      for (mm=0; mm<=m; mm++) {
+    	t1 = 2e0 * mm / s1
+    	  * dl[(m+1)*mmstride + mm + mmoff];
+    	t2 = s2
+    	  * dl[(m+2)*mmstride + mm + mmoff];
+    	dl[m*mmstride + mm + mmoff] = t1 - t2;
+      }
+
+    }
+
 
   }
 
