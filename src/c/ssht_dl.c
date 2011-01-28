@@ -223,9 +223,7 @@ void ssht_dl_halfpi_trapani_eighth_table(double *dl, int L,
     for (m=el-2; m>=0; m--) {
       s1 = sqrt_tbl[el-m] * sqrt_tbl[el+m+1];
       s2 = sqrt_tbl[el-m-1] * sqrt_tbl[el+m+2] / sqrt_tbl[el-m] / sqrt_tbl[el+m+1];
-      //      for (mm=0; mm<=m; mm++) {   
-      for (mm=0; mm<=el; mm++) {
-   
+      for (mm=0; mm<=m; mm++) {           
     	t1 = 2e0 * mm / s1
     	  * dl[(m+1)*mmstride + mm + mmoff];
     	t2 = s2
@@ -420,7 +418,7 @@ void ssht_dl_halfpi_trapani_fill_eighth2righthalf_table(double *dl, int L,
  *
  * \author Jason McEwen
  */
-void ssht_dl_halfpi_trapani_fill_eight2quarter_table(double *dl, int L,
+void ssht_dl_halfpi_trapani_fill_eighth2quarter_table(double *dl, int L,
 						     ssht_dl_size_t dl_size,
 						     int el, double *signs) {
 

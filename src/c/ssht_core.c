@@ -21,7 +21,6 @@
 void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm, 
 				  int L, int spin, int verbosity) {
 
-
   int el, m, mm, ind, t, p;
   int eltmp;
   double *sqrt_tbl, *signs;
@@ -33,14 +32,11 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
   int dl_offset, dl_stride;
   complex double *exps;
   int exps_offset;
+  double elmmsign, elssign;
+  int spinneg;
   complex double *Fmm, *fext;
   int Fmm_offset, Fmm_stride, fext_stride;
   fftw_plan plan;
-
-
-
-  double elmmsign, elssign;
- int spinneg;
 
   // Allocate memory.
   sqrt_tbl = (double*)calloc(2*(L-1)+2, sizeof(double));
@@ -81,10 +77,10 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmm)
   Fmm_offset = L-1;
   Fmm_stride = 2*L-1;    
-  dl = ssht_dl_calloc(L, SSHT_DL_HALF);
+  dl = ssht_dl_calloc(L, SSHT_DL_QUARTER);
   SSHT_ERROR_MEM_ALLOC_CHECK(dl)
-  dl_offset = ssht_dl_get_mmoffset(L, SSHT_DL_HALF);
-  dl_stride = ssht_dl_get_mmstride(L, SSHT_DL_HALF);   
+  dl_offset = ssht_dl_get_mmoffset(L, SSHT_DL_QUARTER);
+  dl_stride = ssht_dl_get_mmstride(L, SSHT_DL_QUARTER);   
   inds_offset = L-1;
   for (el=abs(spin); el<=L-1; el++) {
 
@@ -92,44 +88,27 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
     if (el!=0 && el==abs(spin)) {
       for(eltmp=0; eltmp<=abs(spin); eltmp++) {
     	ssht_dl_halfpi_trapani_eighth_table(dl, L,
-    					    SSHT_DL_HALF,
+    					    SSHT_DL_QUARTER,
     					    eltmp, sqrt_tbl);
       }
-      ssht_dl_halfpi_trapani_fill_eighth2righthalf_table(dl, L,
-    							 SSHT_DL_HALF,
+      ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl, L,
+    							 SSHT_DL_QUARTER,
     							 el, signs);
     }
     else {
       ssht_dl_halfpi_trapani_quarter_table(dl, L,
-    					  SSHT_DL_HALF,
+    					  SSHT_DL_QUARTER,
     					  el, sqrt_tbl);
-      /* ssht_dl_halfpi_trapani_fill_eighth2righthalf_table(dl, L, */
-      /* 							SSHT_DL_HALF, */
-      /* 							el, signs); */
     }
 
     // Compute Fmm.
     elfactor = sqrt((double)(2.0*el+1.0)/(4.0*SSHT_PI));
-    el2pel = el *el + el;
-    
-
+    el2pel = el *el + el;    
     for (m=-el; m<=el; m++)
       inds[m + inds_offset] = el2pel + m; 
     for (mm=0; mm<=el; mm++) {
       elmmsign = signs[el] * signs[mm];
       elssign = spin <= 0 ? 1.0 : elmmsign;
-/*
-      for (m=-el; m<=el; m++) {
-	ind = inds[m + inds_offset];
-    	Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset] +=
-    	  ssign
-    	  * elfactor
-	  * exps[m + exps_offset]    	  
-    	  * dl[mm*dl_stride + m + dl_offset]
-    	  * dl[mm*dl_stride - spin + dl_offset]
-    	  * flm[ind];
-      }
-*/
 
       for (m=-el; m<=-1; m++) {
 	ind = inds[m + inds_offset];
@@ -152,7 +131,6 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
     	  * flm[ind];
       }
 
-
     }
 
   }
@@ -170,12 +148,9 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
   // Apply phase modulation to account for sampling offset.
   for (mm=-(L-1); mm<=L-1; mm++) {
     mmfactor = cexp(I*mm*SSHT_PI/(2.0*L-1.0));
-    for (m=-(L-1); m<=L-1; m++) {
+    for (m=-(L-1); m<=L-1; m++) 
       Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset] *= 
 	mmfactor;
-//	cexp(I*mm*SSHT_PI/(2.0*L-1.0));
-//**TODO: precompute
-    }
   }
 
   // Allocate space for function values.
@@ -211,21 +186,15 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
   free(Fmm);
   
   // Extract f from version of f extended to the torus (fext).
-//TODO: NOTE APPLYING TRANSPOSE HERE AT PRESENT
+  memcpy(f, fext, L*(2*L-1)*sizeof(complex double));
+  /* Memcpy equivalent to:
   for (t=0; t<=L-1; t++)
     for (p=0; p<=2*L-2; p++)
-      //f[t*fext_stride + p] = fext[p*fext_stride + t];
       f[t*fext_stride + p] = fext[t*fext_stride + p];
-//**TODO: could be done more efficiently with memcpy? 
-  //memcpy(f, fext, L*(2*L-1)*sizeof(complex double));
+  */
 
   // Free fext memory.
   free(fext);
-  
-
-
-free(exps);
-
 
   // Print finished if verbosity set.
   if (verbosity > 0) 
@@ -234,6 +203,8 @@ free(exps);
   // Free precomputation memory.
   free(sqrt_tbl);
   free(signs); 
+  free(exps);
+  free(inds);
 
 }
 
