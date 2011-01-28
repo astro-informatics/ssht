@@ -39,8 +39,8 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
 
 
 
-double elmmsign;
-
+  double elmmsign, elssign;
+ int spinneg;
 
   // Allocate memory.
   sqrt_tbl = (double*)calloc(2*(L-1)+2, sizeof(double));
@@ -60,6 +60,7 @@ double elmmsign;
     signs[m+1] = -1.0;
   }
   ssign = signs[abs(spin)];
+  spinneg = spin <= 0 ? spin : -spin;
   exps_offset = L-1;
   for (m=-(L-1); m<=L-1; m++)
     exps[m + exps_offset] = cexp(-I*SSHT_PION2*(m+spin));
@@ -110,10 +111,13 @@ double elmmsign;
     // Compute Fmm.
     elfactor = sqrt((double)(2.0*el+1.0)/(4.0*SSHT_PI));
     el2pel = el *el + el;
+    
+
     for (m=-el; m<=el; m++)
       inds[m + inds_offset] = el2pel + m; 
     for (mm=0; mm<=el; mm++) {
       elmmsign = signs[el] * signs[mm];
+      elssign = spin <= 0 ? 1.0 : elmmsign;
 /*
       for (m=-el; m<=el; m++) {
 	ind = inds[m + inds_offset];
@@ -134,7 +138,7 @@ double elmmsign;
     	  * elfactor
 	  * exps[m + exps_offset]    	  
     	  * elmmsign * dl[mm*dl_stride - m + dl_offset]
-    	  * dl[mm*dl_stride - spin + dl_offset]
+    	  * elssign * dl[mm*dl_stride - spinneg + dl_offset]
     	  * flm[ind];
       }
       for (m=0; m<=el; m++) {
@@ -144,7 +148,7 @@ double elmmsign;
     	  * elfactor
 	  * exps[m + exps_offset]    	  
     	  * dl[mm*dl_stride + m + dl_offset]
-    	  * dl[mm*dl_stride - spin + dl_offset]
+    	  * elssign * dl[mm*dl_stride - spinneg + dl_offset]
     	  * flm[ind];
       }
 
