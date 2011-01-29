@@ -13,6 +13,7 @@
 
 #include "ssht_sampling.h"
 #include "ssht_error.h"
+#include "ssht_core.h"
 
 #define NREPEAT 3
 
