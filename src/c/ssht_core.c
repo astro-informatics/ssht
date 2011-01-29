@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <complex.h>
+#include <complex.h>  // Must be before fftw3.h
 #include <fftw3.h>
 
 #include "ssht_types.h"
@@ -111,9 +111,12 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
 						       el, signs);
     }
     else {
-      ssht_dl_halfpi_trapani_quarter_table(dl, L,
+      ssht_dl_halfpi_trapani_eighth_table(dl, L,
     					  SSHT_DL_QUARTER,
     					  el, sqrt_tbl);
+      ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl, L,
+						       SSHT_DL_QUARTER,
+						       el, signs);
     }
 
     // Compute Fmm.
@@ -450,9 +453,13 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
     						       el, signs);
     }
     else {
-      ssht_dl_halfpi_trapani_quarter_table(dl, L,
+      ssht_dl_halfpi_trapani_eighth_table(dl, L,
     					  SSHT_DL_QUARTER,
     					  el, sqrt_tbl);
+      ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl, L,
+    						       SSHT_DL_QUARTER,
+    						       el, signs);
+
     }
 
     // Compute flm.

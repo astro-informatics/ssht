@@ -248,6 +248,11 @@ void ssht_dl_halfpi_trapani_eighth_table(double *dl, int L,
  * l-1.  Also takes a table of precomputed square roots of integers to
  * avoid recomputing them.
  *
+ * \warning THIS GOES UNSTABLE SOMEWHERE ABOVE A BAND-LIMIT OF 1024.
+ * Best to compute eighth of plane and then extend to quarter using
+ * symmetry (see ssht_dl_halfpi_trapani_eighth_table and
+ * ssht_dl_halfpi_trapani_fill_eighth2quarter_table).
+ *
  * \param[in,out] dl Wigner plane.  On input this should be initialised
  * to the plane computed for el-1.  On output this will be replaced
  * with the computed plane for el.

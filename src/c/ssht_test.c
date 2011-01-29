@@ -1,13 +1,13 @@
 
 
 
+
+
+
 #include <stdio.h>
 #include <stdlib.h>
-//#include <math.h>
 #include <complex.h>
-#include <fftw3.h>
-// Since complex.h included before fftw3.h, fftw_complex is
-// defined to be the native complex type in complex.h.
+#include <fftw3.h>  // Must be before fftw3.h
 #include <time.h>
 
 
@@ -111,6 +111,8 @@ int main(int argc, char *argv[]) {
   free(flm_orig);
   free(flm_syn);
   free(f_mw);
+
+  return 0;
 }
 
 
