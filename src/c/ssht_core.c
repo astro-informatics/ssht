@@ -403,11 +403,8 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
 
     // Extract section of Gmm of interest.
     for (mm=-(L-1); mm<=L-1; mm++)
-//      Gmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset] = 
-//	Fmm_pad[mm + w_offset] * 2.0 * SSHT_PI / (4.0*L-3.0);
       Gmm[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset] = 
 	Fmm_pad[mm + w_offset] * 2.0 * SSHT_PI / (4.0*L-3.0);
-
 
   }
   fftw_destroy_plan(plan_bwd);
@@ -427,26 +424,6 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
   for (el=abs(spin); el<=L-1; el++) {
 
     // Compute Wigner plane.
-    /* if (el!=0 && el==abs(spin)) { */
-    /*   for(eltmp=0; eltmp<=abs(spin); eltmp++) { */
-    /* 	ssht_dl_halfpi_trapani_eighth_table(dl, L, */
-    /* 					    SSHT_DL_HALF, */
-    /* 					    eltmp, sqrt_tbl); */
-    /*   } */
-    /*   ssht_dl_halfpi_trapani_fill_eighth2righthalf_table(dl, L, */
-    /* 							 SSHT_DL_HALF, */
-    /* 							 el, signs); */
-    /* } */
-    /* else { */
-    /*   ssht_dl_halfpi_trapani_eighth_table(dl, L, */
-    /* 					  SSHT_DL_HALF, */
-    /* 					  el, sqrt_tbl); */
-    /*   ssht_dl_halfpi_trapani_fill_eighth2righthalf_table(dl, L, */
-    /* 							 SSHT_DL_HALF, */
-    /* 							 el, signs); */
-    /* } */
-
-    // Compute Wigner plane.
     if (el!=0 && el==abs(spin)) {
       for(eltmp=0; eltmp<=abs(spin); eltmp++)
     	ssht_dl_halfpi_trapani_eighth_table(dl, L,
@@ -464,53 +441,6 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
 
     // Compute flm.
     elfactor = sqrt((double)(2.0*el+1.0)/(4.0*SSHT_PI));
-    /* for (m=-el; m<=el; m++) { */
-    /*   ssht_sampling_elm2ind(&ind, el, m); */
-
-    /*   /\* flm[ind] += *\/ */
-    /*   /\* 	ssign  *\/ */
-    /*   /\* 	* elfactor *\/ */
-    /*   /\* 	* cexp(I*SSHT_PION2*(m+spin)) *\/ */
-    /*   /\* 	* dl[0*dl_stride + m + dl_offset] *\/ */
-    /*   /\* 	* dl[0*dl_stride - spin + dl_offset] *\/ */
-    /*   /\* 	* Gmm[(m+Fmm_offset)*Fmm_stride + 0 + Fmm_offset]; *\/ */
-
-    /*   flm[ind] += */
-    /* 	ssign  */
-    /* 	* elfactor */
-    /* 	* cexp(I*SSHT_PION2*(m+spin)) */
-    /* 	* signs[el] * dl[0*dl_stride + abs(m) + dl_offset] */
-    /* 	* dl[0*dl_stride - spin + dl_offset] */
-    /* 	* Gmm[(0+Fmm_offset)*Fmm_stride + m + Fmm_offset]; */
-
-    /*   /\* for (mm=1; mm<=el; mm++) *\/ */
-    /*   /\* 	flm[ind] += *\/ */
-    /*   /\* 	  ssign  *\/ */
-    /*   /\* 	  * elfactor *\/ */
-    /*   /\* 	  * cexp(I*SSHT_PION2*(m+spin)) *\/ */
-    /*   /\* 	  * dl[mm*dl_stride + m + dl_offset] *\/ */
-    /*   /\* 	  * dl[mm*dl_stride - spin + dl_offset] *\/ */
-    /*   /\* 	  * ( Gmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset] *\/ */
-    /*   /\* 	      + signs[abs(m)] * ssign *\/ */
-    /*   /\* 	      * Gmm[(m+Fmm_offset)*Fmm_stride - mm + Fmm_offset]); *\/ */
-
-    /*   for (mm=1; mm<=el; mm++) { */
-    /* 	elmmsign = m < 0 ? signs[el] * signs[mm] : 1.0; */
-    /* 	elssign = spin <= 0 ? 1.0 : elmmsign; */
-
-    /* 	flm[ind] += */
-    /* 	  ssign  */
-    /* 	  * elfactor */
-    /* 	  * cexp(I*SSHT_PION2*(m+spin)) */
-    /* 	  * elmmsign * dl[mm*dl_stride + abs(m) + dl_offset] */
-    /* 	  * dl[mm*dl_stride - spin + dl_offset] */
-    /* 	  * ( Gmm[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset] */
-    /* 	      + signs[abs(m)] * ssign */
-    /* 	      * Gmm[(-mm+Fmm_offset)*Fmm_stride + m + Fmm_offset]); */
-    /*   } */
-    /* }  */ 
-
-
     el2pel = el *el + el;    
     for (m=-el; m<=el; m++)
       inds[m + inds_offset] = el2pel + m; 
@@ -543,30 +473,6 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
 	      * Gmm[(-mm+Fmm_offset)*Fmm_stride + m + Fmm_offset]);
       }
 
-      /* for (m=-el; m<=-1; m++) { */
-      /*   ind = inds[m + inds_offset]; */
-      /*   flm[ind] += */
-      /*     ssign  */
-      /*     * elfactor */
-      /*     * expsm[m + exps_offset] */
-      /*     * elmmsign * dl[mm*dl_stride - m + dl_offset] */
-      /*     * elssign * dl[mm*dl_stride - spinneg + dl_offset] */
-      /*     * ( Gmm[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset] */
-      /* 	+ signs[-m] * ssign */
-      /* 	* Gmm[(-mm+Fmm_offset)*Fmm_stride + m + Fmm_offset]); */
-      /* } */
-      /* for (m=0; m<=el; m++) { */
-      /*   ind = inds[m + inds_offset]; */
-      /*   flm[ind] += */
-      /*     ssign  */
-      /*     * elfactor */
-      /*     * expsm[m + exps_offset] */
-      /*     * elmmsign * dl[mm*dl_stride + m + dl_offset] */
-      /*     * elssign * dl[mm*dl_stride - spinneg + dl_offset] */
-      /*     * ( Gmm[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset] */
-      /* 	+ signs[m] * ssign */
-      /* 	* Gmm[(-mm+Fmm_offset)*Fmm_stride + m + Fmm_offset]); */
-      /* } */
     }  
 
 
@@ -574,14 +480,6 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
 
   // Free dl memory.
   free(dl);
-
-
-  /* for (el=abs(spin); el<=L-1; el++) { */
-  /*   for (m=-el; m<=el; m++) { */
-  /*     ssht_sampling_elm2ind(&ind, el, m); */
-  /*     flm[ind] = 1.0 + I * 2.0; */
-  /*   } */
-  /* } */
 
 
 
