@@ -240,6 +240,7 @@ void ssht_dl_halfpi_trapani_eighth_table(double *dl, int L,
 
 }
 
+
 /*!  
  * Calculates *quarter* (for m = 0:l and mm = 0:l) of lth plane of a
  * d-matrix for PI/2 using Trapani & Navaza's recursion method.  For

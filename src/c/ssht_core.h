@@ -1,8 +1,6 @@
 
-
 #ifndef SSHT_CORE
 #define SSHT_CORE
-
 
 #include <complex.h>
 

@@ -3,11 +3,8 @@
 #define SSHT_DL
 
 
-/*!
- * Size of dl plane required.
- */
+/*! Size of dl plane required (for memory access). */
 typedef enum {SSHT_DL_QUARTER = 0, SSHT_DL_HALF} ssht_dl_size_t;
-
 
 
 double* ssht_dl_calloc(int L, ssht_dl_size_t dl_size);

@@ -1,10 +1,13 @@
-
-
-
+/*! 
+ * \file ssht_core.c
+ * Core algorithms to perform spin spherical harmonic transform on the sphere.
+ *
+ * \author Jason McEwen
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h> // for memcpy
+#include <string.h>
 #include <math.h>
 #include <complex.h>
 #include <fftw3.h>
@@ -16,8 +19,20 @@
 #include "ssht_core.h"
 
 
-
-
+/*!  
+ * Compute inverse transform for MW method using separation of
+ * variables, fast Fourier transforms and exploiting all symmetries
+ * (for complex spin signal).
+ *
+ * \param[out] f Function on sphere.
+ * \param[in] flm Harmonic coefficients.
+ * \param[in] L Harmonic band-limit.
+ * \param[in] spin Spin number.
+ * \param[in] verbosity Verbosiity flag in range [0,5].
+ * \retval none
+ *
+ * \author Jason McEwen
+ */
 void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm, 
 				  int L, int spin, int verbosity) {
 
@@ -209,14 +224,21 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
 }
 
 
-
-
-
-
-
-
-
-
+/*!  
+ * Compute forward transform for MW method using separation of
+ * variables, fast Fourier transforms, performing convolution with
+ * weights as product in transformed space and exploiting all
+ * symmetries (for complex spin signal).
+ *
+ * \param[out] flm Harmonic coefficients.
+ * \param[in] f Function on sphere.
+ * \param[in] L Harmonic band-limit.
+ * \param[in] spin Spin number.
+ * \param[in] verbosity Verbosiity flag in range [0,5].
+ * \retval none
+ *
+ * \author Jason McEwen
+ */
 void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f, 
 				       int L, int spin, int verbosity) {
 
@@ -344,17 +366,11 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
     inout[mm + w_offset] = w[mm - 2*(L-1) - 1 + w_offset];
   for (mm=-2*(L-1); mm<=0; mm++) 
     inout[mm + w_offset] = w[mm + 2*(L-1) + w_offset];
-//**TODO: use memcpy.
-  //memcpy(&wr[w_offset+1], &w[0], (2*L-2)*sizeof(complex double));
-  //memcpy(&wr[0], &w[w_offset], (2*L-1)*sizeof(complex double));
   fftw_execute_dft(plan_bwd, inout, inout);
   for (mm=0; mm<=2*L-2; mm++) 
     wr[mm + w_offset] = inout[mm - 2*(L-1) + w_offset];
   for (mm=-2*(L-1); mm<=-1; mm++) 
     wr[mm + w_offset] = inout[mm + 2*(L-1) + 1 + w_offset];
-//**TODO: use memcpy.
-  //memcpy(&wr[w_offset], &w[0], (2*L-1)*sizeof(complex double));
-  //memcpy(&wr[0], &w[w_offset+1], (2*L-2)*sizeof(complex double));
 
   // Compute Gmm by convolution implemented as product in real space.
   Fmm_pad = (complex double*)calloc(4*L-3, sizeof(complex double));
