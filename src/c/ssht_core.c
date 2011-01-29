@@ -414,6 +414,7 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
   SSHT_ERROR_MEM_ALLOC_CHECK(dl)
   dl_offset = ssht_dl_get_mmoffset(L, SSHT_DL_QUARTER);
   dl_stride = ssht_dl_get_mmstride(L, SSHT_DL_QUARTER); 
+  inds_offset = L-1;
   for (el=0; el<=L-1; el++) {
     for (m=-el; m<=el; m++) {
       ssht_sampling_elm2ind(&ind, el, m);
@@ -463,7 +464,7 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
       /* for (m=-el; m<=-1; m++) { */
       /* 	ind = inds[m + inds_offset]; */
       /* 	flm[ind] += */
-      /* 	  ssign  */
+      /* 	  ssign */
       /* 	  * elfactor */
       /* 	  * expsm[m + exps_offset] */
       /* 	  * elmmsign * dl[mm*dl_stride - m + dl_offset] */
