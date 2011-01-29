@@ -216,7 +216,6 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
 
 
 
-// note flm must be initialised with zeros.
 void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f, 
 				       int L, int spin, int verbosity) {
 
@@ -376,14 +375,14 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
 	Fmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset];
 
     // Compute IFFT of Fmm.
-    for (mm=1; mm<=2*L-2; mm++) 
+    for (mm=1; mm<=2*L-2; mm++)
       inout[mm + w_offset] = Fmm_pad[mm - 2*(L-1) - 1 + w_offset];
-    for (mm=-2*(L-1); mm<=0; mm++) 
+    for (mm=-2*(L-1); mm<=0; mm++)
       inout[mm + w_offset] = Fmm_pad[mm + 2*(L-1) + w_offset];
     fftw_execute_dft(plan_bwd, inout, inout);
-    for (mm=0; mm<=2*L-2; mm++) 
+    for (mm=0; mm<=2*L-2; mm++)
       Fmm_pad[mm + w_offset] = inout[mm - 2*(L-1) + w_offset];
-    for (mm=-2*(L-1); mm<=-1; mm++) 
+    for (mm=-2*(L-1); mm<=-1; mm++)
       Fmm_pad[mm + w_offset] = inout[mm + 2*(L-1) + 1 + w_offset];
 
     // Compute product of Fmm and weight in real space.
@@ -391,14 +390,14 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
       Fmm_pad[r + w_offset] *= wr[-r + w_offset];
 
     // Compute Gmm by FFT.
-    for (mm=1; mm<=2*L-2; mm++) 
+    for (mm=1; mm<=2*L-2; mm++)
       inout[mm + w_offset] = Fmm_pad[mm - 2*(L-1) - 1 + w_offset];
-    for (mm=-2*(L-1); mm<=0; mm++) 
+    for (mm=-2*(L-1); mm<=0; mm++)
       inout[mm + w_offset] = Fmm_pad[mm + 2*(L-1) + w_offset];
     fftw_execute_dft(plan_fwd, inout, inout);
-    for (mm=0; mm<=2*L-2; mm++) 
+    for (mm=0; mm<=2*L-2; mm++)
       Fmm_pad[mm + w_offset] = inout[mm - 2*(L-1) + w_offset];
-    for (mm=-2*(L-1); mm<=-1; mm++) 
+    for (mm=-2*(L-1); mm<=-1; mm++)
       Fmm_pad[mm + w_offset] = inout[mm + 2*(L-1) + 1 + w_offset];
 
     // Extract section of Gmm of interest.
@@ -451,16 +450,17 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
 	ssign 
 	* elfactor
 	* expsm[m + exps_offset]
-	* signs[el] * dl[0*dl_stride + abs(m) + dl_offset]
-	* dl[0*dl_stride - spin + dl_offset]
+	* (m < 0 ? signs[el] : 1.0) * dl[0*dl_stride + abs(m) + dl_offset]
+	* (spin<=0 ? 1.0 : signs[el]) * dl[0*dl_stride - spinneg + dl_offset]
 	* Gmm[(0+Fmm_offset)*Fmm_stride + m + Fmm_offset];
     }
 
     for (mm=1; mm<=el; mm++) {
-      elmmsign = m < 0 ? signs[el] * signs[mm] : 1.0;
+      
       elssign = spin <= 0 ? 1.0 : signs[el] * signs[mm];
 
       for (m=-el; m<=el; m++) {
+	elmmsign = m < 0 ? signs[el] * signs[mm] : 1.0;
 	ind = inds[m + inds_offset];
 	flm[ind] +=
 	  ssign 
