@@ -26,18 +26,21 @@ int main(int argc, char *argv[]) {
 
   complex double *flm_orig, *flm_syn;
   complex double *f_mw;
+  double *f_mw_real;
   int L = 128;
   int spin = 0;
   int irepeat;
   int seed = 1;
   int verbosity = 0;
 
-  double max_err[NREPEAT];
   double tmp;
+  double errors_mw[NREPEAT];
+  double errors_mw_real[NREPEAT];
   clock_t time_start, time_end;
   double durations_forward_mw[NREPEAT];
   double durations_inverse_mw[NREPEAT];
-
+  double durations_forward_mw_real[NREPEAT];
+  double durations_inverse_mw_real[NREPEAT];
 
 
 
@@ -55,6 +58,9 @@ int main(int argc, char *argv[]) {
   SSHT_ERROR_MEM_ALLOC_CHECK(flm_syn)
   f_mw = (complex double*)calloc(L*(2*L-1), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(f_mw)
+  f_mw_real = (double*)calloc(L*(2*L-1), sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_real)
+
 
   // Write program name.
   printf("\n");
@@ -67,8 +73,36 @@ int main(int argc, char *argv[]) {
     // If spin=0 run tests on algorithms optimised for real spin=0 signal.
     if (spin == 0) {
 
-      printf("TODO\n");
-      printf("L=%d, spin=%d\n", L, spin);
+      // =========================================================================
+      // MW real spin=0
+      printf("MW real test no. %d\n", irepeat);
+
+      ssht_test_gen_flm_real(flm_orig, L, seed);
+      time_start = clock();
+      ssht_core_mw_inverse_sov_sym_real(f_mw_real, flm_orig, L, verbosity);
+      time_end = clock();
+      durations_inverse_mw_real[irepeat] = 
+	(time_end - time_start) / (double)CLOCKS_PER_SEC;
+
+      time_start = clock();
+      //ssht_core_mw_forward_sov_conv_sym_real(flm_syn, f_mw_real, L, verbosity);
+      time_end = clock();
+      durations_forward_mw_real[irepeat] = 
+	(time_end - time_start) / (double)CLOCKS_PER_SEC;
+
+      errors_mw_real[irepeat] = 0.0;
+      for (i = 0; i < L*L; i++) {
+	tmp = cabs(flm_orig[i] - flm_syn[i]);
+	errors_mw_real[irepeat] = 
+	  tmp > errors_mw_real[irepeat] ? tmp : errors_mw_real[irepeat];
+      }
+
+      printf(" duration_inverse (s) = %40.4f\n", 
+	     durations_inverse_mw_real[irepeat]);
+      printf(" duration_forward (s) = %40.4f\n", 
+	     durations_forward_mw_real[irepeat]);
+      printf(" error                = %40.5e\n\n", 
+	     errors_mw_real[irepeat]);
 
     }
 
@@ -88,16 +122,19 @@ int main(int argc, char *argv[]) {
     time_end = clock();
     durations_forward_mw[irepeat] = (time_end - time_start) / (double)CLOCKS_PER_SEC;
 
-    printf(" duration_inverse (s) = %40.4f\n", durations_inverse_mw[irepeat]);
-    printf(" duration_forward (s) = %40.4f\n", durations_forward_mw[irepeat]);
-
-    max_err[irepeat] = 0.0;
+    errors_mw[irepeat] = 0.0;
     for (i = 0; i < L*L; i++) {
       tmp = cabs(flm_orig[i] - flm_syn[i]);
-      max_err[irepeat] = tmp > max_err[irepeat] ? tmp : max_err[irepeat];
+      errors_mw[irepeat] = 
+	tmp > errors_mw[irepeat] ? tmp : errors_mw[irepeat];
     }
-    printf(" error                = %40.5e\n", max_err[irepeat]);
 
+    printf(" duration_inverse (s) = %40.4f\n", 
+	   durations_inverse_mw[irepeat]);
+    printf(" duration_forward (s) = %40.4f\n", 
+	   durations_forward_mw[irepeat]);
+    printf(" error                = %40.5e\n\n", 
+	   errors_mw[irepeat]);
 
   }
 
@@ -111,6 +148,7 @@ int main(int argc, char *argv[]) {
   free(flm_orig);
   free(flm_syn);
   free(f_mw);
+  free(f_mw_real);
 
   return 0;
 }
