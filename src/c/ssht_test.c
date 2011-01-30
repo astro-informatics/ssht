@@ -85,7 +85,7 @@ int main(int argc, char *argv[]) {
 	(time_end - time_start) / (double)CLOCKS_PER_SEC;
 
       time_start = clock();
-      //ssht_core_mw_forward_sov_conv_sym_real(flm_syn, f_mw_real, L, verbosity);
+      ssht_core_mw_forward_sov_conv_sym_real(flm_syn, f_mw_real, L, verbosity);
       time_end = clock();
       durations_forward_mw_real[irepeat] = 
 	(time_end - time_start) / (double)CLOCKS_PER_SEC;
