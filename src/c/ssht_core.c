@@ -227,12 +227,20 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
 }
 
 
-
-
-
-
-
-
+/*!  
+ * Compute inverse transform for MW method of real scalr signal using
+ * separation of variables, fast Fourier transforms and exploiting all
+ * symmetries (including additional symmetries for real signals).
+ *
+ * \param[out] f Function on sphere.
+ * \param[in] flm Harmonic coefficients.
+ * \param[in] L Harmonic band-limit.
+ * \param[in] spin Spin number.
+ * \param[in] verbosity Verbosiity flag in range [0,5].
+ * \retval none
+ *
+ * \author Jason McEwen
+ */
 void ssht_core_mw_inverse_sov_sym_real(double *f, complex double *flm, 
 				       int L, int verbosity) {
 
@@ -250,16 +258,11 @@ void ssht_core_mw_inverse_sov_sym_real(double *f, complex double *flm,
   int exps_offset;
   double elmmsign, elssign;
   int spinneg;
-//  complex double *Fmm, *fext;
-complex double *Fmm, *Fmm_shift;
-double *fext_real;
-
+  complex double *Fmm, *Fmm_shift;
+  double *fext_real;
   int Fmm_offset, Fmm_stride, fext_stride;
   fftw_plan plan;
-
-
-int spin = 0;
-
+  int spin = 0;
 
   // Allocate memory.
   sqrt_tbl = (double*)calloc(2*(L-1)+2, sizeof(double));
@@ -368,19 +371,9 @@ int spin = 0;
 	mmfactor;
   }
 
-  // Allocate space for function values.
-  fext_real = (double*)calloc((2*L-1)*(2*L-1), sizeof(double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(fext_real)
-  fext_stride = 2*L-1;
-
-
-
-Fmm_shift = (complex double*)calloc((2*L-1)*L, sizeof(complex double));
-SSHT_ERROR_MEM_ALLOC_CHECK(Fmm)
-
-
-
   // Apply spatial shift.
+  Fmm_shift = (complex double*)calloc((2*L-1)*L, sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(Fmm_shift)
   for (mm=0; mm<=L-1; mm++)
     for (m=0; m<=L-1; m++)
       Fmm_shift[mm*Fmm_stride + m] = 
@@ -390,24 +383,21 @@ SSHT_ERROR_MEM_ALLOC_CHECK(Fmm)
       Fmm_shift[(mm + 2*L-1)*Fmm_stride + m] = 
 	Fmm[(mm + Fmm_offset)*Fmm_stride + m];
 
+  // Allocate space for function values.
+  fext_real = (double*)calloc((2*L-1)*(2*L-1), sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(fext_real)
+  fext_stride = 2*L-1;
+
   // Perform 2D FFT.  
   plan = fftw_plan_dft_c2r_2d(2*L-1, 2*L-1, Fmm_shift, fext_real, 
 			      FFTW_ESTIMATE);
   fftw_execute_dft_c2r(plan, Fmm_shift, fext_real);
-
-
-//  plan = fftw_plan_dft_2d(2*L-1, 2*L-1, Fmm, Fmm, 
-//			  FFTW_BACKWARD, FFTW_ESTIMATE);
-//  fftw_execute_dft(plan, fext, fext);
   fftw_destroy_plan(plan);
 
   // Free Fmm memory.
   free(Fmm);
-
-
   free(Fmm_shift);
 
-  
   // Extract f from version of f extended to the torus (fext).
   memcpy(f, fext_real, L*(2*L-1)*sizeof(double));
   /* Memcpy equivalent to:
@@ -430,8 +420,6 @@ SSHT_ERROR_MEM_ALLOC_CHECK(Fmm)
   free(inds);
 
 }
-
-
 
 
 /*!  
@@ -730,7 +718,6 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
 
     }  
 
-
   }
 
   // Free memory.
@@ -756,9 +743,21 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
 }
 
 
-
-
-
+/*!  
+ * Compute forward transform for MW method of real scalar signal using
+ * separation of variables, fast Fourier transforms, performing
+ * convolution with weights as product in transformed space and
+ * exploiting all symmetries (including additional symmetries for real
+ * signals).
+ *
+ * \param[out] flm Harmonic coefficients.
+ * \param[in] f Function on sphere.
+ * \param[in] L Harmonic band-limit.
+ * \param[in] verbosity Verbosiity flag in range [0,5].
+ * \retval none
+ *
+ * \author Jason McEwen
+ */
 void ssht_core_mw_forward_sov_conv_sym_real(complex double *flm, double *f, 
 					    int L, int verbosity) {
 
@@ -782,11 +781,7 @@ void ssht_core_mw_forward_sov_conv_sym_real(complex double *flm, double *f,
   int exps_offset;
   int elmmsign, elssign;
   int spinneg;
-
-
-int spin = 0;
-
-
+  int spin = 0;
 
   // Allocate memory.
   sqrt_tbl = (double*)calloc(2*(L-1)+2, sizeof(double));

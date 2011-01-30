@@ -549,6 +549,7 @@ end subroutine ssht_test_gen_flm_real
 !!
 !! Variables:
 !!   - L: Harmonic band-limit [input].
+!!   - spin: Spin number [input].
 !!   - flm(0:L**2-1): Random spherical harmonic coefficients generated 
 !!     [output].
 !!   - seed: Integer seed required for random number generator [input].
