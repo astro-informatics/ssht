@@ -1626,7 +1626,7 @@ contains
        end if
     end if
 
-    f(0:2*L-1 ,0:2*L-2) = cmplx(0d0, 0d0)
+    f(0:L-1 ,0:2*L-2) = cmplx(0d0, 0d0)
     do el = abs(spin), L-1
        elfactor = sqrt((2d0*el+1d0)/(4d0*PI))
        do t = 0, L-1
