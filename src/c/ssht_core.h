@@ -5,14 +5,17 @@
 #include <complex.h>
 
 
+void ssht_core_direct_inverse_sov_gl(complex double *f, complex double *flm, 
+				     int L, int spin, int verbosity);
 
 
 void ssht_core_direct_inverse_mw(complex double *f, complex double *flm, 
 				 int L, int spin, int verbosity);
-
-
 void ssht_core_direct_inverse_sov_mw(complex double *f, complex double *flm, 
 				     int L, int spin, int verbosity);
+
+
+
 
 void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm, 
 				  int L, int spin, int verbosity);

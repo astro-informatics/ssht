@@ -80,7 +80,7 @@ double ssht_sampling_weight_dh(double theta_t, int L) {
  *
  * \param[out] thetas L theta positions (memory must already be
  * allocated to store the L theta positions).
- * \param[out] weights(0:L-1): Corresponding weights (memory must already be
+ * \param[out] weights Corresponding weights (memory must already be
  * allocated to store the L weights corresponding to each theta position).
  * \param[in] L Harmonic band-limit.
  * \retval none

@@ -35,6 +35,146 @@
 
 
 
+//============================================================================
+// GL algorithms
+//============================================================================
+
+
+/*!  
+ * Compute inverse transform using direct method with separation of
+ * variables for GL sampling.
+ *
+ * \param[out] f Function on sphere.
+ * \param[in] flm Harmonic coefficients.
+ * \param[in] L Harmonic band-limit.
+ * \param[in] spin Spin number.
+ * \param[in] verbosity Verbosiity flag in range [0,5].
+ * \retval none
+ *
+ * \author Jason McEwen
+ */
+void ssht_core_direct_inverse_sov_gl(complex double *f, complex double *flm, 
+				     int L, int spin, int verbosity) {
+
+  int t, p, m, el, ind;
+  int ftm_stride, ftm_offset, f_stride;
+  double *dlm1p1_line,  *dl_line;
+  double *dl_ptr;
+  double *sqrt_tbl, *signs;
+  complex double *ftm, *inout;
+  double theta, ssign, elfactor;
+  fftw_plan plan;
+  double *thetas, *weights;
+
+  // Allocate memory.
+  sqrt_tbl = (double*)calloc(2*(L-1)+2, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(sqrt_tbl)
+  signs = (double*)calloc(L+1, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(signs)
+
+  // Perform precomputations.
+  for (el=0; el<=2*(L-1)+1; el++)
+    sqrt_tbl[el] = sqrt((double)el);
+  for (m=0; m<=L-1; m=m+2) {
+    signs[m]   =  1.0;
+    signs[m+1] = -1.0;
+  }
+  ssign = signs[abs(spin)];
+
+  // Print messages depending on verbosity level.
+  if (verbosity > 0) {
+    printf("%s %s\n", SSHT_PROMPT, 
+	   "Computing inverse transform using McEwen and Wiaux sampling with ");
+    printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
+	   L, ",", spin, ", FALSE)");
+    if (verbosity > 1)
+      printf("%s %s\n", SSHT_PROMPT, 
+	     "Using routine ssht_core_direct_inverse_sov_gl...");
+  }
+
+  // Compute weights and theta positions.
+  thetas = (double*)calloc(L, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(thetas)
+  weights = (double*)calloc(L, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(weights)
+  ssht_sampling_gl_thetas_weights(thetas, weights, L);
+
+  // Compute ftm.
+  ftm = (complex double*)calloc(L*(2*L-1), sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(ftm)  
+  ftm_stride = 2*L-1;
+  ftm_offset = L-1;
+  dlm1p1_line = (double*)calloc(2*L-1, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(dlm1p1_line)
+  dl_line = (double*)calloc(2*L-1, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(dl_line)
+  for (t=0; t<=L-1; t++) {
+    theta = thetas[t];
+    for (el=abs(spin); el<=L-1; el++) {	
+      elfactor = sqrt((double)(2.0*el+1.0)/(4.0*SSHT_PI));
+
+      // Compute dl line for given spin.
+      ssht_dl_beta_kostelec_line_table(dlm1p1_line, dl_line,
+      				       theta, L, -spin, el,
+      				       sqrt_tbl, signs);
+      // Switch current and previous dls.
+      dl_ptr = dl_line;
+      dl_line = dlm1p1_line;
+      dlm1p1_line = dl_ptr;
+    
+      for (m=-el; m<=el; m++) {	
+	ssht_sampling_elm2ind(&ind, el, m);
+	ftm[t*ftm_stride + m + ftm_offset] +=
+	  ssign 
+	  * elfactor
+	  * dl_line[m + L-1]
+	  * flm[ind];
+      }
+    }
+  }
+
+  // Free dl memory.
+  free(dlm1p1_line);
+  free(dl_line);
+
+  // Free memory for thetas and weights.
+  free(thetas);
+  free(weights);
+
+  // Compute f.   
+  inout = (complex double*)calloc(2*L-1, sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(inout)
+  f_stride = 2*L-1;
+  plan = fftw_plan_dft_1d(2*L-1, inout, inout, FFTW_BACKWARD, FFTW_MEASURE);
+  for (t=0; t<=L-1; t++) {
+    for (m=0; m<=L-1; m++)
+      inout[m] = ftm[t*ftm_stride + m + ftm_offset];
+    for (m=-(L-1); m<=-1; m++)
+      inout[m+2*L-1] = ftm[t*ftm_stride + m + ftm_offset];
+    fftw_execute_dft(plan, inout, inout);
+    for (p=0; p<=2*L-2; p++)
+      f[t*f_stride + p] = inout[p];
+  }
+  fftw_destroy_plan(plan);
+
+  // Free memory.  
+  free(ftm);
+  free(inout);
+  free(signs);
+  free(sqrt_tbl);
+  
+  // Print finished if verbosity set.
+  if (verbosity > 0) 
+    printf("%s %s", SSHT_PROMPT, "Inverse transform computed!");  
+
+}
+
+
+
+
+//============================================================================
+// MW algorithms
+//============================================================================
 
 
 /*!  
