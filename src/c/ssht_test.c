@@ -116,7 +116,7 @@ int main(int argc, char *argv[]) {
     ssht_test_gen_flm_complex(flm_orig, L, spin, seed);
 
     time_start = clock();
-    //    ssht_core_mw_inverse_sov_sym(f_mw, flm_orig, L, spin, verbosity);
+    //ssht_core_mw_inverse_sov_sym(f_mw, flm_orig, L, spin, verbosity);
     ssht_core_direct_inverse_sov_mw(f_mw, flm_orig, L, spin, verbosity);
     //ssht_core_direct_inverse_mw(f_mw, flm_orig, L, spin, verbosity);
 

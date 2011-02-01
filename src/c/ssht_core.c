@@ -162,6 +162,7 @@ void ssht_core_direct_inverse_sov_mw(complex double *f, complex double *flm,
 
 double *dlm1p1, *dl_ptr;
 double *dl2;
+double *dlm1p1_line,  *dl_line;
 
   double *sqrt_tbl, *signs;
   complex double *ftm, *inout;
@@ -202,52 +203,83 @@ double *dl2;
   dl = ssht_dl_calloc(L, SSHT_DL_FULL);
   SSHT_ERROR_MEM_ALLOC_CHECK(dl)
 
-dl2 = ssht_dl_calloc(L, SSHT_DL_FULL);
-SSHT_ERROR_MEM_ALLOC_CHECK(dl2)
 
 dlm1p1 = ssht_dl_calloc(L, SSHT_DL_FULL);
 SSHT_ERROR_MEM_ALLOC_CHECK(dlm1p1)
+
+dlm1p1_line = (double*)calloc(2*L-1, sizeof(double));
+SSHT_ERROR_MEM_ALLOC_CHECK(dlm1p1_line)
+dl_line = (double*)calloc(2*L-1, sizeof(double));
+SSHT_ERROR_MEM_ALLOC_CHECK(dl_line)
 
 
   dl_offset = ssht_dl_get_offset(L, SSHT_DL_FULL);
   dl_stride = ssht_dl_get_stride(L, SSHT_DL_FULL);   
   for (t=0; t<=L-1; t++) {
     theta = ssht_sampling_mw_t2theta(t, L);   
+
+
+
     for (el=abs(spin); el<=L-1; el++) {	
       elfactor = sqrt((double)(2.0*el+1.0)/(4.0*SSHT_PI));
 
       if (el!=0 && el==abs(spin)) {
-	for(eltmp=0; eltmp<=abs(spin); eltmp++)
-	  ssht_dl_beta_risbo_full_table(dl, theta, L, 
-					SSHT_DL_FULL,
-					eltmp, sqrt_tbl);
+	for(eltmp=0; eltmp<=abs(spin); eltmp++) {
+	  /* // Risbo dl calculation. */
+	  /* ssht_dl_beta_risbo_full_table(dl, theta, L,  */
+	  /* 				SSHT_DL_FULL, */
+	  /* 				eltmp, sqrt_tbl); */
+
+	  /* // Kostelec full plane dl calculation. */
+	  /* ssht_dl_beta_kostelec_full_table(dlm1p1, dl, */
+	  /* 				   theta, L, */
+	  /* 				   SSHT_DL_FULL, */
+	  /* 				   eltmp, */
+	  /* 				   sqrt_tbl, signs); */
+	  /* // Switch current and previous dls. */
+	  /* dl_ptr = dl; */
+	  /* dl = dlm1p1; */
+	  /* dlm1p1 = dl_ptr; */
+	}
       }
       else {
-	ssht_dl_beta_risbo_full_table(dl, theta, L,
-				      SSHT_DL_FULL,
-				      el, sqrt_tbl);
-
-	
-
-ssht_dl_beta_kostelec_full_table(dlm1p1, dl2, 
-				 theta, L, 
-				 SSHT_DL_FULL,
-				 el, 
-				 sqrt_tbl, signs);
-
-// Switch current and previous dls.
- dl_ptr = dl2;
- dl2 = dlm1p1;
- dlm1p1 = dl_ptr;
+	/* // Risbo dl calculation. */
+	/* ssht_dl_beta_risbo_full_table(dl, theta, L, */
+	/* 			      SSHT_DL_FULL, */
+	/* 			      el, sqrt_tbl); */
+       
+	/* // Kostelec full plane dl calculation. */
+	/* ssht_dl_beta_kostelec_full_table(dlm1p1, dl, */
+	/* 				 theta, L, */
+	/* 				 SSHT_DL_FULL, */
+	/* 				 el, */
+	/* 				 sqrt_tbl, signs); */
+	/* // Switch current and previous dls. */
+	/* dl_ptr = dl; */
+	/* dl = dlm1p1; */
+	/* dlm1p1 = dl_ptr; */
 
       }
+
+      // Kostelec line dl calculation.
+      ssht_dl_beta_kostelec_line_table(dlm1p1_line, dl_line,
+      				       theta, L, -spin, el,
+      				       sqrt_tbl, signs);
+      // Switch current and previous dls.
+      dl_ptr = dl_line;
+      dl_line = dlm1p1_line;
+      dlm1p1_line = dl_ptr;
+
+
+      
 
       for (m=-el; m<=el; m++) {	
 	ssht_sampling_elm2ind(&ind, el, m);
 	ftm[t*ftm_stride + m + ftm_offset] +=
 	  ssign 
 	  * elfactor
-	  * dl2[(m + dl_offset)*dl_stride - spin + dl_offset]
+//	  * dl[(m + dl_offset)*dl_stride - spin + dl_offset]
+	  * dl_line[m + L-1]
 	  * flm[ind];
       }
     }
@@ -258,7 +290,8 @@ ssht_dl_beta_kostelec_full_table(dlm1p1, dl2,
 
 
 free(dlm1p1);
-
+free(dlm1p1_line);
+free(dl_line);
 
   // Compute f.   
   inout = (complex double*)calloc(2*L-1, sizeof(complex double));

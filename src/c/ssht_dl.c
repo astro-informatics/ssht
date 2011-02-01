@@ -399,7 +399,7 @@ void ssht_dl_beta_kostelec_line_table(double *dlm1p1_line, double *dl_line,
 				      double *sqrt_tbl, double *signs) {
 
   int offset;
-  double cosb, coshb, sinhb;
+  double cosb, sinb, coshb, sinhb;
   double lnAlm, lnAlmm, lnfact2el;
   int m, elm1;
   double elr, elm1r;
@@ -408,9 +408,34 @@ void ssht_dl_beta_kostelec_line_table(double *dlm1p1_line, double *dl_line,
   offset = L-1;
 
   // Compute Wigner plane.
-  if (el < mm) {
+  if (el < abs(mm)) {
     // Do nothing (dl line should remain zero).
     return;
+  }
+  else if (el == 1) {
+
+    cosb = cos(beta);
+    sinb = sin(beta);
+    coshb = cos(beta / 2.0);
+    sinhb = sin(beta / 2.0);
+
+    if (mm == -1) {
+      dlm1p1_line[-1 + offset] = coshb * coshb;
+      dlm1p1_line[ 0 + offset] = -sinb / SSHT_SQRT2;
+      dlm1p1_line[ 1 + offset] = sinhb * sinhb;
+    }
+    else if (mm == 0) {
+      dlm1p1_line[-1 + offset] = sinb / SSHT_SQRT2;
+      dlm1p1_line[ 0 + offset] = cosb;
+      dlm1p1_line[ 1 + offset] = -sinb / SSHT_SQRT2;
+    }
+    else {
+      // mm == +1
+      dlm1p1_line[-1 + offset] = sinhb * sinhb;
+      dlm1p1_line[ 0 + offset] = sinb / SSHT_SQRT2;
+      dlm1p1_line[ 1 + offset] = coshb * coshb;
+    }
+
   }
   else if (el == abs(mm)) {
 

@@ -1,8 +1,8 @@
 # ======== COMPILER ========
 
 CC      = gcc
-OPT	= -Wall -g
-#OPT	= -Wall -O3
+#OPT	= -Wall -g
+OPT	= -Wall -O3
 
 
 # ======== LINKS ========
