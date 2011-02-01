@@ -356,7 +356,7 @@ void ssht_dl_beta_kostelec_full_table(double *dlm1p1, double *dl,
 	  / (elm1r * (2.0*elm1r + 1.0))
 	  * dlm1p1[(m + offset)*stride + mm + offset];
 
-	// Performe scaling.
+	// Perform scaling.
 	dlm1p1[(m + offset)*stride + mm + offset] *= 
 	  el * (2*elm1 + 1.0)
 	  / (sqrt_tbl[el-m] * sqrt_tbl[el+m] * sqrt_tbl[el-mm] * sqrt_tbl[el+mm]);
@@ -392,6 +392,103 @@ void ssht_dl_beta_kostelec_full_table(double *dlm1p1, double *dl,
   }
 
 }
+
+
+void ssht_dl_beta_kostelec_line_table(double *dlm1p1_line, double *dl_line, 
+				      double beta, int L, int mm, int el, 
+				      double *sqrt_tbl, double *signs) {
+
+  int offset;
+  double cosb, coshb, sinhb;
+  double lnAlm, lnAlmm, lnfact2el;
+  int m, elm1;
+  double elr, elm1r;
+  
+  // Compute m offset for accessing dl line.
+  offset = L-1;
+
+  // Compute Wigner plane.
+  if (el < mm) {
+    // Do nothing (dl line should remain zero).
+    return;
+  }
+  else if (el == abs(mm)) {
+
+    coshb = cos(beta / 2.0);
+    sinhb = sin(beta / 2.0);
+
+    // Initalise line using equation (4.8) or (4.9) from K&R (2010).
+    if (mm >= 0) {
+
+      // Initialise using equation (4.8), i.e. top line.
+      lnfact2el = logfact(2*el);
+      for (m=-el; m<=el; m++) {
+	lnAlm = (lnfact2el - logfact(el+m) - logfact(el-m)) / 2.0;
+	dlm1p1_line[m + offset] = 
+	  exp(lnAlm + (el+m)*log(coshb) + (el-m)*log(sinhb));
+      }
+
+    }
+    else {
+
+      // Initialise using equation (4.9), i.e. bottom line.
+      lnfact2el = logfact(2*el);
+      for (m=-el; m<=el; m++) {
+	lnAlm = (lnfact2el - logfact(el+m) - logfact(el-m)) / 2.0;
+	dlm1p1_line[m + offset] = 
+	  signs[el] * signs[abs(m)]
+	  * exp(lnAlm + (el-m)*log(coshb) + (el+m)*log(sinhb));
+      }
+
+    }
+
+  }
+  else {
+
+    cosb = cos(beta);
+    coshb = cos(beta / 2.0);
+    sinhb = sin(beta / 2.0);
+
+    elr = (double) el;
+    elm1 = el - 1;
+    elm1r = (double) elm1;
+
+    // Recuse over line.
+    for (m=-(el-1); m<=el-1; m++) {
+
+      // Compute 3-term recursion.
+      dlm1p1_line[m + offset] = 
+	(cosb - m*mm/(elm1r*elr)) * dl_line[m + offset] 
+	- 
+	sqrt_tbl[elm1+m] * sqrt_tbl[elm1-m] * sqrt_tbl[elm1+mm] * sqrt_tbl[elm1-mm] 
+	/ (elm1r * (2.0*elm1r + 1.0))
+	* dlm1p1_line[m + offset];
+      
+      // Perform scaling.
+      dlm1p1_line[m + offset] *= 
+	el * (2*elm1 + 1.0)
+	/ (sqrt_tbl[el-m] * sqrt_tbl[el+m] * sqrt_tbl[el-mm] * sqrt_tbl[el+mm]);
+
+    }
+
+    // Compute edges...
+    lnfact2el = logfact(2*el);
+    lnAlmm = (lnfact2el - logfact(el+mm) - logfact(el-mm)) / 2.0;
+    
+    // Left edge.
+    dlm1p1_line[-el + offset] =  
+      exp(lnAlmm + (el-mm)*log(coshb) + (el+mm)*log(sinhb));
+
+    // Right edge.
+    dlm1p1_line[el + offset] =  
+      signs[el] * signs[abs(mm)]
+      * exp(lnAlmm + (el+mm)*log(coshb) + (el-mm)*log(sinhb));
+
+  }
+
+}
+
+
 
 
 /*!  
