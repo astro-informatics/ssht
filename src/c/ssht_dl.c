@@ -155,6 +155,7 @@ int ssht_dl_get_stride(int L, ssht_dl_size_t dl_size) {
  * \param[in,out] dl Wigner plane.  On input this should be initialised
  * to the plane computed for el-1.  On output this will be replaced
  * with the computed plane for el.
+ * \param[in] beta Angle to compute Wigner line for.
  * \param[in] L Harmonic band-limit.
  * \param[in] dl_size Size type of the memory to allocate.
  * \param[in] el Harmonic index to compute Wigner plane for.
@@ -274,6 +275,7 @@ void ssht_dl_beta_risbo_full_table(double *dl, double beta, int L,
  * to the plane computed for el-2.  On output this will be replaced
  * with the computed plane for el.
  * \param[in] dl Wigner plane already computed for el-1.
+ * \param[in] beta Angle to compute Wigner plan for.
  * \param[in] L Harmonic band-limit.
  * \param[in] dl_size Size type of the memory to allocate.
  * \param[in] el Harmonic index to compute Wigner plane for.
@@ -394,6 +396,34 @@ void ssht_dl_beta_kostelec_full_table(double *dlm1p1, double *dl,
 }
 
 
+/*!  
+ * Calculates line of d-matrix for all m = -l:l and given mm = -l:l for 
+ * argument beta using the recursion method given in Kostelec and
+ * Rockmore (2010) (see equations (4.5)-(4.9)).  For l>abs(mm), require the
+ * dl plane to be computed already with values for l-1 *and* l-2.
+ * Also takes a table of precomputed square roots of integers and
+ * signs to avoid recomputing them.
+ *
+ * \param[in,out] dlm1p1_line Wigner line.  On input this should be initialised
+ * to the line computed for el-2.  On output this will be replaced
+ * with the computed line for el.
+ * \param[in] dl Wigner plane already computed for el-1.  
+ * \param[in] beta Angle to compute Wigner line for.
+ * \param[in] L Harmonic band-limit.
+ * \param[in] mm Azimuthal harmonic index to compute Wigner line for.
+ * \param[in] el Harmonic index to compute Wigner plane for.
+ * \param[in] sqrt_tbl Precomputed array of square roots.  The table
+ * element at index i should contain the value sqrt(i).  Values from 0
+ * to 2*el must be precomputed (i.e. sqrt_tbl should contian 2*el+1
+ * elements).
+ * \param[in] signs Precomputed array of signs. The array element at
+ * index i should contain the value (-1)^i.  Values from 0
+ * to el must be precomputed (i.e. signs should contian el+1
+ * elements).
+ * \retval none
+ *
+ * \author Jason McEwen
+ */
 void ssht_dl_beta_kostelec_line_table(double *dlm1p1_line, double *dl_line, 
 				      double beta, int L, int mm, int el, 
 				      double *sqrt_tbl, double *signs) {
@@ -512,8 +542,6 @@ void ssht_dl_beta_kostelec_line_table(double *dlm1p1_line, double *dl_line,
   }
 
 }
-
-
 
 
 /*!  

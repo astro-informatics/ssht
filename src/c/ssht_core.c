@@ -140,9 +140,6 @@ void ssht_core_direct_inverse_mw(complex double *f, complex double *flm,
  * Compute inverse transform using direct method with separation of
  * variables for MW sampling.
  *
- * \warning This algorithm is slow and is included for verification
- * purposes only.
- *
  * \param[out] f Function on sphere.
  * \param[in] flm Harmonic coefficients.
  * \param[in] L Harmonic band-limit.
@@ -155,15 +152,10 @@ void ssht_core_direct_inverse_mw(complex double *f, complex double *flm,
 void ssht_core_direct_inverse_sov_mw(complex double *f, complex double *flm, 
 				     int L, int spin, int verbosity) {
 
-  int t, p, m, el, ind, eltmp;
+  int t, p, m, el, ind;
   int ftm_stride, ftm_offset, f_stride;
-  int dl_stride, dl_offset;
-  double *dl;
-
-double *dlm1p1, *dl_ptr;
-double *dl2;
-double *dlm1p1_line,  *dl_line;
-
+  double *dlm1p1_line,  *dl_line;
+  double *dl_ptr;
   double *sqrt_tbl, *signs;
   complex double *ftm, *inout;
   double theta, ssign, elfactor;
@@ -200,68 +192,16 @@ double *dlm1p1_line,  *dl_line;
   SSHT_ERROR_MEM_ALLOC_CHECK(ftm)  
   ftm_stride = 2*L-1;
   ftm_offset = L-1;
-  dl = ssht_dl_calloc(L, SSHT_DL_FULL);
-  SSHT_ERROR_MEM_ALLOC_CHECK(dl)
-
-
-dlm1p1 = ssht_dl_calloc(L, SSHT_DL_FULL);
-SSHT_ERROR_MEM_ALLOC_CHECK(dlm1p1)
-
-dlm1p1_line = (double*)calloc(2*L-1, sizeof(double));
-SSHT_ERROR_MEM_ALLOC_CHECK(dlm1p1_line)
-dl_line = (double*)calloc(2*L-1, sizeof(double));
-SSHT_ERROR_MEM_ALLOC_CHECK(dl_line)
-
-
-  dl_offset = ssht_dl_get_offset(L, SSHT_DL_FULL);
-  dl_stride = ssht_dl_get_stride(L, SSHT_DL_FULL);   
+  dlm1p1_line = (double*)calloc(2*L-1, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(dlm1p1_line)
+  dl_line = (double*)calloc(2*L-1, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(dl_line)
   for (t=0; t<=L-1; t++) {
     theta = ssht_sampling_mw_t2theta(t, L);   
-
-
-
     for (el=abs(spin); el<=L-1; el++) {	
       elfactor = sqrt((double)(2.0*el+1.0)/(4.0*SSHT_PI));
 
-      if (el!=0 && el==abs(spin)) {
-	for(eltmp=0; eltmp<=abs(spin); eltmp++) {
-	  /* // Risbo dl calculation. */
-	  /* ssht_dl_beta_risbo_full_table(dl, theta, L,  */
-	  /* 				SSHT_DL_FULL, */
-	  /* 				eltmp, sqrt_tbl); */
-
-	  /* // Kostelec full plane dl calculation. */
-	  /* ssht_dl_beta_kostelec_full_table(dlm1p1, dl, */
-	  /* 				   theta, L, */
-	  /* 				   SSHT_DL_FULL, */
-	  /* 				   eltmp, */
-	  /* 				   sqrt_tbl, signs); */
-	  /* // Switch current and previous dls. */
-	  /* dl_ptr = dl; */
-	  /* dl = dlm1p1; */
-	  /* dlm1p1 = dl_ptr; */
-	}
-      }
-      else {
-	/* // Risbo dl calculation. */
-	/* ssht_dl_beta_risbo_full_table(dl, theta, L, */
-	/* 			      SSHT_DL_FULL, */
-	/* 			      el, sqrt_tbl); */
-       
-	/* // Kostelec full plane dl calculation. */
-	/* ssht_dl_beta_kostelec_full_table(dlm1p1, dl, */
-	/* 				 theta, L, */
-	/* 				 SSHT_DL_FULL, */
-	/* 				 el, */
-	/* 				 sqrt_tbl, signs); */
-	/* // Switch current and previous dls. */
-	/* dl_ptr = dl; */
-	/* dl = dlm1p1; */
-	/* dlm1p1 = dl_ptr; */
-
-      }
-
-      // Kostelec line dl calculation.
+      // Compute dl line for given spin.
       ssht_dl_beta_kostelec_line_table(dlm1p1_line, dl_line,
       				       theta, L, -spin, el,
       				       sqrt_tbl, signs);
@@ -269,16 +209,12 @@ SSHT_ERROR_MEM_ALLOC_CHECK(dl_line)
       dl_ptr = dl_line;
       dl_line = dlm1p1_line;
       dlm1p1_line = dl_ptr;
-
-
-      
-
+    
       for (m=-el; m<=el; m++) {	
 	ssht_sampling_elm2ind(&ind, el, m);
 	ftm[t*ftm_stride + m + ftm_offset] +=
 	  ssign 
 	  * elfactor
-//	  * dl[(m + dl_offset)*dl_stride - spin + dl_offset]
 	  * dl_line[m + L-1]
 	  * flm[ind];
       }
@@ -286,12 +222,8 @@ SSHT_ERROR_MEM_ALLOC_CHECK(dl_line)
   }
 
   // Free dl memory.
-  free(dl);
-
-
-free(dlm1p1);
-free(dlm1p1_line);
-free(dl_line);
+  free(dlm1p1_line);
+  free(dl_line);
 
   // Compute f.   
   inout = (complex double*)calloc(2*L-1, sizeof(complex double));
