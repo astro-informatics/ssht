@@ -35,6 +35,8 @@
 #include "ssht_error.h"
 #include "ssht_dl.h"
 
+double logfact(int n);
+
 
 /*!
  * Allocate memory to store dl plane.
@@ -141,6 +143,7 @@ int ssht_dl_get_stride(int L, ssht_dl_size_t dl_size) {
   }
 
 }
+
 
 /*!  
  * Calculates (for m = -l:l and mm = -l:l) lth plane of a
@@ -254,6 +257,138 @@ void ssht_dl_beta_risbo_full_table(double *dl, double beta, int L,
 
     // Free temporary memory.
     free(dd);
+  }
+
+}
+
+
+/*!  
+ * Calculates (for m = -l:l and mm = -l:l) lth plane of a d-matrix for
+ * argument beta using the recursion method given in Kostelec and
+ * Rockmore (2010) (see equations (4.5)-(4.9)).  For l>1, require the
+ * dl plane to be computed already with values for l-1 *and* l-2.
+ * Also takes a table of precomputed square roots of integers and
+ * signs to avoid recomputing them.
+ *
+ * \param[in,out] dlm1p1 Wigner plane.  On input this should be initialised
+ * to the plane computed for el-2.  On output this will be replaced
+ * with the computed plane for el.
+ * \param[in] dl Wigner plane already computed for el-1.
+ * \param[in] L Harmonic band-limit.
+ * \param[in] dl_size Size type of the memory to allocate.
+ * \param[in] el Harmonic index to compute Wigner plane for.
+ * \param[in] sqrt_tbl Precomputed array of square roots.  The table
+ * element at index i should contain the value sqrt(i).  Values from 0
+ * to 2*el must be precomputed (i.e. sqrt_tbl should contian 2*el+1
+ * elements).
+ * \param[in] signs Precomputed array of signs. The array element at
+ * index i should contain the value (-1)^i.  Values from 0
+ * to el must be precomputed (i.e. signs should contian el+1
+ * elements).
+ * \retval none
+ *
+ * \author Jason McEwen
+ */
+void ssht_dl_beta_kostelec_full_table(double *dlm1p1, double *dl, 
+				      double beta, int L, 
+				      ssht_dl_size_t dl_size,
+				      int el, 
+				      double *sqrt_tbl, double *signs) {
+
+  int offset, stride;
+  double cosb, sinb, coshb, sinhb;
+  double lnAlm, lnfact2el;
+  int m, mm, elm1;
+  double elr, elm1r;
+    
+  // Get mm offset and stride for accessing dl data.
+  offset = ssht_dl_get_offset(L, dl_size);
+  stride = ssht_dl_get_stride(L, dl_size);
+
+  // Compute Wigner plane.
+  if (el == 0) {
+    
+    dlm1p1[(0+offset)*stride + 0 + offset] = 1.0;
+
+  }
+  else if (el == 1) {
+
+    cosb = cos(beta);
+    sinb = sin(beta);
+    coshb = cos(beta / 2.0);
+    sinhb = sin(beta / 2.0);
+
+    // These terms follow directly from the boundary conditions and
+    // one recursion to get the central term.
+   
+    dlm1p1[(-1 + offset)*stride - 1 + offset] = coshb * coshb;
+    dlm1p1[(-1 + offset)*stride + 0 + offset] = sinb / SSHT_SQRT2;
+    dlm1p1[(-1 + offset)*stride + 1 + offset] = sinhb * sinhb;
+
+    dlm1p1[(0 + offset)*stride - 1 + offset] = -sinb / SSHT_SQRT2;
+    dlm1p1[(0 + offset)*stride + 0 + offset] = cosb;
+    dlm1p1[(0 + offset)*stride + 1 + offset] = sinb / SSHT_SQRT2;
+
+    dlm1p1[(1 + offset)*stride - 1 + offset] = sinhb * sinhb;
+    dlm1p1[(1 + offset)*stride + 0 + offset] = -sinb / SSHT_SQRT2;
+    dlm1p1[(1 + offset)*stride + 1 + offset] = coshb * coshb;
+
+  }
+  else {
+
+    cosb = cos(beta);
+    coshb = cos(beta / 2.0);
+    sinhb = sin(beta / 2.0);
+
+    elr = (double) el;
+    elm1 = el - 1;
+    elm1r = (double) elm1;
+
+    // Recurse over all of plane except boundaries.
+    for (m=-(el-1); m<=el-1; m++) {
+      for (mm=-(el-1); mm<=el-1; mm++) {
+
+	// Compute 3-term recursion.
+	dlm1p1[(m + offset)*stride + mm + offset] = 
+	  (cosb - m*mm/(elm1r*elr)) * dl[(m + offset)*stride + mm + offset] 
+	  - 
+	  sqrt_tbl[elm1+m] * sqrt_tbl[elm1-m] * sqrt_tbl[elm1+mm] * sqrt_tbl[elm1-mm] 
+	  / (elm1r * (2.0*elm1r + 1.0))
+	  * dlm1p1[(m + offset)*stride + mm + offset];
+
+	// Performe scaling.
+	dlm1p1[(m + offset)*stride + mm + offset] *= 
+	  el * (2*elm1 + 1.0)
+	  / (sqrt_tbl[el-m] * sqrt_tbl[el+m] * sqrt_tbl[el-mm] * sqrt_tbl[el+mm]);
+
+      }
+    }
+
+    // Compute boundaries.
+    lnfact2el = logfact(2*el);
+    for (m=-el; m<=el; m++) {
+
+      lnAlm = (lnfact2el - logfact(el+m) - logfact(el-m)) / 2.0;
+
+      // Right line.
+      dlm1p1[(el + offset)*stride + m + offset] =  
+	signs[el] * signs[abs(m)]
+	* exp(lnAlm + (el+m)*log(coshb) + (el-m)*log(sinhb));
+
+      // Left line.
+      dlm1p1[(-el + offset)*stride + m + offset] =  
+	exp(lnAlm + (el-m)*log(coshb) + (el+m)*log(sinhb));
+
+      // Top line.
+      dlm1p1[(m + offset)*stride + el + offset] =  
+	exp(lnAlm + (el+m)*log(coshb) + (el-m)*log(sinhb));
+
+      // Bottom line.
+      dlm1p1[(m + offset)*stride - el + offset] =  
+	signs[el] * signs[abs(m)]
+	* exp(lnAlm + (el-m)*log(coshb) + (el+m)*log(sinhb));
+    }
+
   }
 
 }
@@ -574,3 +709,56 @@ void ssht_dl_halfpi_trapani_fill_eighth2quarter_table(double *dl, int L,
 }
 
 
+/*!  
+ * Computes the natural logarithm of an (integer) factorial.
+ *
+ * \param[in] n Integer to compute factorial of.
+ * \retval logfactn Natural logarithm of factorial value computed.
+ *
+ * \author Jason McEwen
+ */
+double logfact(int n) {
+  
+  double y, temp, sum, c[6], loggamma, x;
+  int nn;
+
+  if (n < 0) {
+
+    SSHT_ERROR_GENERIC("Factorial argument negative") 
+
+  }
+  else {
+
+    // The engine of this function actually calculates the gamma function,
+    // for which the real argument is x = n + 1.
+
+    x = (double) (n + 1);
+
+    // Table of fitting constants.
+
+    c[1] = 76.18009172947146;
+    c[2] = - 86.50532032941677;
+    c[3] = 24.01409824083091;
+    c[4] = - 1.231739572450155;
+    c[5] = 0.1208650973866179e-2;
+    c[6] = - 0.5395239384953e-5;
+
+    // Add up fit.
+
+    temp = x + 5.5 - (x + 0.5) * log(x + 5.5);
+    sum = 1.000000000190015;
+    y = x;
+
+    for (nn=0; nn<=5; nn++) {
+      y = y + 1.0;
+      sum = sum + c[nn] / y;
+    }
+
+    loggamma = - temp + log(2.5066282746310005 * sum / x);
+
+  }
+
+  // Finally make explicit the conversion back to log of the factorial.
+  return loggamma;
+
+}
