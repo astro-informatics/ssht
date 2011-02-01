@@ -865,7 +865,7 @@ void ssht_dl_halfpi_trapani_fill_eighth2quarter_table(double *dl, int L,
  * \param[in] n Integer to compute factorial of.
  * \retval logfactn Natural logarithm of factorial value computed.
  *
- * \author Jason McEwen
+ * \author Numerical recipes.
  */
 double logfact(int n) {
   

@@ -11,6 +11,10 @@
 #include <math.h>
 #include "ssht_types.h"
 
+#define ABS(x) ((x) >= 0 ? (x) : -(x))
+
+void gauleg(double x1, double x2, double *x, double *w, int n);
+
 
 //============================================================================
 // Sampling weights
@@ -22,7 +26,7 @@
  *
  * \param[in]  p Integer index to compute weight for.
  * \param[out] w Corresponding weight.
- * \retval none
+ * \retval Weight value computed.
  *
  * \author Jason McEwen
  */
@@ -43,6 +47,105 @@ complex double ssht_sampling_weight_mw(int p) {
   
 }
   
+
+/*!
+ * Compute Driscoll and Healy weights.
+ *
+ * \param[in] theta_t Theta value to compute weight for.
+ * \param[in] L Harmonic band-limit.
+ * return w Weight value computed.
+ *
+ * \author Jason McEwen
+ */
+
+double ssht_sampling_weight_dh(double theta_t, int L) {
+
+  double w;
+  int k;
+
+  w = 0.0;
+  for (k=0; k<=L-1; k++)
+    w += sin((2.0*k+1.0)*theta_t) / (double)(2.0*k+1.0);
+
+  w *= 2.0/((double) L) * sin(theta_t);
+
+  return w;
+
+}
+
+
+/*!
+ * Compute Gauss-Legendre theta positions (roots of Legendre
+ * polynomials) and corresponding weights.
+ *
+ * \param[out] thetas L theta positions (memory must already be
+ * allocated to store the L theta positions).
+ * \param[out] weights(0:L-1): Corresponding weights (memory must already be
+ * allocated to store the L weights corresponding to each theta position).
+ * \param[in] L Harmonic band-limit.
+ * \retval none
+ *
+ * \author Jason McEwen
+ */
+void ssht_sampling_gl_thetas_weights(double *thetas, double *weights, int L) {
+   
+  int t;
+
+  gauleg(-1.0, 1.0, thetas, weights, L);
+
+  for (t=0; t<=L-1; t++)
+    thetas[t] = acos(thetas[t]);
+
+}
+
+
+/*!
+ * Given the lower and upper limits of integration x1 and x2, this
+ * routine returns arrays x[1..n] and w[1..n] of length n,
+ * containing the abscissas and weights of the Gauss-Legendre
+ * n-point quadrature formula.
+ *
+ * \param[in] x1 Lower bound of range.
+ * \param[in] x2 Upper bound of range.
+ * \param[out] x Node positions (i.e. roots of Legendre polynomials).
+ * \param[out] w Corresponding weights.
+ * \param[in] n Number of points (note memory must already be
+ * allocated for x and w to store n terms).
+ *
+ * \author Numerical recipes.
+ */
+void gauleg(double x1, double x2, double *x, double *w, int n) {
+
+  double EPS = 1e-14;
+  int i,j,m;
+  double p1,p2,p3,pp,xl,xm,z,z1;
+
+  m=(n+1)/2;
+  xm=0.5*(x2+x1);
+  xl=0.5*(x2-x1);
+
+  for (i=1; i<=m; i++) {
+    z=cos(3.141592654*(i-.25)/(n+.5));
+    do {
+      p1=1.0;
+      p2=0.0;
+      for (j=1; j<=n; j++) {
+	p3=p2;
+	p2=p1;
+	p1=((2.0*j-1.0)*z*p2-(j-1.0)*p3)/j;
+      }
+      pp=n*(z*p1-p2)/(z*z-1.0);
+      z1=z;
+      z=z1-p1/pp;
+    } while (ABS(z-z1) > EPS);
+    x[i-1]=xm-xl*z;
+    x[n+1-i-1]=xm+xl*z;
+    w[i-1]=2.0*xl/((1.0-z*z)*pp*pp);
+    w[n+1-i-1]=w[i-1];
+  }
+
+}
+
 
 //============================================================================
 // Sampling relations
