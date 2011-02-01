@@ -159,6 +159,10 @@ void ssht_core_direct_inverse_sov_mw(complex double *f, complex double *flm,
   int ftm_stride, ftm_offset, f_stride;
   int dl_stride, dl_offset;
   double *dl;
+
+double *dlm1p1, *dl_ptr;
+double *dl2;
+
   double *sqrt_tbl, *signs;
   complex double *ftm, *inout;
   double theta, ssign, elfactor;
@@ -197,6 +201,14 @@ void ssht_core_direct_inverse_sov_mw(complex double *f, complex double *flm,
   ftm_offset = L-1;
   dl = ssht_dl_calloc(L, SSHT_DL_FULL);
   SSHT_ERROR_MEM_ALLOC_CHECK(dl)
+
+dl2 = ssht_dl_calloc(L, SSHT_DL_FULL);
+SSHT_ERROR_MEM_ALLOC_CHECK(dl2)
+
+dlm1p1 = ssht_dl_calloc(L, SSHT_DL_FULL);
+SSHT_ERROR_MEM_ALLOC_CHECK(dlm1p1)
+
+
   dl_offset = ssht_dl_get_offset(L, SSHT_DL_FULL);
   dl_stride = ssht_dl_get_stride(L, SSHT_DL_FULL);   
   for (t=0; t<=L-1; t++) {
@@ -211,9 +223,23 @@ void ssht_core_direct_inverse_sov_mw(complex double *f, complex double *flm,
 					eltmp, sqrt_tbl);
       }
       else {
-	ssht_dl_beta_risbo_full_table(dl, theta, L, 
+	ssht_dl_beta_risbo_full_table(dl, theta, L,
 				      SSHT_DL_FULL,
 				      el, sqrt_tbl);
+
+	
+
+ssht_dl_beta_kostelec_full_table(dlm1p1, dl2, 
+				 theta, L, 
+				 SSHT_DL_FULL,
+				 el, 
+				 sqrt_tbl, signs);
+
+// Switch current and previous dls.
+ dl_ptr = dl2;
+ dl2 = dlm1p1;
+ dlm1p1 = dl_ptr;
+
       }
 
       for (m=-el; m<=el; m++) {	
@@ -221,7 +247,7 @@ void ssht_core_direct_inverse_sov_mw(complex double *f, complex double *flm,
 	ftm[t*ftm_stride + m + ftm_offset] +=
 	  ssign 
 	  * elfactor
-	  * dl[(m + dl_offset)*dl_stride - spin + dl_offset]
+	  * dl2[(m + dl_offset)*dl_stride - spin + dl_offset]
 	  * flm[ind];
       }
     }
@@ -229,6 +255,10 @@ void ssht_core_direct_inverse_sov_mw(complex double *f, complex double *flm,
 
   // Free dl memory.
   free(dl);
+
+
+free(dlm1p1);
+
 
   // Compute f.   
   inout = (complex double*)calloc(2*L-1, sizeof(complex double));

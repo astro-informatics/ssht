@@ -732,16 +732,16 @@ double logfact(int n) {
     // The engine of this function actually calculates the gamma function,
     // for which the real argument is x = n + 1.
 
-    x = (double) (n + 1);
+    x = (double) (n)  + 1.0;
 
     // Table of fitting constants.
 
-    c[1] = 76.18009172947146;
-    c[2] = - 86.50532032941677;
-    c[3] = 24.01409824083091;
-    c[4] = - 1.231739572450155;
-    c[5] = 0.1208650973866179e-2;
-    c[6] = - 0.5395239384953e-5;
+    c[0] = 76.18009172947146;
+    c[1] = - 86.50532032941677;
+    c[2] = 24.01409824083091;
+    c[3] = - 1.231739572450155;
+    c[4] = 0.1208650973866179e-2;
+    c[5] = - 0.5395239384953e-5;
 
     // Add up fit.
 
