@@ -1,0 +1,105 @@
+# ======== COMPILER ========
+
+CC      = gcc
+#OPT	= -Wall -g
+OPT	= -Wall -O3
+
+
+# ======== LINKS ========
+
+UNAME := $(shell uname)
+ifeq ($(UNAME), Linux)
+  PROGDIR = /home/jdm57/src
+endif
+ifeq ($(UNAME), Darwin)
+  PROGDIR = /Users/mcewen/src
+endif
+
+SSHTDIR  = $(PROGDIR)/ssht
+SSHTLIB  = $(SSHTDIR)/lib/c
+SSHTLIBNM= ssht
+SSHTSRC  = $(SSHTDIR)/src/c
+SSHTBIN  = $(SSHTDIR)/bin/c
+SSHTINC  = $(SSHTSRC)
+SSHTDOC  = $(SSHTDIR)/doc/c
+
+FFTWDIR      = $(PROGDIR)/fftw
+FFTWINC	     = $(FFTWDIR)/include
+FFTWLIB      = $(FFTWDIR)/lib
+FFTWLIBNM    = fftw3
+
+vpath %.c $(SSHTSRC)
+vpath %.h $(SSHTSRC)
+
+# ======== FFFLAGS ========
+
+FFLAGS  = -I$(FFTWINC)
+
+
+# ======== LDFLAGS ========
+
+LDFLAGS = -L$(SSHTLIB) -l$(SSHTLIBNM) -L$(FFTWLIB) -l$(FFTWLIBNM) -lm
+
+
+# ======== OBJECT FILES TO MAKE ========
+
+SSHTOBJ = $(SSHTINC)/ssht_sampling.o    \
+          $(SSHTINC)/ssht_dl.o          \
+          $(SSHTINC)/ssht_core.o
+
+SSHTHEADERS = ssht_types.h     \
+              ssht_error.h     \
+	      ssht_sampling.h  \
+	      ssht_dl.h        \
+	      ssht_core.h
+
+
+# ======== MAKE RULES ========
+
+$(SSHTINC)/%.o: %.c $(SSHTHEADERS)
+	$(CC) $(OPT) $(FFLAGS) -c $< -o $@
+
+.PHONY: test
+test: $(SSHTBIN)/ssht_test
+$(SSHTBIN)/ssht_test: $(SSHTINC)/ssht_test.o $(SSHTLIB)/lib$(SSHTLIBNM).a
+	$(CC) $(OPT) $< -o $(SSHTBIN)/ssht_test $(LDFLAGS) 
+
+.PHONY: default
+default: all
+
+.PHONY: all
+all: lib test
+
+
+# Library
+
+.PHONY: lib
+lib: $(SSHTLIB)/lib$(SSHTLIBNM).a
+$(SSHTLIB)/lib$(SSHTLIBNM).a: $(SSHTOBJ)
+	ar -r $(SSHTLIB)/lib$(SSHTLIBNM).a $(SSHTOBJ)
+
+
+# Documentation 
+
+.PHONY: doc
+doc:
+	doxygen $(SSHTSRC)/doxygen.config
+.PHONY: cleandoc
+cleandoc:
+	rm -rf $(SSHTDOC)/html
+
+
+# Cleaning up
+
+.PHONY: clean
+clean:	tidy
+	rm -f $(SSHTINC)/*.o
+	rm -f $(SSHTLIB)/lib$(SSHTLIBNM).a
+	rm -f $(SSHTBIN)/ssht_test
+
+.PHONY: tidy
+tidy:
+	rm -f *~ 
+
+.PHONY: cleanall
+cleanall: clean cleandoc
