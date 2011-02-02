@@ -1492,9 +1492,11 @@ double *out;
   ftm_stride = L;
 //  ftm_offset = L-1;
   ftm_offset = 0;
-  dlm1p1_line = (double*)calloc(2*L-1, sizeof(double));
+//  dlm1p1_line = (double*)calloc(2*L-1, sizeof(double));
+  dlm1p1_line = (double*)calloc(L, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(dlm1p1_line)
-  dl_line = (double*)calloc(2*L-1, sizeof(double));
+//  dl_line = (double*)calloc(2*L-1, sizeof(double));
+  dl_line = (double*)calloc(L, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(dl_line)
   for (t=0; t<=L-1; t++) {
     theta = thetas[t];
@@ -1502,9 +1504,13 @@ double *out;
       elfactor = sqrt((double)(2.0*el+1.0)/(4.0*SSHT_PI));
 
       // Compute dl line for given spin.
-      ssht_dl_beta_kostelec_line_table(dlm1p1_line, dl_line,
-      				       theta, L, -spin, el,
-      				       sqrt_tbl, signs);
+      /* ssht_dl_beta_kostelec_line_table(dlm1p1_line, dl_line, */
+      /* 				       theta, L, -spin, el, */
+      /* 				       sqrt_tbl, signs); */
+
+      ssht_dl_beta_kostelec_halfline_table(dlm1p1_line, dl_line,
+					   theta, L, -spin, el,
+					   sqrt_tbl, signs);
       // Switch current and previous dls.
       dl_ptr = dl_line;
       dl_line = dlm1p1_line;
@@ -1516,7 +1522,8 @@ double *out;
 	ftm[t*ftm_stride + m + ftm_offset] +=
 	  ssign 
 	  * elfactor
-	  * dl_line[m + L-1]
+//	  * dl_line[m + L-1]
+	  * dl_line[m]
 	  * flm[ind];
       }
     }
@@ -1837,9 +1844,11 @@ complex double *out;
   fftw_destroy_plan(plan);
 
   // Compute flm.
-  dlm1p1_line = (double*)calloc(2*L-1, sizeof(double));
+//  dlm1p1_line = (double*)calloc(2*L-1, sizeof(double));
+  dlm1p1_line = (double*)calloc(L, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(dlm1p1_line)
-  dl_line = (double*)calloc(2*L-1, sizeof(double));
+//  dl_line = (double*)calloc(2*L-1, sizeof(double));
+  dl_line = (double*)calloc(L, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(dl_line)
   inds_offset = L-1;
   for (el=0; el<=L-1; el++) {
@@ -1860,9 +1869,14 @@ complex double *out;
 	inds[m + inds_offset] = el2pel + m; 
 
       // Compute dl line for given spin.
-      ssht_dl_beta_kostelec_line_table(dlm1p1_line, dl_line,
-      				       theta, L, -spin, el,
-      				       sqrt_tbl, signs);
+      /* ssht_dl_beta_kostelec_line_table(dlm1p1_line, dl_line, */
+      /* 				       theta, L, -spin, el, */
+      /* 				       sqrt_tbl, signs); */
+
+      ssht_dl_beta_kostelec_halfline_table(dlm1p1_line, dl_line,
+					   theta, L, -spin, el,
+					   sqrt_tbl, signs);
+
       // Switch current and previous dls.
       dl_ptr = dl_line;
       dl_line = dlm1p1_line;
@@ -1875,7 +1889,8 @@ complex double *out;
 	  ssign
 	  * elfactor
 	  * w
-	  * dl_line[m+L-1]
+//	  * dl_line[m+L-1]
+	  * dl_line[m]
 	  * Ftm[t*Ftm_stride + m + Ftm_offset];
       }
     }

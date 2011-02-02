@@ -545,7 +545,7 @@ void ssht_dl_beta_kostelec_line_table(double *dlm1p1_line, double *dl_line,
 
 
 /*!  
- * Calculates line of d-matrix for all m = -l:l and given mm = -l:l for 
+ * Calculates half line of d-matrix for all m = 0:l and given mm = -l:l for 
  * argument beta using the recursion method given in Kostelec and
  * Rockmore (2010) (see equations (4.5)-(4.9)).  For l>abs(mm), require the
  * dl plane to be computed already with values for l-1 *and* l-2.
@@ -583,7 +583,7 @@ void ssht_dl_beta_kostelec_halfline_table(double *dlm1p1_line, double *dl_line,
   double elr, elm1r;
   
   // Compute m offset for accessing dl line.
-  offset = L-1;
+  offset = 0;
 
   // Compute Wigner plane.
   if (el < abs(mm)) {
