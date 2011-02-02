@@ -1,8 +1,7 @@
 # ======== COMPILER ========
 
-#FC      = nagfor
-#FC	= /usr/bin/gfortran-4.3
 FC      = gfortran
+#FC      = nagfor
 #FC      = g95
 
 ifeq ($(FC),nagfor)
@@ -12,7 +11,7 @@ ifeq ($(FC),gfortran)
   OPTGFORTRAN = -m64
 endif
 
-OPT = $(OPTNAGFOR)  $(OPTGFORTRAN) -O3 #-g3 -ggdb # 3-ggdb #  -m64 -O3
+OPT = $(OPTNAGFOR) $(OPTGFORTRAN) -O3 #-g3 -ggdb
 
 
 # ======== LINKS ========
@@ -35,7 +34,6 @@ SSHTBIN  = $(SSHTDIR)/bin
 SSHTDOC  = $(SSHTDIR)/doc
 
 FFTWLIB      = $(PROGDIR)/fftw/lib
-#FFTWLIB      = $(PROGDIR)/fftw-3.2.2_m32/lib
 FFTWLIBNM    = fftw3
 
 HPIXDIR = $(PROGDIR)/Healpix
@@ -49,24 +47,16 @@ S2LIBNM= s2
 S2INC  = $(S2DIR)/include
 S2DOC  = $(S2DIR)/doc
 
-#CFITSIOLIB   = $(PROGDIR)/cfitsio/lib
-#CFITSIOLIBNM = cfitsio
-
 
 # ======== FFFLAGS ========
 
 FFLAGS  = -I$(SSHTINC)
-FFLAGSPROG = -I$(HPIXINC) -I$(S2INC)
 
 
 # ======== LDFLAGS ========
 
 LDFLAGS = -L$(SSHTLIB) -l$(SSHTLIBNM) \
           -L$(FFTWLIB) -l$(FFTWLIBNM)
-#         -L$(CFITSIOLIB) -l$(CFITSIOLIBNM) 
-
-LDFLAGSPROG = -L$(S2LIB) -l$(S2LIBNM) \
-           -L$(HPIXLIB) -l$(HPIXLIBNM) 
 
 
 # ======== PPFLAGS ========
@@ -83,9 +73,9 @@ endif
 # ======== OBJECT FILES TO MAKE ========
 
 SSHTOBJ = $(SSHTINC)/ssht_types_mod.o    \
-          $(SSHTINC)/ssht_error_mod.o   \
-          $(SSHTINC)/ssht_dl_mod.o      \
-          $(SSHTINC)/ssht_sampling_mod.o  \
+          $(SSHTINC)/ssht_error_mod.o    \
+          $(SSHTINC)/ssht_dl_mod.o       \
+          $(SSHTINC)/ssht_sampling_mod.o \
           $(SSHTINC)/ssht_core_mod.o   
 
 
@@ -112,7 +102,7 @@ $(SSHTINC)/ssht_test.o:     $(SSHTPROG)/ssht_test.f90
 	$(FC) $(FFLAGS) $(PPFLAGS) -c $< -o $@ 
 
 $(SSHTINC)/%.o: $(SSHTPROG)/%.f90
-	$(FC) $(FFLAGS) $(FFLAGSPROG) $(PPFLAGS) -I$(S2INC) -c $< -o $@ 
+	$(FC) $(FFLAGS) $(FFLAGSPROG) $(PPFLAGS) -c $< -o $@ 
 
 
 # Library
@@ -122,28 +112,28 @@ $(SSHTLIB)/lib$(SSHTLIBNM).a: $(SSHTOBJ)
 
 
 # Documentation
-
-docs:
+.PHONY: doc
+doc:	
 	./f90doc_fpp $(SSHTSRC)/*.f90
 	./f90doc_fpp $(SSHTPROG)/*.f90
-	./ln_multi $(S2DOC)/s2_*
-	./ln_multi $(S2DOC)/index_s2.html
 	mv *.html $(SSHTDOC)/.
 	./addstyle $(SSHTDOC)/ssht_*
 
-cleandocs:
+.PHONY: cleandoc
+cleandoc:
 	rm -f $(SSHTDOC)/ssht_*.html
-	rm -f $(SSHTDOC)/gasdev2_dp.html $(SSHTDOC)/ran2_dp.html
-	rm -f $(SSHTDOC)/s2_*.html $(SSHTDOC)/index_s2.html
+	rm -f $(SSHTDOC)/ran2_dp.html
 
 # Cleaning up
 
+.PHONY: clean
 clean:	tidy
 	rm -f $(SSHTINC)/*.mod
 	rm -f $(SSHTINC)/*.o
 	rm -f $(SSHTLIB)/lib$(SSHTLIBNM).a
 	rm -f $(SSHTBIN)/*
 
+.PHONY: tidy
 tidy:
 	rm -f *.mod
 	rm -f $(SSHTSRC)/*~ 
@@ -153,17 +143,17 @@ tidy:
 # Module dependencies
 
 $(SSHTINC)/ssht_types_mod.o: $(SSHTSRC)/ssht_types_mod.f90
-$(SSHTINC)/ssht_error_mod.o: $(SSHTSRC)/ssht_error_mod.f90  \
+$(SSHTINC)/ssht_error_mod.o: $(SSHTSRC)/ssht_error_mod.f90          \
                            $(SSHTINC)/ssht_types_mod.o
-$(SSHTINC)/ssht_dl_mod.o:    $(SSHTSRC)/ssht_dl_mod.f90     \
+$(SSHTINC)/ssht_dl_mod.o:    $(SSHTSRC)/ssht_dl_mod.f90             \
                            $(SSHTINC)/ssht_types_mod.o
 $(SSHTINC)/ssht_sampling_mod.o:  $(SSHTSRC)/ssht_sampling_mod.f90   \
-                           $(SSHTINC)/ssht_types_mod.o    \
+                           $(SSHTINC)/ssht_types_mod.o              \
                            $(SSHTINC)/ssht_error_mod.o
-$(SSHTINC)/ssht_core_mod.o:  $(SSHTSRC)/ssht_core_mod.f90   \
-                           $(SSHTINC)/ssht_types_mod.o    \
-                           $(SSHTINC)/ssht_error_mod.o    \
-                           $(SSHTINC)/ssht_sampling_mod.o    \
+$(SSHTINC)/ssht_core_mod.o:  $(SSHTSRC)/ssht_core_mod.f90           \
+                           $(SSHTINC)/ssht_types_mod.o              \
+                           $(SSHTINC)/ssht_error_mod.o              \
+                           $(SSHTINC)/ssht_sampling_mod.o           \
                            $(SSHTINC)/ssht_dl_mod.o       
 
 
@@ -172,19 +162,22 @@ $(SSHTINC)/ssht_core_mod.o:  $(SSHTSRC)/ssht_core_mod.f90   \
 $(SSHTINC)/ssht_test.o:     $(SSHTPROG)/ssht_test.f90 lib
 $(SSHTBIN)/ssht_test:       $(SSHTINC)/ssht_test.o
 	$(FC)                                          \
-	-o $(SSHTBIN)/ssht_test                          \
-	$(SSHTINC)/ssht_test.o $(LDFLAGS) $(PPFLAGS)
+	-o $(SSHTBIN)/ssht_test                        \
+	$(SSHTINC)/ssht_test.o                         \
+	$(LDFLAGS) $(PPFLAGS)
 
 $(SSHTINC)/ssht_forward.o:     $(SSHTPROG)/ssht_forward.f90 lib
 $(SSHTBIN)/ssht_forward:       $(SSHTINC)/ssht_forward.o
 	$(FC)                                          \
-	-o $(SSHTBIN)/ssht_forward                       \
-	$(SSHTINC)/ssht_forward.o $(LDFLAGSPROG) $(LDFLAGS) $(PPFLAGS)
+	-o $(SSHTBIN)/ssht_forward                     \
+	$(SSHTINC)/ssht_forward.o                      \
+	$(LDFLAGS) $(PPFLAGS)
 
 $(SSHTINC)/ssht_inverse.o:     $(SSHTPROG)/ssht_inverse.f90 lib
 $(SSHTBIN)/ssht_inverse:       $(SSHTINC)/ssht_inverse.o
 	$(FC)                                          \
-	-o $(SSHTBIN)/ssht_inverse                       \
-	$(SSHTINC)/ssht_inverse.o $(LDFLAGSPROG) $(LDFLAGS) $(PPFLAGS)
+	-o $(SSHTBIN)/ssht_inverse                     \
+	$(SSHTINC)/ssht_inverse.o                      \
+	$(LDFLAGS) $(PPFLAGS)
 
 

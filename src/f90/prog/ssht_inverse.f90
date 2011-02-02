@@ -28,7 +28,9 @@ program ssht_inverse
   use ssht_types_mod
   use ssht_error_mod
   use ssht_core_mod
-  use s2_sky_mod
+#ifdef NAGFOR
+  use F90_UNIX_ENV
+#endif
 
   implicit none
 
@@ -164,26 +166,24 @@ contains
 
   subroutine parse_options()
 
-    use extension, only: getArgument, nArguments
-
     implicit none
 
     integer :: nn, i
     character(len=STRING_LEN) :: opt
     character(len=STRING_LEN) :: arg
 
-    nn = nArguments()
+    nn = iargc()
 
     do i = 1,nn,2
 
-       call getArgument(i,opt)
+       call getarg(i, opt)
 
        if (i == nn .and. trim(opt) /= '-help') then
           write(*,*) 'Error: Option ', trim(opt), ' has no argument'
           stop
        end if
 
-       if(trim(opt) /= '-help') call getArgument(i+1,arg)
+       if(trim(opt) /= '-help') call getarg(i+1, opt)
 
        ! Read each argument in turn
        select case (trim(opt))
