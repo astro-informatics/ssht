@@ -7,6 +7,8 @@
 
 void ssht_core_direct_inverse_sov_gl(complex double *f, complex double *flm, 
 				     int L, int spin, int verbosity);
+void ssht_core_gl_forward_sov(complex double *flm, complex double *f, 
+			      int L, int spin, int verbosity);
 
 
 void ssht_core_direct_inverse_mw(complex double *f, complex double *flm, 
