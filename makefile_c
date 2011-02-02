@@ -20,7 +20,8 @@ SSHTLIB  = $(SSHTDIR)/lib/c
 SSHTLIBNM= ssht
 SSHTSRC  = $(SSHTDIR)/src/c
 SSHTBIN  = $(SSHTDIR)/bin/c
-SSHTINC  = $(SSHTSRC)
+SSHTOBJ  = $(SSHTSRC)
+SSHTINC  = $(SSHTDIR)/include/c
 SSHTDOC  = $(SSHTDIR)/doc/c
 
 FFTWDIR      = $(PROGDIR)/fftw
@@ -33,7 +34,8 @@ vpath %.h $(SSHTSRC)
 
 # ======== FFFLAGS ========
 
-FFLAGS  = -I$(FFTWINC)
+FFLAGS  = -I$(FFTWINC) -I$(SSHTINC)
+
 
 
 # ======== LDFLAGS ========
@@ -43,9 +45,9 @@ LDFLAGS = -L$(SSHTLIB) -l$(SSHTLIBNM) -L$(FFTWLIB) -l$(FFTWLIBNM) -lm
 
 # ======== OBJECT FILES TO MAKE ========
 
-SSHTOBJ = $(SSHTINC)/ssht_sampling.o    \
-          $(SSHTINC)/ssht_dl.o          \
-          $(SSHTINC)/ssht_core.o
+SSHTOBJS = $(SSHTOBJ)/ssht_sampling.o    \
+          $(SSHTOBJ)/ssht_dl.o          \
+          $(SSHTOBJ)/ssht_core.o
 
 SSHTHEADERS = ssht_types.h     \
               ssht_error.h     \
@@ -56,12 +58,12 @@ SSHTHEADERS = ssht_types.h     \
 
 # ======== MAKE RULES ========
 
-$(SSHTINC)/%.o: %.c $(SSHTHEADERS)
+$(SSHTOBJ)/%.o: %.c $(SSHTHEADERS)
 	$(CC) $(OPT) $(FFLAGS) -c $< -o $@
 
 .PHONY: test
 test: $(SSHTBIN)/ssht_test
-$(SSHTBIN)/ssht_test: $(SSHTINC)/ssht_test.o $(SSHTLIB)/lib$(SSHTLIBNM).a
+$(SSHTBIN)/ssht_test: $(SSHTOBJ)/ssht_test.o $(SSHTLIB)/lib$(SSHTLIBNM).a
 	$(CC) $(OPT) $< -o $(SSHTBIN)/ssht_test $(LDFLAGS) 
 
 .PHONY: default
@@ -75,8 +77,8 @@ all: lib test
 
 .PHONY: lib
 lib: $(SSHTLIB)/lib$(SSHTLIBNM).a
-$(SSHTLIB)/lib$(SSHTLIBNM).a: $(SSHTOBJ)
-	ar -r $(SSHTLIB)/lib$(SSHTLIBNM).a $(SSHTOBJ)
+$(SSHTLIB)/lib$(SSHTLIBNM).a: $(SSHTOBJS)
+	ar -r $(SSHTLIB)/lib$(SSHTLIBNM).a $(SSHTOBJS)
 
 
 # Documentation 
@@ -93,7 +95,7 @@ cleandoc:
 
 .PHONY: clean
 clean:	tidy
-	rm -f $(SSHTINC)/*.o
+	rm -f $(SSHTOBJ)/*.o
 	rm -f $(SSHTLIB)/lib$(SSHTLIBNM).a
 	rm -f $(SSHTBIN)/ssht_test
 

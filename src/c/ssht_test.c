@@ -17,10 +17,7 @@
 #include <fftw3.h>  // Must be before fftw3.h
 #include <time.h>
 
-#include "ssht_types.h"
-#include "ssht_error.h"
-#include "ssht_sampling.h"
-#include "ssht_core.h"
+#include <ssht.h>
 
 #define NREPEAT 3
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
