@@ -44,13 +44,14 @@ void ssht_core_gl_forward_sov(complex double *flm, complex double *f,
 			      int L, int spin, int verbosity) {
 
   int t, m, el, ind;
-  int Fmt_stride, Fmt_offset, f_stride;  
+  int f_stride;  
   double *dlm1p1_line,  *dl_line;
   double *dl_ptr;
   int el2pel, inds_offset;
   int *inds;
   double *sqrt_tbl, *signs;
-  complex double *Fmt, *inout;
+  int Ftm_stride, Ftm_offset;
+  complex double *Ftm, *inout;
   double theta, ssign, elfactor;
   fftw_plan plan;
   double *thetas, *weights;
@@ -91,11 +92,11 @@ void ssht_core_gl_forward_sov(complex double *flm, complex double *f,
   SSHT_ERROR_MEM_ALLOC_CHECK(weights)
   ssht_sampling_gl_thetas_weights(thetas, weights, L);
 
-  // Compute Fourier transform over phi, i.e. compute Fmt.
-  Fmt = (complex double*)calloc((2*L-1)*L, sizeof(complex double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(Fmt)
-  Fmt_stride = L;
-  Fmt_offset = L-1;
+  // Compute Fourier transform over phi, i.e. compute Ftm.
+  Ftm = (complex double*)calloc(L*(2*L-1), sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(Ftm)
+  Ftm_stride = 2*L-1;
+  Ftm_offset = L-1;
   f_stride = 2*L-1;
   inout = (complex double*)calloc(2*L-1, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
@@ -104,10 +105,10 @@ void ssht_core_gl_forward_sov(complex double *flm, complex double *f,
     memcpy(inout, &f[t*f_stride], f_stride*sizeof(double complex));
     fftw_execute_dft(plan, inout, inout);
     for(m=0; m<=L-1; m++) 
-      Fmt[(m+Fmt_offset)*Fmt_stride + t] = 
+      Ftm[t*Ftm_stride + m + Ftm_offset] = 
 	inout[m] * 2.0 * SSHT_PI / (2.0*L-1.0) ;
     for(m=-(L-1); m<=-1; m++) 
-      Fmt[(m+Fmt_offset)*Fmt_stride + t] = 
+      Ftm[t*Ftm_stride + m + Ftm_offset] = 
 	inout[m+2*L-1] * 2.0 * SSHT_PI / (2.0*L-1.0);
   }
   fftw_destroy_plan(plan);
@@ -142,16 +143,14 @@ void ssht_core_gl_forward_sov(complex double *flm, complex double *f,
       dl_line = dlm1p1_line;
       dlm1p1_line = dl_ptr;
 
-
       for (m=-el; m<=el; m++) {
-//	ssht_sampling_elm2ind(&ind, el, m);
 	ind = inds[m + inds_offset];
 	flm[ind] += 
 	  ssign
 	  * elfactor
 	  * w
 	  * dl_line[m+L-1]
-	  * Fmt[(m+Fmt_offset)*Fmt_stride + t];       
+	  * Ftm[t*Ftm_stride + m + Ftm_offset];
       }
     }
   }
@@ -161,7 +160,7 @@ void ssht_core_gl_forward_sov(complex double *flm, complex double *f,
   free(dl_line);
   free(thetas);
   free(weights);
-  free(Fmt);
+  free(Ftm);
   free(inout);
   free(signs);
   free(sqrt_tbl);
@@ -172,6 +171,7 @@ void ssht_core_gl_forward_sov(complex double *flm, complex double *f,
     printf("%s %s", SSHT_PROMPT, "Forward transform computed!");  
 
 }
+
 
 /*!  
  * Compute inverse transform using direct method with separation of
