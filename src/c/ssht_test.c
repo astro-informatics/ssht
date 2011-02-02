@@ -117,9 +117,9 @@ int main(int argc, char *argv[]) {
 
     time_start = clock();
     //ssht_core_mw_inverse_sov_sym(f_mw, flm_orig, L, spin, verbosity);
-    //ssht_core_direct_inverse_mw(f_mw, flm_orig, L, spin, verbosity);
-    //ssht_core_direct_inverse_sov_mw(f_mw, flm_orig, L, spin, verbosity);    
-    ssht_core_direct_inverse_sov_gl(f_mw, flm_orig, L, spin, verbosity);
+    //ssht_core_mwdirect_inverse(f_mw, flm_orig, L, spin, verbosity);
+    ssht_core_mwdirect_inverse_sov(f_mw, flm_orig, L, spin, verbosity);    
+    //ssht_core_gl_inverse_sov(f_mw, flm_orig, L, spin, verbosity);
 
 
 
@@ -128,8 +128,8 @@ int main(int argc, char *argv[]) {
     durations_inverse_mw[irepeat] = (time_end - time_start) / (double)CLOCKS_PER_SEC;
 
     time_start = clock();
-    //ssht_core_mw_forward_sov_conv_sym(flm_syn, f_mw, L, spin, verbosity);
-    ssht_core_gl_forward_sov(flm_syn, f_mw, L, spin, verbosity);
+    ssht_core_mw_forward_sov_conv_sym(flm_syn, f_mw, L, spin, verbosity);
+    //ssht_core_gl_forward_sov(flm_syn, f_mw, L, spin, verbosity);
 
 
 

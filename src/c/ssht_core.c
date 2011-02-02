@@ -19,514 +19,9 @@
 #include "ssht_core.h"
 
 
-
-
-
-/* void ssht_core_direct_inverse_sov_gl(complex double *f, complex double *flm,  */
-/* 				  int L, int spin, int verbosity) { */
-
-
-/* } */
-
-//void ssht_core_direct_inverse_sov_mwss()
-//void ssht_core_direct_forward_sov_gl()
-//void ssht_core_mwss_inverse_sov_sym(complex double *f, complex double *flm, 
-//				    int L, int spin, int verbosity) {
-
-
-
-//============================================================================
-// GL algorithms
-//============================================================================
-
-
-void ssht_core_gl_forward_sov(complex double *flm, complex double *f, 
-			      int L, int spin, int verbosity) {
-
-  int t, m, el, ind;
-  int f_stride;  
-  double *dlm1p1_line,  *dl_line;
-  double *dl_ptr;
-  int el2pel, inds_offset;
-  int *inds;
-  double *sqrt_tbl, *signs;
-  int Ftm_stride, Ftm_offset;
-  complex double *Ftm, *inout;
-  double theta, ssign, elfactor;
-  fftw_plan plan;
-  double *thetas, *weights;
-  double w;
-
-   // Allocate memory.
-  sqrt_tbl = (double*)calloc(2*(L-1)+2, sizeof(double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(sqrt_tbl)
-  signs = (double*)calloc(L+1, sizeof(double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(signs)
-  inds = (int*)calloc(2*L-1, sizeof(int));
-  SSHT_ERROR_MEM_ALLOC_CHECK(inds)
-
-  // Perform precomputations.
-  for (el=0; el<=2*(L-1)+1; el++)
-    sqrt_tbl[el] = sqrt((double)el);
-  for (m=0; m<=L-1; m=m+2) {
-    signs[m]   =  1.0;
-    signs[m+1] = -1.0;
-  }
-  ssign = signs[abs(spin)];
-
- // Print messages depending on verbosity level.
-  if (verbosity > 0) {
-    printf("%s %s\n", SSHT_PROMPT, 
-	   "Computing forward transform using Gauss Legendre sampling with ");
-    printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
-	   L, ",", spin, ", FALSE)");
-    if (verbosity > 1)
-      printf("%s %s\n", SSHT_PROMPT, 
-	     "Using routine ssht_core_gl_forward_sov...");
-  }
-
-  // Compute weights and theta positions.
-  thetas = (double*)calloc(L, sizeof(double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(thetas)
-  weights = (double*)calloc(L, sizeof(double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(weights)
-  ssht_sampling_gl_thetas_weights(thetas, weights, L);
-
-  // Compute Fourier transform over phi, i.e. compute Ftm.
-  Ftm = (complex double*)calloc(L*(2*L-1), sizeof(complex double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(Ftm)
-  Ftm_stride = 2*L-1;
-  Ftm_offset = L-1;
-  f_stride = 2*L-1;
-  inout = (complex double*)calloc(2*L-1, sizeof(complex double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(inout)
-  plan = fftw_plan_dft_1d(2*L-1, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
-  for (t=0; t<=L-1; t++) {
-    memcpy(inout, &f[t*f_stride], f_stride*sizeof(double complex));
-    fftw_execute_dft(plan, inout, inout);
-    for(m=0; m<=L-1; m++) 
-      Ftm[t*Ftm_stride + m + Ftm_offset] = 
-	inout[m] * 2.0 * SSHT_PI / (2.0*L-1.0) ;
-    for(m=-(L-1); m<=-1; m++) 
-      Ftm[t*Ftm_stride + m + Ftm_offset] = 
-	inout[m+2*L-1] * 2.0 * SSHT_PI / (2.0*L-1.0);
-  }
-  fftw_destroy_plan(plan);
-
-  // Compute flm.
-  dlm1p1_line = (double*)calloc(2*L-1, sizeof(double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(dlm1p1_line)
-  dl_line = (double*)calloc(2*L-1, sizeof(double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(dl_line)
-  inds_offset = L-1;
-  for (el=0; el<=L-1; el++) {
-    for (m=-el; m<=el; m++) {
-      ssht_sampling_elm2ind(&ind, el, m);
-      flm[ind] = 0.0;
-    }
-  }
-  for (t=0; t<=L-1; t++) {
-    theta = thetas[t];
-    w = weights[t];
-    for (el=abs(spin); el<=L-1; el++) {
-      elfactor = sqrt((double)(2.0*el+1.0)/(4.0*SSHT_PI));
-      el2pel = el *el + el;    
-      for (m=-el; m<=el; m++)
-	inds[m + inds_offset] = el2pel + m; 
-
-      // Compute dl line for given spin.
-      ssht_dl_beta_kostelec_line_table(dlm1p1_line, dl_line,
-      				       theta, L, -spin, el,
-      				       sqrt_tbl, signs);
-      // Switch current and previous dls.
-      dl_ptr = dl_line;
-      dl_line = dlm1p1_line;
-      dlm1p1_line = dl_ptr;
-
-      for (m=-el; m<=el; m++) {
-	ind = inds[m + inds_offset];
-	flm[ind] += 
-	  ssign
-	  * elfactor
-	  * w
-	  * dl_line[m+L-1]
-	  * Ftm[t*Ftm_stride + m + Ftm_offset];
-      }
-    }
-  }
-
-  // Free memory.
-  free(dlm1p1_line);
-  free(dl_line);
-  free(thetas);
-  free(weights);
-  free(Ftm);
-  free(inout);
-  free(signs);
-  free(sqrt_tbl);
-  free(inds);
-
-  // Print finished if verbosity set.
-  if (verbosity > 0) 
-    printf("%s %s", SSHT_PROMPT, "Forward transform computed!");  
-
-}
-
-
-/*!  
- * Compute inverse transform using direct method with separation of
- * variables for GL sampling.
- *
- * \param[out] f Function on sphere.
- * \param[in] flm Harmonic coefficients.
- * \param[in] L Harmonic band-limit.
- * \param[in] spin Spin number.
- * \param[in] verbosity Verbosiity flag in range [0,5].
- * \retval none
- *
- * \author Jason McEwen
- */
-void ssht_core_direct_inverse_sov_gl(complex double *f, complex double *flm, 
-				     int L, int spin, int verbosity) {
-
-  int t, p, m, el, ind;
-  int ftm_stride, ftm_offset, f_stride;
-  double *dlm1p1_line,  *dl_line;
-  double *dl_ptr;
-  double *sqrt_tbl, *signs;
-  complex double *ftm, *inout;
-  double theta, ssign, elfactor;
-  fftw_plan plan;
-  double *thetas, *weights;
-
-  // Allocate memory.
-  sqrt_tbl = (double*)calloc(2*(L-1)+2, sizeof(double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(sqrt_tbl)
-  signs = (double*)calloc(L+1, sizeof(double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(signs)
-
-  // Perform precomputations.
-  for (el=0; el<=2*(L-1)+1; el++)
-    sqrt_tbl[el] = sqrt((double)el);
-  for (m=0; m<=L-1; m=m+2) {
-    signs[m]   =  1.0;
-    signs[m+1] = -1.0;
-  }
-  ssign = signs[abs(spin)];
-
-  // Print messages depending on verbosity level.
-  if (verbosity > 0) {
-    printf("%s %s\n", SSHT_PROMPT, 
-	   "Computing inverse transform using Gauss-Legendre sampling with ");
-    printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
-	   L, ",", spin, ", FALSE)");
-    if (verbosity > 1)
-      printf("%s %s\n", SSHT_PROMPT, 
-	     "Using routine ssht_core_direct_inverse_sov_gl...");
-  }
-
-  // Compute weights and theta positions.
-  thetas = (double*)calloc(L, sizeof(double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(thetas)
-  weights = (double*)calloc(L, sizeof(double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(weights)
-  ssht_sampling_gl_thetas_weights(thetas, weights, L);
-
-  // Compute ftm.
-  ftm = (complex double*)calloc(L*(2*L-1), sizeof(complex double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(ftm)  
-  ftm_stride = 2*L-1;
-  ftm_offset = L-1;
-  dlm1p1_line = (double*)calloc(2*L-1, sizeof(double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(dlm1p1_line)
-  dl_line = (double*)calloc(2*L-1, sizeof(double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(dl_line)
-  for (t=0; t<=L-1; t++) {
-    theta = thetas[t];
-    for (el=abs(spin); el<=L-1; el++) {	
-      elfactor = sqrt((double)(2.0*el+1.0)/(4.0*SSHT_PI));
-
-      // Compute dl line for given spin.
-      ssht_dl_beta_kostelec_line_table(dlm1p1_line, dl_line,
-      				       theta, L, -spin, el,
-      				       sqrt_tbl, signs);
-      // Switch current and previous dls.
-      dl_ptr = dl_line;
-      dl_line = dlm1p1_line;
-      dlm1p1_line = dl_ptr;
-    
-      for (m=-el; m<=el; m++) {	
-	ssht_sampling_elm2ind(&ind, el, m);
-	ftm[t*ftm_stride + m + ftm_offset] +=
-	  ssign 
-	  * elfactor
-	  * dl_line[m + L-1]
-	  * flm[ind];
-      }
-    }
-  }
-
-  // Free dl memory.
-  free(dlm1p1_line);
-  free(dl_line);
-
-  // Free memory for thetas and weights.
-  free(thetas);
-  free(weights);
-
-  // Compute f.   
-  inout = (complex double*)calloc(2*L-1, sizeof(complex double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(inout)
-  f_stride = 2*L-1;
-  plan = fftw_plan_dft_1d(2*L-1, inout, inout, FFTW_BACKWARD, FFTW_MEASURE);
-  for (t=0; t<=L-1; t++) {
-    for (m=0; m<=L-1; m++)
-      inout[m] = ftm[t*ftm_stride + m + ftm_offset];
-    for (m=-(L-1); m<=-1; m++)
-      inout[m+2*L-1] = ftm[t*ftm_stride + m + ftm_offset];
-    fftw_execute_dft(plan, inout, inout);
-    for (p=0; p<=2*L-2; p++)
-      f[t*f_stride + p] = inout[p];
-  }
-  fftw_destroy_plan(plan);
-
-  // Free memory.  
-  free(ftm);
-  free(inout);
-  free(signs);
-  free(sqrt_tbl);
-  
-  // Print finished if verbosity set.
-  if (verbosity > 0) 
-    printf("%s %s", SSHT_PROMPT, "Inverse transform computed!");  
-
-}
-
-
-
-
-
-
 //============================================================================
 // MW algorithms
 //============================================================================
-
-
-/*!  
- * Compute inverse transform using direct method for MW sampling.
- *
- * \warning This algorithm is very slow and is included for
- * verification purposes only.
- *
- * \param[out] f Function on sphere.
- * \param[in] flm Harmonic coefficients.
- * \param[in] L Harmonic band-limit.
- * \param[in] spin Spin number.
- * \param[in] verbosity Verbosiity flag in range [0,5].
- * \retval none
- *
- * \author Jason McEwen
- */
-void ssht_core_direct_inverse_mw(complex double *f, complex double *flm, 
-				 int L, int spin, int verbosity) {
-
-  int t, p, m, el, ind, eltmp;
-  double *dl;
-  double *sqrt_tbl;  
-  double theta, phi, elfactor;
-  int ssign;
-  int dl_offset, dl_stride, f_stride;
-
-  // Allocate memory.
-  sqrt_tbl = (double*)calloc(2*(L-1)+2, sizeof(double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(sqrt_tbl)
-
-    // Perform precomputations.
-  for (el=0; el<=2*(L-1)+1; el++)
-    sqrt_tbl[el] = sqrt((double)el);
-  ssign = spin & 1;
-  ssign = 1 - ssign - ssign; // (-1)^spin
-
-  // Print messages depending on verbosity level.
-  if (verbosity > 0) {
-    printf("%s %s\n", SSHT_PROMPT, 
-	   "Computing inverse transform using McEwen and Wiaux sampling with ");
-    printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
-	   L, ",", spin, ", FALSE)");
-    if (verbosity > 1)
-      printf("%s %s\n", SSHT_PROMPT, 
-	     "Using routine ssht_core_direct_inverse_sov_mw...");
-  }
-
-  // Initialise f with zeros.
-  f_stride = 2*L-1;
-  for (t=0; t<=L-1; t++)
-    for (p=0; p<=2*L-2; p++)
-      f[t*f_stride + p] = 0.0;
-
-  // Compute inverse transform.
-  dl = ssht_dl_calloc(L, SSHT_DL_FULL);
-  SSHT_ERROR_MEM_ALLOC_CHECK(dl)
-  dl_offset = ssht_dl_get_offset(L, SSHT_DL_FULL);
-  dl_stride = ssht_dl_get_stride(L, SSHT_DL_FULL);    
-  for (t=0; t<=L-1; t++) {
-    theta = ssht_sampling_mw_t2theta(t, L);   
-    for (el=abs(spin); el<=L-1; el++) {	
-      elfactor = sqrt((double)(2.0*el+1.0)/(4.0*SSHT_PI));
-      if (el!=0 && el==abs(spin)) {
-	for(eltmp=0; eltmp<=abs(spin); eltmp++)
-	  ssht_dl_beta_risbo_full_table(dl, theta, L, 
-					SSHT_DL_FULL,
-					eltmp, sqrt_tbl);
-      }
-      else {
-	ssht_dl_beta_risbo_full_table(dl, theta, L, 
-				      SSHT_DL_FULL,
-				      el, sqrt_tbl);
-      }
-
-      for (m=-el; m<=el; m++) {
-	ssht_sampling_elm2ind(&ind, el, m);
-	for (p=0; p<=2*L-2; p++) {
-	  phi = ssht_sampling_mw_p2phi(p, L);
-	  f[t*f_stride + p] += 
-	    ssign 
-	    * elfactor 
-	    * cexp(I*m*phi) 
-	    * dl[(m+dl_offset)*dl_stride - spin + dl_offset]
-	    * flm[ind];
-	}
-      }
-
-    }
-  }
-
-  free(sqrt_tbl);
-  free(dl);
-     
-  // Print finished if verbosity set.
-  if (verbosity > 0) 
-    printf("%s %s", SSHT_PROMPT, "Inverse transform computed!");  
-
-}
-
-
-/*!  
- * Compute inverse transform using direct method with separation of
- * variables for MW sampling.
- *
- * \param[out] f Function on sphere.
- * \param[in] flm Harmonic coefficients.
- * \param[in] L Harmonic band-limit.
- * \param[in] spin Spin number.
- * \param[in] verbosity Verbosiity flag in range [0,5].
- * \retval none
- *
- * \author Jason McEwen
- */
-void ssht_core_direct_inverse_sov_mw(complex double *f, complex double *flm, 
-				     int L, int spin, int verbosity) {
-
-  int t, p, m, el, ind;
-  int ftm_stride, ftm_offset, f_stride;
-  double *dlm1p1_line,  *dl_line;
-  double *dl_ptr;
-  double *sqrt_tbl, *signs;
-  complex double *ftm, *inout;
-  double theta, ssign, elfactor;
-  fftw_plan plan;
-
-  // Allocate memory.
-  sqrt_tbl = (double*)calloc(2*(L-1)+2, sizeof(double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(sqrt_tbl)
-  signs = (double*)calloc(L+1, sizeof(double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(signs)
-
-  // Perform precomputations.
-  for (el=0; el<=2*(L-1)+1; el++)
-    sqrt_tbl[el] = sqrt((double)el);
-  for (m=0; m<=L-1; m=m+2) {
-    signs[m]   =  1.0;
-    signs[m+1] = -1.0;
-  }
-  ssign = signs[abs(spin)];
-
-  // Print messages depending on verbosity level.
-  if (verbosity > 0) {
-    printf("%s %s\n", SSHT_PROMPT, 
-	   "Computing inverse transform using McEwen and Wiaux sampling with ");
-    printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
-	   L, ",", spin, ", FALSE)");
-    if (verbosity > 1)
-      printf("%s %s\n", SSHT_PROMPT, 
-	     "Using routine ssht_core_direct_inverse_sov_mw...");
-  }
-
-  // Compute ftm.
-  ftm = (complex double*)calloc(L*(2*L-1), sizeof(complex double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(ftm)  
-  ftm_stride = 2*L-1;
-  ftm_offset = L-1;
-  dlm1p1_line = (double*)calloc(2*L-1, sizeof(double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(dlm1p1_line)
-  dl_line = (double*)calloc(2*L-1, sizeof(double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(dl_line)
-  for (t=0; t<=L-1; t++) {
-    theta = ssht_sampling_mw_t2theta(t, L);   
-    for (el=abs(spin); el<=L-1; el++) {	
-      elfactor = sqrt((double)(2.0*el+1.0)/(4.0*SSHT_PI));
-
-      // Compute dl line for given spin.
-      ssht_dl_beta_kostelec_line_table(dlm1p1_line, dl_line,
-      				       theta, L, -spin, el,
-      				       sqrt_tbl, signs);
-      // Switch current and previous dls.
-      dl_ptr = dl_line;
-      dl_line = dlm1p1_line;
-      dlm1p1_line = dl_ptr;
-    
-      for (m=-el; m<=el; m++) {	
-	ssht_sampling_elm2ind(&ind, el, m);
-	ftm[t*ftm_stride + m + ftm_offset] +=
-	  ssign 
-	  * elfactor
-	  * dl_line[m + L-1]
-	  * flm[ind];
-      }
-    }
-  }
-
-  // Free dl memory.
-  free(dlm1p1_line);
-  free(dl_line);
-
-  // Compute f.   
-  inout = (complex double*)calloc(2*L-1, sizeof(complex double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(inout)
-  f_stride = 2*L-1;
-  plan = fftw_plan_dft_1d(2*L-1, inout, inout, FFTW_BACKWARD, FFTW_MEASURE);
-  for (t=0; t<=L-1; t++) {
-    for (m=0; m<=L-1; m++)
-      inout[m] = ftm[t*ftm_stride + m + ftm_offset];
-    for (m=-(L-1); m<=-1; m++)
-      inout[m+2*L-1] = ftm[t*ftm_stride + m + ftm_offset];
-    fftw_execute_dft(plan, inout, inout);
-    for (p=0; p<=2*L-2; p++)
-      f[t*f_stride + p] = inout[p];
-  }
-  fftw_destroy_plan(plan);
-
-  // Free memory.  
-  free(ftm);
-  free(inout);
-  free(signs);
-  free(sqrt_tbl);
-  
-  // Print finished if verbosity set.
-  if (verbosity > 0) 
-    printf("%s %s", SSHT_PROMPT, "Inverse transform computed!");  
-
-}
 
 
 /*!  
@@ -928,6 +423,225 @@ void ssht_core_mw_inverse_sov_sym_real(double *f, complex double *flm,
   free(signs); 
   free(exps);
   free(inds);
+
+}
+
+
+/*!  
+ * Compute inverse transform using direct method for MW sampling.
+ *
+ * \warning This algorithm is very slow and is included for
+ * verification purposes only.
+ *
+ * \param[out] f Function on sphere.
+ * \param[in] flm Harmonic coefficients.
+ * \param[in] L Harmonic band-limit.
+ * \param[in] spin Spin number.
+ * \param[in] verbosity Verbosiity flag in range [0,5].
+ * \retval none
+ *
+ * \author Jason McEwen
+ */
+void ssht_core_mwdirect_inverse(complex double *f, complex double *flm, 
+				 int L, int spin, int verbosity) {
+
+  int t, p, m, el, ind, eltmp;
+  double *dl;
+  double *sqrt_tbl;  
+  double theta, phi, elfactor;
+  int ssign;
+  int dl_offset, dl_stride, f_stride;
+
+  // Allocate memory.
+  sqrt_tbl = (double*)calloc(2*(L-1)+2, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(sqrt_tbl)
+
+    // Perform precomputations.
+  for (el=0; el<=2*(L-1)+1; el++)
+    sqrt_tbl[el] = sqrt((double)el);
+  ssign = spin & 1;
+  ssign = 1 - ssign - ssign; // (-1)^spin
+
+  // Print messages depending on verbosity level.
+  if (verbosity > 0) {
+    printf("%s %s\n", SSHT_PROMPT, 
+	   "Computing inverse transform using McEwen and Wiaux sampling with ");
+    printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
+	   L, ",", spin, ", FALSE)");
+    if (verbosity > 1)
+      printf("%s %s\n", SSHT_PROMPT, 
+	     "Using routine ssht_core_direct_inverse_sov_mw...");
+  }
+
+  // Initialise f with zeros.
+  f_stride = 2*L-1;
+  for (t=0; t<=L-1; t++)
+    for (p=0; p<=2*L-2; p++)
+      f[t*f_stride + p] = 0.0;
+
+  // Compute inverse transform.
+  dl = ssht_dl_calloc(L, SSHT_DL_FULL);
+  SSHT_ERROR_MEM_ALLOC_CHECK(dl)
+  dl_offset = ssht_dl_get_offset(L, SSHT_DL_FULL);
+  dl_stride = ssht_dl_get_stride(L, SSHT_DL_FULL);    
+  for (t=0; t<=L-1; t++) {
+    theta = ssht_sampling_mw_t2theta(t, L);   
+    for (el=abs(spin); el<=L-1; el++) {	
+      elfactor = sqrt((double)(2.0*el+1.0)/(4.0*SSHT_PI));
+      if (el!=0 && el==abs(spin)) {
+	for(eltmp=0; eltmp<=abs(spin); eltmp++)
+	  ssht_dl_beta_risbo_full_table(dl, theta, L, 
+					SSHT_DL_FULL,
+					eltmp, sqrt_tbl);
+      }
+      else {
+	ssht_dl_beta_risbo_full_table(dl, theta, L, 
+				      SSHT_DL_FULL,
+				      el, sqrt_tbl);
+      }
+
+      for (m=-el; m<=el; m++) {
+	ssht_sampling_elm2ind(&ind, el, m);
+	for (p=0; p<=2*L-2; p++) {
+	  phi = ssht_sampling_mw_p2phi(p, L);
+	  f[t*f_stride + p] += 
+	    ssign 
+	    * elfactor 
+	    * cexp(I*m*phi) 
+	    * dl[(m+dl_offset)*dl_stride - spin + dl_offset]
+	    * flm[ind];
+	}
+      }
+
+    }
+  }
+
+  free(sqrt_tbl);
+  free(dl);
+     
+  // Print finished if verbosity set.
+  if (verbosity > 0) 
+    printf("%s %s", SSHT_PROMPT, "Inverse transform computed!");  
+
+}
+
+
+/*!  
+ * Compute inverse transform using direct method with separation of
+ * variables for MW sampling.
+ *
+ * \warning This algorithm is included for verification purposes only.
+ *
+ * \param[out] f Function on sphere.
+ * \param[in] flm Harmonic coefficients.
+ * \param[in] L Harmonic band-limit.
+ * \param[in] spin Spin number.
+ * \param[in] verbosity Verbosiity flag in range [0,5].
+ * \retval none
+ *
+ * \author Jason McEwen
+ */
+void ssht_core_mwdirect_inverse_sov(complex double *f, complex double *flm, 
+				     int L, int spin, int verbosity) {
+
+  int t, p, m, el, ind;
+  int ftm_stride, ftm_offset, f_stride;
+  double *dlm1p1_line,  *dl_line;
+  double *dl_ptr;
+  double *sqrt_tbl, *signs;
+  complex double *ftm, *inout;
+  double theta, ssign, elfactor;
+  fftw_plan plan;
+
+  // Allocate memory.
+  sqrt_tbl = (double*)calloc(2*(L-1)+2, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(sqrt_tbl)
+  signs = (double*)calloc(L+1, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(signs)
+
+  // Perform precomputations.
+  for (el=0; el<=2*(L-1)+1; el++)
+    sqrt_tbl[el] = sqrt((double)el);
+  for (m=0; m<=L-1; m=m+2) {
+    signs[m]   =  1.0;
+    signs[m+1] = -1.0;
+  }
+  ssign = signs[abs(spin)];
+
+  // Print messages depending on verbosity level.
+  if (verbosity > 0) {
+    printf("%s %s\n", SSHT_PROMPT, 
+	   "Computing inverse transform using McEwen and Wiaux sampling with ");
+    printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
+	   L, ",", spin, ", FALSE)");
+    if (verbosity > 1)
+      printf("%s %s\n", SSHT_PROMPT, 
+	     "Using routine ssht_core_direct_inverse_sov_mw...");
+  }
+
+  // Compute ftm.
+  ftm = (complex double*)calloc(L*(2*L-1), sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(ftm)  
+  ftm_stride = 2*L-1;
+  ftm_offset = L-1;
+  dlm1p1_line = (double*)calloc(2*L-1, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(dlm1p1_line)
+  dl_line = (double*)calloc(2*L-1, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(dl_line)
+  for (t=0; t<=L-1; t++) {
+    theta = ssht_sampling_mw_t2theta(t, L);   
+    for (el=abs(spin); el<=L-1; el++) {	
+      elfactor = sqrt((double)(2.0*el+1.0)/(4.0*SSHT_PI));
+
+      // Compute dl line for given spin.
+      ssht_dl_beta_kostelec_line_table(dlm1p1_line, dl_line,
+      				       theta, L, -spin, el,
+      				       sqrt_tbl, signs);
+      // Switch current and previous dls.
+      dl_ptr = dl_line;
+      dl_line = dlm1p1_line;
+      dlm1p1_line = dl_ptr;
+    
+      for (m=-el; m<=el; m++) {	
+	ssht_sampling_elm2ind(&ind, el, m);
+	ftm[t*ftm_stride + m + ftm_offset] +=
+	  ssign 
+	  * elfactor
+	  * dl_line[m + L-1]
+	  * flm[ind];
+      }
+    }
+  }
+
+  // Free dl memory.
+  free(dlm1p1_line);
+  free(dl_line);
+
+  // Compute f.   
+  inout = (complex double*)calloc(2*L-1, sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(inout)
+  f_stride = 2*L-1;
+  plan = fftw_plan_dft_1d(2*L-1, inout, inout, FFTW_BACKWARD, FFTW_MEASURE);
+  for (t=0; t<=L-1; t++) {
+    for (m=0; m<=L-1; m++)
+      inout[m] = ftm[t*ftm_stride + m + ftm_offset];
+    for (m=-(L-1); m<=-1; m++)
+      inout[m+2*L-1] = ftm[t*ftm_stride + m + ftm_offset];
+    fftw_execute_dft(plan, inout, inout);
+    for (p=0; p<=2*L-2; p++)
+      f[t*f_stride + p] = inout[p];
+  }
+  fftw_destroy_plan(plan);
+
+  // Free memory.  
+  free(ftm);
+  free(inout);
+  free(signs);
+  free(sqrt_tbl);
+  
+  // Print finished if verbosity set.
+  if (verbosity > 0) 
+    printf("%s %s", SSHT_PROMPT, "Inverse transform computed!");  
 
 }
 
@@ -1560,6 +1274,287 @@ void ssht_core_mw_forward_sov_conv_sym_real(complex double *flm, double *f,
   free(signs); 
   free(expsm);
   free(expsmm);
+  free(inds);
+
+  // Print finished if verbosity set.
+  if (verbosity > 0) 
+    printf("%s %s", SSHT_PROMPT, "Forward transform computed!");  
+
+}
+
+
+//============================================================================
+// GL algorithms
+//============================================================================
+
+
+/*!  
+ * Compute inverse transform using direct method with separation of
+ * variables for GL sampling.
+ *
+ * \param[out] f Function on sphere.
+ * \param[in] flm Harmonic coefficients.
+ * \param[in] L Harmonic band-limit.
+ * \param[in] spin Spin number.
+ * \param[in] verbosity Verbosiity flag in range [0,5].
+ * \retval none
+ *
+ * \author Jason McEwen
+ */
+void ssht_core_gl_inverse_sov(complex double *f, complex double *flm, 
+			      int L, int spin, int verbosity) {
+
+  int t, p, m, el, ind;
+  int ftm_stride, ftm_offset, f_stride;
+  double *dlm1p1_line,  *dl_line;
+  double *dl_ptr;
+  double *sqrt_tbl, *signs;
+  complex double *ftm, *inout;
+  double theta, ssign, elfactor;
+  fftw_plan plan;
+  double *thetas, *weights;
+
+  // Allocate memory.
+  sqrt_tbl = (double*)calloc(2*(L-1)+2, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(sqrt_tbl)
+  signs = (double*)calloc(L+1, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(signs)
+
+  // Perform precomputations.
+  for (el=0; el<=2*(L-1)+1; el++)
+    sqrt_tbl[el] = sqrt((double)el);
+  for (m=0; m<=L-1; m=m+2) {
+    signs[m]   =  1.0;
+    signs[m+1] = -1.0;
+  }
+  ssign = signs[abs(spin)];
+
+  // Print messages depending on verbosity level.
+  if (verbosity > 0) {
+    printf("%s %s\n", SSHT_PROMPT, 
+	   "Computing inverse transform using Gauss-Legendre sampling with ");
+    printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
+	   L, ",", spin, ", FALSE)");
+    if (verbosity > 1)
+      printf("%s %s\n", SSHT_PROMPT, 
+	     "Using routine ssht_core_gl_inverse_sov...");
+  }
+
+  // Compute weights and theta positions.
+  thetas = (double*)calloc(L, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(thetas)
+  weights = (double*)calloc(L, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(weights)
+  ssht_sampling_gl_thetas_weights(thetas, weights, L);
+
+  // Compute ftm.
+  ftm = (complex double*)calloc(L*(2*L-1), sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(ftm)  
+  ftm_stride = 2*L-1;
+  ftm_offset = L-1;
+  dlm1p1_line = (double*)calloc(2*L-1, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(dlm1p1_line)
+  dl_line = (double*)calloc(2*L-1, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(dl_line)
+  for (t=0; t<=L-1; t++) {
+    theta = thetas[t];
+    for (el=abs(spin); el<=L-1; el++) {	
+      elfactor = sqrt((double)(2.0*el+1.0)/(4.0*SSHT_PI));
+
+      // Compute dl line for given spin.
+      ssht_dl_beta_kostelec_line_table(dlm1p1_line, dl_line,
+      				       theta, L, -spin, el,
+      				       sqrt_tbl, signs);
+      // Switch current and previous dls.
+      dl_ptr = dl_line;
+      dl_line = dlm1p1_line;
+      dlm1p1_line = dl_ptr;
+    
+      for (m=-el; m<=el; m++) {	
+	ssht_sampling_elm2ind(&ind, el, m);
+	ftm[t*ftm_stride + m + ftm_offset] +=
+	  ssign 
+	  * elfactor
+	  * dl_line[m + L-1]
+	  * flm[ind];
+      }
+    }
+  }
+
+  // Free dl memory.
+  free(dlm1p1_line);
+  free(dl_line);
+
+  // Free memory for thetas and weights.
+  free(thetas);
+  free(weights);
+
+  // Compute f.   
+  inout = (complex double*)calloc(2*L-1, sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(inout)
+  f_stride = 2*L-1;
+  plan = fftw_plan_dft_1d(2*L-1, inout, inout, FFTW_BACKWARD, FFTW_MEASURE);
+  for (t=0; t<=L-1; t++) {
+    for (m=0; m<=L-1; m++)
+      inout[m] = ftm[t*ftm_stride + m + ftm_offset];
+    for (m=-(L-1); m<=-1; m++)
+      inout[m+2*L-1] = ftm[t*ftm_stride + m + ftm_offset];
+    fftw_execute_dft(plan, inout, inout);
+    for (p=0; p<=2*L-2; p++)
+      f[t*f_stride + p] = inout[p];
+  }
+  fftw_destroy_plan(plan);
+
+  // Free memory.  
+  free(ftm);
+  free(inout);
+  free(signs);
+  free(sqrt_tbl);
+  
+  // Print finished if verbosity set.
+  if (verbosity > 0) 
+    printf("%s %s", SSHT_PROMPT, "Inverse transform computed!");  
+
+}
+
+
+/*!  
+ * Compute forward transform using Gauss-Legendgre quadrature with separation of
+ * variables.
+ *
+ * \param[out] flm Harmonic coefficients.
+ * \param[in] f Function on sphere.
+ * \param[in] L Harmonic band-limit.
+ * \param[in] spin Spin number.
+ * \param[in] verbosity Verbosiity flag in range [0,5].
+ * \retval none
+ *
+ * \author Jason McEwen
+ */
+void ssht_core_gl_forward_sov(complex double *flm, complex double *f, 
+			      int L, int spin, int verbosity) {
+
+  int t, m, el, ind;
+  int f_stride;  
+  double *dlm1p1_line,  *dl_line;
+  double *dl_ptr;
+  int el2pel, inds_offset;
+  int *inds;
+  double *sqrt_tbl, *signs;
+  int Ftm_stride, Ftm_offset;
+  complex double *Ftm, *inout;
+  double theta, ssign, elfactor;
+  fftw_plan plan;
+  double *thetas, *weights;
+  double w;
+
+   // Allocate memory.
+  sqrt_tbl = (double*)calloc(2*(L-1)+2, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(sqrt_tbl)
+  signs = (double*)calloc(L+1, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(signs)
+  inds = (int*)calloc(2*L-1, sizeof(int));
+  SSHT_ERROR_MEM_ALLOC_CHECK(inds)
+
+  // Perform precomputations.
+  for (el=0; el<=2*(L-1)+1; el++)
+    sqrt_tbl[el] = sqrt((double)el);
+  for (m=0; m<=L-1; m=m+2) {
+    signs[m]   =  1.0;
+    signs[m+1] = -1.0;
+  }
+  ssign = signs[abs(spin)];
+
+ // Print messages depending on verbosity level.
+  if (verbosity > 0) {
+    printf("%s %s\n", SSHT_PROMPT, 
+	   "Computing forward transform using Gauss Legendre sampling with ");
+    printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
+	   L, ",", spin, ", FALSE)");
+    if (verbosity > 1)
+      printf("%s %s\n", SSHT_PROMPT, 
+	     "Using routine ssht_core_gl_forward_sov...");
+  }
+
+  // Compute weights and theta positions.
+  thetas = (double*)calloc(L, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(thetas)
+  weights = (double*)calloc(L, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(weights)
+  ssht_sampling_gl_thetas_weights(thetas, weights, L);
+
+  // Compute Fourier transform over phi, i.e. compute Ftm.
+  Ftm = (complex double*)calloc(L*(2*L-1), sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(Ftm)
+  Ftm_stride = 2*L-1;
+  Ftm_offset = L-1;
+  f_stride = 2*L-1;
+  inout = (complex double*)calloc(2*L-1, sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(inout)
+  plan = fftw_plan_dft_1d(2*L-1, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
+  for (t=0; t<=L-1; t++) {
+    memcpy(inout, &f[t*f_stride], f_stride*sizeof(double complex));
+    fftw_execute_dft(plan, inout, inout);
+    for(m=0; m<=L-1; m++) 
+      Ftm[t*Ftm_stride + m + Ftm_offset] = 
+	inout[m] * 2.0 * SSHT_PI / (2.0*L-1.0) ;
+    for(m=-(L-1); m<=-1; m++) 
+      Ftm[t*Ftm_stride + m + Ftm_offset] = 
+	inout[m+2*L-1] * 2.0 * SSHT_PI / (2.0*L-1.0);
+  }
+  fftw_destroy_plan(plan);
+
+  // Compute flm.
+  dlm1p1_line = (double*)calloc(2*L-1, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(dlm1p1_line)
+  dl_line = (double*)calloc(2*L-1, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(dl_line)
+  inds_offset = L-1;
+  for (el=0; el<=L-1; el++) {
+    for (m=-el; m<=el; m++) {
+      ssht_sampling_elm2ind(&ind, el, m);
+      flm[ind] = 0.0;
+    }
+  }
+  for (t=0; t<=L-1; t++) {
+    theta = thetas[t];
+    w = weights[t];
+    for (el=abs(spin); el<=L-1; el++) {
+      elfactor = sqrt((double)(2.0*el+1.0)/(4.0*SSHT_PI));
+      el2pel = el *el + el;    
+      for (m=-el; m<=el; m++)
+	inds[m + inds_offset] = el2pel + m; 
+
+      // Compute dl line for given spin.
+      ssht_dl_beta_kostelec_line_table(dlm1p1_line, dl_line,
+      				       theta, L, -spin, el,
+      				       sqrt_tbl, signs);
+      // Switch current and previous dls.
+      dl_ptr = dl_line;
+      dl_line = dlm1p1_line;
+      dlm1p1_line = dl_ptr;
+
+      for (m=-el; m<=el; m++) {
+	ind = inds[m + inds_offset];
+	flm[ind] += 
+	  ssign
+	  * elfactor
+	  * w
+	  * dl_line[m+L-1]
+	  * Ftm[t*Ftm_stride + m + Ftm_offset];
+      }
+    }
+  }
+
+  // Free memory.
+  free(dlm1p1_line);
+  free(dl_line);
+  free(thetas);
+  free(weights);
+  free(Ftm);
+  free(inout);
+  free(signs);
+  free(sqrt_tbl);
   free(inds);
 
   // Print finished if verbosity set.
