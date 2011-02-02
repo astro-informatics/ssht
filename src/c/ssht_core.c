@@ -44,9 +44,11 @@ void ssht_core_gl_forward_sov(complex double *flm, complex double *f,
 			      int L, int spin, int verbosity) {
 
   int t, m, el, ind;
-  int Fmt_stride, Fmt_offset, f_stride;
+  int Fmt_stride, Fmt_offset, f_stride;  
   double *dlm1p1_line,  *dl_line;
   double *dl_ptr;
+  int el2pel, inds_offset;
+  int *inds;
   double *sqrt_tbl, *signs;
   complex double *Fmt, *inout;
   double theta, ssign, elfactor;
@@ -59,6 +61,8 @@ void ssht_core_gl_forward_sov(complex double *flm, complex double *f,
   SSHT_ERROR_MEM_ALLOC_CHECK(sqrt_tbl)
   signs = (double*)calloc(L+1, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(signs)
+  inds = (int*)calloc(2*L-1, sizeof(int));
+  SSHT_ERROR_MEM_ALLOC_CHECK(inds)
 
   // Perform precomputations.
   for (el=0; el<=2*(L-1)+1; el++)
@@ -113,6 +117,7 @@ void ssht_core_gl_forward_sov(complex double *flm, complex double *f,
   SSHT_ERROR_MEM_ALLOC_CHECK(dlm1p1_line)
   dl_line = (double*)calloc(2*L-1, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(dl_line)
+  inds_offset = L-1;
   for (el=0; el<=L-1; el++) {
     for (m=-el; m<=el; m++) {
       ssht_sampling_elm2ind(&ind, el, m);
@@ -124,6 +129,9 @@ void ssht_core_gl_forward_sov(complex double *flm, complex double *f,
     w = weights[t];
     for (el=abs(spin); el<=L-1; el++) {
       elfactor = sqrt((double)(2.0*el+1.0)/(4.0*SSHT_PI));
+      el2pel = el *el + el;    
+      for (m=-el; m<=el; m++)
+	inds[m + inds_offset] = el2pel + m; 
 
       // Compute dl line for given spin.
       ssht_dl_beta_kostelec_line_table(dlm1p1_line, dl_line,
@@ -134,8 +142,10 @@ void ssht_core_gl_forward_sov(complex double *flm, complex double *f,
       dl_line = dlm1p1_line;
       dlm1p1_line = dl_ptr;
 
+
       for (m=-el; m<=el; m++) {
-	ssht_sampling_elm2ind(&ind, el, m);
+//	ssht_sampling_elm2ind(&ind, el, m);
+	ind = inds[m + inds_offset];
 	flm[ind] += 
 	  ssign
 	  * elfactor
@@ -155,6 +165,7 @@ void ssht_core_gl_forward_sov(complex double *flm, complex double *f,
   free(inout);
   free(signs);
   free(sqrt_tbl);
+  free(inds);
 
   // Print finished if verbosity set.
   if (verbosity > 0) 
