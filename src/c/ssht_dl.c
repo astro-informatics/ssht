@@ -545,6 +545,147 @@ void ssht_dl_beta_kostelec_line_table(double *dlm1p1_line, double *dl_line,
 
 
 /*!  
+ * Calculates line of d-matrix for all m = -l:l and given mm = -l:l for 
+ * argument beta using the recursion method given in Kostelec and
+ * Rockmore (2010) (see equations (4.5)-(4.9)).  For l>abs(mm), require the
+ * dl plane to be computed already with values for l-1 *and* l-2.
+ * Also takes a table of precomputed square roots of integers and
+ * signs to avoid recomputing them.
+ *
+ * \param[in,out] dlm1p1_line Wigner line.  On input this should be initialised
+ * to the line computed for el-2.  On output this will be replaced
+ * with the computed line for el.
+ * \param[in] dl Wigner plane already computed for el-1.  
+ * \param[in] beta Angle to compute Wigner line for.
+ * \param[in] L Harmonic band-limit.
+ * \param[in] mm Azimuthal harmonic index to compute Wigner line for.
+ * \param[in] el Harmonic index to compute Wigner plane for.
+ * \param[in] sqrt_tbl Precomputed array of square roots.  The table
+ * element at index i should contain the value sqrt(i).  Values from 0
+ * to 2*el must be precomputed (i.e. sqrt_tbl should contian 2*el+1
+ * elements).
+ * \param[in] signs Precomputed array of signs. The array element at
+ * index i should contain the value (-1)^i.  Values from 0
+ * to el must be precomputed (i.e. signs should contian el+1
+ * elements).
+ * \retval none
+ *
+ * \author Jason McEwen
+ */
+void ssht_dl_beta_kostelec_halfline_table(double *dlm1p1_line, double *dl_line, 
+					  double beta, int L, int mm, int el, 
+					  double *sqrt_tbl, double *signs) {
+
+  int offset;
+  double cosb, sinb, coshb, sinhb;
+  double lnAlm, lnAlmm, lnfact2el;
+  int m, elm1;
+  double elr, elm1r;
+  
+  // Compute m offset for accessing dl line.
+  offset = L-1;
+
+  // Compute Wigner plane.
+  if (el < abs(mm)) {
+    // Do nothing (dl line should remain zero).
+    return;
+  }
+  else if (el == 1) {
+
+    cosb = cos(beta);
+    sinb = sin(beta);
+    coshb = cos(beta / 2.0);
+    sinhb = sin(beta / 2.0);
+
+    if (mm == -1) {
+      dlm1p1_line[ 0 + offset] = -sinb / SSHT_SQRT2;
+      dlm1p1_line[ 1 + offset] = sinhb * sinhb;
+    }
+    else if (mm == 0) {
+      dlm1p1_line[ 0 + offset] = cosb;
+      dlm1p1_line[ 1 + offset] = -sinb / SSHT_SQRT2;
+    }
+    else {
+      // mm == +1
+      dlm1p1_line[ 0 + offset] = sinb / SSHT_SQRT2;
+      dlm1p1_line[ 1 + offset] = coshb * coshb;
+    }
+
+  }
+  else if (el == abs(mm)) {
+
+    coshb = cos(beta / 2.0);
+    sinhb = sin(beta / 2.0);
+
+    // Initalise line using equation (4.8) or (4.9) from K&R (2010).
+    if (mm >= 0) {
+
+      // Initialise using equation (4.8), i.e. top line.
+      lnfact2el = logfact(2*el);
+      for (m=0; m<=el; m++) {
+	lnAlm = (lnfact2el - logfact(el+m) - logfact(el-m)) / 2.0;
+	dlm1p1_line[m + offset] = 
+	  exp(lnAlm + (el+m)*log(coshb) + (el-m)*log(sinhb));
+      }
+
+    }
+    else {
+
+      // Initialise using equation (4.9), i.e. bottom line.
+      lnfact2el = logfact(2*el);
+      for (m=0; m<=el; m++) {
+	lnAlm = (lnfact2el - logfact(el+m) - logfact(el-m)) / 2.0;
+	dlm1p1_line[m + offset] = 
+	  signs[el] * signs[abs(m)]
+	  * exp(lnAlm + (el-m)*log(coshb) + (el+m)*log(sinhb));
+      }
+
+    }
+
+  }
+  else {
+
+    cosb = cos(beta);
+    coshb = cos(beta / 2.0);
+    sinhb = sin(beta / 2.0);
+
+    elr = (double) el;
+    elm1 = el - 1;
+    elm1r = (double) elm1;
+
+    // Recuse over line.
+    for (m=0; m<=el-1; m++) {
+
+      // Compute 3-term recursion.
+      dlm1p1_line[m + offset] = 
+	(cosb - m*mm/(elm1r*elr)) * dl_line[m + offset] 
+	- 
+	sqrt_tbl[elm1+m] * sqrt_tbl[elm1-m] * sqrt_tbl[elm1+mm] * sqrt_tbl[elm1-mm] 
+	/ (elm1r * (2.0*elm1r + 1.0))
+	* dlm1p1_line[m + offset];
+      
+      // Perform scaling.
+      dlm1p1_line[m + offset] *= 
+	el * (2*elm1 + 1.0)
+	/ (sqrt_tbl[el-m] * sqrt_tbl[el+m] * sqrt_tbl[el-mm] * sqrt_tbl[el+mm]);
+
+    }
+
+    // Compute edges...
+    lnfact2el = logfact(2*el);
+    lnAlmm = (lnfact2el - logfact(el+mm) - logfact(el-mm)) / 2.0;
+       
+    // Right edge.
+    dlm1p1_line[el + offset] =  
+      signs[el] * signs[abs(mm)]
+      * exp(lnAlmm + (el+mm)*log(coshb) + (el-mm)*log(sinhb));
+
+  }
+
+}
+
+
+/*!  
  * Calculates *eighth* (for m = 0:l and mm = 0:m) of lth plane of a
  * d-matrix for PI/2 using Trapani & Navaza's recursion method.  For
  * l>0, require the dl plane to be computed already with values for

@@ -21,6 +21,9 @@ void ssht_dl_beta_kostelec_full_table(double *dlm1p1, double *dl,
 void ssht_dl_beta_kostelec_line_table(double *dlm1p1_line, double *dl_line, 
 				      double beta, int L, int mm, int el, 
 				      double *sqrt_tbl, double *signs);
+void ssht_dl_beta_kostelec_halfline_table(double *dlm1p1_line, double *dl_line, 
+					  double beta, int L, int mm, int el, 
+					  double *sqrt_tbl, double *signs);
 void ssht_dl_halfpi_trapani_eighth_table(double *dl, int L, 
 					 ssht_dl_size_t dl_size,
 					 int el, double *sqrt_tbl);
