@@ -97,7 +97,7 @@ all:     lib prog test
 
 lib:	 $(SSHTLIB)/lib$(SSHTLIBNM).a
 
-test:    $(SSHTBIN)/ssht_test $(SSHTBIN)/ssht_trapani
+test:    $(SSHTBIN)/ssht_test
 
 runtest: test
 	$(SSHTBIN)/ssht_test 64 0
@@ -174,12 +174,6 @@ $(SSHTBIN)/ssht_test:       $(SSHTINC)/ssht_test.o
 	$(FC)                                          \
 	-o $(SSHTBIN)/ssht_test                          \
 	$(SSHTINC)/ssht_test.o $(LDFLAGS) $(PPFLAGS)
-
-$(SSHTINC)/ssht_trapani.o:     $(SSHTPROG)/ssht_trapani.f90 lib
-$(SSHTBIN)/ssht_trapani:       $(SSHTINC)/ssht_trapani.o
-	$(FC)                                          \
-	-o $(SSHTBIN)/ssht_trapani                          \
-	$(SSHTINC)/ssht_trapani.o $(LDFLAGS) $(PPFLAGS)
 
 $(SSHTINC)/ssht_forward.o:     $(SSHTPROG)/ssht_forward.f90 lib
 $(SSHTBIN)/ssht_forward:       $(SSHTINC)/ssht_forward.o
