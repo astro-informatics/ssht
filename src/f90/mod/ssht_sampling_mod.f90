@@ -196,7 +196,6 @@ contains
   !!   - x: Node positions (i.e. roots of Legendre polynomials) [output].
   !!   - w: Corresponding weights [output].
   !!   - n: Number of points [input].
-  !!   - integral: Value of the evaluated integral [output].
   !
   !! @author Numerical recipes.
   !
