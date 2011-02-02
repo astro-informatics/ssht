@@ -1982,6 +1982,128 @@ void ssht_core_dh_inverse_sov(complex double *f, complex double *flm,
 
 
 /*!  
+ * Compute inverse transform of real scalar signal using direct method
+ * with separation of variables for DH sampling (symmetries for real
+ * signals are exploited).
+ *
+ * \param[out] f Function on sphere.
+ * \param[in] flm Harmonic coefficients.
+ * \param[in] L Harmonic band-limit.
+ * \param[in] spin Spin number.
+ * \param[in] verbosity Verbosiity flag in range [0,5].
+ * \retval none
+ *
+ * \author Jason McEwen
+ */
+void ssht_core_dh_inverse_sov_real(double *f, complex double *flm, 
+				   int L, int verbosity) {
+
+  int t, p, m, el, ind;
+  int ftm_stride, ftm_offset, f_stride;
+  double *dlm1p1_line,  *dl_line;
+  double *dl_ptr;
+  double *sqrt_tbl, *signs;
+  complex double *ftm;
+  complex double *in;
+  double *out;
+  double theta, ssign, elfactor;
+  fftw_plan plan;
+  int spin = 0;
+
+  // Allocate memory.
+  sqrt_tbl = (double*)calloc(2*(L-1)+2, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(sqrt_tbl)
+  signs = (double*)calloc(L+1, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(signs)
+
+  // Perform precomputations.
+  for (el=0; el<=2*(L-1)+1; el++)
+    sqrt_tbl[el] = sqrt((double)el);
+  for (m=0; m<=L-1; m=m+2) {
+    signs[m]   =  1.0;
+    signs[m+1] = -1.0;
+  }
+  ssign = signs[abs(spin)];
+
+  // Print messages depending on verbosity level.
+  if (verbosity > 0) {
+    printf("%s %s\n", SSHT_PROMPT, 
+	   "Computing inverse transform using DH sampling with ");
+    printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
+	   L, ",", spin, ", TRUE)");
+    if (verbosity > 1)
+      printf("%s %s\n", SSHT_PROMPT, 
+	     "Using routine ssht_core_dh_inverse_sov_real...");
+  }
+
+  // Compute ftm.
+  ftm = (complex double*)calloc(2*L*L, sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(ftm)  
+  ftm_stride = L;
+  ftm_offset = 0;
+  dlm1p1_line = (double*)calloc(L, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(dlm1p1_line)
+  dl_line = (double*)calloc(L, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(dl_line)
+  for (t=0; t<=2*L-1; t++) {
+    theta = ssht_sampling_dh_t2theta(t, L);
+    for (el=abs(spin); el<=L-1; el++) {	
+      elfactor = sqrt((double)(2.0*el+1.0)/(4.0*SSHT_PI));
+
+      // Compute half dl line for given spin.     
+      ssht_dl_beta_kostelec_halfline_table(dlm1p1_line, dl_line,
+					   theta, L, -spin, el,
+					   sqrt_tbl, signs);
+      // Switch current and previous dls.
+      dl_ptr = dl_line;
+      dl_line = dlm1p1_line;
+      dlm1p1_line = dl_ptr;
+    
+      for (m=0; m<=el; m++) {	
+	ssht_sampling_elm2ind(&ind, el, m);
+	ftm[t*ftm_stride + m + ftm_offset] +=
+	  ssign 
+	  * elfactor
+	  * dl_line[m]
+	  * flm[ind];
+      }
+    }
+  }
+
+  // Free dl memory.
+  free(dlm1p1_line);
+  free(dl_line);
+
+  // Compute f.   
+  in = (complex double*)calloc(L, sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(in)
+  out = (double*)calloc(2*L-1, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(out)
+  plan = fftw_plan_dft_c2r_1d(2*L-1, in, out, FFTW_MEASURE);
+  f_stride = 2*L-1;
+  for (t=0; t<=2*L-1; t++) {
+    memcpy(in, &ftm[t*ftm_stride], L*sizeof(complex double));
+    fftw_execute_dft_c2r(plan, in, out);
+    for (p=0; p<=2*L-2; p++)
+      f[t*f_stride + p] = out[p];
+  }
+  fftw_destroy_plan(plan);
+
+  // Free memory.  
+  free(ftm);
+  free(in);
+  free(out);
+  free(signs);
+  free(sqrt_tbl);
+  
+  // Print finished if verbosity set.
+  if (verbosity > 0) 
+    printf("%s %s", SSHT_PROMPT, "Inverse transform computed!");  
+
+}
+
+
+/*!  
  * Compute forward transform using Driscoll and Healy quadrature with
  * separation of variables.
  *
@@ -2106,6 +2228,156 @@ void ssht_core_dh_forward_sov(complex double *flm, complex double *f,
   free(dl_line);
   free(Ftm);
   free(inout);
+  free(signs);
+  free(sqrt_tbl);
+  free(inds);
+
+  // Print finished if verbosity set.
+  if (verbosity > 0) 
+    printf("%s %s", SSHT_PROMPT, "Forward transform computed!");  
+
+}
+
+
+/*!  
+ * Compute forward transform of real scalar signal using Driscoll and
+ * Healy quadrature with separation of variables (symmetries for real
+ * signals are exploited).
+ *
+ * \param[out] flm Harmonic coefficients.
+ * \param[in] f Function on sphere.
+ * \param[in] L Harmonic band-limit.
+ * \param[in] spin Spin number.
+ * \param[in] verbosity Verbosiity flag in range [0,5].
+ * \retval none
+ *
+ * \author Jason McEwen
+ */
+void ssht_core_dh_forward_sov_real(complex double *flm, double *f, 
+				   int L, int verbosity) {
+
+  int t, m, el, ind, ind_nm;
+  int f_stride;  
+  double *dlm1p1_line,  *dl_line;
+  double *dl_ptr;
+  int el2pel, inds_offset;
+  int *inds;
+  double *sqrt_tbl, *signs;
+  int Ftm_stride, Ftm_offset;
+  complex double *Ftm;
+  double *in_real;
+  complex double *out;
+  double theta, ssign, elfactor;
+  fftw_plan plan;
+  double w;
+  int spin = 0;
+
+   // Allocate memory.
+  sqrt_tbl = (double*)calloc(2*(L-1)+2, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(sqrt_tbl)
+  signs = (double*)calloc(L+1, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(signs)
+  inds = (int*)calloc(L, sizeof(int));
+  SSHT_ERROR_MEM_ALLOC_CHECK(inds)
+
+  // Perform precomputations.
+  for (el=0; el<=2*(L-1)+1; el++)
+    sqrt_tbl[el] = sqrt((double)el);
+  for (m=0; m<=L-1; m=m+2) {
+    signs[m]   =  1.0;
+    signs[m+1] = -1.0;
+  }
+  ssign = signs[abs(spin)];
+
+ // Print messages depending on verbosity level.
+  if (verbosity > 0) {
+    printf("%s %s\n", SSHT_PROMPT, 
+	   "Computing forward transform using GL sampling with ");
+    printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
+	   L, ",", spin, ", TRUE)");
+    if (verbosity > 1)
+      printf("%s %s\n", SSHT_PROMPT, 
+	     "Using routine ssht_core_gl_forward_sov_real...");
+  }
+
+  // Compute Fourier transform over phi, i.e. compute Ftm.
+  Ftm = (complex double*)calloc(2*L*L, sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(Ftm)
+  Ftm_stride = L;
+  Ftm_offset = 0;
+  f_stride = 2*L-1;
+  in_real = (double*)calloc(2*L-1, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(in_real)
+  out = (complex double*)calloc(L, sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(out)
+  plan = fftw_plan_dft_r2c_1d(2*L-1, in_real, out, FFTW_MEASURE);
+  for (t=0; t<=2*L-1; t++) {
+    memcpy(in_real, &f[t*f_stride], f_stride*sizeof(double));
+    fftw_execute_dft_r2c(plan, in_real, out);
+    for(m=0; m<=L-1; m++) 
+      Ftm[t*Ftm_stride + m + Ftm_offset] = 
+	out[m] * 2.0 * SSHT_PI / (2.0*L-1.0);
+  }
+  free(in_real);
+  free(out);
+  fftw_destroy_plan(plan);
+
+  // Compute flm.
+  dlm1p1_line = (double*)calloc(L, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(dlm1p1_line)
+  dl_line = (double*)calloc(L, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(dl_line)
+  inds_offset = 0;
+  for (el=0; el<=L-1; el++) {
+    for (m=0; m<=el; m++) {
+      ssht_sampling_elm2ind(&ind, el, m);
+      flm[ind] = 0.0;
+    }
+  }
+  for (t=0; t<=2*L-1; t++) {
+    theta = ssht_sampling_dh_t2theta(t, L);
+    w = ssht_sampling_weight_dh(theta, L);
+    for (el=abs(spin); el<=L-1; el++) {
+      elfactor = sqrt((double)(2.0*el+1.0)/(4.0*SSHT_PI));
+      el2pel = el *el + el;    
+      for (m=0; m<=el; m++)
+	inds[m + inds_offset] = el2pel + m; 
+
+      // Compute half dl line for given spin.
+      ssht_dl_beta_kostelec_halfline_table(dlm1p1_line, dl_line,
+					   theta, L, -spin, el,
+					   sqrt_tbl, signs);
+
+      // Switch current and previous dls.
+      dl_ptr = dl_line;
+      dl_line = dlm1p1_line;
+      dlm1p1_line = dl_ptr;
+
+      for (m=0; m<=el; m++) {
+	ind = inds[m + inds_offset];
+	flm[ind] += 
+	  ssign
+	  * elfactor
+	  * w
+	  * dl_line[m]
+	  * Ftm[t*Ftm_stride + m + Ftm_offset];
+      }
+    }
+  }
+
+  // Set flm values for negative m using conjugate symmetry.
+  for (el=abs(spin); el<=L-1; el++) {
+    for (m=1; m<=el; m++) {
+      ssht_sampling_elm2ind(&ind, el, m);
+      ssht_sampling_elm2ind(&ind_nm, el, -m);
+      flm[ind_nm] = signs[m] * conj(flm[ind]);
+    }
+  }
+
+  // Free memory.
+  free(dlm1p1_line);
+  free(dl_line);
+  free(Ftm);
   free(signs);
   free(sqrt_tbl);
   free(inds);

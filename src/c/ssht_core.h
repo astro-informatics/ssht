@@ -33,8 +33,12 @@ void ssht_core_gl_forward_sov_real(complex double *flm, double *f,
 
 void ssht_core_dh_inverse_sov(complex double *f, complex double *flm, 
 				     int L, int spin, int verbosity);
+void ssht_core_dh_inverse_sov_real(double *f, complex double *flm, 
+				   int L, int verbosity);
 void ssht_core_dh_forward_sov(complex double *flm, complex double *f, 
 			      int L, int spin, int verbosity);
+void ssht_core_dh_forward_sov_real(complex double *flm, double *f, 
+				   int L, int verbosity);
 
 
 #endif

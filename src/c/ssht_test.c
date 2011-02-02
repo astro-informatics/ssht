@@ -33,8 +33,8 @@ void ssht_test_gen_flm_real(complex double *flm, int L, int seed);
 int main(int argc, char *argv[]) {
 
   complex double *flm_orig, *flm_syn;
-  complex double *f_mw, *f_dh;
-  double *f_mw_real;
+  complex double *f_mw, *f_gl, *f_dh;
+  double *f_mw_real, *f_gl_real, *f_dh_real;
   int L = 128;
   int spin = 0;
   int irepeat;
@@ -62,11 +62,16 @@ int main(int argc, char *argv[]) {
   SSHT_ERROR_MEM_ALLOC_CHECK(flm_syn)
   f_mw = (complex double*)calloc(L*(2*L-1), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(f_mw)
-  f_mw_real = (double*)calloc(L*(2*L-1), sizeof(double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_real)
+  f_gl = (complex double*)calloc(L*(2*L-1), sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(f_gl)
   f_dh = (complex double*)calloc((2*L)*(2*L-1), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(f_dh)
-
+  f_mw_real = (double*)calloc(L*(2*L-1), sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_real)
+  f_gl_real = (double*)calloc(L*(2*L-1), sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(f_gl_real)
+  f_dh_real = (double*)calloc((2*L)*(2*L-1), sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(f_dh_real)
 
   // Write program name.
   printf("\n");
@@ -86,8 +91,8 @@ int main(int argc, char *argv[]) {
       ssht_test_gen_flm_real(flm_orig, L, seed);
       time_start = clock();
       //ssht_core_mw_inverse_sov_sym_real(f_mw_real, flm_orig, L, verbosity);
-      ssht_core_gl_inverse_sov_real(f_mw_real, flm_orig, L, verbosity);
-
+      //ssht_core_gl_inverse_sov_real(f_mw_real, flm_orig, L, verbosity);
+      ssht_core_dh_inverse_sov_real(f_dh_real, flm_orig, L, verbosity);
 
 
       time_end = clock();
@@ -96,7 +101,8 @@ int main(int argc, char *argv[]) {
 
       time_start = clock();
       //ssht_core_mw_forward_sov_conv_sym_real(flm_syn, f_mw_real, L, verbosity);
-      ssht_core_gl_forward_sov_real(flm_syn, f_mw_real, L, verbosity);
+      //ssht_core_gl_forward_sov_real(flm_syn, f_mw_real, L, verbosity);
+      ssht_core_dh_forward_sov_real(flm_syn, f_dh_real, L, verbosity);
 
 
       time_end = clock();
@@ -167,7 +173,10 @@ int main(int argc, char *argv[]) {
   free(flm_syn);
   free(f_mw);
   free(f_mw_real);
+  free(f_gl);
+  free(f_gl_real);
   free(f_dh);
+  free(f_dh_real);
 
   return 0;
 }
