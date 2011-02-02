@@ -25,27 +25,16 @@ ifeq ($(UNAME), Darwin)
 endif
 
 SSHTDIR  = $(PROGDIR)/ssht
-SSHTLIB  = $(SSHTDIR)/lib
+SSHTLIB  = $(SSHTDIR)/lib/f90
 SSHTLIBNM= ssht
-SSHTINC  = $(SSHTDIR)/include
+SSHTINC  = $(SSHTDIR)/include/f90
 SSHTSRC  = $(SSHTDIR)/src/f90/mod
 SSHTPROG = $(SSHTDIR)/src/f90/prog
-SSHTBIN  = $(SSHTDIR)/bin
-SSHTDOC  = $(SSHTDIR)/doc
+SSHTBIN  = $(SSHTDIR)/bin/f90
+SSHTDOC  = $(SSHTDIR)/doc/f90
 
 FFTWLIB      = $(PROGDIR)/fftw/lib
 FFTWLIBNM    = fftw3
-
-HPIXDIR = $(PROGDIR)/Healpix
-HPIXLIB = $(HPIXDIR)/lib
-HPIXLIBNM= healpix
-HPIXINC = $(HPIXDIR)/include
-
-S2DIR  = $(PROGDIR)/s2
-S2LIB  = $(S2DIR)/lib
-S2LIBNM= s2
-S2INC  = $(S2DIR)/include
-S2DOC  = $(S2DIR)/doc
 
 
 # ======== FFFLAGS ========
