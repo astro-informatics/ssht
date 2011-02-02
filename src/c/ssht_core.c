@@ -1417,6 +1417,7 @@ void ssht_core_gl_inverse_sov(complex double *f, complex double *flm,
 
 }
 
+
 /*!  
  * Compute inverse transform of real scalar signal using direct method
  * with separation of variables for GL sampling (symmetries for real
@@ -1440,16 +1441,12 @@ void ssht_core_gl_inverse_sov_real(double *f, complex double *flm,
   double *dl_ptr;
   double *sqrt_tbl, *signs;
   complex double *ftm;
-//, *inout;
+  complex double *in;
+  double *out;
   double theta, ssign, elfactor;
   fftw_plan plan;
   double *thetas, *weights;
   int spin = 0;
-
-
-complex double *in;
-double *out;
-
 
   // Allocate memory.
   sqrt_tbl = (double*)calloc(2*(L-1)+2, sizeof(double));
@@ -1485,17 +1482,12 @@ double *out;
   ssht_sampling_gl_thetas_weights(thetas, weights, L);
 
   // Compute ftm.
-//  ftm = (complex double*)calloc(L*(2*L-1), sizeof(complex double));
   ftm = (complex double*)calloc(L*L, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(ftm)  
-//  ftm_stride = 2*L-1;
   ftm_stride = L;
-//  ftm_offset = L-1;
   ftm_offset = 0;
-//  dlm1p1_line = (double*)calloc(2*L-1, sizeof(double));
   dlm1p1_line = (double*)calloc(L, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(dlm1p1_line)
-//  dl_line = (double*)calloc(2*L-1, sizeof(double));
   dl_line = (double*)calloc(L, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(dl_line)
   for (t=0; t<=L-1; t++) {
@@ -1503,11 +1495,7 @@ double *out;
     for (el=abs(spin); el<=L-1; el++) {	
       elfactor = sqrt((double)(2.0*el+1.0)/(4.0*SSHT_PI));
 
-      // Compute dl line for given spin.
-      /* ssht_dl_beta_kostelec_line_table(dlm1p1_line, dl_line, */
-      /* 				       theta, L, -spin, el, */
-      /* 				       sqrt_tbl, signs); */
-
+      // Compute half dl line for given spin.     
       ssht_dl_beta_kostelec_halfline_table(dlm1p1_line, dl_line,
 					   theta, L, -spin, el,
 					   sqrt_tbl, signs);
@@ -1516,13 +1504,11 @@ double *out;
       dl_line = dlm1p1_line;
       dlm1p1_line = dl_ptr;
     
-//      for (m=-el; m<=el; m++) {	
       for (m=0; m<=el; m++) {	
 	ssht_sampling_elm2ind(&ind, el, m);
 	ftm[t*ftm_stride + m + ftm_offset] +=
 	  ssign 
 	  * elfactor
-//	  * dl_line[m + L-1]
 	  * dl_line[m]
 	  * flm[ind];
       }
@@ -1538,21 +1524,6 @@ double *out;
   free(weights);
 
   // Compute f.   
-
-//  inout = (complex double*)calloc(2*L-1, sizeof(complex double));
-//  SSHT_ERROR_MEM_ALLOC_CHECK(inout)
-//  f_stride = 2*L-1;
-//  plan = fftw_plan_dft_1d(2*L-1, inout, inout, FFTW_BACKWARD, FFTW_MEASURE);
-//  for (t=0; t<=L-1; t++) {
-//    for (m=0; m<=L-1; m++)
-//      inout[m] = ftm[t*ftm_stride + m + ftm_offset];
-//    for (m=-(L-1); m<=-1; m++)
-//      inout[m+2*L-1] = ftm[t*ftm_stride + m + ftm_offset];
-//    fftw_execute_dft(plan, inout, inout);
-//    for (p=0; p<=2*L-2; p++)
-//      f[t*f_stride + p] = inout[p];
-//  }
-
   in = (complex double*)calloc(L, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(in)
   out = (double*)calloc(2*L-1, sizeof(double));
@@ -1569,7 +1540,6 @@ double *out;
 
   // Free memory.  
   free(ftm);
-//  free(inout);
   free(in);
   free(out);
   free(signs);
@@ -1629,7 +1599,7 @@ void ssht_core_gl_forward_sov(complex double *flm, complex double *f,
   }
   ssign = signs[abs(spin)];
 
- // Print messages depending on verbosity level.
+  // Print messages depending on verbosity level.
   if (verbosity > 0) {
     printf("%s %s\n", SSHT_PROMPT, 
 	   "Computing forward transform using GL sampling with ");
@@ -1753,12 +1723,9 @@ void ssht_core_gl_forward_sov_real(complex double *flm, double *f,
   int *inds;
   double *sqrt_tbl, *signs;
   int Ftm_stride, Ftm_offset;
-  //  complex double *Ftm, *inout;
-
   complex double *Ftm;
-double *in_real;
-complex double *out;
-
+  double *in_real;
+  complex double *out;
   double theta, ssign, elfactor;
   fftw_plan plan;
   double *thetas, *weights;
@@ -1770,7 +1737,7 @@ complex double *out;
   SSHT_ERROR_MEM_ALLOC_CHECK(sqrt_tbl)
   signs = (double*)calloc(L+1, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(signs)
-  inds = (int*)calloc(2*L-1, sizeof(int));
+  inds = (int*)calloc(L, sizeof(int));
   SSHT_ERROR_MEM_ALLOC_CHECK(inds)
 
   // Perform precomputations.
@@ -1801,27 +1768,6 @@ complex double *out;
   ssht_sampling_gl_thetas_weights(thetas, weights, L);
 
   // Compute Fourier transform over phi, i.e. compute Ftm.
-  /* Ftm = (complex double*)calloc(L*(2*L-1), sizeof(complex double)); */
-  /* SSHT_ERROR_MEM_ALLOC_CHECK(Ftm) */
-  /* Ftm_stride = 2*L-1; */
-  /* Ftm_offset = L-1; */
-  /* f_stride = 2*L-1; */
-  /* inout = (complex double*)calloc(2*L-1, sizeof(complex double)); */
-  /* SSHT_ERROR_MEM_ALLOC_CHECK(inout) */
-  /* plan = fftw_plan_dft_1d(2*L-1, inout, inout, FFTW_FORWARD, FFTW_MEASURE); */
-  /* for (t=0; t<=L-1; t++) { */
-  /*   memcpy(inout, &f[t*f_stride], f_stride*sizeof(double complex)); */
-  /*   fftw_execute_dft(plan, inout, inout); */
-  /*   for(m=0; m<=L-1; m++)  */
-  /*     Ftm[t*Ftm_stride + m + Ftm_offset] =  */
-  /* 	inout[m] * 2.0 * SSHT_PI / (2.0*L-1.0) ; */
-  /*   for(m=-(L-1); m<=-1; m++)  */
-  /*     Ftm[t*Ftm_stride + m + Ftm_offset] =  */
-  /* 	inout[m+2*L-1] * 2.0 * SSHT_PI / (2.0*L-1.0); */
-  /* } */
-  /* fftw_destroy_plan(plan); */
-
-  // Compute Fourier transform over phi, i.e. compute Ftm.
   Ftm = (complex double*)calloc(L*L, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Ftm)
   Ftm_stride = L;
@@ -1844,15 +1790,12 @@ complex double *out;
   fftw_destroy_plan(plan);
 
   // Compute flm.
-//  dlm1p1_line = (double*)calloc(2*L-1, sizeof(double));
   dlm1p1_line = (double*)calloc(L, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(dlm1p1_line)
-//  dl_line = (double*)calloc(2*L-1, sizeof(double));
   dl_line = (double*)calloc(L, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(dl_line)
-  inds_offset = L-1;
+  inds_offset = 0;
   for (el=0; el<=L-1; el++) {
-//    for (m=-el; m<=el; m++) {
     for (m=0; m<=el; m++) {
       ssht_sampling_elm2ind(&ind, el, m);
       flm[ind] = 0.0;
@@ -1864,15 +1807,10 @@ complex double *out;
     for (el=abs(spin); el<=L-1; el++) {
       elfactor = sqrt((double)(2.0*el+1.0)/(4.0*SSHT_PI));
       el2pel = el *el + el;    
-//      for (m=-el; m<=el; m++)
       for (m=0; m<=el; m++)
 	inds[m + inds_offset] = el2pel + m; 
 
-      // Compute dl line for given spin.
-      /* ssht_dl_beta_kostelec_line_table(dlm1p1_line, dl_line, */
-      /* 				       theta, L, -spin, el, */
-      /* 				       sqrt_tbl, signs); */
-
+      // Compute half dl line for given spin.
       ssht_dl_beta_kostelec_halfline_table(dlm1p1_line, dl_line,
 					   theta, L, -spin, el,
 					   sqrt_tbl, signs);
@@ -1882,14 +1820,12 @@ complex double *out;
       dl_line = dlm1p1_line;
       dlm1p1_line = dl_ptr;
 
-//      for (m=-el; m<=el; m++) {
       for (m=0; m<=el; m++) {
 	ind = inds[m + inds_offset];
 	flm[ind] += 
 	  ssign
 	  * elfactor
 	  * w
-//	  * dl_line[m+L-1]
 	  * dl_line[m]
 	  * Ftm[t*Ftm_stride + m + Ftm_offset];
       }
@@ -1911,10 +1847,6 @@ complex double *out;
   free(thetas);
   free(weights);
   free(Ftm);
-
-
-//  free(inout);
-
   free(signs);
   free(sqrt_tbl);
   free(inds);
