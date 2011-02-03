@@ -203,10 +203,10 @@ SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_ss2)
 
     ssht_test_gen_flm_complex(flm_orig, L, spin, seed);
     time_start = clock();
-    ssht_core_mw_inverse_sov_sym(f_mw, flm_orig, L, spin, verbosity);    
+    //ssht_core_mw_inverse_sov_sym(f_mw, flm_orig, L, spin, verbosity);    
 
     ssht_core_mw_inverse_sov_sym_ss(f_mw_ss, flm_orig, L, spin, verbosity);    
-        ssht_core_mwdirect_inverse_ss(f_mw_ss2, flm_orig, L, spin, verbosity);    
+    ssht_core_mwdirect_inverse_ss(f_mw_ss2, flm_orig, L, spin, verbosity);    
 
     time_end = clock();
     durations_inverse_mw[irepeat] = (time_end - time_start) / (double)CLOCKS_PER_SEC;

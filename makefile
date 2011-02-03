@@ -1,17 +1,8 @@
 # ======== COMPILER ========
 
-FC      = gfortran
-#FC      = nagfor
-#FC      = g95
-
-ifeq ($(FC),nagfor)
-  OPTNAGFOR = -w=x95 -DNAGFOR
-endif
-ifeq ($(FC),gfortran)
-  OPTGFORTRAN = -m64
-endif
-
-OPT = $(OPTNAGFOR) $(OPTGFORTRAN) -O3 #-g3 -ggdb
+CC      = gcc
+OPT	= -Wall -g
+#OPT	= -Wall -O3
 
 
 # ======== LINKS ========
@@ -25,148 +16,92 @@ ifeq ($(UNAME), Darwin)
 endif
 
 SSHTDIR  = $(PROGDIR)/ssht
-SSHTLIB  = $(SSHTDIR)/lib/f90
+SSHTLIB  = $(SSHTDIR)/lib/c
 SSHTLIBNM= ssht
-SSHTINC  = $(SSHTDIR)/include/f90
-SSHTSRC  = $(SSHTDIR)/src/f90/mod
-SSHTPROG = $(SSHTDIR)/src/f90/prog
-SSHTBIN  = $(SSHTDIR)/bin/f90
-SSHTDOC  = $(SSHTDIR)/doc/f90
+SSHTSRC  = $(SSHTDIR)/src/c
+SSHTBIN  = $(SSHTDIR)/bin/c
+SSHTOBJ  = $(SSHTSRC)
+SSHTINC  = $(SSHTDIR)/include/c
+SSHTDOC  = $(SSHTDIR)/doc/c
 
-FFTWLIB      = $(PROGDIR)/fftw/lib
+FFTWDIR      = $(PROGDIR)/fftw
+FFTWINC	     = $(FFTWDIR)/include
+FFTWLIB      = $(FFTWDIR)/lib
 FFTWLIBNM    = fftw3
 
+vpath %.c $(SSHTSRC)
+vpath %.h $(SSHTSRC)
 
 # ======== FFFLAGS ========
 
-FFLAGS  = -I$(SSHTINC)
+FFLAGS  = -I$(FFTWINC) -I$(SSHTINC)
+
 
 
 # ======== LDFLAGS ========
 
-LDFLAGS = -L$(SSHTLIB) -l$(SSHTLIBNM) \
-          -L$(FFTWLIB) -l$(FFTWLIBNM)
-
-
-# ======== PPFLAGS ========
-
-ifeq ($(FC),nagfor)
-  PPFLAGS = -fpp $(OPT)
-else ifeq ($(FC),g95)
-  PPFLAGS = -cpp $(OPT)
-else ifeq ($(FC),gfortran)
-  PPFLAGS = -x f95-cpp-input $(OPT)
-endif
+LDFLAGS = -L$(SSHTLIB) -l$(SSHTLIBNM) -L$(FFTWLIB) -l$(FFTWLIBNM) -lm
 
 
 # ======== OBJECT FILES TO MAKE ========
 
-SSHTOBJ = $(SSHTINC)/ssht_types_mod.o    \
-          $(SSHTINC)/ssht_error_mod.o    \
-          $(SSHTINC)/ssht_dl_mod.o       \
-          $(SSHTINC)/ssht_sampling_mod.o \
-          $(SSHTINC)/ssht_core_mod.o   
+SSHTOBJS = $(SSHTOBJ)/ssht_sampling.o    \
+          $(SSHTOBJ)/ssht_dl.o          \
+          $(SSHTOBJ)/ssht_core.o
+
+SSHTHEADERS = ssht_types.h     \
+              ssht_error.h     \
+	      ssht_sampling.h  \
+	      ssht_dl.h        \
+	      ssht_core.h
 
 
 # ======== MAKE RULES ========
 
-default: lib
+$(SSHTOBJ)/%.o: %.c $(SSHTHEADERS)
+	$(CC) $(OPT) $(FFLAGS) -c $< -o $@
 
-all:     lib prog test
+.PHONY: test
+test: $(SSHTBIN)/ssht_test
+$(SSHTBIN)/ssht_test: $(SSHTOBJ)/ssht_test.o $(SSHTLIB)/lib$(SSHTLIBNM).a
+	$(CC) $(OPT) $< -o $(SSHTBIN)/ssht_test $(LDFLAGS) 
 
-lib:	 $(SSHTLIB)/lib$(SSHTLIBNM).a
+.PHONY: default
+default: all
 
-test:    $(SSHTBIN)/ssht_test
-
-runtest: test
-	$(SSHTBIN)/ssht_test 64 0
-
-prog:    $(SSHTBIN)/ssht_forward $(SSHTBIN)/ssht_inverse
-
-$(SSHTINC)/%.o: $(SSHTSRC)/%.f90
-	$(FC) $(FFLAGS) $(PPFLAGS) -c $< -o $@ 
-	mv *.mod $(SSHTINC)
-
-$(SSHTINC)/ssht_test.o:     $(SSHTPROG)/ssht_test.f90
-	$(FC) $(FFLAGS) $(PPFLAGS) -c $< -o $@ 
-
-$(SSHTINC)/%.o: $(SSHTPROG)/%.f90
-	$(FC) $(FFLAGS) $(FFLAGSPROG) $(PPFLAGS) -c $< -o $@ 
+.PHONY: all
+all: lib test
 
 
 # Library
 
-$(SSHTLIB)/lib$(SSHTLIBNM).a: $(SSHTOBJ)
-	ar -r $(SSHTLIB)/lib$(SSHTLIBNM).a $(SSHTOBJ)
+.PHONY: lib
+lib: $(SSHTLIB)/lib$(SSHTLIBNM).a
+$(SSHTLIB)/lib$(SSHTLIBNM).a: $(SSHTOBJS)
+	ar -r $(SSHTLIB)/lib$(SSHTLIBNM).a $(SSHTOBJS)
 
 
-# Documentation
+# Documentation 
+
 .PHONY: doc
-doc:	
-	./f90doc_fpp $(SSHTSRC)/*.f90
-	./f90doc_fpp $(SSHTPROG)/*.f90
-	mv *.html $(SSHTDOC)/.
-	./addstyle $(SSHTDOC)/ssht_*
-
+doc:
+	doxygen $(SSHTSRC)/doxygen.config
 .PHONY: cleandoc
 cleandoc:
-	rm -f $(SSHTDOC)/ssht_*.html
-	rm -f $(SSHTDOC)/ran2_dp.html
+	rm -rf $(SSHTDOC)/html
+
 
 # Cleaning up
 
 .PHONY: clean
 clean:	tidy
-	rm -f $(SSHTINC)/*.mod
-	rm -f $(SSHTINC)/*.o
+	rm -f $(SSHTOBJ)/*.o
 	rm -f $(SSHTLIB)/lib$(SSHTLIBNM).a
-	rm -f $(SSHTBIN)/*
+	rm -f $(SSHTBIN)/ssht_test
 
 .PHONY: tidy
 tidy:
-	rm -f *.mod
-	rm -f $(SSHTSRC)/*~ 
-	rm -f $(SSHTPROG)/*~ 
+	rm -f *~ 
 
-
-# Module dependencies
-
-$(SSHTINC)/ssht_types_mod.o: $(SSHTSRC)/ssht_types_mod.f90
-$(SSHTINC)/ssht_error_mod.o: $(SSHTSRC)/ssht_error_mod.f90          \
-                           $(SSHTINC)/ssht_types_mod.o
-$(SSHTINC)/ssht_dl_mod.o:    $(SSHTSRC)/ssht_dl_mod.f90             \
-                           $(SSHTINC)/ssht_types_mod.o
-$(SSHTINC)/ssht_sampling_mod.o:  $(SSHTSRC)/ssht_sampling_mod.f90   \
-                           $(SSHTINC)/ssht_types_mod.o              \
-                           $(SSHTINC)/ssht_error_mod.o
-$(SSHTINC)/ssht_core_mod.o:  $(SSHTSRC)/ssht_core_mod.f90           \
-                           $(SSHTINC)/ssht_types_mod.o              \
-                           $(SSHTINC)/ssht_error_mod.o              \
-                           $(SSHTINC)/ssht_sampling_mod.o           \
-                           $(SSHTINC)/ssht_dl_mod.o       
-
-
-# Program dependencies and compilation
-
-$(SSHTINC)/ssht_test.o:     $(SSHTPROG)/ssht_test.f90 lib
-$(SSHTBIN)/ssht_test:       $(SSHTINC)/ssht_test.o
-	$(FC)                                          \
-	-o $(SSHTBIN)/ssht_test                        \
-	$(SSHTINC)/ssht_test.o                         \
-	$(LDFLAGS) $(PPFLAGS)
-
-$(SSHTINC)/ssht_forward.o:     $(SSHTPROG)/ssht_forward.f90 lib
-$(SSHTBIN)/ssht_forward:       $(SSHTINC)/ssht_forward.o
-	$(FC)                                          \
-	-o $(SSHTBIN)/ssht_forward                     \
-	$(SSHTINC)/ssht_forward.o                      \
-	$(LDFLAGS) $(PPFLAGS)
-
-$(SSHTINC)/ssht_inverse.o:     $(SSHTPROG)/ssht_inverse.f90 lib
-$(SSHTBIN)/ssht_inverse:       $(SSHTINC)/ssht_inverse.o
-	$(FC)                                          \
-	-o $(SSHTBIN)/ssht_inverse                     \
-	$(SSHTINC)/ssht_inverse.o                      \
-	$(LDFLAGS) $(PPFLAGS)
-
-
+.PHONY: cleanall
+cleanall: clean cleandoc
