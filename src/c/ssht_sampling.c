@@ -191,6 +191,45 @@ double ssht_sampling_mw_p2phi(int p, int L) {
 
 
 /*!
+ * Convert theta index to angle for McEwen and Wiaux symmetric
+ * sampling.
+ *
+ * \note
+ *  - t ranges from [0 .. 2*L-1] => 2*L points in (0,2*pi).
+ *
+ * \param[in] t Theta index.
+ * \param[in] L Harmonic band-limit.
+ * \retval theta Theta angle.
+ *
+ * \author Jason McEwen
+ */
+double ssht_sampling_mw_ss_t2theta(int t, int L) {
+
+  return 2.0 * t * SSHT_PI / (2.0 * L);
+
+}
+
+
+/*!
+ * Convert phi index to angle for McEwen and Wiaux symmetric sampling.
+ *
+ * \note
+ *  - p ranges from [0 .. 2*L-2] => 2*L-1 points in [0,2*pi).
+ *
+ * \param[in] p Phi index.
+ * \param[in] L Harmonic band-limit.
+ * \retval phi Phi angle.
+ *
+ * \author Jason McEwen
+ */
+double ssht_sampling_mw_ss_p2phi(int p, int L) {
+
+  return 2.0 * p * SSHT_PI / (2.0*L - 1.0);
+
+}
+
+
+/*!
  * Convert theta index to angle for Driscoll and Healy sampling.
  *
  * \note

@@ -30,13 +30,8 @@ void ssht_test_gen_flm_real(complex double *flm, int L, int seed);
 int main(int argc, char *argv[]) {
 
   complex double *flm_orig, *flm_syn;
-  complex double *f_mw, *f_gl, *f_dh;
-  double *f_mw_real, *f_gl_real, *f_dh_real;
-
-
-complex double *f_mw_ss, *f_mw_ss2;
-
-
+  complex double *f_mw, *f_mw_ss, *f_gl, *f_dh;
+  double *f_mw_real, *f_mw_ss_real, *f_gl_real, *f_dh_real;
 
   int L = 128;
   int spin = 0;
@@ -48,19 +43,25 @@ complex double *f_mw_ss, *f_mw_ss2;
 
   clock_t time_start, time_end;
   double errors_mw[NREPEAT];
+  double errors_mw_ss[NREPEAT];
   double errors_gl[NREPEAT];
   double errors_dh[NREPEAT];
   double errors_mw_real[NREPEAT];
+  double errors_mw_ss_real[NREPEAT];
   double errors_gl_real[NREPEAT];
   double errors_dh_real[NREPEAT];
   double durations_forward_mw[NREPEAT];
   double durations_inverse_mw[NREPEAT];
+  double durations_forward_mw_ss[NREPEAT];
+  double durations_inverse_mw_ss[NREPEAT];
   double durations_forward_gl[NREPEAT];
   double durations_inverse_gl[NREPEAT];
   double durations_forward_dh[NREPEAT];
   double durations_inverse_dh[NREPEAT];
   double durations_forward_mw_real[NREPEAT];
   double durations_inverse_mw_real[NREPEAT];
+  double durations_forward_mw_ss_real[NREPEAT];
+  double durations_inverse_mw_ss_real[NREPEAT];
   double durations_forward_gl_real[NREPEAT];
   double durations_inverse_gl_real[NREPEAT];
   double durations_forward_dh_real[NREPEAT];
@@ -77,25 +78,20 @@ complex double *f_mw_ss, *f_mw_ss2;
   SSHT_ERROR_MEM_ALLOC_CHECK(flm_syn)
   f_mw = (complex double*)calloc(L*(2*L-1), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(f_mw)
+  f_mw_ss = (complex double*)calloc((L+1)*(2*L-1), sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_ss)
   f_gl = (complex double*)calloc(L*(2*L-1), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(f_gl)
   f_dh = (complex double*)calloc((2*L)*(2*L-1), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(f_dh)
   f_mw_real = (double*)calloc(L*(2*L-1), sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_real)
+  f_mw_ss_real = (double*)calloc((L+1)*(2*L-1), sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_ss_real)
   f_gl_real = (double*)calloc(L*(2*L-1), sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(f_gl_real)
   f_dh_real = (double*)calloc((2*L)*(2*L-1), sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(f_dh_real)
-
-
-
-f_mw_ss = (complex double*)calloc((L+1)*(2*L-1), sizeof(complex double));
-SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_ss)
-f_mw_ss2 = (complex double*)calloc((L+1)*(2*L-1), sizeof(complex double));
-SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_ss2)
-//not freed currenctly
-
 
   // Write program name.
   printf("\n");
@@ -203,19 +199,12 @@ SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_ss2)
 
     ssht_test_gen_flm_complex(flm_orig, L, spin, seed);
     time_start = clock();
-    //ssht_core_mw_inverse_sov_sym(f_mw, flm_orig, L, spin, verbosity);    
-
-    ssht_core_mw_inverse_sov_sym_ss(f_mw_ss, flm_orig, L, spin, verbosity);    
-    ssht_core_mwdirect_inverse_ss(f_mw_ss2, flm_orig, L, spin, verbosity);    
-
+    ssht_core_mw_inverse_sov_sym(f_mw, flm_orig, L, spin, verbosity);    
     time_end = clock();
     durations_inverse_mw[irepeat] = (time_end - time_start) / (double)CLOCKS_PER_SEC;
 
     time_start = clock();
-    //ssht_core_mw_forward_sov_conv_sym(flm_syn, f_mw, L, spin, verbosity);
-    ssht_core_mw_forward_sov_conv_sym_ss(flm_syn, f_mw_ss, L, spin, verbosity);
-
-
+    ssht_core_mw_forward_sov_conv_sym(flm_syn, f_mw, L, spin, verbosity);    
     time_end = clock();
     durations_forward_mw[irepeat] = (time_end - time_start) / (double)CLOCKS_PER_SEC;
 
@@ -230,6 +219,34 @@ SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_ss2)
 	   durations_forward_mw[irepeat]);
     printf(" error                = %40.5e\n\n", 
 	   errors_mw[irepeat]);
+
+    // =========================================================================
+    // MW SS
+    printf("MW SS test no. %d\n", irepeat);
+
+    ssht_test_gen_flm_complex(flm_orig, L, spin, seed);
+    time_start = clock();
+    //ssht_core_mw_inverse_sov_sym_ss(f_mw_ss, flm_orig, L, spin, verbosity);    
+    ssht_core_mwdirect_inverse_ss(f_mw_ss, flm_orig, L, spin, verbosity);    
+    time_end = clock();
+    durations_inverse_mw_ss[irepeat] = (time_end - time_start) / (double)CLOCKS_PER_SEC;
+
+    time_start = clock();
+    ssht_core_mw_forward_sov_conv_sym_ss(flm_syn, f_mw_ss, L, spin, verbosity);
+    time_end = clock();
+    durations_forward_mw_ss[irepeat] = (time_end - time_start) / (double)CLOCKS_PER_SEC;
+
+    errors_mw_ss[irepeat] = 0.0;
+    for (i = 0; i < L*L; i++)
+	errors_mw_ss[irepeat] = 
+	  MAX(cabs(flm_orig[i] - flm_syn[i]), errors_mw_ss[irepeat]);
+
+    printf(" duration_inverse (s) = %40.4f\n", 
+	   durations_inverse_mw_ss[irepeat]);
+    printf(" duration_forward (s) = %40.4f\n", 
+	   durations_forward_mw_ss[irepeat]);
+    printf(" error                = %40.5e\n\n", 
+	   errors_mw_ss[irepeat]);
 
     // =========================================================================
     // GL
@@ -332,6 +349,14 @@ SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_ss2)
   tmp = 0.0; for (i=0; i<NREPEAT; i++) tmp += errors_mw[i];
   printf(" Average max error                  = %26.5e\n\n", tmp/(double)NREPEAT);
 
+  printf("MW SS\n");
+  tmp = 0.0; for (i=0; i<NREPEAT; i++) tmp += durations_forward_mw_ss[i];
+  printf(" Average forward transform time (s) = %26.4f\n", tmp/(double)NREPEAT);
+  tmp = 0.0; for (i=0; i<NREPEAT; i++) tmp += durations_inverse_mw_ss[i];
+  printf(" Average inverse transform time (s) = %26.4f\n", tmp/(double)NREPEAT);
+  tmp = 0.0; for (i=0; i<NREPEAT; i++) tmp += errors_mw_ss[i];
+  printf(" Average max error                  = %26.5e\n\n", tmp/(double)NREPEAT);
+
   printf("GL\n");
   tmp = 0.0; for (i=0; i<NREPEAT; i++) tmp += durations_forward_gl[i];
   printf(" Average forward transform time (s) = %26.4f\n", tmp/(double)NREPEAT);
@@ -352,7 +377,9 @@ SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_ss2)
   free(flm_orig);
   free(flm_syn);
   free(f_mw);
+  free(f_mw_ss);
   free(f_mw_real);
+  free(f_mw_ss_real);
   free(f_gl);
   free(f_gl_real);
   free(f_dh);

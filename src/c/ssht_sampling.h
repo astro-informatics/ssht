@@ -10,6 +10,8 @@ void ssht_sampling_gl_thetas_weights(double *thetas, double *weights, int L);
 
 double ssht_sampling_mw_t2theta(int t, int L);
 double ssht_sampling_mw_p2phi(int p, int L);
+double ssht_sampling_mw_ss_t2theta(int t, int L);
+double ssht_sampling_mw_ss_p2phi(int p, int L);
 double ssht_sampling_dh_t2theta(int t, int L);
 double ssht_sampling_dh_p2phi(int p, int L);
 double ssht_sampling_gl_p2phi(int p, int L);

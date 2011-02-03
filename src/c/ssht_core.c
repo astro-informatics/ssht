@@ -20,7 +20,7 @@
 
 
 //============================================================================
-// MW algorithms
+// MW SS algorithms
 //============================================================================
 
 void ssht_core_mwdirect_inverse_ss(complex double *f, complex double *flm, 
@@ -66,9 +66,7 @@ void ssht_core_mwdirect_inverse_ss(complex double *f, complex double *flm,
   dl_offset = ssht_dl_get_offset(L, SSHT_DL_FULL);
   dl_stride = ssht_dl_get_stride(L, SSHT_DL_FULL);    
   for (t=0; t<=L; t++) {
-    //theta = ssht_sampling_mw_t2theta(t, L);   
-    theta = 2.0 * SSHT_PI * t / (2.0 * L);
-
+    theta = ssht_sampling_mw_ss_t2theta(t, L);   
     for (el=abs(spin); el<=L-1; el++) {	
       elfactor = sqrt((double)(2.0*el+1.0)/(4.0*SSHT_PI));
       if (el!=0 && el==abs(spin)) {
@@ -120,7 +118,6 @@ void ssht_core_mw_inverse_sov_sym_ss(complex double *f, complex double *flm,
   int el2pel, inds_offset;
   int *inds;
   double ssign, elfactor;
-  complex double mmfactor;
   double *dl;
   int dl_offset, dl_stride;
   complex double *exps;
@@ -319,12 +316,7 @@ void ssht_core_mw_forward_sov_conv_sym_ss(complex double *flm, complex double *f
   int exps_offset;
   int elmmsign, elssign;
   int spinneg;
-
-
-complex double *inout2;
-fftw_plan plan2;
- int Gmm_stride, Gmm_offset;
-
+  int Gmm_stride, Gmm_offset;
 
   // Allocate memory.
   sqrt_tbl = (double*)calloc(2*(L-1)+2, sizeof(double));
@@ -367,17 +359,14 @@ fftw_plan plan2;
   // Compute Fourier transform over phi, i.e. compute Fmt.
   // Note that t index (second index) is increased in size by one 
   // compared to usual sampling.
-// Fmt = (complex double*)calloc((2*L-1)*(2*L-1), sizeof(complex double));
   Fmt = (complex double*)calloc((2*L-1)*(2*L), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmt)
-//  Fmt_stride = 2*L-1;
   Fmt_stride = 2*L;
   Fmt_offset = L-1;
   f_stride = 2*L-1;
   inout = (complex double*)calloc(2*L-1, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
   plan = fftw_plan_dft_1d(2*L-1, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
-//  for (t=0; t<=L-1; t++) {
   for (t=0; t<=L; t++) {
     memcpy(inout, &f[t*f_stride], f_stride*sizeof(double complex));
     fftw_execute_dft(plan, inout, inout);
@@ -386,12 +375,10 @@ fftw_plan plan2;
     for(m=-(L-1); m<=-1; m++) 
       Fmt[(m+Fmt_offset)*Fmt_stride + t] = inout[m+2*L-1] / (2.0*L-1.0);
   }
+  fftw_destroy_plan(plan);
+  free(inout);
 
   // Extend Fmt periodically.
-  /* for (m=-(L-1); m<=L-1; m++)  */
-  /*   for (t=L; t<=2*L-2; t++)  */
-  /*     Fmt[(m+Fmt_offset)*Fmt_stride + t] =  */
-  /* 	signs[abs(m)] * ssign * Fmt[(m+Fmt_offset)*Fmt_stride + (2*L-2-t)]; */
   for (m=-(L-1); m<=L-1; m++) 
     for (t=L+1; t<=2*L-1; t++) 
       Fmt[(m+Fmt_offset)*Fmt_stride + t] = 
@@ -399,47 +386,24 @@ fftw_plan plan2;
 
   // Compute Fourier transform over theta, i.e. compute Fmm.
   // Note that mm index (second index) is increased in size by one.
-//  Fmm = (complex double*)calloc((2*L-1)*(2*L-1), sizeof(complex double));
   Fmm = (complex double*)calloc((2*L-1)*(2*L), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmm)
-//  Fmm_stride = 2*L-1;
   Fmm_stride = 2*L;
   Fmm_offset = L-1;
-
-  inout2 = (complex double*)calloc(2*L, sizeof(complex double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(inout2)
-  plan2 = fftw_plan_dft_1d(2*L, inout2, inout2, FFTW_FORWARD, FFTW_MEASURE);
-
+  inout = (complex double*)calloc(2*L, sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(inout)
+  plan = fftw_plan_dft_1d(2*L, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
   for (m=-(L-1); m<=L-1; m++) {
-//    memcpy(inout, &Fmt[(m+Fmt_offset)*Fmt_stride], Fmt_stride*sizeof(complex double));
-    memcpy(inout2, &Fmt[(m+Fmt_offset)*Fmt_stride], Fmt_stride*sizeof(complex double));
-//    fftw_execute_dft(plan, inout, inout);
-    fftw_execute_dft(plan2, inout2, inout2);
-    /* for(mm=0; mm<=L-1; mm++)  */
-    /*   Fmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset] =  */
-    /* 	inout[mm] / (2.0*L-1.0); */
-    /* for(mm=-(L-1); mm<=-1; mm++)  */
-    /*   Fmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset] =  */
-    /* 	inout[mm+2*L-1] / (2.0*L-1.0); */
+    memcpy(inout, &Fmt[(m+Fmt_offset)*Fmt_stride], Fmt_stride*sizeof(complex double));
+    fftw_execute_dft(plan, inout, inout);
     for(mm=0; mm<=L-1; mm++) 
       Fmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset] = 
-	inout2[mm] / (2.0*L);
+	inout[mm] / (2.0*L);
     for(mm=-(L-1); mm<=-1; mm++) 
       Fmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset] = 
-	inout2[mm+2*L-1+1] / (2.0*L);
+	inout[mm+2*L-1+1] / (2.0*L);
   }
   fftw_destroy_plan(plan);
-  free(inout);
-
-
-fftw_destroy_plan(plan2);
-free(inout2);
-
-  // Apply phase modulation to account for sampling offset.
-  /* for (m=-(L-1); m<=L-1; m++) */
-  /*   for (mm=-(L-1); mm<=L-1; mm++) */
-  /*     Fmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset] *=  */
-  /* 	expsmm[mm + exps_offset]; */
 
   // Compute weights.
   w = (double complex*)calloc(4*L-3, sizeof(complex double));
@@ -640,6 +604,10 @@ free(inout2);
 }
 
 
+
+//============================================================================
+// MW algorithms
+//============================================================================
 
 
 /*!  
