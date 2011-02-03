@@ -131,10 +131,6 @@ void ssht_core_mw_inverse_sov_sym_ss(complex double *f, complex double *flm,
   int Fmm_offset, Fmm_stride, fext_stride;
   fftw_plan plan;
 
-fftw_plan plan_ss;
-complex double *Fmm_ss, *fext_ss;
-
-
   // Allocate memory.
   sqrt_tbl = (double*)calloc(2*(L-1)+2, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(sqrt_tbl)
@@ -170,7 +166,9 @@ complex double *Fmm_ss, *fext_ss;
   }
 
   // Compute Fmm.
-  Fmm = (complex double*)calloc((2*L-1)*(2*L-1), sizeof(complex double));
+  // Note that mm index (first index) is increased in size by one and
+  // will be filled with zeros by calloc.
+  Fmm = (complex double*)calloc((2*L)*(2*L-1), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmm)
   Fmm_offset = L-1;
   Fmm_stride = 2*L-1;    
@@ -237,9 +235,6 @@ complex double *Fmm_ss, *fext_ss;
   // Free dl memory.
   free(dl);
 
-
-
-
   // Use symmetry to compute Fmm for negative mm.
   for (mm=-(L-1); mm<=-1; mm++) 
     for (m=-(L-1); m<=L-1; m++) 
@@ -247,108 +242,47 @@ complex double *Fmm_ss, *fext_ss;
 	signs[abs(m)] * ssign 
 	* Fmm[(-mm + Fmm_offset)*Fmm_stride + m + Fmm_offset];
 
-  // Apply phase modulation to account for sampling offset.
-  /* for (mm=-(L-1); mm<=L-1; mm++) { */
-  /*   mmfactor = cexp(I*mm*SSHT_PI/(2.0*L-1.0)); */
-  /*   for (m=-(L-1); m<=L-1; m++)  */
-  /*     Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset] *=  */
-  /* 	mmfactor; */
-  /* } */
-
-
-
-  // increase mm by one.
-  Fmm_ss = (complex double*)calloc((2*L)*(2*L-1), sizeof(complex double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(Fmm_ss)
-  memcpy(Fmm_ss, Fmm, (2*L-1)*(2*L-1)*sizeof(complex double));
-  /* for (mm=-(L-1); mm<=L-1; mm++)  */
-  /*   for (m=-(L-1); m<=L-1; m++) */
-  /*     Fmm_ss[] = Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset]; */
-  // since used calloc Fmm_ss will already be filled with zeros in final row.
-  /* mm = L */
-  /* for (m=-(L-1); m<=L-1; m++)  */
-  /*   Fmm_ss[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset] = 0 */
-
-
-
-
-
   // Allocate space for function values.
-  fext = (complex double*)calloc((2*L-1)*(2*L-1), sizeof(complex double));
-fext_ss = (complex double*)calloc((2*L)*(2*L-1), sizeof(complex double));
+  // Note that t index (first index) of fext is increased in size by
+  // one compared to usual sampling.
+  fext = (complex double*)calloc((2*L)*(2*L-1), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(fext)
-SSHT_ERROR_MEM_ALLOC_CHECK(fext_ss)
   fext_stride = 2*L-1;
 
-  // Apply spatial shift.
-  for (mm=0; mm<=L-1; mm++)
+  // Apply spatial shift.  
+  for (mm=0; mm<=L; mm++)
     for (m=0; m<=L-1; m++)
       fext[mm*fext_stride + m] = 
 	Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset];
-  for (mm=0; mm<=L-1; mm++)
+  for (mm=0; mm<=L; mm++)
     for (m=-(L-1); m<=-1; m++)
       fext[mm*fext_stride + (m+2*L-1)] = 
 	Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset];
   for (mm=-(L-1); mm<=-1; mm++)
     for (m=0; m<=L-1; m++)
-      fext[(mm + 2*L-1)*fext_stride + m] = 
+      fext[(mm + 2*L-1+1)*fext_stride + m] = 
 	Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset];
   for (mm=-(L-1); mm<=-1; mm++)
     for (m=-(L-1); m<=-1; m++)
-      fext[(mm+2*L-1)*fext_stride + m + 2*L-1] = 
+      fext[(mm+2*L-1+1)*fext_stride + m + 2*L-1] = 
 	Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset];
 
-  for (mm=0; mm<=L; mm++)
-    for (m=0; m<=L-1; m++)
-      fext_ss[mm*fext_stride + m] = 
-	Fmm_ss[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset];
-  for (mm=0; mm<=L; mm++)
-    for (m=-(L-1); m<=-1; m++)
-      fext_ss[mm*fext_stride + (m+2*L-1)] = 
-	Fmm_ss[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset];
-  for (mm=-(L-1); mm<=-1; mm++)
-    for (m=0; m<=L-1; m++)
-      fext_ss[(mm + 2*L-1+1)*fext_stride + m] = 
-	Fmm_ss[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset];
-  for (mm=-(L-1); mm<=-1; mm++)
-    for (m=-(L-1); m<=-1; m++)
-      fext_ss[(mm+2*L-1+1)*fext_stride + m + 2*L-1] = 
-	Fmm_ss[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset];
-
-
-
-
-  // Perform 2D FFT.  
-  plan = fftw_plan_dft_2d(2*L-1, 2*L-1, Fmm, Fmm, 
+  // Perform 2D FFT.    
+  plan = fftw_plan_dft_2d(2*L, 2*L-1, Fmm, Fmm, 
 			  FFTW_BACKWARD, FFTW_ESTIMATE);
   fftw_execute_dft(plan, fext, fext);
   fftw_destroy_plan(plan);
 
-  plan_ss = fftw_plan_dft_2d(2*L, 2*L-1, Fmm_ss, Fmm_ss, 
-			  FFTW_BACKWARD, FFTW_ESTIMATE);
-  fftw_execute_dft(plan_ss, fext_ss, fext_ss);
-  fftw_destroy_plan(plan_ss);
-
   // Free Fmm memory.
   free(Fmm);
-
-  free(Fmm_ss);
   
   // Extract f from version of f extended to the torus (fext).
-//  memcpy(f, fext, L*(2*L-1)*sizeof(complex double));
-
-  memcpy(f, fext_ss, (L+1)*(2*L-1)*sizeof(complex double));
-
-  /* Memcpy equivalent to:
-  for (t=0; t<=L-1; t++)
-    for (p=0; p<=2*L-2; p++)
-      f[t*fext_stride + p] = fext[t*fext_stride + p];
-  */
+  // Note that t index (first index) of fext is increased in size by
+  // one compared to usual sampling.
+  memcpy(f, fext, (L+1)*(2*L-1)*sizeof(complex double));
 
   // Free fext memory.
   free(fext);
-
-free(fext_ss);
 
   // Print finished if verbosity set.
   if (verbosity > 0) 
