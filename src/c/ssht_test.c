@@ -143,7 +143,7 @@ int main(int argc, char *argv[]) {
 
       ssht_core_mw_inverse_sov_sym_ss_real(f_mw_ss_real, flm_orig, L, verbosity);      
 
-      ssht_core_mw_inverse_sov_sym_ss(f_mw_ss, flm_orig, L, spin, verbosity);    
+      //ssht_core_mw_inverse_sov_sym_ss(f_mw_ss, flm_orig, L, spin, verbosity);    
 
 
 
@@ -152,7 +152,7 @@ int main(int argc, char *argv[]) {
 	(time_end - time_start) / (double)CLOCKS_PER_SEC;
       
       time_start = clock();
-      ssht_core_mw_forward_sov_conv_sym_real(flm_syn, f_mw_ss_real, L, verbosity);      
+      ssht_core_mw_forward_sov_conv_sym_ss_real(flm_syn, f_mw_ss_real, L, verbosity);      
       time_end = clock();
       durations_forward_mw_ss_real[irepeat] = 
 	(time_end - time_start) / (double)CLOCKS_PER_SEC;
