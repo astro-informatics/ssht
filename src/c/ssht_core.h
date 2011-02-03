@@ -5,6 +5,10 @@
 #include <complex.h>
 
 
+void ssht_core_mw_inverse_sov_sym_ss(complex double *f, complex double *flm, 
+				     int L, int spin, int verbosity);
+
+
 void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm, 
 				  int L, int spin, int verbosity);
 void ssht_core_mw_inverse_sov_sym_real(double *f, complex double *flm, 

@@ -32,6 +32,12 @@ int main(int argc, char *argv[]) {
   complex double *flm_orig, *flm_syn;
   complex double *f_mw, *f_gl, *f_dh;
   double *f_mw_real, *f_gl_real, *f_dh_real;
+
+
+complex double *f_mw_ss, *f_mw_ss2;
+
+
+
   int L = 128;
   int spin = 0;
   int irepeat;
@@ -81,6 +87,15 @@ int main(int argc, char *argv[]) {
   SSHT_ERROR_MEM_ALLOC_CHECK(f_gl_real)
   f_dh_real = (double*)calloc((2*L)*(2*L-1), sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(f_dh_real)
+
+
+
+f_mw_ss = (complex double*)calloc((L+1)*(2*L-1), sizeof(complex double));
+SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_ss)
+f_mw_ss2 = (complex double*)calloc((L+1)*(2*L-1), sizeof(complex double));
+SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_ss2)
+//not freed currenctly
+
 
   // Write program name.
   printf("\n");
@@ -189,6 +204,10 @@ int main(int argc, char *argv[]) {
     ssht_test_gen_flm_complex(flm_orig, L, spin, seed);
     time_start = clock();
     ssht_core_mw_inverse_sov_sym(f_mw, flm_orig, L, spin, verbosity);    
+
+    ssht_core_mw_inverse_sov_sym_ss(f_mw_ss, flm_orig, L, spin, verbosity);    
+        ssht_core_mwdirect_inverse_ss(f_mw_ss2, flm_orig, L, spin, verbosity);    
+
     time_end = clock();
     durations_inverse_mw[irepeat] = (time_end - time_start) / (double)CLOCKS_PER_SEC;
 
