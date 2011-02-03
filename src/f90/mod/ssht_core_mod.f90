@@ -1851,14 +1851,12 @@ contains
 !!$    fext(0:2*L-2, 0:2*L-2) = Fmm(-(L-1):L-1,-(L-1):L-1)
 
     ! Perform 2D FFT.
-    ! ** NOTE THAT 2D FFTW SWITCHES DIMENSIONS! HENCE TRANSPOSE BELOW. **
     call dfftw_plan_dft_2d(fftw_plan, 2*L-1, 2*L-1, fext(0:2*L-2,0:2*L-2), &
          fext(0:2*L-2,0:2*L-2), FFTW_BACKWARD, FFTW_ESTIMATE)
     call dfftw_execute_dft(fftw_plan, fext(0:2*L-2,0:2*L-2), fext(0:2*L-2,0:2*L-2))
     call dfftw_destroy_plan(fftw_plan)
 
     ! Extract f from version of f extended to the torus (fext).
-    ! Note transpose due to 2D FFTW (see comment above)!
     ! Also note that additional phase modulation is again applied to 
     ! account for sampling offset.
     f(0:L-1, 0:2*L-2) = transpose(fext(0:2*L-2, 0:L-1)) !&
@@ -2012,14 +2010,12 @@ contains
 !!$    fext(0:2*L-2, 0:2*L-2) = Fmm(-(L-1):L-1,-(L-1):L-1)
 
     ! Perform 2D FFT.
-    ! ** NOTE THAT 2D FFTW SWITCHES DIMENSIONS! HENCE TRANSPOSE BELOW. **
     call dfftw_plan_dft_2d(fftw_plan, 2*L-1, 2*L-1, fext(0:2*L-2,0:2*L-2), &
          fext(0:2*L-2,0:2*L-2), FFTW_BACKWARD, FFTW_ESTIMATE)
     call dfftw_execute_dft(fftw_plan, fext(0:2*L-2,0:2*L-2), fext(0:2*L-2,0:2*L-2))
     call dfftw_destroy_plan(fftw_plan)
 
     ! Extract f from version of f extended to the torus (fext).
-    ! Note transpose due to 2D FFTW (see comment above)!
     ! Also note that additional phase modulation is again applied to 
     ! account for sampling offset.
     f(0:L-1, 0:2*L-2) = transpose(fext(0:2*L-2, 0:L-1))! &
@@ -2175,14 +2171,12 @@ contains
     fext(0:L-1, L:2*L-2) = Fmm(0:L-1,-(L-1):-1)
 
     ! Perform 2D FFT.
-    ! ** NOTE THAT 2D FFTW SWITCHES DIMENSIONS! HENCE TRANSPOSE BELOW. **
     call dfftw_plan_dft_c2r_2d(fftw_plan, 2*L-1, 2*L-1, fext(0:L-1,0:2*L-2), &
          fext_real(0:2*L-2,0:2*L-2), FFTW_ESTIMATE)
     call dfftw_execute_dft_c2r(fftw_plan, fext(0:L-1,0:2*L-2), fext_real(0:2*L-2,0:2*L-2))
     call dfftw_destroy_plan(fftw_plan)
 
     ! Extract f from version of f extended to the torus (fext).
-    ! Note transpose due to 2D FFTW (see comment above)!
     ! Also note that additional phase modulation is again applied to 
     ! account for sampling offset.
     f(0:L-1, 0:2*L-2) = transpose(fext_real(0:2*L-2, 0:L-1))
@@ -2388,7 +2382,6 @@ contains
     fext(L:2*L-2, L:2*L-2) = Fmm(-(L-1):-1,-(L-1):-1)
 
     ! Perform 2D FFT.
-    ! ** NOTE THAT 2D FFTW SWITCHES DIMENSIONS! HENCE TRANSPOSE BELOW. **
     call dfftw_plan_dft_2d(fftw_plan, 2*L-1, 2*L-1, fext(0:2*L-2,0:2*L-2), &
          fext(0:2*L-2,0:2*L-2), FFTW_BACKWARD, FFTW_ESTIMATE)
     call dfftw_execute_dft(fftw_plan, fext(0:2*L-2,0:2*L-2), fext(0:2*L-2,0:2*L-2))
@@ -2528,7 +2521,6 @@ contains
     fext(L:2*L-2, L:2*L-2) = Fmm(-(L-1):-1,-(L-1):-1)
 
     ! Perform 2D FFT.
-    ! ** NOTE THAT 2D FFTW SWITCHES DIMENSIONS! HENCE TRANSPOSE BELOW. **
     call dfftw_plan_dft_2d(fftw_plan, 2*L-1, 2*L-1, fext(0:2*L-2,0:2*L-2), &
          fext(0:2*L-2,0:2*L-2), FFTW_BACKWARD, FFTW_ESTIMATE)
     call dfftw_execute_dft(fftw_plan, fext(0:2*L-2,0:2*L-2), fext(0:2*L-2,0:2*L-2))
@@ -2678,7 +2670,6 @@ contains
     fext(0:L-1, L:2*L-2) = Fmm(0:L-1,-(L-1):-1)
 
     ! Perform 2D FFT.
-    ! ** NOTE THAT 2D FFTW SWITCHES DIMENSIONS! HENCE TRANSPOSE BELOW. **
     call dfftw_plan_dft_c2r_2d(fftw_plan, 2*L-1, 2*L-1, fext(0:L-1,0:2*L-2), &
          fext_real(0:2*L-2,0:2*L-2), FFTW_ESTIMATE)
     call dfftw_execute_dft_c2r(fftw_plan, fext(0:L-1,0:2*L-2), fext_real(0:2*L-2,0:2*L-2))
@@ -3814,15 +3805,13 @@ contains
 !!$    end do
 
     ! Compute Fmm for even and odd extensions by 2D FFT.
-    ! ** NOTE THAT 2D FFTW SWITCHES DIMENSIONS! HENCE TRANSPOSE BELOW. **
     call dfftw_plan_dft_2d(fftw_plan, 2*L-1, 2*L-1, fe(0:2*L-2,0:2*L-2), &
          fe(0:2*L-2,0:2*L-2), FFTW_FORWARD, FFTW_ESTIMATE)
     call dfftw_execute_dft(fftw_plan, fe(0:2*L-2,0:2*L-2), fe(0:2*L-2,0:2*L-2))
     call dfftw_execute_dft(fftw_plan, fo(0:2*L-2,0:2*L-2), fo(0:2*L-2,0:2*L-2))
     call dfftw_destroy_plan(fftw_plan)
 
-! If apply phase shift above just copy Fmm (and transpose 
-! to account for 2D FFT).
+! If apply phase shift above just copy Fmm.
 !!$    Fmme(-(L-1):L-1, -(L-1):L-1) = transpose(fe(0:2*L-2,0:2*L-2))
 !!$    Fmmo(-(L-1):L-1, -(L-1):L-1) = transpose(fo(0:2*L-2,0:2*L-2))
 
@@ -3988,15 +3977,13 @@ contains
 !!$    end do
 
     ! Compute Fmm for even and odd extensions by 2D FFT.
-    ! ** NOTE THAT 2D FFTW SWITCHES DIMENSIONS! HENCE TRANSPOSE BELOW. **
     call dfftw_plan_dft_2d(fftw_plan_fwd, 2*L-1, 2*L-1, fe(0:2*L-2,0:2*L-2), &
          fe(0:2*L-2,0:2*L-2), FFTW_FORWARD, FFTW_ESTIMATE)
     call dfftw_execute_dft(fftw_plan_fwd, fe(0:2*L-2,0:2*L-2), fe(0:2*L-2,0:2*L-2))
     call dfftw_execute_dft(fftw_plan_fwd, fo(0:2*L-2,0:2*L-2), fo(0:2*L-2,0:2*L-2))
     call dfftw_destroy_plan(fftw_plan_fwd)
 
-! If apply phase shift above just copy Fmm (and transpose 
-! to account for 2D FFT).
+! If apply phase shift above just copy Fmm.
 !!$    Fmme(-(L-1):L-1, -(L-1):L-1) = transpose(fe(0:2*L-2,0:2*L-2))
 !!$    Fmmo(-(L-1):L-1, -(L-1):L-1) = transpose(fo(0:2*L-2,0:2*L-2))
 
@@ -4259,15 +4246,13 @@ contains
 !!$    end do
 
     ! Compute Fmm for even and odd extensions by 2D FFT.
-    ! ** NOTE THAT 2D FFTW SWITCHES DIMENSIONS! HENCE TRANSPOSE BELOW. **
     call dfftw_plan_dft_2d(fftw_plan_fwd, 2*L-1, 2*L-1, fe(0:2*L-2,0:2*L-2), &
          fe(0:2*L-2,0:2*L-2), FFTW_FORWARD, FFTW_ESTIMATE)
     call dfftw_execute_dft(fftw_plan_fwd, fe(0:2*L-2,0:2*L-2), fe(0:2*L-2,0:2*L-2))
     call dfftw_execute_dft(fftw_plan_fwd, fo(0:2*L-2,0:2*L-2), fo(0:2*L-2,0:2*L-2))
     call dfftw_destroy_plan(fftw_plan_fwd)
 
-! If apply phase shift above just copy Fmm (and transpose 
-! to account for 2D FFT).
+! If apply phase shift above just copy Fmm.
 !!$    Fmme(-(L-1):L-1, -(L-1):L-1) = transpose(fe(0:2*L-2,0:2*L-2))
 !!$    Fmmo(-(L-1):L-1, -(L-1):L-1) = transpose(fo(0:2*L-2,0:2*L-2))
 
