@@ -134,6 +134,42 @@ int main(int argc, char *argv[]) {
 	     errors_mw_real[irepeat]);
 
       // =========================================================================
+      // MW SS real spin=0
+      printf("MW SS real test no. %d\n", irepeat);
+
+      ssht_test_gen_flm_real(flm_orig, L, seed);
+      time_start = clock();
+
+
+      ssht_core_mw_inverse_sov_sym_ss_real(f_mw_ss_real, flm_orig, L, verbosity);      
+
+      ssht_core_mw_inverse_sov_sym_ss(f_mw_ss, flm_orig, L, spin, verbosity);    
+
+
+
+      time_end = clock();
+      durations_inverse_mw_ss_real[irepeat] = 
+	(time_end - time_start) / (double)CLOCKS_PER_SEC;
+      
+      time_start = clock();
+      ssht_core_mw_forward_sov_conv_sym_real(flm_syn, f_mw_ss_real, L, verbosity);      
+      time_end = clock();
+      durations_forward_mw_ss_real[irepeat] = 
+	(time_end - time_start) / (double)CLOCKS_PER_SEC;
+
+      errors_mw_ss_real[irepeat] = 0.0;
+      for (i = 0; i < L*L; i++)
+	errors_mw_ss_real[irepeat] = 
+	  MAX(cabs(flm_orig[i] - flm_syn[i]), errors_mw_ss_real[irepeat]);
+
+      printf(" duration_inverse (s) = %40.4f\n", 
+	     durations_inverse_mw_ss_real[irepeat]);
+      printf(" duration_forward (s) = %40.4f\n", 
+	     durations_forward_mw_ss_real[irepeat]);
+      printf(" error                = %40.5e\n\n", 
+	     errors_mw_ss_real[irepeat]);
+
+      // =========================================================================
       // GL real spin=0
       printf("GL real test no. %d\n", irepeat);
 
@@ -226,8 +262,8 @@ int main(int argc, char *argv[]) {
 
     ssht_test_gen_flm_complex(flm_orig, L, spin, seed);
     time_start = clock();
-    //ssht_core_mw_inverse_sov_sym_ss(f_mw_ss, flm_orig, L, spin, verbosity);    
-    ssht_core_mwdirect_inverse_ss(f_mw_ss, flm_orig, L, spin, verbosity);    
+    ssht_core_mw_inverse_sov_sym_ss(f_mw_ss, flm_orig, L, spin, verbosity);    
+    //ssht_core_mwdirect_inverse_ss(f_mw_ss, flm_orig, L, spin, verbosity);    
     time_end = clock();
     durations_inverse_mw_ss[irepeat] = (time_end - time_start) / (double)CLOCKS_PER_SEC;
 
@@ -321,6 +357,14 @@ int main(int argc, char *argv[]) {
     tmp = 0.0; for (i=0; i<NREPEAT; i++) tmp += durations_inverse_mw_real[i];
     printf(" Average inverse transform time (s) = %26.4f\n", tmp/(double)NREPEAT);
     tmp = 0.0; for (i=0; i<NREPEAT; i++) tmp += errors_mw_real[i];
+    printf(" Average max error                  = %26.5e\n\n", tmp/(double)NREPEAT);
+
+    printf("MW SS real\n");
+    tmp = 0.0; for (i=0; i<NREPEAT; i++) tmp += durations_forward_mw_ss_real[i];
+    printf(" Average forward transform time (s) = %26.4f\n", tmp/(double)NREPEAT);
+    tmp = 0.0; for (i=0; i<NREPEAT; i++) tmp += durations_inverse_mw_ss_real[i];
+    printf(" Average inverse transform time (s) = %26.4f\n", tmp/(double)NREPEAT);
+    tmp = 0.0; for (i=0; i<NREPEAT; i++) tmp += errors_mw_ss_real[i];
     printf(" Average max error                  = %26.5e\n\n", tmp/(double)NREPEAT);
 
     printf("GL real\n");
