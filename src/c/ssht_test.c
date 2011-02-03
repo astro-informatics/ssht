@@ -212,7 +212,10 @@ SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_ss2)
     durations_inverse_mw[irepeat] = (time_end - time_start) / (double)CLOCKS_PER_SEC;
 
     time_start = clock();
-    ssht_core_mw_forward_sov_conv_sym(flm_syn, f_mw, L, spin, verbosity);
+    //ssht_core_mw_forward_sov_conv_sym(flm_syn, f_mw, L, spin, verbosity);
+    ssht_core_mw_forward_sov_conv_sym_ss(flm_syn, f_mw_ss, L, spin, verbosity);
+
+
     time_end = clock();
     durations_forward_mw[irepeat] = (time_end - time_start) / (double)CLOCKS_PER_SEC;
 
