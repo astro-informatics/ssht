@@ -139,14 +139,7 @@ int main(int argc, char *argv[]) {
 
       ssht_test_gen_flm_real(flm_orig, L, seed);
       time_start = clock();
-
-
       ssht_core_mw_inverse_sov_sym_ss_real(f_mw_ss_real, flm_orig, L, verbosity);      
-
-      //ssht_core_mw_inverse_sov_sym_ss(f_mw_ss, flm_orig, L, spin, verbosity);    
-
-
-
       time_end = clock();
       durations_inverse_mw_ss_real[irepeat] = 
 	(time_end - time_start) / (double)CLOCKS_PER_SEC;
