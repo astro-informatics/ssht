@@ -1,8 +1,8 @@
 # ======== COMPILER ========
 
 CC      = gcc
-OPT	= -Wall -g
-#OPT	= -Wall -O3
+#OPT	= -Wall -g
+OPT	= -Wall -O3
 
 
 # ======== LINKS ========
@@ -46,8 +46,8 @@ LDFLAGS = -L$(SSHTLIB) -l$(SSHTLIBNM) -L$(FFTWLIB) -l$(FFTWLIBNM) -lm
 # ======== OBJECT FILES TO MAKE ========
 
 SSHTOBJS = $(SSHTOBJ)/ssht_sampling.o    \
-          $(SSHTOBJ)/ssht_dl.o          \
-          $(SSHTOBJ)/ssht_core.o
+           $(SSHTOBJ)/ssht_dl.o          \
+           $(SSHTOBJ)/ssht_core.o
 
 SSHTHEADERS = ssht_types.h     \
               ssht_error.h     \
@@ -65,6 +65,10 @@ $(SSHTOBJ)/%.o: %.c $(SSHTHEADERS)
 test: $(SSHTBIN)/ssht_test
 $(SSHTBIN)/ssht_test: $(SSHTOBJ)/ssht_test.o $(SSHTLIB)/lib$(SSHTLIBNM).a
 	$(CC) $(OPT) $< -o $(SSHTBIN)/ssht_test $(LDFLAGS) 
+
+.PHONY: runtest
+runtest: test
+	$(SSHTBIN)/ssht_test 64 0
 
 .PHONY: default
 default: all
@@ -88,7 +92,7 @@ doc:
 	doxygen $(SSHTSRC)/doxygen.config
 .PHONY: cleandoc
 cleandoc:
-	rm -rf $(SSHTDOC)/html
+	rm -f $(SSHTDOC)/html/*
 
 
 # Cleaning up

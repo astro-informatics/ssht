@@ -8,7 +8,7 @@ ifeq ($(FC),nagfor)
   OPTNAGFOR = -w=x95 -DNAGFOR
 endif
 ifeq ($(FC),gfortran)
-  OPTGFORTRAN = -m64
+  OPTGFORTRAN = -m64 
 endif
 
 OPT = $(OPTNAGFOR) $(OPTGFORTRAN) -O3 #-g3 -ggdb
@@ -31,15 +31,26 @@ SSHTINC  = $(SSHTDIR)/include/f90
 SSHTSRC  = $(SSHTDIR)/src/f90/mod
 SSHTPROG = $(SSHTDIR)/src/f90/prog
 SSHTBIN  = $(SSHTDIR)/bin/f90
-SSHTDOC  = $(SSHTDIR)/doc/f90
+SSHTOBJ  = $(SSHTINC)
+SSHTDOC  = $(SSHTDIR)/doc/f90/html
 
 FFTWLIB      = $(PROGDIR)/fftw/lib
 FFTWLIBNM    = fftw3
 
+vpath %.f90 $(SSHTSRC)
+vpath %.f90 $(SSHTPROG)
+
 
 # ======== FFFLAGS ========
 
-FFLAGS  = -I$(SSHTINC)
+ifeq ($(FC),nagfor)
+  FFLAGSNAGFOR = -mdir $(SSHTINC)
+endif
+ifeq ($(FC),gfortran)
+  FFLAGSGFORTRAN = -J$(SSHTINC)
+endif
+
+FFLAGS  = -I$(SSHTINC) $(FFLAGSNAGFOR) $(FFLAGSGFORTRAN)
 
 
 # ======== LDFLAGS ========
@@ -61,46 +72,45 @@ endif
 
 # ======== OBJECT FILES TO MAKE ========
 
-SSHTOBJ = $(SSHTINC)/ssht_types_mod.o    \
-          $(SSHTINC)/ssht_error_mod.o    \
-          $(SSHTINC)/ssht_dl_mod.o       \
-          $(SSHTINC)/ssht_sampling_mod.o \
-          $(SSHTINC)/ssht_core_mod.o   
+SSHTOBJS = $(SSHTOBJ)/ssht_types_mod.o    \
+           $(SSHTOBJ)/ssht_error_mod.o    \
+           $(SSHTOBJ)/ssht_dl_mod.o       \
+           $(SSHTOBJ)/ssht_sampling_mod.o \
+           $(SSHTOBJ)/ssht_core_mod.o   
 
 
 # ======== MAKE RULES ========
 
+$(SSHTOBJ)/%.o: %.f90
+	$(FC) $(FFLAGS) $(FFLAGSPROG) $(PPFLAGS) -c $< -o $@ 
+
+.PHONY: default
 default: lib
 
+.PHONY: all
 all:     lib prog test
 
-lib:	 $(SSHTLIB)/lib$(SSHTLIBNM).a
-
+.PHONY: test
 test:    $(SSHTBIN)/ssht_test
 
+.PHONY: runtest
 runtest: test
 	$(SSHTBIN)/ssht_test 64 0
 
+.PHONY: prog
 prog:    $(SSHTBIN)/ssht_forward $(SSHTBIN)/ssht_inverse
-
-$(SSHTINC)/%.o: $(SSHTSRC)/%.f90
-	$(FC) $(FFLAGS) $(PPFLAGS) -c $< -o $@ 
-	mv *.mod $(SSHTINC)
-
-$(SSHTINC)/ssht_test.o:     $(SSHTPROG)/ssht_test.f90
-	$(FC) $(FFLAGS) $(PPFLAGS) -c $< -o $@ 
-
-$(SSHTINC)/%.o: $(SSHTPROG)/%.f90
-	$(FC) $(FFLAGS) $(FFLAGSPROG) $(PPFLAGS) -c $< -o $@ 
 
 
 # Library
 
-$(SSHTLIB)/lib$(SSHTLIBNM).a: $(SSHTOBJ)
-	ar -r $(SSHTLIB)/lib$(SSHTLIBNM).a $(SSHTOBJ)
+.PHONY: lib
+lib:	 $(SSHTLIB)/lib$(SSHTLIBNM).a
+$(SSHTLIB)/lib$(SSHTLIBNM).a: $(SSHTOBJS)
+	ar -r $(SSHTLIB)/lib$(SSHTLIBNM).a $(SSHTOBJS)
 
 
 # Documentation
+
 .PHONY: doc
 doc:	
 	./f90doc_fpp $(SSHTSRC)/*.f90
@@ -113,60 +123,62 @@ cleandoc:
 	rm -f $(SSHTDOC)/ssht_*.html
 	rm -f $(SSHTDOC)/ran2_dp.html
 
+
 # Cleaning up
 
 .PHONY: clean
 clean:	tidy
-	rm -f $(SSHTINC)/*.mod
-	rm -f $(SSHTINC)/*.o
+	rm -f $(SSHTOBJ)/*.mod
+	rm -f $(SSHTOBJ)/*.o
 	rm -f $(SSHTLIB)/lib$(SSHTLIBNM).a
 	rm -f $(SSHTBIN)/*
 
 .PHONY: tidy
 tidy:
-	rm -f *.mod
 	rm -f $(SSHTSRC)/*~ 
 	rm -f $(SSHTPROG)/*~ 
 
+.PHONY: cleanall
+cleanall: clean cleandoc
 
 # Module dependencies
 
-$(SSHTINC)/ssht_types_mod.o: $(SSHTSRC)/ssht_types_mod.f90
-$(SSHTINC)/ssht_error_mod.o: $(SSHTSRC)/ssht_error_mod.f90          \
-                           $(SSHTINC)/ssht_types_mod.o
-$(SSHTINC)/ssht_dl_mod.o:    $(SSHTSRC)/ssht_dl_mod.f90             \
-                           $(SSHTINC)/ssht_types_mod.o
-$(SSHTINC)/ssht_sampling_mod.o:  $(SSHTSRC)/ssht_sampling_mod.f90   \
-                           $(SSHTINC)/ssht_types_mod.o              \
-                           $(SSHTINC)/ssht_error_mod.o
-$(SSHTINC)/ssht_core_mod.o:  $(SSHTSRC)/ssht_core_mod.f90           \
-                           $(SSHTINC)/ssht_types_mod.o              \
-                           $(SSHTINC)/ssht_error_mod.o              \
-                           $(SSHTINC)/ssht_sampling_mod.o           \
-                           $(SSHTINC)/ssht_dl_mod.o       
+$(SSHTOBJ)/ssht_types_mod.o: $(SSHTSRC)/ssht_types_mod.f90
+$(SSHTOBJ)/ssht_error_mod.o: $(SSHTSRC)/ssht_error_mod.f90          \
+                           $(SSHTOBJ)/ssht_types_mod.o
+$(SSHTOBJ)/ssht_dl_mod.o:    $(SSHTSRC)/ssht_dl_mod.f90             \
+                           $(SSHTOBJ)/ssht_types_mod.o
+$(SSHTOBJ)/ssht_sampling_mod.o:  $(SSHTSRC)/ssht_sampling_mod.f90   \
+                           $(SSHTOBJ)/ssht_types_mod.o              \
+                           $(SSHTOBJ)/ssht_error_mod.o
+$(SSHTOBJ)/ssht_core_mod.o:  $(SSHTSRC)/ssht_core_mod.f90           \
+                           $(SSHTOBJ)/ssht_types_mod.o              \
+                           $(SSHTOBJ)/ssht_error_mod.o              \
+                           $(SSHTOBJ)/ssht_sampling_mod.o           \
+                           $(SSHTOBJ)/ssht_dl_mod.o       
 
 
 # Program dependencies and compilation
 
-$(SSHTINC)/ssht_test.o:     $(SSHTPROG)/ssht_test.f90 lib
-$(SSHTBIN)/ssht_test:       $(SSHTINC)/ssht_test.o
+$(SSHTOBJ)/ssht_test.o:     $(SSHTPROG)/ssht_test.f90 $(SSHTLIB)/lib$(SSHTLIBNM).a
+$(SSHTBIN)/ssht_test:       $(SSHTOBJ)/ssht_test.o
 	$(FC)                                          \
 	-o $(SSHTBIN)/ssht_test                        \
-	$(SSHTINC)/ssht_test.o                         \
+	$(SSHTOBJ)/ssht_test.o                         \
 	$(LDFLAGS) $(PPFLAGS)
 
-$(SSHTINC)/ssht_forward.o:     $(SSHTPROG)/ssht_forward.f90 lib
-$(SSHTBIN)/ssht_forward:       $(SSHTINC)/ssht_forward.o
+$(SSHTOBJ)/ssht_forward.o:     $(SSHTPROG)/ssht_forward.f90 $(SSHTLIB)/lib$(SSHTLIBNM).a
+$(SSHTBIN)/ssht_forward:       $(SSHTOBJ)/ssht_forward.o
 	$(FC)                                          \
 	-o $(SSHTBIN)/ssht_forward                     \
-	$(SSHTINC)/ssht_forward.o                      \
+	$(SSHTOBJ)/ssht_forward.o                      \
 	$(LDFLAGS) $(PPFLAGS)
 
-$(SSHTINC)/ssht_inverse.o:     $(SSHTPROG)/ssht_inverse.f90 lib
-$(SSHTBIN)/ssht_inverse:       $(SSHTINC)/ssht_inverse.o
+$(SSHTOBJ)/ssht_inverse.o:     $(SSHTPROG)/ssht_inverse.f90 $(SSHTLIB)/lib$(SSHTLIBNM).a
+$(SSHTBIN)/ssht_inverse:       $(SSHTOBJ)/ssht_inverse.o
 	$(FC)                                          \
 	-o $(SSHTBIN)/ssht_inverse                     \
-	$(SSHTINC)/ssht_inverse.o                      \
+	$(SSHTOBJ)/ssht_inverse.o                      \
 	$(LDFLAGS) $(PPFLAGS)
 
 
