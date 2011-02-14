@@ -10,11 +10,26 @@ void ssht_sampling_gl_thetas_weights(double *thetas, double *weights, int L);
 
 double ssht_sampling_mw_t2theta(int t, int L);
 double ssht_sampling_mw_p2phi(int p, int L);
+int ssht_sampling_mw_n(int L);
+int ssht_sampling_mw_ntheta(int L);
+int ssht_sampling_mw_nphi(int L);
+
 double ssht_sampling_mw_ss_t2theta(int t, int L);
 double ssht_sampling_mw_ss_p2phi(int p, int L);
+int ssht_sampling_mw_ss_n(int L);
+int ssht_sampling_mw_ss_ntheta(int L);
+int ssht_sampling_mw_ss_nphi(int L);
+
 double ssht_sampling_dh_t2theta(int t, int L);
 double ssht_sampling_dh_p2phi(int p, int L);
+int ssht_sampling_dh_n(int L);
+int ssht_sampling_dh_ntheta(int L);
+int ssht_sampling_dh_nphi(int L);
+
 double ssht_sampling_gl_p2phi(int p, int L);
+int ssht_sampling_gl_n(int L);
+int ssht_sampling_gl_ntheta(int L);
+int ssht_sampling_gl_nphi(int L);
 
 extern inline void ssht_sampling_elm2ind(int *ind, int el, int m);
 extern inline void ssht_sampling_ind2elm(int *el, int *m, int ind);

@@ -90,11 +90,19 @@ double ssht_sampling_weight_dh(double theta_t, int L) {
 void ssht_sampling_gl_thetas_weights(double *thetas, double *weights, int L) {
    
   int t;
+  double tmp;
 
   gauleg(-1.0, 1.0, thetas, weights, L);
 
   for (t=0; t<=L-1; t++)
     thetas[t] = acos(thetas[t]);
+
+  // Reorder thetas array.
+  for (t=0; t<=(L-1)/2; t++) {
+    tmp = thetas[t];
+    thetas[t] = thetas[L-1-t];
+    thetas[L-1-t] = tmp;
+  }
 
 }
 
@@ -153,6 +161,24 @@ void gauleg(double x1, double x2, double *x, double *w, int n) {
 
 
 /*!
+ * Compute number of theta samples for McEwen and Wiaux sampling.
+ * 
+ * /note Computes number of samples in (0,pi], *not* over extended
+ * domain.
+ *
+ * \param[in] L Harmonic band-limit.
+ * \retval ntheta Number of theta samples.
+ *
+ * \author Jason McEwen
+ */
+int ssht_sampling_mw_ntheta(int L) {
+
+  return L;
+
+}
+
+
+/*!
  * Convert theta index to angle for McEwen and Wiaux sampling.
  *
  * \note
@@ -172,6 +198,21 @@ double ssht_sampling_mw_t2theta(int t, int L) {
 
 
 /*!
+ * Compute number of phi samples for McEwen and Wiaux sampling.
+ *
+ * \param[in] L Harmonic band-limit.
+ * \retval nphi Number of phi samples.
+ *
+ * \author Jason McEwen
+ */
+int ssht_sampling_mw_nphi(int L) {
+
+  return 2*L-1;
+
+}
+
+
+/*!
  * Convert phi index to angle for McEwen and Wiaux sampling.
  *
  * \note
@@ -186,6 +227,24 @@ double ssht_sampling_mw_t2theta(int t, int L) {
 double ssht_sampling_mw_p2phi(int p, int L) {
 
   return 2.0 * p * SSHT_PI / (2.0*L - 1.0);
+
+}
+
+
+/*!
+ * Compute total number of samples for McEwen and Wiaux sampling.
+ * 
+ * /note Computes number of samples on sphere, *not* over extended
+ * domain.
+ *
+ * \param[in] L Harmonic band-limit.
+ * \retval n Number of samples.
+ *
+ * \author Jason McEwen
+ */
+int ssht_sampling_mw_n(int L) {
+
+  return (L-1)*(2*L-1) + 1;
 
 }
 
@@ -211,6 +270,25 @@ double ssht_sampling_mw_ss_t2theta(int t, int L) {
 
 
 /*!
+ * Compute number of theta samples for McEwen and Wiaux symmetric
+ * sampling.
+ * 
+ * /note Computes number of samples in [0,pi], *not* over extended
+ * domain.
+ *
+ * \param[in] L Harmonic band-limit.
+ * \retval ntheta Number of theta samples.
+ *
+ * \author Jason McEwen
+ */
+int ssht_sampling_mw_ss_ntheta(int L) {
+
+  return L+1;
+
+}
+
+
+/*!
  * Convert phi index to angle for McEwen and Wiaux symmetric sampling.
  *
  * \note
@@ -225,6 +303,41 @@ double ssht_sampling_mw_ss_t2theta(int t, int L) {
 double ssht_sampling_mw_ss_p2phi(int p, int L) {
 
   return 2.0 * p * SSHT_PI / (2.0*L - 1.0);
+
+}
+
+
+/*!
+ * Compute number of phi samples for McEwen and Wiaux symmetric
+ * sampling.
+ *
+ * \param[in] L Harmonic band-limit.
+ * \retval nphi Number of phi samples.
+ *
+ * \author Jason McEwen
+ */
+int ssht_sampling_mw_ss_nphi(int L) {
+
+  return 2*L-1;
+
+}
+
+
+/*!
+ * Compute total number of samples for McEwen and Wiaux symmetric
+ * sampling.
+ * 
+ * /note Computes number of samples on sphere, *not* over extended
+ * domain.
+ *
+ * \param[in] L Harmonic band-limit.
+ * \retval n Number of samples.
+ *
+ * \author Jason McEwen
+ */
+int ssht_sampling_mw_ss_n(int L) {
+
+  return (L-1)*(2*L-1) + 2;
 
 }
 
@@ -249,6 +362,21 @@ double ssht_sampling_dh_t2theta(int t, int L) {
 
 
 /*!
+ * Compute number of theta samples for Driscoll and Healy sampling.
+ *
+ * \param[in] L Harmonic band-limit.
+ * \retval ntheta Number of theta samples.
+ *
+ * \author Jason McEwen
+ */
+int ssht_sampling_dh_ntheta(int L) {
+
+  return 2*L;
+
+}
+
+
+/*!
  * Convert phi index to angle for Driscoll and Healy sampling.
  *
  * \note
@@ -268,6 +396,51 @@ double ssht_sampling_dh_p2phi(int p, int L) {
 
 
 /*!
+ * Compute number of phi samples for Driscoll and Healy sampling.
+ *
+ * \param[in] L Harmonic band-limit.
+ * \retval nphi Number of phi samples.
+ *
+ * \author Jason McEwen
+ */
+int ssht_sampling_dh_nphi(int L) {
+
+  return 2*L-1;
+
+}
+
+
+/*!
+ * Compute total number of samples for Driscoll and Healy sampling.
+ * 
+ * \param[in] L Harmonic band-limit.
+ * \retval n Number of samples.
+ *
+ * \author Jason McEwen
+ */
+int ssht_sampling_dh_n(int L) {
+
+  return 2*L*(2*L-1);
+
+}
+
+
+/*!
+ * Compute number of theta samples for Gauss-Legendre sampling.
+ *
+ * \param[in] L Harmonic band-limit.
+ * \retval ntheta Number of theta samples.
+ *
+ * \author Jason McEwen
+ */
+int ssht_sampling_gl_ntheta(int L) {
+
+  return L;
+
+}
+
+
+/*!
  * Convert phi index to angle for Gauss-Legendre sampling.
  *
  * \note
@@ -282,6 +455,36 @@ double ssht_sampling_dh_p2phi(int p, int L) {
 double ssht_sampling_gl_p2phi(int p, int L) {
 
   return 2.0 * p * SSHT_PI / (2.0*L - 1.0);
+
+}
+
+
+/*!
+ * Compute number of phi samples for Gauss-Legendre sampling.
+ *
+ * \param[in] L Harmonic band-limit.
+ * \retval nphi Number of phi samples.
+ *
+ * \author Jason McEwen
+ */
+int ssht_sampling_gl_nphi(int L) {
+
+  return 2*L-1;
+
+}
+
+
+/*!
+ * Compute total number of samples for Gauss-Legendre sampling.
+ *
+ * \param[in] L Harmonic band-limit.
+ * \retval n Number of samples.
+ *
+ * \author Jason McEwen
+ */
+int ssht_sampling_gl_n(int L) {
+
+  return L*(2*L-1);
 
 }
 
