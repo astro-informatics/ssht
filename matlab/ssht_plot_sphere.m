@@ -11,17 +11,19 @@ function ssht_plot_sphere(f, L, varargin)
 %
 % Options consist of parameter type and value pairs.  Valid options
 % include:
-%  'Method'          = { 'MW'       [McEwen & Wiaux sampling (default)],
-%                        'MWSS'     [McEwen & Wiaux symmetric sampling],
-%                        'DH'       [Driscoll & Healy sampling],
-%                        'GL'       [Gauss-Legendre sampling] }
-%  'Type'            = { colour     [generate colour plot (default)],
-%                        parametric [generate parametric plot] }
-%  'Close'           = { true       [close plot in phi (default)],
-%                        false      [do not close plot in phi] }
-%  'PlotSamples'     = { false      [do not plot sample positions (default)],
-%                        true       [plot sample positions] }
-%  'ParametricScale' = scale        [scaling for parametric plot (default=0.5)]
+%  'Method'          = { 'MW'         [McEwen & Wiaux sampling (default)],
+%                        'MWSS'       [McEwen & Wiaux symmetric sampling],
+%                        'DH'         [Driscoll & Healy sampling],
+%                        'GL'         [Gauss-Legendre sampling] }
+%  'Type'            = { 'colour'     [generate colour plot (default)],
+%                        'parametric' [generate parametric plot] }
+%  'Close'           = { true         [close plot in phi (default)],
+%                        false        [do not close plot in phi] }
+%  'PlotSamples'     = { false        [do not plot sample positions (default)],
+%                        true         [plot sample positions] }
+%  'ParametricScale' = scale          [scaling for parametric plot (default=0.5)]
+%  'Lighting'        = { false        [do not light plot (default)],
+%                        true         [light plot] }
 
 % Parse arguments.
 p = inputParser;
@@ -33,6 +35,7 @@ p.addParamValue('Method', 'MW', @ischar);
 p.addParamValue('Close', true, @islogical);
 p.addParamValue('PlotSamples', false, @islogical);
 p.addParamValue('ParametricScale', 0.5, @isnumeric);
+p.addParamValue('Lighting', false, @islogical);
 p.parse(f, L, varargin{:});
 args = p.Results;
 
@@ -88,7 +91,11 @@ end
 axis([-1,1,-1,1,-1,1]);
 view([-1,1,1]);
 axis equal;
-%axis off; 
-%light; lighting phong; %camzoom(1.3);
+if args.Lighting
+  axis off; 
+  light; 
+  lighting phong; 
+  camzoom(1.3);
+end
 
 

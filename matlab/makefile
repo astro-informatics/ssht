@@ -15,21 +15,24 @@ MFLAGS 		= -cxx
 #FC = /usr/bin/gfortran-4.3 -m64 -fPIC
 CC = gcc #-Wall -pedantic -no-cpp-precomp
 C_OPTIMIZE_SWITCH = -O2 ## For GCC
-INC = -I${MLABINC} -I../include/c
-LIB = -L${MLABLIB} -L../lib/c -lssht
+INC = -I${MLABINC} -I../include/c -I../../fftw/include
+LIB = -L${MLABLIB} -L../lib/c -lssht -L../../fftw/lib -lfftw3
 CFLAGS = ${C_OPTIMISE_SWITCH} ${INC} ${LIB}
 
-all: arrayProduct.${MXSFX} ssht_sampling_mex.${MXSFX}
+all: arrayProduct.${MXSFX} ssht_sampling_mex.${MXSFX} ssht_inverse_mex.${MXSFX}
 
 arrayProduct.${MXSFX}: arrayProduct.o
-	${MEX} ${MFLAGS} arrayProduct.o -L../lib/c -lssht
+	${MEX} ${MFLAGS} arrayProduct.o ${LIB}
 
 ssht_sampling_mex.${MXSFX}: ssht_sampling_mex.o
-	${MEX} ${MFLAGS} ssht_sampling_mex.o -L../lib/c -lssht
+	${MEX} ${MFLAGS} ssht_sampling_mex.o ${LIB}
+
+ssht_inverse_mex.${MXSFX}: ssht_inverse_mex.o
+	${MEX} ${MFLAGS} ssht_inverse_mex.o ${LIB}
 
 
 %.o : %.c
-	${CC} -c ${CFLAGS} $<
+	${CC} -c ${CFLAGS} $< ${INC}
 
 #timestwo.o: timestwo.F
 #	${FC} -c ${CFLAGS} timestwo.F	
@@ -37,3 +40,4 @@ ssht_sampling_mex.${MXSFX}: ssht_sampling_mex.o
 clean:
 	rm -f arrayProduct.o arrayProduct.${MXSFX}
 	rm -f ssht_sampling_mex.o ssht_sampling_mex.${MXSFX}
+	rm -f ssht_inverse_mex.o ssht_inverse_mex.${MXSFX}
