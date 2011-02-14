@@ -50,7 +50,7 @@ if nargout >= 4
   varargout(2) = {ntheta};
 end
 if nargout >= 5
-  varargout(3) = {ntheta};
+  varargout(3) = {nphi};
 end
 
   
