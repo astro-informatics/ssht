@@ -17,7 +17,7 @@ function [thetas, phis, varargout] = ssht_sampling(L, varargin)
 %               'DH'   [Driscoll & Healy sampling],
 %               'GL'   [Gauss-Legendre sampling] }
 %  'Grid'   = { false  [return theta and phi vectors (default)],
-%               true   [return theta and phi grids],}
+%               true   [return theta and phi grids] }
 % 
 % May optionally return total number of samples n, number of theta
 % samples ntheta and number of phi samples nphi through usage
@@ -32,7 +32,7 @@ p.addRequired('L', @isnumeric);
 p.addParamValue('Method', 'MW', @ischar);
 p.addParamValue('Grid', false, @islogical);
 p.parse(L, varargin{:});
-args = p.Results
+args = p.Results;
 
 % Computing sampling points.
 [n, ntheta, nphi, thetas, phis] = ssht_sampling_mex(L, args.Method);

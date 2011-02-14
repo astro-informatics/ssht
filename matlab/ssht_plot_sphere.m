@@ -1,38 +1,39 @@
-% ******************************************************************************
-% Function:     plot_sphere
-% Description:  Plot the _magnitude_ of a function defined over the sphere.
-% Notes:        f is the matrix of the function values evaluated over all 
-%               combinations of theta and phi (obtained using meshgrid for 
-%               example).
-%               plot_type = {'parametric', 'colour'} selects appropriate type 
-%               of plot.
-%               plot_samples_posns = {'yes', 'no'}.
-%               The argument plot_axes may not be included and new figures will
-%               be generated.
-% Author:       Jason McEwen
-% Version:      1.01 (Last modified 13/02/03)
-% ******************************************************************************
-
-
+function ssht_plot_sphere(f, L, varargin)
+% ssht_plot_sphere - Plot function on sphere
 %
-% 'Type' {'colour','parametric'}
-% 'Title' string
-% 'Close' true/false [default false]
-% 'PlotSamples' true/false [default false]
-
-
-function s2ea_plot_sphere(f, varargin)
+% Plots a functions defined on the sphere for various sampling schemes.
+%
+% Default usage is given by
+%
+%   ssht_plot_sphere(f, L, <options>)
+%
+% where f is the sampled function and L is the harmonic band-limit.
+%
+% Options consist of parameter type and value pairs.  Valid options
+% include:
+%  'Method'          = { 'MW'       [McEwen & Wiaux sampling (default)],
+%                        'MWSS'     [McEwen & Wiaux symmetric sampling],
+%                        'DH'       [Driscoll & Healy sampling],
+%                        'GL'       [Gauss-Legendre sampling] }
+%  'Type'            = { colour     [generate colour plot (default)],
+%                        parametric [generate parametric plot] }
+%  'Close'           = { true       [close plot in phi (default)],
+%                        false      [do not close plot in phi] }
+%  'PlotSamples'     = { false      [do not plot sample positions (default)],
+%                        true       [plot sample positions] }
+%  'ParametricScale' = scale        [scaling for parametric plot (default=0.5)]
 
 % Parse arguments.
 p = inputParser;
-p.addRequired('f', @isnumeric);          
+p.addRequired('f', @isnumeric);     
+p.addRequired('L', @isnumeric);          
 p.addParamValue('Type', 'colour', ...
    @(x)strcmpi(x,'colour') | strcmpi(x,'parametric'));
-p.addParamValue('Close', false, @islogical);
+p.addParamValue('Method', 'MW', @ischar);
+p.addParamValue('Close', true, @islogical);
 p.addParamValue('PlotSamples', false, @islogical);
-p.addParamValue('Title', '', @ischar);
 p.addParamValue('ParametricScale', 0.5, @isnumeric);
-p.parse(f, varargin{:});
+p.parse(f, L, varargin{:});
 args = p.Results;
 
 % Define parameters.
@@ -42,8 +43,11 @@ PARAMETRIC_SCALE = args.ParametricScale;
 % Compute grids.
 minf = min(f(:));
 maxf = max(f(:));
-B = s2ea_samples_f2b(f);
-[theta_grid, phi_grid] = s2ea_samples_sgrid(B);
+[thetas, phis, n, ntheta, nphi] = ssht_sampling(L, 'Method', ...
+                                                args.Method, 'Grid', true);
+if (size(thetas) ~= size(f)) 
+  error('Size of f does not match sampling of method %s.', args.Method);
+end
 
 % Compute position scaling for parametric plot.
 if strcmpi(args.Type, 'parametric')
@@ -58,15 +62,15 @@ end
 
 % Close plot.
 if args.Close
-   close = @(x) [x; x(1,:)];
+   close = @(x) [x, x(:,1)];
    f = close(f);
    f_normalised = close(f_normalised);
-   theta_grid = close(theta_grid);
-   phi_grid = close(phi_grid);
+   thetas = close(thetas);
+   phis = close(phis);
 end
 
 % Compute location of vertices.
-[x, y, z] = s2ea_coord_s2c(theta_grid, phi_grid, 1.0);
+[x, y, z] = ssht_coord_s2c(thetas, phis, 1.0);
 x = x .* f_normalised;
 y = y .* f_normalised;
 z = z .* f_normalised;
@@ -87,7 +91,4 @@ axis equal;
 %axis off; 
 %light; lighting phong; %camzoom(1.3);
 
-if ~strcmp(args.Title, '')
-   title(args.Title);
-end
 
