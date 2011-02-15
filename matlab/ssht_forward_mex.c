@@ -24,13 +24,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
   int i, L, spin, reality, verbosity=0, f_m, f_n;
   double *flm_real, *flm_imag, *f_real, *f_imag;
   complex double *flm, *f;
-
-
-
-
-  double theta, phi;
-  int ntheta, nphi, n, t, p;
-  double *thetas, *phis, *weights_unused;
+  int ntheta, nphi, t, p;
   int len, iin = 0, iout = 0;
   char method[SSHT_STRING_LEN];
 
@@ -102,12 +96,11 @@ void mexFunction( int nlhs, mxArray *plhs[],
 		      "Reality flag must be logical.");
   reality = mxIsLogicalScalarTrue(prhs[iin++]);
 
-
-
-
-
-
+  /* Compute forward transform. */
   if (strcmp(method, SSHT_SAMPLING_MW) == 0) {
+
+
+
 
 
     ntheta = ssht_sampling_mw_ntheta(L);
@@ -162,7 +155,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
   } 
 
   /* Free memory. */
-  /* free(flm); */
-  /* free(f); */
+  free(flm);
+  free(f);
 
 }

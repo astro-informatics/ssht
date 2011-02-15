@@ -17,7 +17,6 @@ void mexFunction( int nlhs, mxArray *plhs[],
                   int nrhs, const mxArray *prhs[])
 {
 
-  double theta;
   int L, ntheta, nphi, n, t, p;
   double *thetas, *phis, *weights_unused;
   int len, iout = 0;
