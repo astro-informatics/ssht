@@ -81,7 +81,7 @@ z = z .* f_normalised;
 % Plot.
 h = surf(x,y,z,f);
 caxis([minf, maxf]);
-colorbar('vert');
+%colorbar('vert');
 set(h, 'LineStyle', 'none')
 if args.PlotSamples
     hold on;

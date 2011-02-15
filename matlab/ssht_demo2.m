@@ -6,7 +6,7 @@ clear all;
 % Define parameters.
 L = 5
 spin = 2
-method = 'MW'
+method = 'DH'
 close_plot = true
 plot_samples = false
 reality = false
