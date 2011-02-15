@@ -8,10 +8,10 @@ spin = 0
 method = 'MW'
 close_plot = true
 plot_samples = false
-reality = true
+reality = false
 
 [thetas, phis, n, ntheta, nphi] = ssht_sampling(L, 'Method', method, ...
-                                                'Grid', true);
+                                                'Grid', true)
 
 f = sin(thetas);
 

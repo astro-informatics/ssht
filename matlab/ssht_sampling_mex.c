@@ -1,7 +1,9 @@
 
-#include "mex.h"
+
 #include <ssht.h>
 #include "ssht_mex.h"
+#include <string.h>
+#include "mex.h"
 
 
 /**
@@ -39,9 +41,9 @@ void mexFunction( int nlhs, mxArray *plhs[],
 		      "Harmonic band-limit must be integer.");
   }
   L = (int)mxGetScalar(prhs[0]);
-  if (mxGetScalar(prhs[0]) > (double)L) {
+  if (mxGetScalar(prhs[0]) > (double)L || L <= 0) {
     mexErrMsgIdAndTxt("ssht_sampling_mex:InvalidInput:bandLimitNonInt",
-		      "Harmonic band-limit must be integer.");
+		      "Harmonic band-limit must be positive integer.");
   }
 
   /* Parse method. */

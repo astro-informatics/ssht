@@ -1,7 +1,7 @@
 
 
 
-MLAB 		= /Applications/MATLAB_R2010b.app
+MLAB 		= /Applications/MATLAB_R2010a.app
 #MLAB 		= /usr/local/MATLAB/R2010b
 MLABINC		= ${MLAB}/extern/include
 MLABLIB		= ${MLAB}/extern/lib
@@ -13,11 +13,12 @@ MFLAGS 		= -cxx
 
 
 #FC = /usr/bin/gfortran-4.3 -m64 -fPIC
-CC = gcc #-Wall -pedantic -no-cpp-precomp
-C_OPTIMIZE_SWITCH = -O2 ## For GCC
+CC = gcc -Wall #-no-cpp-precomp
+C_OPTIMIZE_SWITCH = # -O3 ## For GCC
 INC = -I${MLABINC} -I../include/c -I../../fftw/include
-LIB = -L${MLABLIB} -L../lib/c -lssht -L../../fftw/lib -lfftw3
-CFLAGS = ${C_OPTIMISE_SWITCH} ${INC} ${LIB}
+LIB = -L${MLABLIB} -L../lib/c -lssht ../../fftw/lib/libfftw3.a
+#LIB = -L${MLABLIB} -L../lib/c -lssht -L../../fftw/lib -lfftw3
+CFLAGS = ${C_OPTIMISE_SWITCH} ${INC} 
 
 all: arrayProduct.${MXSFX} ssht_sampling_mex.${MXSFX} ssht_inverse_mex.${MXSFX}
 
