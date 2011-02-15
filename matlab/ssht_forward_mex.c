@@ -21,7 +21,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
                   int nrhs, const mxArray *prhs[])
 {
 
-  int i, L, spin, verbosity, f_m, f_n;
+  int i, L, spin, reality, verbosity=0, f_m, f_n;
   double *flm_real, *flm_imag, *f_real, *f_imag;
   complex double *flm, *f;
 
@@ -81,11 +81,28 @@ void mexFunction( int nlhs, mxArray *plhs[],
 		      "Method exceeds string length.");
   mxGetString(prhs[iin++], method, len);
 
-  /* Parse spin. */
-  spin = (int)mxGetScalar(prhs[iin++]);
+ /* Parse spin. */
+  if( !mxIsDouble(prhs[iin]) || 
+      mxIsComplex(prhs[iin]) || 
+      mxGetNumberOfElements(prhs[iin])!=1 ) {
+    mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:spin",
+		      "Spin number must be integer.");
+  }
+  spin = (int)mxGetScalar(prhs[iin]);
+  if (mxGetScalar(prhs[iin++]) > (double)spin || spin < 0)
+    mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:spinNonInt",
+		      "Spin number must be positive integer.");
+  if (spin >= L)
+    mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:spinInvalid",
+		      "Spin number must be strictly less than band-limit.");
 
-  /* Parse verbosity. */
-  verbosity = (int)mxGetScalar(prhs[iin++]);
+  /* Parse reality. */
+  if( !mxIsLogicalScalar(prhs[iin]) )
+    mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:reality",
+		      "Reality flag must be logical.");
+  reality = mxIsLogicalScalarTrue(prhs[iin++]);
+
+
 
 
 
@@ -108,7 +125,6 @@ void mexFunction( int nlhs, mxArray *plhs[],
 
     flm = (complex double*)calloc(L*L, sizeof(complex double));
 
-    //    ssht_core_mw_inverse_sov_sym(f, flm, L, spin, verbosity);
     ssht_core_mw_forward_sov_conv_sym(flm, f, L, spin, verbosity);
 
 

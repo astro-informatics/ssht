@@ -21,7 +21,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
                   int nrhs, const mxArray *prhs[])
 {
 
-  int i, L, spin, verbosity, flm_m, flm_n;
+  int i, L, spin, reality, verbosity=0, flm_m, flm_n;
   double *flm_real, *flm_imag, *f_real, *f_imag;
   complex double *flm, *f;
 
@@ -94,10 +94,26 @@ void mexFunction( int nlhs, mxArray *plhs[],
   mxGetString(prhs[iin++], method, len);
 
   /* Parse spin. */
-  spin = (int)mxGetScalar(prhs[iin++]);
+  if( !mxIsDouble(prhs[iin]) || 
+      mxIsComplex(prhs[iin]) || 
+      mxGetNumberOfElements(prhs[iin])!=1 ) {
+    mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:spin",
+		      "Spin number must be integer.");
+  }
+  spin = (int)mxGetScalar(prhs[iin]);
+  if (mxGetScalar(prhs[iin++]) > (double)spin || spin < 0)
+    mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:spinNonInt",
+		      "Spin number must be positive integer.");
+  if (spin >= L)
+    mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:spinInvalid",
+		      "Spin number must be strictly less than band-limit.");
 
-  /* Parse verbosity. */
-  verbosity = (int)mxGetScalar(prhs[iin++]);
+  /* Parse reality. */
+  if( !mxIsLogicalScalar(prhs[iin]) )
+    mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:reality",
+		      "Reality flag must be logical.");
+  reality = mxIsLogicalScalarTrue(prhs[iin++]);
+
 
 
 
@@ -110,7 +126,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
 
     mexPrintf("flm_m = %d; flm_n = %d\n", flm_m, flm_n);
     mexPrintf("ntheta = %d; nphi = %d\n", ntheta, nphi);
-    mexPrintf("L = %d; spin = %d; verbosity = %d\n", L, spin, verbosity);
+    mexPrintf("L = %d; spin = %d; reality = %d; verbosity = %d\n", L, spin, reality, verbosity);
 
 
     f = (complex double*)calloc(ntheta*nphi, sizeof(complex double));
@@ -123,11 +139,9 @@ void mexFunction( int nlhs, mxArray *plhs[],
     f_imag = mxGetPi(plhs[iout]);
     
     for(t=0; t<ntheta; t++) {
-      //theta = ssht_sampling_mw_t2theta(t, L);
       for(p=0; p<nphi; p++) {
-	//phi = ssht_sampling_mw_p2phi(p, L);
- f_real[p*ntheta + t] = creal(f[t*nphi + p]);
- f_imag[p*ntheta + t] = cimag(f[t*nphi + p]);
+	f_real[p*ntheta + t] = creal(f[t*nphi + p]);
+	f_imag[p*ntheta + t] = cimag(f[t*nphi + p]);
       }
     }
 

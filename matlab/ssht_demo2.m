@@ -3,24 +3,15 @@
 clear all;
 %close all;
 
+% Define parameters.
 L = 5
-spin = 0
+spin = 2
 method = 'MW'
 close_plot = true
 plot_samples = false
 reality = false
 
-[thetas, phis, n, ntheta, nphi] = ssht_sampling(L, 'Method', method, ...
-                                                'Grid', true)
-
-f = sin(thetas);
-
-figure;
-ssht_plot_sphere(f, L, 'Method', method, 'Close', close_plot, ...
-                 'PlotSamples', plot_samples, 'Lighting', true);
-
-
-% Random flms (of complex signal).
+% Generate random flms (of complex signal).
 flm = zeros(L^2,1);
 flm = rand(size(flm)) + sqrt(-1)*rand(size(flm));
 flm = 2.*(flm - (1+sqrt(-1))./2);
@@ -41,6 +32,20 @@ if reality
    end
 end
 
-f = ssht_inverse(flm, L, 'Method', method);
+% Compute inverse then forward transform.
+f = ssht_inverse(flm, L, 'Method', method, 'Spin', spin, ...
+                 'Reality', reality);
+flm_syn = ssht_forward(f, L, 'Method', method, 'Spin', spin, ...
+                 'Reality', reality);
 
-flm_syn = ssht_forward(f, L, 'Method', method);
+% Compute max error in harmonic space.
+maxerr = max(abs(flm_syn - flm))
+
+% Compute sampling grids.
+[thetas, phis, n, ntheta, nphi] = ssht_sampling(L, 'Method', method, ...
+                                                'Grid', true);
+
+% Plot function on sphere.
+figure;
+ssht_plot_sphere(abs(f), L, 'Method', method, 'Close', close_plot, ...
+                 'PlotSamples', plot_samples, 'Lighting', true);

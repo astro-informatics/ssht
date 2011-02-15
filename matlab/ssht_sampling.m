@@ -12,12 +12,12 @@ function [thetas, phis, varargout] = ssht_sampling(L, varargin)
 %
 % Options consist of parameter type and value pairs.  Valid options
 % include:
-%  'Method' = { 'MW'   [McEwen & Wiaux sampling (default)],
-%               'MWSS' [McEwen & Wiaux symmetric sampling],
-%               'DH'   [Driscoll & Healy sampling],
-%               'GL'   [Gauss-Legendre sampling] }
-%  'Grid'   = { false  [return theta and phi vectors (default)],
-%               true   [return theta and phi grids] }
+%  'Method'          = { 'MW'         [McEwen & Wiaux sampling (default)],
+%                        'MWSS'       [McEwen & Wiaux symmetric sampling],
+%                        'DH'         [Driscoll & Healy sampling],
+%                        'GL'         [Gauss-Legendre sampling] }
+%  'Grid'            = { false  [return theta and phi vectors (default)],
+%                        true   [return theta and phi grids] }
 % 
 % May optionally return total number of samples n, number of theta
 % samples ntheta and number of phi samples nphi through usage
