@@ -24,6 +24,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
   int i, L, spin, reality, verbosity=0, f_m, f_n;
   int f_is_complex;
   double *flm_real, *flm_imag, *f_real, *f_imag;
+  double *fr;
   complex double *flm, *f;
   int ntheta, nphi, t, p;
   int len, iin = 0, iout = 0;
@@ -39,7 +40,19 @@ void mexFunction( int nlhs, mxArray *plhs[],
 		      "Require one output.");
   }
 
+  /* Parse reality. */
+  iin = 4;
+  if( !mxIsLogicalScalar(prhs[iin]) )
+    mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:reality",
+		      "Reality flag must be logical.");
+  reality = mxIsLogicalScalarTrue(prhs[iin]);
+  if (!f_is_complex && !reality)
+    mexWarnMsgTxt("Running complex transform on real signal (set reality flag to improve performance).");
+  if (f_is_complex && reality)
+    mexWarnMsgTxt("Running real transform but input appears to be complex (ignoring imaginary component).");
+
   /* Parse function samples f. */
+  iin = 0;
   if( !mxIsDouble(prhs[iin]) ) {
     mexErrMsgIdAndTxt("ssht_forward_mex:InvalidInput:f",
 		      "Function values must be doubles.");
@@ -49,14 +62,22 @@ void mexFunction( int nlhs, mxArray *plhs[],
   f_real = mxGetPr(prhs[iin]);  
   f_is_complex = mxIsComplex(prhs[iin]);
   f_imag = f_is_complex ? mxGetPi(prhs[iin]) : NULL;
-  f = (complex double*)malloc(f_m * f_n * sizeof(complex double));
-  for(t=0; t<f_m; t++)
-    for(p=0; p<f_n; p++)
-      f[t*f_n + p] = f_real[p*f_m + t] 
-	+ I * (f_is_complex ? f_imag[p*f_m + t] : 0.0);
-  iin++;
+  if (reality) {
+    fr = (double*)malloc(f_m * f_n * sizeof(double));
+    for(t=0; t<f_m; t++)
+      for(p=0; p<f_n; p++)
+	fr[t*f_n + p] = f_real[p*f_m + t];
+  }
+  else {
+    f = (complex double*)malloc(f_m * f_n * sizeof(complex double));
+    for(t=0; t<f_m; t++)
+      for(p=0; p<f_n; p++)
+	f[t*f_n + p] = f_real[p*f_m + t] 
+	  + I * (f_is_complex ? f_imag[p*f_m + t] : 0.0);
+  }
 
   /* Parse harmonic band-limit L. */
+  iin = 1;
   if( !mxIsDouble(prhs[iin]) || 
       mxIsComplex(prhs[iin]) || 
       mxGetNumberOfElements(prhs[iin])!=1 ) {
@@ -64,11 +85,12 @@ void mexFunction( int nlhs, mxArray *plhs[],
 		      "Harmonic band-limit must be integer.");
   }
   L = (int)mxGetScalar(prhs[iin]);
-  if (mxGetScalar(prhs[iin++]) > (double)L || L <= 0)
+  if (mxGetScalar(prhs[iin]) > (double)L || L <= 0)
     mexErrMsgIdAndTxt("ssht_forward_mex:InvalidInput:bandLimitNonInt",
 		      "Harmonic band-limit must be positive integer.");
 
   /* Parse method. */
+  iin = 2;
   if( !mxIsChar(prhs[iin]) ) {
     mexErrMsgIdAndTxt("ssht_forward_mex:InvalidInput:methodChar",
 		      "Method must be string.");
@@ -77,9 +99,10 @@ void mexFunction( int nlhs, mxArray *plhs[],
   if (len >= SSHT_STRING_LEN) 
     mexErrMsgIdAndTxt("ssht_forward_mex:InvalidInput:methodTooLong",
 		      "Method exceeds string length.");
-  mxGetString(prhs[iin++], method, len);
+  mxGetString(prhs[iin], method, len);
 
   /* Parse spin. */
+  iin = 3;
   if( !mxIsDouble(prhs[iin]) || 
       mxIsComplex(prhs[iin]) || 
       mxGetNumberOfElements(prhs[iin])!=1 ) {
@@ -92,15 +115,10 @@ void mexFunction( int nlhs, mxArray *plhs[],
 		      "Spin number must be positive integer.");
   if (spin >= L)
     mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:spinInvalid",
-		      "Spin number must be strictly less than band-limit.");
-
-  /* Parse reality. */
-  if( !mxIsLogicalScalar(prhs[iin]) )
-    mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:reality",
-		      "Reality flag must be logical.");
-  reality = mxIsLogicalScalarTrue(prhs[iin++]);
-  if (!f_is_complex && !reality)
-    mexWarnMsgTxt("Running complex transform on real signal (set reality flag to improve performance).");
+		      "Spin number must be strictly less than band-limit."); 
+  if (spin != 0 && reality)
+    mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:spinReality",
+		      "A spin function on the sphere cannot be real."); 
 
   /* Compute forward transform. */
   if (strcmp(method, SSHT_SAMPLING_MW) == 0) {
@@ -111,7 +129,10 @@ void mexFunction( int nlhs, mxArray *plhs[],
       mexErrMsgIdAndTxt("ssht_forward_mex:InvalidInput:inconsistentSizesMW",
         "Number of function samples inconsistent with method and band-limit.");
     flm = (complex double*)calloc(L*L, sizeof(complex double));
-    ssht_core_mw_forward_sov_conv_sym(flm, f, L, spin, verbosity);
+    if (reality)
+      ssht_core_mw_forward_sov_conv_sym_real(flm, fr, L, spin, verbosity);
+    else
+      ssht_core_mw_forward_sov_conv_sym(flm, f, L, spin, verbosity);
 
     /* mexPrintf("flm_m = %d; flm_n = %d\n", flm_m, flm_n); */
     /* mexPrintf("ntheta = %d; nphi = %d\n", ntheta, nphi); */
@@ -168,10 +189,10 @@ void mexFunction( int nlhs, mxArray *plhs[],
     flm_imag[i] = cimag(flm[i]);;
   }
 
-
-
   /* Free memory. */
   free(flm);
-  free(f);
-
+  if (reality)
+    free(fr);
+  else
+    free(f);
 }

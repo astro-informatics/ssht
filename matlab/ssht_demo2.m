@@ -6,9 +6,9 @@ clear all;
 % Define parameters.
 L = 5
 spin = 2
-method = 'DH'
-close_plot = true
-plot_samples = false
+method = 'GL'
+close_plot = true;
+plot_samples = false;
 reality = false
 
 % Generate random flms (of complex signal).
@@ -46,6 +46,6 @@ maxerr = max(abs(flm_syn - flm))
                                                 'Grid', true);
 
 % Plot function on sphere.
-figure;
-ssht_plot_sphere(abs(f), L, 'Method', method, 'Close', close_plot, ...
-                 'PlotSamples', plot_samples, 'Lighting', true);
+% figure;
+% ssht_plot_sphere(abs(f), L, 'Method', method, 'Close', close_plot, ...
+%                  'PlotSamples', plot_samples, 'Lighting', true);

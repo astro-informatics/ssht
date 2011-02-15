@@ -17,7 +17,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
                   int nrhs, const mxArray *prhs[])
 {
 
-  int L, ntheta, nphi, n, t, p;
+  int L, ntheta, nphi, n, t, p, iin;
   double *thetas, *phis, *weights_unused;
   int len, iout = 0;
   char method[SSHT_STRING_LEN];
@@ -33,28 +33,30 @@ void mexFunction( int nlhs, mxArray *plhs[],
   }
 
   /* Parse harmonic band-limit L. */
-  if( !mxIsDouble(prhs[0]) || 
-      mxIsComplex(prhs[0]) || 
-      mxGetNumberOfElements(prhs[0])!=1 ) {
+  iin = 0;
+  if( !mxIsDouble(prhs[iin]) || 
+      mxIsComplex(prhs[iin]) || 
+      mxGetNumberOfElements(prhs[iin])!=1 ) {
     mexErrMsgIdAndTxt("ssht_sampling_mex:InvalidInput:bandLimit",
 		      "Harmonic band-limit must be integer.");
   }
-  L = (int)mxGetScalar(prhs[0]);
-  if (mxGetScalar(prhs[0]) > (double)L || L <= 0) {
+  L = (int)mxGetScalar(prhs[iin]);
+  if (mxGetScalar(prhs[iin]) > (double)L || L <= 0) {
     mexErrMsgIdAndTxt("ssht_sampling_mex:InvalidInput:bandLimitNonInt",
 		      "Harmonic band-limit must be positive integer.");
   }
 
   /* Parse method. */
-  if( !mxIsChar(prhs[1]) ) {
+  iin = 1;
+  if( !mxIsChar(prhs[iin]) ) {
     mexErrMsgIdAndTxt("ssht_sampling_mex:InvalidInput:methodChar",
 		      "Method must be string.");
   }
-  len = (mxGetM(prhs[1]) * mxGetN(prhs[1])) + 1;
+  len = (mxGetM(prhs[iin]) * mxGetN(prhs[iin])) + 1;
   if (len >= SSHT_STRING_LEN) 
     mexErrMsgIdAndTxt("ssht_sampling_mex:InvalidInput:methodTooLong",
 		      "Method exceeds string length.");
-  mxGetString(prhs[1], method, len);
+  mxGetString(prhs[iin], method, len);
 
   /* Compute sample positions. */
   if (strcmp(method, SSHT_SAMPLING_MW) == 0) {

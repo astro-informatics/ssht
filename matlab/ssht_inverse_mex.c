@@ -23,6 +23,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
 
   int i, L, spin, reality, verbosity=0, flm_m, flm_n;
   double *flm_real, *flm_imag, *f_real, *f_imag;
+  double *fr;
   complex double *flm, *f;
   int ntheta, nphi, t, p;
   int len, iin = 0, iout = 0;
@@ -38,7 +39,15 @@ void mexFunction( int nlhs, mxArray *plhs[],
 		      "Require one output.");
   }
 
+  /* Parse reality. */
+  iin = 4;
+  if( !mxIsLogicalScalar(prhs[iin]) )
+    mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:reality",
+		      "Reality flag must be logical.");
+  reality = mxIsLogicalScalarTrue(prhs[iin]);
+
   /* Parse harmonic coefficients flm. */
+  iin = 0;
   if( !mxIsDouble(prhs[iin]) || !mxIsComplex(prhs[iin]) ) {
     mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:flm",
 		      "Harmonic coefficients must be complex doubles.");
@@ -49,12 +58,13 @@ void mexFunction( int nlhs, mxArray *plhs[],
     mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:flmVector",
 		      "Harmonic coefficients must be contained in vector.");
   flm_real = mxGetPr(prhs[iin]);
-  flm_imag = mxGetPi(prhs[iin++]);
+  flm_imag = mxGetPi(prhs[iin]);
   flm = (complex double*)malloc(flm_m * flm_n * sizeof(complex double));
   for (i=0; i<flm_m*flm_n; i++)
     flm[i] = flm_real[i] + I * flm_imag[i];
 
   /* Parse harmonic band-limit L. */
+  iin = 1;
   if( !mxIsDouble(prhs[iin]) || 
       mxIsComplex(prhs[iin]) || 
       mxGetNumberOfElements(prhs[iin])!=1 ) {
@@ -62,7 +72,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
 		      "Harmonic band-limit must be integer.");
   }
   L = (int)mxGetScalar(prhs[iin]);
-  if (mxGetScalar(prhs[iin++]) > (double)L || L <= 0)
+  if (mxGetScalar(prhs[iin]) > (double)L || L <= 0)
     mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:bandLimitNonInt",
 		      "Harmonic band-limit must be positive integer.");
   if (flm_m * flm_n != L * L)
@@ -70,6 +80,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
 		      "Invalid number of harmonic coefficients.");
 
   /* Parse method. */
+  iin = 2;
   if( !mxIsChar(prhs[iin]) ) {
     mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:methodChar",
 		      "Method must be string.");
@@ -78,9 +89,10 @@ void mexFunction( int nlhs, mxArray *plhs[],
   if (len >= SSHT_STRING_LEN) 
     mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:methodTooLong",
 		      "Method exceeds string length.");
-  mxGetString(prhs[iin++], method, len);
+  mxGetString(prhs[iin], method, len);
 
   /* Parse spin. */
+  iin = 3;
   if( !mxIsDouble(prhs[iin]) || 
       mxIsComplex(prhs[iin]) || 
       mxGetNumberOfElements(prhs[iin])!=1 ) {
@@ -88,26 +100,29 @@ void mexFunction( int nlhs, mxArray *plhs[],
 		      "Spin number must be integer.");
   }
   spin = (int)mxGetScalar(prhs[iin]);
-  if (mxGetScalar(prhs[iin++]) > (double)spin || spin < 0)
+  if (mxGetScalar(prhs[iin]) > (double)spin || spin < 0)
     mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:spinNonInt",
 		      "Spin number must be positive integer.");
   if (spin >= L)
     mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:spinInvalid",
 		      "Spin number must be strictly less than band-limit.");
-
-  /* Parse reality. */
-  if( !mxIsLogicalScalar(prhs[iin]) )
-    mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:reality",
-		      "Reality flag must be logical.");
-  reality = mxIsLogicalScalarTrue(prhs[iin++]);
+  if (spin != 0 && reality)
+    mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:spinReality",
+		      "A spin function on the sphere cannot be real."); 
 
   /* Compute inverse transform. */
   if (strcmp(method, SSHT_SAMPLING_MW) == 0) {
 
     ntheta = ssht_sampling_mw_ntheta(L);
     nphi = ssht_sampling_mw_nphi(L);
-    f = (complex double*)calloc(ntheta*nphi, sizeof(complex double));
-    ssht_core_mw_inverse_sov_sym(f, flm, L, spin, verbosity);
+    if (reality) {
+      fr = (double*)calloc(ntheta*nphi, sizeof(double));
+      ssht_core_mw_inverse_sov_sym_real(fr, flm, L, spin, verbosity);
+    }
+    else {
+      f = (complex double*)calloc(ntheta*nphi, sizeof(complex double));
+      ssht_core_mw_inverse_sov_sym(f, flm, L, spin, verbosity);
+    }
 
     /* mexPrintf("flm_m = %d; flm_n = %d\n", flm_m, flm_n); */
     /* mexPrintf("ntheta = %d; nphi = %d\n", ntheta, nphi); */
@@ -119,24 +134,41 @@ void mexFunction( int nlhs, mxArray *plhs[],
       
     ntheta = ssht_sampling_mw_ss_ntheta(L);
     nphi = ssht_sampling_mw_ss_nphi(L);
-    f = (complex double*)calloc(ntheta*nphi, sizeof(complex double));
-    ssht_core_mw_inverse_sov_sym_ss(f, flm, L, spin, verbosity);
-
+    if (reality) {
+      fr = (double*)calloc(ntheta*nphi, sizeof(double));
+      ssht_core_mw_inverse_sov_sym_ss_real(fr, flm, L, spin, verbosity);
+    }
+    else {
+      f = (complex double*)calloc(ntheta*nphi, sizeof(complex double));
+      ssht_core_mw_inverse_sov_sym_ss(f, flm, L, spin, verbosity);
+    }
   }
   else if (strcmp(method, SSHT_SAMPLING_GL) == 0) {
 
     ntheta = ssht_sampling_gl_ntheta(L);
     nphi = ssht_sampling_gl_nphi(L);
-    f = (complex double*)calloc(ntheta*nphi, sizeof(complex double));
-    ssht_core_gl_inverse_sov(f, flm, L, spin, verbosity);
+    if (reality) {
+      fr = (double*)calloc(ntheta*nphi, sizeof(double));
+      ssht_core_gl_inverse_sov_real(fr, flm, L, spin, verbosity);
+    }
+    else {
+      f = (complex double*)calloc(ntheta*nphi, sizeof(complex double));
+      ssht_core_gl_inverse_sov(f, flm, L, spin, verbosity);
+    }
 
   }
   else if (strcmp(method, SSHT_SAMPLING_DH) == 0) {
 
     ntheta = ssht_sampling_dh_ntheta(L);
     nphi = ssht_sampling_dh_nphi(L);
-    f = (complex double*)calloc(ntheta*nphi, sizeof(complex double));
-    ssht_core_dh_inverse_sov(f, flm, L, spin, verbosity);
+    if (reality) {
+      fr = (double*)calloc(ntheta*nphi, sizeof(double));
+      ssht_core_dh_inverse_sov_real(fr, flm, L, spin, verbosity);
+    }
+    else {
+      f = (complex double*)calloc(ntheta*nphi, sizeof(complex double));
+      ssht_core_dh_inverse_sov(f, flm, L, spin, verbosity);
+    }
    
   }
   else {
@@ -147,18 +179,30 @@ void mexFunction( int nlhs, mxArray *plhs[],
   } 
 
   /* Copy f to output. */
-  plhs[iout] = mxCreateDoubleMatrix(ntheta, nphi, mxCOMPLEX);
-  f_real = mxGetPr(plhs[iout]);
-  f_imag = mxGetPi(plhs[iout]);    
-  for(t=0; t<ntheta; t++) {
-    for(p=0; p<nphi; p++) {
-      f_real[p*ntheta + t] = creal(f[t*nphi + p]);
-      f_imag[p*ntheta + t] = cimag(f[t*nphi + p]);
+  if (reality) {
+    plhs[iout] = mxCreateDoubleMatrix(ntheta, nphi, mxREAL);
+    f_real = mxGetPr(plhs[iout]);
+    for(t=0; t<ntheta; t++)
+      for(p=0; p<nphi; p++)
+	f_real[p*ntheta + t] = fr[t*nphi + p];
+  }
+  else {
+    plhs[iout] = mxCreateDoubleMatrix(ntheta, nphi, mxCOMPLEX);
+    f_real = mxGetPr(plhs[iout]);
+    f_imag = mxGetPi(plhs[iout]);    
+    for(t=0; t<ntheta; t++) {
+      for(p=0; p<nphi; p++) {
+	f_real[p*ntheta + t] = creal(f[t*nphi + p]);
+	f_imag[p*ntheta + t] = cimag(f[t*nphi + p]);
+      }
     }
   }
 
   /* Free memory. */
   free(flm);
-  free(f);
+  if (reality)
+    free(fr);
+  else
+    free(f);
 
 }
