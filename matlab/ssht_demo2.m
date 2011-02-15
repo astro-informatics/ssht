@@ -5,11 +5,11 @@ clear all;
 
 % Define parameters.
 L = 5
-spin = 2
-method = 'GL'
+spin = 0
+method = 'MW'
 close_plot = true;
 plot_samples = false;
-reality = false
+reality = true
 
 % Generate random flms (of complex signal).
 flm = zeros(L^2,1);

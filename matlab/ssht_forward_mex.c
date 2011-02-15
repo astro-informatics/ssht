@@ -48,8 +48,6 @@ void mexFunction( int nlhs, mxArray *plhs[],
   reality = mxIsLogicalScalarTrue(prhs[iin]);
   if (!f_is_complex && !reality)
     mexWarnMsgTxt("Running complex transform on real signal (set reality flag to improve performance).");
-  if (f_is_complex && reality)
-    mexWarnMsgTxt("Running real transform but input appears to be complex (ignoring imaginary component).");
 
   /* Parse function samples f. */
   iin = 0;
@@ -75,6 +73,8 @@ void mexFunction( int nlhs, mxArray *plhs[],
 	f[t*f_n + p] = f_real[p*f_m + t] 
 	  + I * (f_is_complex ? f_imag[p*f_m + t] : 0.0);
   }
+  if (f_is_complex && reality)
+    mexWarnMsgTxt("Running real transform but input appears to be complex (ignoring imaginary component).");
 
   /* Parse harmonic band-limit L. */
   iin = 1;
@@ -130,7 +130,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
         "Number of function samples inconsistent with method and band-limit.");
     flm = (complex double*)calloc(L*L, sizeof(complex double));
     if (reality)
-      ssht_core_mw_forward_sov_conv_sym_real(flm, fr, L, spin, verbosity);
+      ssht_core_mw_forward_sov_conv_sym_real(flm, fr, L, verbosity);
     else
       ssht_core_mw_forward_sov_conv_sym(flm, f, L, spin, verbosity);
 
@@ -148,7 +148,10 @@ void mexFunction( int nlhs, mxArray *plhs[],
       mexErrMsgIdAndTxt("ssht_forward_mex:InvalidInput:inconsistentSizesMWSS",
         "Number of function samples inconsistent with method and band-limit.");
     flm = (complex double*)calloc(L*L, sizeof(complex double));
-    ssht_core_mw_forward_sov_conv_sym_ss(flm, f, L, spin, verbosity);   
+    if (reality)
+      ssht_core_mw_forward_sov_conv_sym_ss_real(flm, fr, L, verbosity);   
+    else
+      ssht_core_mw_forward_sov_conv_sym_ss(flm, f, L, spin, verbosity);   
 
   }
   else if (strcmp(method, SSHT_SAMPLING_GL) == 0) {
@@ -159,7 +162,10 @@ void mexFunction( int nlhs, mxArray *plhs[],
       mexErrMsgIdAndTxt("ssht_forward_mex:InvalidInput:inconsistentSizesGL",
         "Number of function samples inconsistent with method and band-limit.");
     flm = (complex double*)calloc(L*L, sizeof(complex double));
-    ssht_core_gl_forward_sov(flm, f, L, spin, verbosity);    
+    if (reality)
+      ssht_core_gl_forward_sov_real(flm, fr, L, verbosity);    
+    else
+      ssht_core_gl_forward_sov(flm, f, L, spin, verbosity);    
 
   }
   else if (strcmp(method, SSHT_SAMPLING_DH) == 0) {
@@ -170,7 +176,10 @@ void mexFunction( int nlhs, mxArray *plhs[],
       mexErrMsgIdAndTxt("ssht_forward_mex:InvalidInput:inconsistentSizesDH",
         "Number of function samples inconsistent with method and band-limit.");
     flm = (complex double*)calloc(L*L, sizeof(complex double));
-    ssht_core_dh_forward_sov(flm, f, L, spin, verbosity);    
+    if (reality)
+      ssht_core_dh_forward_sov_real(flm, fr, L, verbosity);    
+    else
+      ssht_core_dh_forward_sov(flm, f, L, spin, verbosity);    
    
   }
   else {

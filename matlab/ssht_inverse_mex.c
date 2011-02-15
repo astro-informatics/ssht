@@ -117,7 +117,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
     nphi = ssht_sampling_mw_nphi(L);
     if (reality) {
       fr = (double*)calloc(ntheta*nphi, sizeof(double));
-      ssht_core_mw_inverse_sov_sym_real(fr, flm, L, spin, verbosity);
+      ssht_core_mw_inverse_sov_sym_real(fr, flm, L, verbosity);
     }
     else {
       f = (complex double*)calloc(ntheta*nphi, sizeof(complex double));
@@ -136,7 +136,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
     nphi = ssht_sampling_mw_ss_nphi(L);
     if (reality) {
       fr = (double*)calloc(ntheta*nphi, sizeof(double));
-      ssht_core_mw_inverse_sov_sym_ss_real(fr, flm, L, spin, verbosity);
+      ssht_core_mw_inverse_sov_sym_ss_real(fr, flm, L, verbosity);
     }
     else {
       f = (complex double*)calloc(ntheta*nphi, sizeof(complex double));
@@ -149,7 +149,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
     nphi = ssht_sampling_gl_nphi(L);
     if (reality) {
       fr = (double*)calloc(ntheta*nphi, sizeof(double));
-      ssht_core_gl_inverse_sov_real(fr, flm, L, spin, verbosity);
+      ssht_core_gl_inverse_sov_real(fr, flm, L, verbosity);
     }
     else {
       f = (complex double*)calloc(ntheta*nphi, sizeof(complex double));
@@ -163,7 +163,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
     nphi = ssht_sampling_dh_nphi(L);
     if (reality) {
       fr = (double*)calloc(ntheta*nphi, sizeof(double));
-      ssht_core_dh_inverse_sov_real(fr, flm, L, spin, verbosity);
+      ssht_core_dh_inverse_sov_real(fr, flm, L, verbosity);
     }
     else {
       f = (complex double*)calloc(ntheta*nphi, sizeof(complex double));
