@@ -42,3 +42,5 @@ if reality
 end
 
 f = ssht_inverse(flm, L, 'Method', method);
+
+flm_syn = ssht_forward(f, L, 'Method', method);

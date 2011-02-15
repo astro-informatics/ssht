@@ -20,7 +20,7 @@ LIB = -L${MLABLIB} -L../lib/c -lssht ../../fftw/lib/libfftw3.a
 #LIB = -L${MLABLIB} -L../lib/c -lssht -L../../fftw/lib -lfftw3
 CFLAGS = ${C_OPTIMISE_SWITCH} ${INC} 
 
-all: arrayProduct.${MXSFX} ssht_sampling_mex.${MXSFX} ssht_inverse_mex.${MXSFX}
+all: arrayProduct.${MXSFX} ssht_sampling_mex.${MXSFX} ssht_inverse_mex.${MXSFX} ssht_forward_mex.${MXSFX}
 
 arrayProduct.${MXSFX}: arrayProduct.o
 	${MEX} ${MFLAGS} arrayProduct.o ${LIB}
@@ -30,6 +30,9 @@ ssht_sampling_mex.${MXSFX}: ssht_sampling_mex.o
 
 ssht_inverse_mex.${MXSFX}: ssht_inverse_mex.o
 	${MEX} ${MFLAGS} ssht_inverse_mex.o ${LIB}
+
+ssht_forward_mex.${MXSFX}: ssht_forward_mex.o
+	${MEX} ${MFLAGS} ssht_forward_mex.o ${LIB}
 
 
 %.o : %.c
@@ -42,3 +45,4 @@ clean:
 	rm -f arrayProduct.o arrayProduct.${MXSFX}
 	rm -f ssht_sampling_mex.o ssht_sampling_mex.${MXSFX}
 	rm -f ssht_inverse_mex.o ssht_inverse_mex.${MXSFX}
+	rm -f ssht_forward_mex.o ssht_forward_mex.${MXSFX}
