@@ -49,3 +49,15 @@ maxerr = max(abs(flm_syn - flm))
 % figure;
 % ssht_plot_sphere(abs(f), L, 'Method', method, 'Close', close_plot, ...
 %                  'PlotSamples', plot_samples, 'Lighting', true);
+
+
+
+
+% Compute inverse then forward transform.
+[f, f_sp, phi_sp] = ssht_inverse(flm, L, 'Method', method, 'Spin', spin, ...
+   'Reality', reality);
+flm_syn = ssht_forward(f, L, 'Method', method, 'Spin', spin, ...
+   'Reality', reality);
+              
+
+maxerr = max(abs(flm_syn - flm));

@@ -22,19 +22,23 @@ void mexFunction( int nlhs, mxArray *plhs[],
 {
 
   int i, L, spin, reality, verbosity=0, flm_m, flm_n;
+  int south_pole_exists, north_pole_exists;
   double *flm_real, *flm_imag, *f_real, *f_imag;
   double *fr;
   complex double *flm, *f;
+  complex double f_sp = 0.0, f_np = 0.0;
+  double fr_sp = 0.0, fr_np = 0.0;
+  double phi_sp = 0.0, phi_np = 0.0;
   int ntheta, nphi, t, p;
   int len, iin = 0, iout = 0;
   char method[SSHT_STRING_LEN];
 
   /* Check number of arguments. */
-  if(nrhs!=5) {
+  if(nrhs!=7) {
     mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:nrhs",
 		      "Require five inputs.");
   }
-  if(nlhs!=1) {
+  if(nlhs!=5) {
     mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidOutput:nlhs",
 		      "Require one output.");
   }
@@ -110,18 +114,72 @@ void mexFunction( int nlhs, mxArray *plhs[],
     mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:spinReality",
 		      "A spin function on the sphere cannot be real."); 
 
+  /* Parse South pole flag. */
+  iin = 5;
+  if( !mxIsLogicalScalar(prhs[iin]) )
+    mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:southPoleExists",
+		      "South pole flag must be logical.");
+  south_pole_exists = mxIsLogicalScalarTrue(prhs[iin]);
+
+  /* Parse North pole flag. */
+  iin = 6;
+  if( !mxIsLogicalScalar(prhs[iin]) )
+    mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:northPoleExists",
+		      "North pole flag must be logical.");
+  north_pole_exists = mxIsLogicalScalarTrue(prhs[iin]);
+
+  /* Check polar interface usage valid. */
+  if (south_pole_exists || north_pole_exists) {
+
+    if (strcmp(method, SSHT_SAMPLING_MW) != 0 &&
+	strcmp(method, SSHT_SAMPLING_MWSS) != 0) 
+      mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:poleWithInvalidMethod",
+			"Polar interfaces only supported by MW or MWSS methods.");
+
+    if (!south_pole_exists)
+      mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:noSouthPole",
+			"South pole sample must be specified if North pole is.");
+
+    if (south_pole_exists && !north_pole_exists)
+      if (strcmp(method, SSHT_SAMPLING_MW) != 0)
+	mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:noNorthPole",
+			  "North pole must be specified for MWSS method.");
+
+    if (south_pole_exists && north_pole_exists)
+      if (strcmp(method, SSHT_SAMPLING_MWSS) != 0)
+	mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:northPoleWithInvalidMethod",
+			  "North pole must not be specified for MW method.");
+
+  }
+
   /* Compute inverse transform. */
   if (strcmp(method, SSHT_SAMPLING_MW) == 0) {
 
     ntheta = ssht_sampling_mw_ntheta(L);
     nphi = ssht_sampling_mw_nphi(L);
-    if (reality) {
-      fr = (double*)calloc(ntheta*nphi, sizeof(double));
-      ssht_core_mw_inverse_sov_sym_real(fr, flm, L, verbosity);
+
+    if (south_pole_exists) {
+      ntheta = ntheta - 1;
+      if (reality) {
+	fr = (double*)calloc(ntheta*nphi, sizeof(double));
+	ssht_core_mw_inverse_sov_sym_real_pole(fr, &fr_sp, 
+					       flm, L, verbosity);
+      }
+      else {
+	f = (complex double*)calloc(ntheta*nphi, sizeof(complex double));
+	ssht_core_mw_inverse_sov_sym_pole(f, &f_sp, &phi_sp,
+					  flm, L, spin, verbosity);
+      }
     }
     else {
-      f = (complex double*)calloc(ntheta*nphi, sizeof(complex double));
-      ssht_core_mw_inverse_sov_sym(f, flm, L, spin, verbosity);
+      if (reality) {
+	fr = (double*)calloc(ntheta*nphi, sizeof(double));
+	ssht_core_mw_inverse_sov_sym_real(fr, flm, L, verbosity);
+      }
+      else {
+	f = (complex double*)calloc(ntheta*nphi, sizeof(complex double));
+	ssht_core_mw_inverse_sov_sym(f, flm, L, spin, verbosity);
+      }
     }
 
     /* mexPrintf("flm_m = %d; flm_n = %d\n", flm_m, flm_n); */
@@ -134,14 +192,32 @@ void mexFunction( int nlhs, mxArray *plhs[],
       
     ntheta = ssht_sampling_mw_ss_ntheta(L);
     nphi = ssht_sampling_mw_ss_nphi(L);
-    if (reality) {
-      fr = (double*)calloc(ntheta*nphi, sizeof(double));
-      ssht_core_mw_inverse_sov_sym_ss_real(fr, flm, L, verbosity);
+
+    if (south_pole_exists) {
+      ntheta = ntheta - 2;
+      if (reality) {
+	fr = (double*)calloc(ntheta*nphi, sizeof(double));
+	ssht_core_mw_inverse_sov_sym_ss_real_pole(fr, 
+						  &fr_np, &fr_sp,
+						  flm, L, verbosity);
+      }
+      else {
+	f = (complex double*)calloc(ntheta*nphi, sizeof(complex double));
+	ssht_core_mw_inverse_sov_sym_ss_pole(f, &f_np, &phi_np, &f_sp, &phi_sp,
+					     flm, L, spin, verbosity);
+      }
     }
     else {
-      f = (complex double*)calloc(ntheta*nphi, sizeof(complex double));
-      ssht_core_mw_inverse_sov_sym_ss(f, flm, L, spin, verbosity);
+      if (reality) {
+	fr = (double*)calloc(ntheta*nphi, sizeof(double));
+	ssht_core_mw_inverse_sov_sym_ss_real(fr, flm, L, verbosity);
+      }
+      else {
+	f = (complex double*)calloc(ntheta*nphi, sizeof(complex double));
+	ssht_core_mw_inverse_sov_sym_ss(f, flm, L, spin, verbosity);
+      }
     }
+
   }
   else if (strcmp(method, SSHT_SAMPLING_GL) == 0) {
 
@@ -180,13 +256,34 @@ void mexFunction( int nlhs, mxArray *plhs[],
 
   /* Copy f to output. */
   if (reality) {
+
+    iout = 0;
     plhs[iout] = mxCreateDoubleMatrix(ntheta, nphi, mxREAL);
     f_real = mxGetPr(plhs[iout]);
     for(t=0; t<ntheta; t++)
       for(p=0; p<nphi; p++)
 	f_real[p*ntheta + t] = fr[t*nphi + p];
+
+    iout = 1;
+    plhs[iout] =  mxCreateDoubleMatrix(1, 1, mxREAL);
+    *mxGetPr(plhs[iout]) = fr_sp;
+
+    iout = 2;
+    plhs[iout] =  mxCreateDoubleMatrix(1, 1, mxREAL); 
+    *mxGetPr(plhs[iout]) = phi_sp;
+
+    iout = 3;
+    plhs[iout] =  mxCreateDoubleMatrix(1, 1, mxREAL);
+    *mxGetPr(plhs[iout]) = fr_np;
+
+    iout = 4;
+    plhs[iout] =  mxCreateDoubleMatrix(1, 1, mxREAL); 
+    *mxGetPr(plhs[iout]) = phi_np;
+
   }
   else {
+
+    iout = 0;
     plhs[iout] = mxCreateDoubleMatrix(ntheta, nphi, mxCOMPLEX);
     f_real = mxGetPr(plhs[iout]);
     f_imag = mxGetPi(plhs[iout]);    
@@ -196,6 +293,25 @@ void mexFunction( int nlhs, mxArray *plhs[],
 	f_imag[p*ntheta + t] = cimag(f[t*nphi + p]);
       }
     }
+
+    iout = 1;
+    plhs[iout] =  mxCreateDoubleMatrix(1, 1, mxCOMPLEX);
+    *mxGetPr(plhs[iout]) = creal(f_sp);
+    *mxGetPi(plhs[iout]) = cimag(f_sp);
+
+    iout = 2;
+    plhs[iout] =  mxCreateDoubleMatrix(1, 1, mxREAL); 
+    *mxGetPr(plhs[iout]) = phi_sp;
+
+    iout = 3;
+    plhs[iout] =  mxCreateDoubleMatrix(1, 1, mxCOMPLEX);
+    *mxGetPr(plhs[iout]) = creal(f_np);
+    *mxGetPi(plhs[iout]) = cimag(f_np);
+
+    iout = 4;
+    plhs[iout] =  mxCreateDoubleMatrix(1, 1, mxREAL); 
+    *mxGetPr(plhs[iout]) = phi_np;
+
   }
 
   /* Free memory. */

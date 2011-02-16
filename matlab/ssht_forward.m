@@ -21,6 +21,20 @@ function [flm] = ssht_forward(f, L, varargin)
 %  'Spin'            = { non-negative integers (default=0) }
 %  'Reality'         = { false        [do not assume f real (default)],
 %                        true         [assume f real (improves performance)] }
+%  'SouthPoleSample' = { double (default=0) }
+%  'SouthPolePhi'    = { double (default=0) }
+%  'NorthPoleSample' = { double (default=0) }
+%  'NorthPolePhi'    = { double (default=0) }
+%
+% Note that an alternative interface is provided for the MW and MWSS
+% methods since these contain samples on the poles (MW sampling
+% contains a sample on the South pole, but not North pole; MWSS
+% sampling contains a sample on both the North and South poles).
+% Instead of passing function values on the poles for all values of
+% phi, the poles may be specified by single samples with their
+% corresponding phi angle (values for other phi are then related to
+% this sample by the rotation of a spin function in its tangent
+% plane).
 % 
 % Author: Jason McEwen (jason.mcewen@epfl.ch)
 
@@ -40,11 +54,11 @@ args = p.Results;
 
 % Check whether individual polar samples specified.
 defaults = p.UsingDefaults
-southPoleSampleExits = ~sum(ismember(defaults, 'SouthPoleSample'))
-southPolePhiExits = ~sum(ismember(defaults, 'SouthPolePhi'))
-northPoleSampleExits = ~sum(ismember(defaults, 'NorthPoleSample'))
-northPolePhiExits = ~sum(ismember(defaults, 'NorthPolePhi'))
-if (spin ~= 0) 
+southPoleSampleExists = ~sum(ismember(defaults, 'SouthPoleSample'))
+southPolePhiExists = ~sum(ismember(defaults, 'SouthPolePhi'))
+northPoleSampleExists = ~sum(ismember(defaults, 'NorthPoleSample'))
+northPolePhiExists = ~sum(ismember(defaults, 'NorthPolePhi'))
+if (args.Spin ~= 0) 
   if (southPoleSampleExists ~= southPolePhiExits)
     warning(['South polar sample not fully specified (must specify ' ...
              'sample and corresponding phi).']);

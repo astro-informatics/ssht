@@ -36,7 +36,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
   char method[SSHT_STRING_LEN];
 
   /* Check number of arguments. */
-  if(nrhs!=5) {
+  if(nrhs!=11) {
     mexErrMsgIdAndTxt("ssht_forward_mex:InvalidInput:nrhs",
 		      "Require five inputs.");
   }
