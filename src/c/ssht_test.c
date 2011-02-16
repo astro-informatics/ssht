@@ -33,6 +33,11 @@ int main(int argc, char *argv[]) {
   complex double *f_mw, *f_mw_ss, *f_gl, *f_dh;
   double *f_mw_real, *f_mw_ss_real, *f_gl_real, *f_dh_real;
 
+  complex double *f_mw_pole, *f_mw_ss_pole;
+  complex double f_mw_sp, f_mw_ss_np, f_mw_ss_sp;
+  double *f_mw_real_pole, *f_mw_ss_real_pole;
+  double f_mw_real_sp, f_mw_ss_real_sp, f_mw_ss_real_np, phi_sp, phi_np;
+
   int L = 128;
   int spin = 0;
   int irepeat;
@@ -43,25 +48,37 @@ int main(int argc, char *argv[]) {
 
   clock_t time_start, time_end;
   double errors_mw[NREPEAT];
+  double errors_mw_pole[NREPEAT];
   double errors_mw_ss[NREPEAT];
+  double errors_mw_ss_pole[NREPEAT];
   double errors_gl[NREPEAT];
   double errors_dh[NREPEAT];
   double errors_mw_real[NREPEAT];
+  double errors_mw_real_pole[NREPEAT];
   double errors_mw_ss_real[NREPEAT];
+  double errors_mw_ss_real_pole[NREPEAT];
   double errors_gl_real[NREPEAT];
   double errors_dh_real[NREPEAT];
   double durations_forward_mw[NREPEAT];
   double durations_inverse_mw[NREPEAT];
+  double durations_forward_mw_pole[NREPEAT];
+  double durations_inverse_mw_pole[NREPEAT];
   double durations_forward_mw_ss[NREPEAT];
   double durations_inverse_mw_ss[NREPEAT];
+  double durations_forward_mw_ss_pole[NREPEAT];
+  double durations_inverse_mw_ss_pole[NREPEAT];
   double durations_forward_gl[NREPEAT];
   double durations_inverse_gl[NREPEAT];
   double durations_forward_dh[NREPEAT];
   double durations_inverse_dh[NREPEAT];
   double durations_forward_mw_real[NREPEAT];
   double durations_inverse_mw_real[NREPEAT];
+  double durations_forward_mw_real_pole[NREPEAT];
+  double durations_inverse_mw_real_pole[NREPEAT];
   double durations_forward_mw_ss_real[NREPEAT];
   double durations_inverse_mw_ss_real[NREPEAT];
+  double durations_forward_mw_ss_real_pole[NREPEAT];
+  double durations_inverse_mw_ss_real_pole[NREPEAT];
   double durations_forward_gl_real[NREPEAT];
   double durations_inverse_gl_real[NREPEAT];
   double durations_forward_dh_real[NREPEAT];
@@ -80,6 +97,10 @@ int main(int argc, char *argv[]) {
   SSHT_ERROR_MEM_ALLOC_CHECK(f_mw)
   f_mw_ss = (complex double*)calloc((L+1)*(2*L-1), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_ss)
+  f_mw_pole = (complex double*)calloc((L-1)*(2*L-1), sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_pole)
+  f_mw_ss_pole = (complex double*)calloc((L-1)*(2*L-1), sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_ss_pole)
   f_gl = (complex double*)calloc(L*(2*L-1), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(f_gl)
   f_dh = (complex double*)calloc((2*L)*(2*L-1), sizeof(complex double));
@@ -88,6 +109,10 @@ int main(int argc, char *argv[]) {
   SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_real)
   f_mw_ss_real = (double*)calloc((L+1)*(2*L-1), sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_ss_real)
+  f_mw_real_pole = (double*)calloc((L-1)*(2*L-1), sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_real_pole)
+  f_mw_ss_real_pole = (double*)calloc((L-1)*(2*L-1), sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_ss_real_pole)
   f_gl_real = (double*)calloc(L*(2*L-1), sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(f_gl_real)
   f_dh_real = (double*)calloc((2*L)*(2*L-1), sizeof(double));
@@ -134,6 +159,39 @@ int main(int argc, char *argv[]) {
 	     errors_mw_real[irepeat]);
 
       // =========================================================================
+      // MW real spin=0 pole
+      printf("MW real pole test no. %d\n", irepeat);
+
+      ssht_test_gen_flm_real(flm_orig, L, seed);
+      time_start = clock();
+      ssht_core_mw_inverse_sov_sym_real_pole(f_mw_real_pole, 
+					     &f_mw_real_sp,
+					     flm_orig, L, verbosity);      
+      time_end = clock();
+      durations_inverse_mw_real_pole[irepeat] = 
+	(time_end - time_start) / (double)CLOCKS_PER_SEC;
+      
+      time_start = clock();
+      ssht_core_mw_forward_sov_conv_sym_real_pole(flm_syn, f_mw_real_pole, 
+						  f_mw_real_sp,
+						  L, verbosity);      
+      time_end = clock();
+      durations_forward_mw_real_pole[irepeat] = 
+	(time_end - time_start) / (double)CLOCKS_PER_SEC;
+
+      errors_mw_real_pole[irepeat] = 0.0;
+      for (i = 0; i < L*L; i++)
+	errors_mw_real_pole[irepeat] = 
+	  MAX(cabs(flm_orig[i] - flm_syn[i]), errors_mw_real_pole[irepeat]);
+
+      printf(" duration_inverse (s) = %40.4f\n", 
+	     durations_inverse_mw_real_pole[irepeat]);
+      printf(" duration_forward (s) = %40.4f\n", 
+	     durations_forward_mw_real_pole[irepeat]);
+      printf(" error                = %40.5e\n\n", 
+	     errors_mw_real_pole[irepeat]);
+
+      // =========================================================================
       // MW SS real spin=0
       printf("MW SS real test no. %d\n", irepeat);
 
@@ -161,6 +219,42 @@ int main(int argc, char *argv[]) {
 	     durations_forward_mw_ss_real[irepeat]);
       printf(" error                = %40.5e\n\n", 
 	     errors_mw_ss_real[irepeat]);
+
+      // =========================================================================
+      // MW SS real spin=0 pole
+      printf("MW SS real pole test no. %d\n", irepeat);
+
+      ssht_test_gen_flm_real(flm_orig, L, seed);
+      time_start = clock();
+      ssht_core_mw_inverse_sov_sym_ss_real_pole(f_mw_ss_real_pole, 
+						&f_mw_ss_real_np, 
+						&f_mw_ss_real_sp,
+						flm_orig, L, verbosity);      
+      time_end = clock();
+      durations_inverse_mw_ss_real_pole[irepeat] = 
+	(time_end - time_start) / (double)CLOCKS_PER_SEC;
+      
+      time_start = clock();
+      ssht_core_mw_forward_sov_conv_sym_ss_real_pole(flm_syn, 
+						     f_mw_ss_real_pole, 
+						     f_mw_ss_real_np, 
+						     f_mw_ss_real_sp,
+						     L, verbosity);      
+      time_end = clock();
+      durations_forward_mw_ss_real_pole[irepeat] = 
+	(time_end - time_start) / (double)CLOCKS_PER_SEC;
+
+      errors_mw_ss_real_pole[irepeat] = 0.0;
+      for (i = 0; i < L*L; i++)
+	errors_mw_ss_real_pole[irepeat] = 
+	  MAX(cabs(flm_orig[i] - flm_syn[i]), errors_mw_ss_real_pole[irepeat]);
+
+      printf(" duration_inverse (s) = %40.4f\n", 
+	     durations_inverse_mw_ss_real_pole[irepeat]);
+      printf(" duration_forward (s) = %40.4f\n", 
+	     durations_forward_mw_ss_real_pole[irepeat]);
+      printf(" error                = %40.5e\n\n", 
+	     errors_mw_ss_real_pole[irepeat]);
 
       // =========================================================================
       // GL real spin=0
@@ -250,6 +344,37 @@ int main(int argc, char *argv[]) {
 	   errors_mw[irepeat]);
 
     // =========================================================================
+    // MW pole
+    printf("MW pole test no. %d\n", irepeat);
+
+    ssht_test_gen_flm_complex(flm_orig, L, spin, seed);
+    time_start = clock();
+    ssht_core_mw_inverse_sov_sym_pole(f_mw_pole, &f_mw_sp, &phi_sp,
+				      flm_orig, L, spin, verbosity);    
+    time_end = clock();
+    durations_inverse_mw_pole[irepeat] = 
+      (time_end - time_start) / (double)CLOCKS_PER_SEC;
+
+    time_start = clock();
+    ssht_core_mw_forward_sov_conv_sym_pole(flm_syn, f_mw_pole, f_mw_sp, phi_sp,
+					   L, spin, verbosity);    
+    time_end = clock();
+    durations_forward_mw_pole[irepeat] = 
+      (time_end - time_start) / (double)CLOCKS_PER_SEC;
+
+    errors_mw_pole[irepeat] = 0.0;
+    for (i = 0; i < L*L; i++)
+	errors_mw_pole[irepeat] = 
+	  MAX(cabs(flm_orig[i] - flm_syn[i]), errors_mw_pole[irepeat]);
+
+    printf(" duration_inverse (s) = %40.4f\n", 
+	   durations_inverse_mw_pole[irepeat]);
+    printf(" duration_forward (s) = %40.4f\n", 
+	   durations_forward_mw_pole[irepeat]);
+    printf(" error                = %40.5e\n\n", 
+	   errors_mw_pole[irepeat]);
+
+    // =========================================================================
     // MW SS
     printf("MW SS test no. %d\n", irepeat);
 
@@ -278,6 +403,42 @@ int main(int argc, char *argv[]) {
 	   errors_mw_ss[irepeat]);
 
     // =========================================================================
+    // MW SS pole
+    printf("MW SS pole test no. %d\n", irepeat);
+
+    ssht_test_gen_flm_complex(flm_orig, L, spin, seed);
+    time_start = clock();
+    ssht_core_mw_inverse_sov_sym_ss_pole(f_mw_ss_pole, 
+					 &f_mw_ss_np, &phi_np,
+					 &f_mw_ss_sp, &phi_sp,
+					 flm_orig, L, spin, verbosity);   
+    time_end = clock();
+    durations_inverse_mw_ss_pole[irepeat] = 
+      (time_end - time_start) / (double)CLOCKS_PER_SEC;
+
+    time_start = clock();
+    ssht_core_mw_forward_sov_conv_sym_ss_pole(flm_syn, f_mw_ss_pole, 
+					      f_mw_ss_np, phi_np,
+					      f_mw_ss_sp, phi_sp,
+					      L, spin, verbosity);
+    time_end = clock();
+    durations_forward_mw_ss_pole[irepeat] = 
+      (time_end - time_start) / (double)CLOCKS_PER_SEC;
+
+    errors_mw_ss_pole[irepeat] = 0.0;
+    for (i = 0; i < L*L; i++)
+	errors_mw_ss_pole[irepeat] = 
+	  MAX(cabs(flm_orig[i] - flm_syn[i]), errors_mw_ss_pole[irepeat]);
+
+    printf(" duration_inverse (s) = %40.4f\n", 
+	   durations_inverse_mw_ss_pole[irepeat]);
+    printf(" duration_forward (s) = %40.4f\n", 
+	   durations_forward_mw_ss_pole[irepeat]);
+    printf(" error                = %40.5e\n\n", 
+	   errors_mw_ss_pole[irepeat]);
+
+
+    // =========================================================================
     // GL
     printf("GL test no. %d\n", irepeat);
 
@@ -304,7 +465,7 @@ int main(int argc, char *argv[]) {
     printf(" error                = %40.5e\n\n", 
 	   errors_gl[irepeat]);
 
-    // =========================================================================
+    // ===========================1==============================================
     // DH
     printf("DH test no. %d\n", irepeat);
 
@@ -352,12 +513,28 @@ int main(int argc, char *argv[]) {
     tmp = 0.0; for (i=0; i<NREPEAT; i++) tmp += errors_mw_real[i];
     printf(" Average max error                  = %26.5e\n\n", tmp/(double)NREPEAT);
 
+    printf("MW real pole\n");
+    tmp = 0.0; for (i=0; i<NREPEAT; i++) tmp += durations_forward_mw_real_pole[i];
+    printf(" Average forward transform time (s) = %26.4f\n", tmp/(double)NREPEAT);
+    tmp = 0.0; for (i=0; i<NREPEAT; i++) tmp += durations_inverse_mw_real_pole[i];
+    printf(" Average inverse transform time (s) = %26.4f\n", tmp/(double)NREPEAT);
+    tmp = 0.0; for (i=0; i<NREPEAT; i++) tmp += errors_mw_real_pole[i];
+    printf(" Average max error                  = %26.5e\n\n", tmp/(double)NREPEAT);
+
     printf("MW SS real\n");
     tmp = 0.0; for (i=0; i<NREPEAT; i++) tmp += durations_forward_mw_ss_real[i];
     printf(" Average forward transform time (s) = %26.4f\n", tmp/(double)NREPEAT);
     tmp = 0.0; for (i=0; i<NREPEAT; i++) tmp += durations_inverse_mw_ss_real[i];
     printf(" Average inverse transform time (s) = %26.4f\n", tmp/(double)NREPEAT);
     tmp = 0.0; for (i=0; i<NREPEAT; i++) tmp += errors_mw_ss_real[i];
+    printf(" Average max error                  = %26.5e\n\n", tmp/(double)NREPEAT);
+
+    printf("MW SS real pole\n");
+    tmp = 0.0; for (i=0; i<NREPEAT; i++) tmp += durations_forward_mw_ss_real_pole[i];
+    printf(" Average forward transform time (s) = %26.4f\n", tmp/(double)NREPEAT);
+    tmp = 0.0; for (i=0; i<NREPEAT; i++) tmp += durations_inverse_mw_ss_real_pole[i];
+    printf(" Average inverse transform time (s) = %26.4f\n", tmp/(double)NREPEAT);
+    tmp = 0.0; for (i=0; i<NREPEAT; i++) tmp += errors_mw_ss_real_pole[i];
     printf(" Average max error                  = %26.5e\n\n", tmp/(double)NREPEAT);
 
     printf("GL real\n");
@@ -386,12 +563,28 @@ int main(int argc, char *argv[]) {
   tmp = 0.0; for (i=0; i<NREPEAT; i++) tmp += errors_mw[i];
   printf(" Average max error                  = %26.5e\n\n", tmp/(double)NREPEAT);
 
+  printf("MW pole\n");
+  tmp = 0.0; for (i=0; i<NREPEAT; i++) tmp += durations_forward_mw_pole[i];
+  printf(" Average forward transform time (s) = %26.4f\n", tmp/(double)NREPEAT);
+  tmp = 0.0; for (i=0; i<NREPEAT; i++) tmp += durations_inverse_mw_pole[i];
+  printf(" Average inverse transform time (s) = %26.4f\n", tmp/(double)NREPEAT);
+  tmp = 0.0; for (i=0; i<NREPEAT; i++) tmp += errors_mw_pole[i];
+  printf(" Average max error                  = %26.5e\n\n", tmp/(double)NREPEAT);
+
   printf("MW SS\n");
   tmp = 0.0; for (i=0; i<NREPEAT; i++) tmp += durations_forward_mw_ss[i];
   printf(" Average forward transform time (s) = %26.4f\n", tmp/(double)NREPEAT);
   tmp = 0.0; for (i=0; i<NREPEAT; i++) tmp += durations_inverse_mw_ss[i];
   printf(" Average inverse transform time (s) = %26.4f\n", tmp/(double)NREPEAT);
   tmp = 0.0; for (i=0; i<NREPEAT; i++) tmp += errors_mw_ss[i];
+  printf(" Average max error                  = %26.5e\n\n", tmp/(double)NREPEAT);
+
+  printf("MW SS pole\n");
+  tmp = 0.0; for (i=0; i<NREPEAT; i++) tmp += durations_forward_mw_ss_pole[i];
+  printf(" Average forward transform time (s) = %26.4f\n", tmp/(double)NREPEAT);
+  tmp = 0.0; for (i=0; i<NREPEAT; i++) tmp += durations_inverse_mw_ss_pole[i];
+  printf(" Average inverse transform time (s) = %26.4f\n", tmp/(double)NREPEAT);
+  tmp = 0.0; for (i=0; i<NREPEAT; i++) tmp += errors_mw_ss_pole[i];
   printf(" Average max error                  = %26.5e\n\n", tmp/(double)NREPEAT);
 
   printf("GL\n");
@@ -417,6 +610,10 @@ int main(int argc, char *argv[]) {
   free(f_mw_ss);
   free(f_mw_real);
   free(f_mw_ss_real);
+  free(f_mw_pole);
+  free(f_mw_ss_pole);
+  free(f_mw_real_pole);
+  free(f_mw_ss_real_pole);
   free(f_gl);
   free(f_gl_real);
   free(f_dh);

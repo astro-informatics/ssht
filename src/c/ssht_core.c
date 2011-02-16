@@ -2731,7 +2731,7 @@ void ssht_core_mw_forward_sov_conv_sym_ss_pole(complex double *flm, complex doub
   // Define poles for all phi.
   for (p=0; p<=2*L-2; p++) {
     phi = ssht_sampling_mw_p2phi(p, L);
-    f_full[0*f_stride + p] = f_np * cexp(I*spin*(phi-phi_sp)); 
+    f_full[0*f_stride + p] = f_np * cexp(-I*spin*(phi-phi_np)); 
     f_full[L*f_stride + p] = f_sp * cexp(I*spin*(phi-phi_sp)); 
   }
 
