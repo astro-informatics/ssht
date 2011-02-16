@@ -31,13 +31,40 @@ p.addRequired('L', @isnumeric);
 p.addParamValue('Method', 'MW', @ischar);
 p.addParamValue('Spin', 0, @isnumeric);
 p.addParamValue('Reality', false, @islogical);
+p.addParamValue('SouthPoleSample', 0, @isnumeric);
+p.addParamValue('SouthPolePhi', 0, @isnumeric);
+p.addParamValue('NorthPoleSample', 0, @isnumeric);
+p.addParamValue('NorthPolePhi', 0, @isnumeric);
 p.parse(f, L, varargin{:});
 args = p.Results;
+
+% Check whether individual polar samples specified.
+defaults = p.UsingDefaults
+southPoleSampleExits = ~sum(ismember(defaults, 'SouthPoleSample'))
+southPolePhiExits = ~sum(ismember(defaults, 'SouthPolePhi'))
+northPoleSampleExits = ~sum(ismember(defaults, 'NorthPoleSample'))
+northPolePhiExits = ~sum(ismember(defaults, 'NorthPolePhi'))
+if (spin ~= 0) 
+  if (southPoleSampleExists ~= southPolePhiExits)
+    warning(['South polar sample not fully specified (must specify ' ...
+             'sample and corresponding phi).']);
+  end
+  if (northPoleSampleExists ~= northPolePhiExits)
+    warning(['North polar sample not fully specified (must specify ' ...
+             'sample and corresponding phi).']);
+  end
+end
 
 % Computing forward transform.
 flm = ssht_forward_mex(f, L, args.Method, args.Spin, args.Reality);
 
 
+% 1. polar interfaces in c
+% 2. polar interfaces in matlab
+% 3. give elm2i i2elm functions
+% 4. add all header comments, including in mex files
+% 5. move matlab directory and tidy 
+% 6. update makefile
 
-
+% 7. process geophysics data
   

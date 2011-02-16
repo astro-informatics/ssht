@@ -1284,6 +1284,186 @@ void ssht_core_mw_forward_sov_conv_sym_real(complex double *flm, double *f,
 
 
 //============================================================================
+// MW South pole interfaces
+//============================================================================
+
+
+/*!  
+ * South pole wrapper for inverse transform for MW method.  The South
+ * pole is defined by a single sample and its corresponding phi angle,
+ * rather than specifying samples for all phi at the South pole (which
+ * are simply related by the rotation of a spin function in its
+ * tangent plane).
+ *
+ * \param[out] f Function on sphere (excluding South pole).
+ * \param[out] f_sp Function sample on South pole.
+ * \param[out] phi_sp Phi angle corresponding to quoted sample at 
+ * South pole.
+ * \param[in] flm Harmonic coefficients.
+ * \param[in] L Harmonic band-limit.
+ * \param[in] spin Spin number.
+ * \param[in] verbosity Verbosiity flag in range [0,5].
+ * \retval none
+ *
+ * \author Jason McEwen
+ */
+void ssht_core_mw_inverse_sov_sym_pole(complex double *f, 
+				       complex double *f_sp, double *phi_sp,
+				       complex double *flm, 
+				       int L, int spin, int verbosity) {
+
+  complex double* f_full;
+  int f_stride = 2*L-1;
+
+  // Allocate full array.
+  f_full = (complex double*)calloc(L*(2*L-1), sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(f_full)
+
+  // Perform inverse transform.
+  ssht_core_mw_inverse_sov_sym(f_full, flm, L, spin, verbosity);	  
+
+  // Copy ouput function values, including separate point for South pole.
+  memcpy(f, f_full, (L-1)*(2*L-1)*sizeof(complex double));
+  *f_sp = f_full[(L-1)*f_stride + 0];
+  *phi_sp = ssht_sampling_mw_p2phi(0, L);
+	
+  // Free memory.
+  free(f_full);
+
+}
+
+
+/*!  
+ * South pole wrapper for inverse transform of real scalar function
+ * for MW method.  The South pole is defined by a single sample,
+ * rather than specifying samples for all phi at the South
+ * pole (which for a scalar function are identical).
+ *
+ * \param[out] f Function on sphere (excluding South pole).
+ * \param[out] f_sp Function sample on South pole.
+ * \param[in] flm Harmonic coefficients.
+ * \param[in] L Harmonic band-limit.
+ * \param[in] spin Spin number.
+ * \param[in] verbosity Verbosiity flag in range [0,5].
+ * \retval none
+ *
+ * \author Jason McEwen
+ */
+void ssht_core_mw_inverse_sov_sym_real_pole(double *f, 
+					    double *f_sp,
+					    complex double *flm, 
+					    int L, int verbosity) {
+
+  double *f_full;
+  int f_stride = 2*L-1;
+
+  // Allocate full array.
+  f_full = (double*)calloc(L*(2*L-1), sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(f_full)
+
+  // Perform inverse transform.
+  ssht_core_mw_inverse_sov_sym_real(f_full, flm, L, verbosity);
+
+  // Copy ouput function values, including separate point for South pole.
+  memcpy(f, f_full, (L-1)*(2*L-1)*sizeof(double));
+  *f_sp = f_full[(L-1)*f_stride + 0];
+
+  // Free memory.
+  free(f_full);
+
+}
+
+
+/*!  
+ * South pole wrapper for forward transform for MW method.  The South
+ * pole is defined by a single sample and its corresponding phi angle,
+ * rather than specifying samples for all phi at the South pole (which
+ * are simply related by the rotation of a spin function in its
+ * tangent plane).
+ *
+ * \param[out] flm Harmonic coefficients.
+ * \param[in] f Function on sphere (excluding South pole).
+ * \param[in] f_sp Function sample on South pole.
+ * \param[in] phi_sp Phi angle corresponding to quoted sample at 
+ * South pole.
+ * \param[in] L Harmonic band-limit.
+ * \param[in] spin Spin number.
+ * \param[in] verbosity Verbosiity flag in range [0,5].
+ * \retval none
+ *
+ * \author Jason McEwen
+ */
+void ssht_core_mw_forward_sov_conv_sym_pole(complex double *flm, complex double *f,
+					    complex double f_sp, double phi_sp,
+					    int L, int spin, int verbosity) {
+
+  complex double *f_full;
+  int p, f_stride = 2*L-1;
+  double phi;
+
+  // Copy function values to full array.
+  f_full = (complex double*)calloc(L*(2*L-1), sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(f_full)
+  memcpy(f_full, f, (L-1)*(2*L-1)*sizeof(complex double));
+
+  // Define South pole for all phi.
+  for (p=0; p<=2*L-2; p++) {
+    phi = ssht_sampling_mw_p2phi(p, L);
+    f_full[(L-1)*f_stride + p] = f_sp * cexp(I*spin*(phi-phi_sp)); 
+  }
+
+  // Perform forward transform.
+  ssht_core_mw_forward_sov_conv_sym(flm, f_full, L, spin, verbosity);
+
+  // Free memory.
+  free(f_full);
+
+}
+
+
+/*!  
+ * South pole wrapper for forward transform of real scalar function
+ * for MW method.  The South pole is defined by a single sample,
+ * rather than specifying samples for all phi at the South
+ * pole (which for a scalar function are identical).
+ *
+ * \param[out] flm Harmonic coefficients.
+ * \param[in] f Function on sphere (excluding South pole).
+ * \param[in] f_sp Function sample on South pole.
+ * \param[in] L Harmonic band-limit.
+ * \param[in] spin Spin number.
+ * \param[in] verbosity Verbosiity flag in range [0,5].
+ * \retval none
+ *
+ * \author Jason McEwen
+ */
+void ssht_core_mw_forward_sov_conv_sym_real_pole(complex double *flm, 
+						 double *f, 
+						 double f_sp,
+						 int L, int verbosity) {
+
+  double *f_full;
+  int p, f_stride = 2*L-1;
+
+  // Copy function values to full array.
+  f_full = (double*)calloc(L*(2*L-1), sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(f_full)
+  memcpy(f_full, f, (L-1)*(2*L-1)*sizeof(double));
+
+  // Define South pole for all phi.
+  for (p=0; p<=2*L-2; p++)
+    f_full[(L-1)*f_stride + p] = f_sp; 
+
+  // Perform forward transform.
+  ssht_core_mw_forward_sov_conv_sym_real(flm, f_full, L, verbosity);
+
+  // Free memory.
+  free(f_full);
+
+}
+
+
+//============================================================================
 // MW SS algorithms
 //============================================================================
 
