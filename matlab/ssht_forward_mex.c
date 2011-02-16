@@ -1,5 +1,4 @@
 
-
 #include <ssht.h>
 #include "ssht_mex.h"
 #include <string.h>
@@ -7,13 +6,14 @@
 
 
 /**
- * Compute inverse transform.
+ * Compute forward transform.
  *
- * Usage: [n, ntheta, nphi, thetas, phis] = ssht_sampling_mex(L, method)
-
-
-
-
+ * Usage: 
+ *   flm = ssht_forward_mex(f, L, method, spin, reality, ...
+ *                          southPoleSampleExists, ...
+ *                          southPoleSample, southPolePhi, ...
+ *                          northPoleSampleExists, ...
+ *                          northPoleSample, northPolePhi);
  *
  * \author Jason McEwen
  */

@@ -1,6 +1,4 @@
 
-
-/*! Size of dl plane required (for memory access). */
 #define SSHT_SAMPLING_MW "MW"
 #define SSHT_SAMPLING_MWSS "MWSS"
 #define SSHT_SAMPLING_GL "GL"

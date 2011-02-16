@@ -5,11 +5,11 @@ clear all;
 
 % Define parameters.
 L = 5
-spin = 1
+spin = 0
 method = 'MW'
 close_plot = true;
 plot_samples = false;
-reality = false
+reality = true
 
 % Generate random flms (of complex signal).
 flm = zeros(L^2,1);
@@ -22,12 +22,12 @@ flm(1:ind_min) = 0;
 if reality
    for el = 0:L-1
       m = 0;
-      ind = el^2 + el + m;
-      flm(ind+1) = real(flm(ind+1));
+      ind = ssht_elm2ind(el, m);      
+      flm(ind) = real(flm(ind));
       for m = 1:el
-         ind_pm = el^2 + el + m;
-         ind_nm = el^2 + el - m;
-         flm(ind_nm+1) = (-1)^m * conj(flm(ind_pm+1));
+         ind_pm = ssht_elm2ind(el, m);
+         ind_nm = ssht_elm2ind(el, -m);         
+         flm(ind_nm) = (-1)^m * conj(flm(ind_pm));
       end
    end
 end

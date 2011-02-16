@@ -9,7 +9,8 @@
 /**
  * Compute sampling positions.
  *
- * Usage: [n, ntheta, nphi, thetas, phis] = ssht_sampling_mex(L, method)
+ * Usage: 
+ *   [n, ntheta, nphi, thetas, phis] = ssht_sampling_mex(L, method)
  *
  * \author Jason McEwen
  */

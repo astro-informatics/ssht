@@ -81,10 +81,10 @@ flm = ssht_forward_mex(f, L, args.Method, args.Spin, args.Reality, ...
 % 1. polar interfaces in c -- DONE
 % 2. polar interfaces in matlab -- DONE
 % 3. give elm2i i2elm functions -- DONE
+% 4. add all header comments, including in mex files -- DONE
 
-% 4. add all header comments, including in mex files
 % 4a. create two demos (simple and complex)
-% 5. move matlab directory and tidy 
+% 5. move matlab directory and tidy (create mex directory)
 % 6. update makefile
 
 % 7. process geophysics data
