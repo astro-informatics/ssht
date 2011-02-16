@@ -82,8 +82,9 @@ flm = ssht_forward_mex(f, L, args.Method, args.Spin, args.Reality, ...
 % 2. polar interfaces in matlab -- DONE
 % 3. give elm2i i2elm functions -- DONE
 % 4. add all header comments, including in mex files -- DONE
+% 4a. create two demos (simple and complex) -- DONE
 
-% 4a. create two demos (simple and complex)
+% 4b. create cmb demo
 % 5. move matlab directory and tidy (create mex directory)
 % 6. update makefile
 

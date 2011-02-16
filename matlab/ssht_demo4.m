@@ -5,7 +5,7 @@
 %
 % Default usage is given by
 %
-%   ssht_demo3
+%   ssht_demo4
 %
 % Author: Jason McEwen (jason.mcewen@epfl.ch)
 
@@ -13,8 +13,8 @@ clear all;
 
 % Define parameters.
 L = 64
-spin = 2
-reality = false
+spin = 0
+reality = true
 methods = {'MW', 'MWSS'};
 method = char(methods(1))
 close_plot = true;
@@ -42,35 +42,34 @@ if reality
       end
    end
 end
-
+  
 % Compute inverse then forward transform.
-f = ssht_inverse(flm, L, 'Method', method, 'Spin', spin, ...
-                 'Reality', reality);
-flm_syn = ssht_forward(f, L, 'Method', method, 'Spin', spin, ...
-                 'Reality', reality);
-
+if strcmp(method, 'MW')
+   [f, f_sp, phi_sp] = ssht_inverse(flm, L, ...
+      'Method', method, ...
+      'Spin', spin, ...
+      'Reality', reality);
+   flm_syn = ssht_forward(f, L, ...
+      'Method', method, ...
+      'Spin', spin, ...
+      'Reality', reality, ...
+      'SouthPoleSample', f_sp, ...
+      'SouthPolePhi', phi_sp);
+else
+   [f, f_sp, phi_sp, f_np, phi_np] = ssht_inverse(flm, L, ...
+      'Method', method, ...
+      'Spin', spin, ...
+      'Reality', reality);
+   flm_syn = ssht_forward(f, L, ...
+      'Method', method, ...
+      'Spin', spin, ...
+      'Reality', reality, ...
+      'SouthPoleSample', f_sp, ...
+      'SouthPolePhi', phi_sp, ...
+      'NorthPoleSample', f_np, ...
+      'NorthPolePhi', phi_np);
+end         
+                            
 % Compute max error in harmonic space.
 maxerr = max(abs(flm_syn - flm))
 
-% Compute sampling grids.
-[thetas, phis, n, ntheta, nphi] = ssht_sampling(L, 'Method', method, ...
-                                                'Grid', true);
-
-% Plot function on sphere.
-figure;
-ssht_plot_sphere(abs(f), L, 'Method', method, 'Close', close_plot, ...
-                 'PlotSamples', plot_samples, 'Lighting', true);
-
-
-
-              
-              
-% Compute inverse then forward transform.
-if strcmp(
-[f2, f_sp, phi_sp] = ssht_inverse(flm, L, 'Method', method, 'Spin', spin, ...
-   'Reality', reality);
-flm_syn = ssht_forward(f2, L, 'Method', method, 'Spin', spin, ...
-   'Reality', reality, 'SouthPoleSample', f_sp, 'SouthPolePhi', phi_sp);
-              
-
-maxerr = max(abs(flm_syn - flm))
