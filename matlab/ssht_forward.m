@@ -53,11 +53,11 @@ p.parse(f, L, varargin{:});
 args = p.Results;
 
 % Check whether individual polar samples specified.
-defaults = p.UsingDefaults
-southPoleSampleExists = ~sum(ismember(defaults, 'SouthPoleSample'))
-southPolePhiExists = ~sum(ismember(defaults, 'SouthPolePhi'))
-northPoleSampleExists = ~sum(ismember(defaults, 'NorthPoleSample'))
-northPolePhiExists = ~sum(ismember(defaults, 'NorthPolePhi'))
+defaults = p.UsingDefaults;
+southPoleSampleExists = ~sum(ismember(defaults, 'SouthPoleSample'));
+southPolePhiExists = ~sum(ismember(defaults, 'SouthPolePhi'));
+northPoleSampleExists = ~sum(ismember(defaults, 'NorthPoleSample'));
+northPolePhiExists = ~sum(ismember(defaults, 'NorthPolePhi'));
 if (args.Spin ~= 0) 
   if (southPoleSampleExists ~= southPolePhiExists)
     warning(['South polar sample not fully specified (must specify ' ...

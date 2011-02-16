@@ -24,6 +24,9 @@ function ssht_plot_sphere(f, L, varargin)
 %  'ParametricScale' = scale          [scaling for parametric plot (default=0.5)]
 %  'Lighting'        = { false        [do not light plot (default)],
 %                        true         [light plot] }
+%  'ColourBar'       = { false        [do not add colour bar (default)],
+%                        true         [add colour bar] }
+
 
 % Parse arguments.
 p = inputParser;
@@ -36,6 +39,7 @@ p.addParamValue('Close', true, @islogical);
 p.addParamValue('PlotSamples', false, @islogical);
 p.addParamValue('ParametricScale', 0.5, @isnumeric);
 p.addParamValue('Lighting', false, @islogical);
+p.addParamValue('ColourBar', false, @islogical);
 p.parse(f, L, varargin{:});
 args = p.Results;
 
@@ -81,7 +85,9 @@ z = z .* f_normalised;
 % Plot.
 h = surf(x,y,z,f);
 caxis([minf, maxf]);
-%colorbar('vert');
+if args.ColourBar 
+   olorbar('vert'); 
+end
 set(h, 'LineStyle', 'none')
 if args.PlotSamples
     hold on;

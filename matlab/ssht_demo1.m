@@ -1,11 +1,11 @@
-% ssht_demo2 - Run demo2
+% ssht_demo1 - Run demo1
 %
-% Simple demo to compute inverse and forward transform of real scalar
+% Simple demo to compute inverse and forward transform of complex scalar
 % function, using simplest interface with default options. 
 %
 % Default usage is given by
 %
-%   ssht_demo2
+%   ssht_demo1
 %
 % Author: Jason McEwen (jason.mcewen@epfl.ch)
 
@@ -19,21 +19,9 @@ flm = zeros(L^2,1);
 flm = rand(size(flm)) + sqrt(-1)*rand(size(flm));
 flm = 2.*(flm - (1+sqrt(-1))./2);
 
-% Impose reality on flms.
-for el = 0:L-1
-   m = 0;
-   ind = ssht_elm2ind(el, m);
-   flm(ind) = real(flm(ind));
-   for m = 1:el
-      ind_pm = ssht_elm2ind(el, m);
-      ind_nm = ssht_elm2ind(el, -m);
-      flm(ind_nm) = (-1)^m * conj(flm(ind_pm));
-   end
-end
-
 % Compute inverse then forward transform.
-f = ssht_inverse(flm, L, 'Reality', true);
-flm_syn = ssht_forward(f, L, 'Reality', true);
+f = ssht_inverse(flm, L);
+flm_syn = ssht_forward(f, L);
 
 % Compute max error in harmonic space.
 maxerr = max(abs(flm_syn - flm))
@@ -43,6 +31,6 @@ maxerr = max(abs(flm_syn - flm))
 
 % Plot function on sphere.
 figure;
-ssht_plot_sphere(f, L);
+ssht_plot_sphere(abs(f), L);
 
 

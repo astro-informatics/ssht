@@ -56,7 +56,7 @@ p.addParamValue('Reality', false, @islogical);
 p.parse(flm, L, varargin{:});
 southPoleExists = (nargout >= 3);
 northPoleExists = (nargout >= 5);
-args = p.Results
+args = p.Results;
 
 % Computing inverse transform.
 [f, f_sp, phi_sp, f_np, phi_np] = ...
