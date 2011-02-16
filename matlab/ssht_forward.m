@@ -56,10 +56,16 @@ if (spin ~= 0)
 end
 
 % Computing forward transform.
-flm = ssht_forward_mex(f, L, args.Method, args.Spin, args.Reality);
+flm = ssht_forward_mex(f, L, args.Method, args.Spin, args.Reality, ...
+                       (southPoleSampleExists == true), ...
+                       args.SouthPoleSample, args.SouthPolePhi, ...
+                       (northPoleSampleExists == true), ...
+                       args.NorthPoleSample, args.NorthPolePhi);
 
 
-% 1. polar interfaces in c
+
+% 1. polar interfaces in c -- DONE
+
 % 2. polar interfaces in matlab
 % 3. give elm2i i2elm functions
 % 4. add all header comments, including in mex files
