@@ -5,11 +5,11 @@ clear all;
 
 % Define parameters.
 L = 5
-spin = 0
+spin = 1
 method = 'MW'
 close_plot = true;
 plot_samples = false;
-reality = true
+reality = false
 
 % Generate random flms (of complex signal).
 flm = zeros(L^2,1);
@@ -54,10 +54,10 @@ maxerr = max(abs(flm_syn - flm))
 
 
 % Compute inverse then forward transform.
-[f, f_sp, phi_sp] = ssht_inverse(flm, L, 'Method', method, 'Spin', spin, ...
+[f2, f_sp, phi_sp] = ssht_inverse(flm, L, 'Method', method, 'Spin', spin, ...
    'Reality', reality);
-flm_syn = ssht_forward(f, L, 'Method', method, 'Spin', spin, ...
-   'Reality', reality);
+flm_syn = ssht_forward(f2, L, 'Method', method, 'Spin', spin, ...
+   'Reality', reality, 'SouthPoleSample', f_sp, 'SouthPolePhi', phi_sp);
               
 
-maxerr = max(abs(flm_syn - flm));
+maxerr = max(abs(flm_syn - flm))

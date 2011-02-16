@@ -73,7 +73,7 @@ if args.Close
 end
 
 % Compute location of vertices.
-[x, y, z] = ssht_coord_s2c(thetas, phis, 1.0);
+[x, y, z] = ssht_s2c(thetas, phis, 1.0);
 x = x .* f_normalised;
 y = y .* f_normalised;
 z = z .* f_normalised;

@@ -52,5 +52,3 @@ end
 if nargout >= 5
   varargout(3) = {nphi};
 end
-
-  

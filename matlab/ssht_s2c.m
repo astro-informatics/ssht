@@ -1,11 +1,11 @@
-function [x, y, z] = ssht_coord_s2c(theta, phi, r)
-% ssht_coord_s2c - Convert spherical to carteisan coordinates
+function [x, y, z] = ssht_s2c(theta, phi, r)
+% ssht_s2c - Convert spherical to carteisan coordinates
 %
 % Convert cartesian to spherical coordinates.  
 %
 % Default usage is given by
 %
-%   [x, y, z] = ssht_coord_s2c(theta, phi, r)
+%   [x, y, z] = ssht_s2c(theta, phi, r)
 %
 % Author: Jason McEwen (jason.mcewen@epfl.ch)
 

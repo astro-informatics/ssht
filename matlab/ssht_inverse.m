@@ -62,18 +62,18 @@ args = p.Results
 [f, f_sp, phi_sp, f_np, phi_np] = ...
     ssht_inverse_mex(flm, L, args.Method, args.Spin, args.Reality, ...
                      southPoleExists, northPoleExists);
-
+                  
 % Set optional outputs.
 if ~(nargout == 1 || nargout == 3 || nargout == 5)
   error('Invalid number of output arguments.');
 end
 if nargout >= 3
-  varargout(1) = f_sp;
-  varargout(2) = phi_sp;
+  varargout(1) = {f_sp};
+  varargout(2) = {phi_sp};
 end
 if nargout >= 5
-  varargout(3) = f_np;
-  varargout(4) = phi_np;
+  varargout(3) = {f_np};
+  varargout(4) = {phi_np};
 end
 
 
