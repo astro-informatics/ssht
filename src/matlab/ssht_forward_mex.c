@@ -24,13 +24,15 @@ void mexFunction( int nlhs, mxArray *plhs[],
   int i, L, spin, reality, verbosity=0, f_m, f_n;
   int f_is_complex, fsp_is_complex, fnp_is_complex;
   int south_pole_exists, north_pole_exists;
-  double *flm_real, *flm_imag, *f_real, *f_imag;
-  double *fr;
-  complex double *flm, *f;
-  double *fsp_real, *fsp_imag, *fnp_real, *fnp_imag;
-  double fspr, fnpr;
-  complex double fsp, fnp;
-  double phi_sp, phi_np;
+  double *flm_real = NULL, *flm_imag = NULL;
+  double *f_real = NULL, *f_imag = NULL;
+  double *fr = NULL;
+  complex double *flm = NULL, *f = NULL;
+  double *fsp_real = NULL, *fsp_imag = NULL;
+  double *fnp_real = NULL, *fnp_imag = NULL;
+  double fspr = 0.0, fnpr = 0.0;
+  complex double fsp = 0.0, fnp = 0.0;
+  double phi_sp = 0.0, phi_np = 0.0;
   int ntheta, nphi, t, p;
   int len, iin = 0, iout = 0;
   char method[SSHT_STRING_LEN];
@@ -51,8 +53,6 @@ void mexFunction( int nlhs, mxArray *plhs[],
     mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:reality",
 		      "Reality flag must be logical.");
   reality = mxIsLogicalScalarTrue(prhs[iin]);
-  if (!f_is_complex && !reality)
-    mexWarnMsgTxt("Running complex transform on real signal (set reality flag to improve performance).");
 
   /* Parse function samples f. */
   iin = 0;
@@ -80,6 +80,8 @@ void mexFunction( int nlhs, mxArray *plhs[],
   }
   if (f_is_complex && reality)
     mexWarnMsgTxt("Running real transform but input appears to be complex (ignoring imaginary component).");
+  if (!f_is_complex && !reality)
+    mexWarnMsgTxt("Running complex transform on real signal (set reality flag to improve performance).");
 
   /* Parse harmonic band-limit L. */
   iin = 1;

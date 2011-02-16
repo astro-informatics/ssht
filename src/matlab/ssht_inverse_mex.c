@@ -22,12 +22,12 @@ void mexFunction( int nlhs, mxArray *plhs[],
   int i, L, spin, reality, verbosity=0, flm_m, flm_n;
   int south_pole_exists, north_pole_exists;
   double *flm_real, *flm_imag, *f_real, *f_imag;
-  double *fr;
-  complex double *flm, *f;
+  double *fr = NULL;
+  complex double *flm = NULL, *f = NULL;
   complex double f_sp = 0.0, f_np = 0.0;
   double fr_sp = 0.0, fr_np = 0.0;
   double phi_sp = 0.0, phi_np = 0.0;
-  int ntheta, nphi, t, p;
+  int ntheta = -1, nphi = -1, t, p;
   int len, iin = 0, iout = 0;
   char method[SSHT_STRING_LEN];
 

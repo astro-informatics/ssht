@@ -37,6 +37,9 @@ SSHTDOC  = $(SSHTDIR)/doc/f90/html
 FFTWLIB      = $(PROGDIR)/fftw/lib
 FFTWLIBNM    = fftw3
 
+
+# ======== SOURCE LOCATIONS ========
+
 vpath %.f90 $(SSHTSRC)
 vpath %.f90 $(SSHTPROG)
 
