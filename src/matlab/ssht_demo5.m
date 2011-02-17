@@ -20,7 +20,7 @@ close_plot = true;
 plot_samples = false;
 
 % Load power spectrum.
-load('wmap_tt_spectrum_7yr_v4p1.mat')
+load('data/wmap_tt_spectrum_7yr_v4p1.mat')
 
 % Simulate CMB in harmonic space.
 cmb_lm = zeros(L^2,1);

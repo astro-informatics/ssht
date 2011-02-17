@@ -24,7 +24,7 @@ plot_samples = false;
 sigma = 5e-4;
 
 % Load harmonic coefficients of Earth.
-load('EGM2008_Topography_flms_L0128');
+load('data/EGM2008_Topography_flms_L0128');
 
 % Smooth harmonic coefficients.
 flm_smooth = flm;
