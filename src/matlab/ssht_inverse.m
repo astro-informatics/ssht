@@ -44,7 +44,7 @@ function [f, varargout] = ssht_inverse(flm, L, varargin)
 % where f_np is the North pole sample and phi_np is its corresponding
 % phi value.
 %
-% Author: Jason McEwen (jason.mcewen@epfl.ch)
+% Author: Jason McEwen (www.jasonmcewen.org)
 
 % Parse arguments.
 p = inputParser;

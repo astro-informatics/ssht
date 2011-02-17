@@ -36,7 +36,7 @@ function [flm] = ssht_forward(f, L, varargin)
 % this sample by the rotation of a spin function in its tangent
 % plane).
 % 
-% Author: Jason McEwen (jason.mcewen@epfl.ch)
+% Author: Jason McEwen (www.jasonmcewen.org)
 
 % Parse arguments.
 p = inputParser;

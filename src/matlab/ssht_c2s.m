@@ -7,7 +7,7 @@ function [theta, phi, r] = ssht_c2s(x, y, z)
 %
 %   [theta, phi, r] = ssht_c2s(x, y, z)
 %
-% Author: Jason McEwen (jason.mcewen@epfl.ch)
+% Author: Jason McEwen (www.jasonmcewen.org)
 
 TOL = 1e-10;
 

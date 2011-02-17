@@ -24,7 +24,7 @@ function [thetas, phis, varargout] = ssht_sampling(L, varargin)
 %
 %   [thetas, phis, n, ntheta, nphi] = ssht_sampling(L, <options>)
 %
-% Author: Jason McEwen (jason.mcewen@epfl.ch)
+% Author: Jason McEwen (www.jasonmcewen.org)
 
 % Parse arguments.
 p = inputParser;

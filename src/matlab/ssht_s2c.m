@@ -7,7 +7,7 @@ function [x, y, z] = ssht_s2c(theta, phi, r)
 %
 %   [x, y, z] = ssht_s2c(theta, phi, r)
 %
-% Author: Jason McEwen (jason.mcewen@epfl.ch)
+% Author: Jason McEwen (www.jasonmcewen.org)
 
 x = r .* sin(theta) .* cos(phi);
 y = r .* sin(theta) .* sin(phi);

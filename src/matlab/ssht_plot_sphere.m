@@ -27,7 +27,7 @@ function ssht_plot_sphere(f, L, varargin)
 %  'ColourBar'       = { false        [do not add colour bar (default)],
 %                        true         [add colour bar] }
 %
-% Author: Jason McEwen (jason.mcewen@epfl.ch)
+% Author: Jason McEwen (www.jasonmcewen.org)
 
 
 % Parse arguments.

@@ -8,12 +8,12 @@
 %
 %   ssht_demo5
 %
-% Author: Jason McEwen (jason.mcewen@epfl.ch)
+% Author: Jason McEwen (www.jasonmcewen.org)
 
 clear all;
 
 % Define parameters.
-L = 256
+L = 512
 methods = {'MW', 'MWSS', 'GL', 'DH'};
 method = char(methods(1))
 close_plot = true;
@@ -43,3 +43,5 @@ cmb = ssht_inverse(cmb_lm, L, 'Method', method, 'Reality', true);
 figure;
 ssht_plot_sphere(cmb, L, 'Method', method, 'Close', close_plot, ...
                  'PlotSamples', plot_samples, 'Lighting', true);
+figure;
+ssht_plot_mollweide(cmb, L, 'Method', method);

@@ -9,7 +9,7 @@ function [el, m] = ssht_ind2elm(ind)
 %
 %   [el, m] = ssht_ind2elmn(ind)
 %
-% Author: Jason McEwen (jason.mcewen@epfl.ch)
+% Author: Jason McEwen (www.jasonmcewen.org)
 
 el = floor(sqrt(ind-1));
 m = ind - 1 - el*el - el;

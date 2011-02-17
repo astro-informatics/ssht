@@ -7,7 +7,7 @@
 %
 %   ssht_demo4
 %
-% Author: Jason McEwen (jason.mcewen@epfl.ch)
+% Author: Jason McEwen (www.jasonmcewen.org)
 
 clear all;
 

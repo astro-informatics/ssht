@@ -19,7 +19,7 @@ function ssht_plot_mollweide(f, L, varargin)
 %  'ColourBar'       = { false        [do not add colour bar (default)],
 %                        true         [add colour bar] }
 %
-% Author: Jason McEwen (jason.mcewen@epfl.ch)
+% Author: Jason McEwen (www.jasonmcewen.org)
 
 % Parse arguments.
 p = inputParser;
@@ -63,7 +63,7 @@ function [x, y] = ssht_mollweide(thetas, phis)
 % where thetas and phis are spherical coordinates and x and y are the
 % projected Mollweide coordinates.
 %
-% Author: Jason McEwen (jason.mcewen@epfl.ch)
+% Author: Jason McEwen (www.jasonmcewen.org)
 
 MAX_ITERATIONS = 1e5;
 TOL = 1e-10;

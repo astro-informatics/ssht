@@ -6,7 +6,7 @@ function ssht_demo
 % ssht_forward and ssht_inverse through the command line (these 
 % executables should be contained in the same directory as ssht_demo.m).
 %
-% Author: Jason McEwen (jason.mcewen@epfl.ch)
+% Author: Jason McEwen (www.jasonmcewen.org)
 % Date: November 2010
 
 % Define size parameters.
