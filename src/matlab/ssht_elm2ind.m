@@ -11,4 +11,4 @@ function [ind] = ssht_elm2ind(el, m)
 %
 % Author: Jason McEwen (jason.mcewen@epfl.ch)
 
-ind = el * el + el + m + 1;
+ind = el .* el + el + m + 1;

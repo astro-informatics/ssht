@@ -26,6 +26,8 @@ function ssht_plot_sphere(f, L, varargin)
 %                        true         [light plot] }
 %  'ColourBar'       = { false        [do not add colour bar (default)],
 %                        true         [add colour bar] }
+%
+% Author: Jason McEwen (jason.mcewen@epfl.ch)
 
 
 % Parse arguments.
@@ -86,7 +88,7 @@ z = z .* f_normalised;
 h = surf(x,y,z,f);
 caxis([minf, maxf]);
 if args.ColourBar 
-   olorbar('vert'); 
+   colorbar('vert'); 
 end
 set(h, 'LineStyle', 'none')
 if args.PlotSamples
