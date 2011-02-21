@@ -52,13 +52,13 @@ t=0:2*L-2;
 theta = pi*(2*t+1)./(2.*L-1);
 figure;
 if renorm_plot
-   plot(theta, [sin(theta(1:L)), zeros(1,L-1)])
+   plot(theta, [sin(theta(1:L)), zeros(1,L-1)],'k')
    hold on;
-   plot(theta, wr./(2*pi).^2.*(2*L-1).^2, '.')
+   plot(theta, wr./(2*pi).^2.*(2*L-1).^2, '^k')
 else
-   plot(theta, (2*pi).^2/(2*L-1).^2.*[sin(theta(1:L)), zeros(1,L-1)])
+   plot(theta, (2*pi).^2/(2*L-1).^2.*[sin(theta(1:L)), zeros(1,L-1)],'k')
    hold on;
-   plot(theta, wr, '.')
+   plot(theta, wr, '^k')
 end
 
 % Compute symmetrised quadrature weights defined on sphere.
@@ -67,11 +67,11 @@ q(1:L-1) = q(1:L-1) + wr(end:-1:L+1);
 if renorm_plot
    plot(theta(1:L), q./(2*pi).^2.*(2*L-1).^2, '.r')
    figure
-   plot(theta(1:L), q./(2*pi).^2.*(2*L-1).^2-sin(theta(1:L)), '-k')
+   plot(theta(1:L), q./(2*pi).^2.*(2*L-1).^2-sin(theta(1:L)), '.-k')
 else
    plot(theta(1:L), q, '.r')
    figure
-   plot(theta(1:L), q - (2*pi).^2/(2*L-1).^2.*sin(theta(1:L)), '-k')
+   plot(theta(1:L), q - (2*pi).^2/(2*L-1).^2.*sin(theta(1:L)), '.-k')
 end
 
 % Integral of function given by rescaled (el,m)=(0,0) harmonic coefficient.
