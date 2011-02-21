@@ -10,7 +10,8 @@ VERSION
      Release 0.1, 25 October 2010
 
 AUTHORS
-     J. D. McEwen (mcewen@mrao.cam.ac.uk)
+     J. D. McEwen (www.jasonmcewen.org)
+     Y. Wiaux
 
 REFERENCE
      To appear.
@@ -21,16 +22,12 @@ DOCUMENTATION
 REQUIREMENTS
      Library: 
        FFTW (http://www.fftw.org/)
-       CFITSIO (http://heasarc.gsfc.nasa.gov/docs/software/fitsio/)
-     Optional utility programs:
-       S2 (http://www.mrao.cam.ac.uk/~jdm57/)
-       HEALPix (http://healpix.jpl.nasa.gov/)
 
 INSTALLATION
      See doc/index_ssht.html
 
 DOWNLOAD
-     http://www.mrao.cam.ac.uk/~jdm57/
+     http://www.jasonmcewen.org/
 
 SUPPORT
      See http://cosmocoffee.info/ forums
