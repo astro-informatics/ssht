@@ -15,8 +15,9 @@ clear all;
 
 % Define parameters.
 method = 'MW'
-L = 256
+L = 128
 reality = false
+renorm_plot = false
 
 % Generate random flms (of complex signal).
 flm = zeros(L^2,1);
@@ -49,20 +50,29 @@ wr = w .* exp(-i*[-(L-1):(L-1)]*pi/(2.*L-1));
 wr = real(fft(ifftshift(wr))).*2.*pi./(2*L-1).^2;
 t=0:2*L-2;
 theta = pi*(2*t+1)./(2.*L-1);
-plot(theta, (2*pi).^2/(2*L-1).^2.*[sin(theta(1:L)), zeros(1,L-1)])
-hold on;
-plot(theta, wr, '.')
+figure;
+if renorm_plot
+   plot(theta, [sin(theta(1:L)), zeros(1,L-1)])
+   hold on;
+   plot(theta, wr./(2*pi).^2.*(2*L-1).^2, '.')
+else
+   plot(theta, (2*pi).^2/(2*L-1).^2.*[sin(theta(1:L)), zeros(1,L-1)])
+   hold on;
+   plot(theta, wr, '.')
+end
 
 % Compute symmetrised quadrature weights defined on sphere.
 q = wr(1:L);
 q(1:L-1) = q(1:L-1) + wr(end:-1:L+1);
-figure
-plot(theta(1:L), (2*pi).^2/(2*L-1).^2.*sin(theta(1:L)), 'r')
-hold on;
-plot(theta(1:L), q, '.r')
-plot(theta(1:L), wr(1:L), '.b')
-figure
-plot(theta(1:L), q - (2*pi).^2/(2*L-1).^2.*sin(theta(1:L)), '-k')
+if renorm_plot
+   plot(theta(1:L), q./(2*pi).^2.*(2*L-1).^2, '.r')
+   figure
+   plot(theta(1:L), q./(2*pi).^2.*(2*L-1).^2-sin(theta(1:L)), '-k')
+else
+   plot(theta(1:L), q, '.r')
+   figure
+   plot(theta(1:L), q - (2*pi).^2/(2*L-1).^2.*sin(theta(1:L)), '-k')
+end
 
 % Integral of function given by rescaled (el,m)=(0,0) harmonic coefficient.
 I0 = flm(1,1) .* sqrt(4*pi)
