@@ -1,6 +1,6 @@
 % ssht_demo7 - Run demo7
 %
-% Integrate band-limited function on the sphere using the symmetrised
+% Integrate a band-limited function on the sphere using the symmetrised
 % quadrature weights.
 % 
 % Default usage is given by
@@ -15,18 +15,13 @@ clear all;
 
 % Define parameters.
 method = 'MW'
-L = 128
-spin = 0
-reality = true
+L = 256
+reality = false
 
 % Generate random flms (of complex signal).
 flm = zeros(L^2,1);
 flm = rand(size(flm)) + sqrt(-1)*rand(size(flm));
 flm = 2.*(flm - (1+sqrt(-1))./2);
-
-% Zero harmonic coefficients with el<|spin|.
-ind_min = spin^2 + abs(spin);
-flm(1:ind_min) = 0;
 
 % Impose reality on flms.
 if reality
@@ -60,7 +55,7 @@ plot(theta, wr, '.')
 
 % Compute symmetrised quadrature weights defined on sphere.
 q = wr(1:L);
-q(1:L-1) = q(1:L-1) + (-1).^spin .* wr(end:-1:L+1);
+q(1:L-1) = q(1:L-1) + wr(end:-1:L+1);
 figure
 plot(theta(1:L), (2*pi).^2/(2*L-1).^2.*sin(theta(1:L)), 'r')
 hold on;
@@ -73,8 +68,7 @@ plot(theta(1:L), q - (2*pi).^2/(2*L-1).^2.*sin(theta(1:L)), '-k')
 I0 = flm(1,1) .* sqrt(4*pi)
 
 % Integrate function on sphere using all points.
-f = ssht_inverse(flm, L, 'Method', method, 'Spin', spin, ...
-   'Reality', reality);
+f = ssht_inverse(flm, L, 'Method', method, 'Reality', reality);
 Q = q.' * ones(1, 2*L-1);
 I1 = sum(Q(:) .* f(:))
 
