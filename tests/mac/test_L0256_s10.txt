@@ -1,0 +1,100 @@
+
+SSHT test program (C implementation)
+================================================================
+DH test no. 0
+ duration_inverse (s) =                                   1.1659
+ duration_forward (s) =                                   1.1646
+ error                =                              1.80480e-10
+
+GL test no. 0
+ duration_inverse (s) =                                   0.5634
+ duration_forward (s) =                                   0.5661
+ error                =                              1.76772e-10
+
+MW test no. 0
+ duration_inverse (s) =                                   0.2070
+ duration_forward (s) =                                   0.8627
+ error                =                              4.21448e-14
+
+DH test no. 1
+ duration_inverse (s) =                                   1.1181
+ duration_forward (s) =                                   1.1325
+ error                =                              1.77180e-10
+
+GL test no. 1
+ duration_inverse (s) =                                   0.5612
+ duration_forward (s) =                                   0.5654
+ error                =                              1.77833e-10
+
+MW test no. 1
+ duration_inverse (s) =                                   0.1995
+ duration_forward (s) =                                   0.3064
+ error                =                              4.41196e-14
+
+DH test no. 2
+ duration_inverse (s) =                                   1.1259
+ duration_forward (s) =                                   1.1349
+ error                =                              1.77881e-10
+
+GL test no. 2
+ duration_inverse (s) =                                   0.5638
+ duration_forward (s) =                                   0.5637
+ error                =                              1.79005e-10
+
+MW test no. 2
+ duration_inverse (s) =                                   0.1999
+ duration_forward (s) =                                   0.3073
+ error                =                              4.25268e-14
+
+DH test no. 3
+ duration_inverse (s) =                                   1.1260
+ duration_forward (s) =                                   1.1354
+ error                =                              1.73383e-10
+
+GL test no. 3
+ duration_inverse (s) =                                   0.5644
+ duration_forward (s) =                                   0.5699
+ error                =                              1.82727e-10
+
+MW test no. 3
+ duration_inverse (s) =                                   0.1997
+ duration_forward (s) =                                   0.3071
+ error                =                              5.18171e-14
+
+DH test no. 4
+ duration_inverse (s) =                                   1.1260
+ duration_forward (s) =                                   1.1351
+ error                =                              1.75250e-10
+
+GL test no. 4
+ duration_inverse (s) =                                   0.5636
+ duration_forward (s) =                                   0.5636
+ error                =                              1.77105e-10
+
+MW test no. 4
+ duration_inverse (s) =                                   0.2000
+ duration_forward (s) =                                   0.3071
+ error                =                              4.38576e-14
+
+================================================================
+Summary
+
+NREPEAT               =                                        5
+L                     =                                      256
+spin                  =                                       10
+
+DH
+ Average forward transform time (s) =                     1.1405
+ Average inverse transform time (s) =                     1.1324
+ Average max error                  =                1.76835e-10
+
+GL
+ Average forward transform time (s) =                     0.5658
+ Average inverse transform time (s) =                     0.5633
+ Average max error                  =                1.78689e-10
+
+MW
+ Average forward transform time (s) =                     0.4181
+ Average inverse transform time (s) =                     0.2012
+ Average max error                  =                4.48932e-14
+

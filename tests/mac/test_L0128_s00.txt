@@ -1,0 +1,190 @@
+
+SSHT test program (C implementation)
+================================================================
+DH real test no. 0
+ duration_inverse (s) =                                   0.0979
+ duration_forward (s) =                                   0.0913
+ error                =                              1.09169e-10
+
+GL real test no. 0
+ duration_inverse (s) =                                   0.0374
+ duration_forward (s) =                                   0.0358
+ error                =                              1.07526e-10
+
+MW real test no. 0
+ duration_inverse (s) =                                   0.0284
+ duration_forward (s) =                                   0.1423
+ error                =                              2.31696e-14
+
+DH test no. 0
+ duration_inverse (s) =                                   0.1688
+ duration_forward (s) =                                   0.1347
+ error                =                              1.10392e-10
+
+GL test no. 0
+ duration_inverse (s) =                                   0.0682
+ duration_forward (s) =                                   0.0667
+ error                =                              1.08961e-10
+
+MW test no. 0
+ duration_inverse (s) =                                   0.0400
+ duration_forward (s) =                                   0.0496
+ error                =                              2.48080e-14
+
+DH real test no. 1
+ duration_inverse (s) =                                   0.0734
+ duration_forward (s) =                                   0.0718
+ error                =                              1.15797e-10
+
+GL real test no. 1
+ duration_inverse (s) =                                   0.0370
+ duration_forward (s) =                                   0.0358
+ error                =                              1.12517e-10
+
+MW real test no. 1
+ duration_inverse (s) =                                   0.0139
+ duration_forward (s) =                                   0.0262
+ error                =                              2.30804e-14
+
+DH test no. 1
+ duration_inverse (s) =                                   0.1336
+ duration_forward (s) =                                   0.1329
+ error                =                              1.16980e-10
+
+GL test no. 1
+ duration_inverse (s) =                                   0.0674
+ duration_forward (s) =                                   0.0667
+ error                =                              1.17996e-10
+
+MW test no. 1
+ duration_inverse (s) =                                   0.0235
+ duration_forward (s) =                                   0.0488
+ error                =                              2.35535e-14
+
+DH real test no. 2
+ duration_inverse (s) =                                   0.0732
+ duration_forward (s) =                                   0.0719
+ error                =                              1.10787e-10
+
+GL real test no. 2
+ duration_inverse (s) =                                   0.0370
+ duration_forward (s) =                                   0.0359
+ error                =                              1.09437e-10
+
+MW real test no. 2
+ duration_inverse (s) =                                   0.0138
+ duration_forward (s) =                                   0.0262
+ error                =                              2.36842e-14
+
+DH test no. 2
+ duration_inverse (s) =                                   0.1347
+ duration_forward (s) =                                   0.1328
+ error                =                              1.16188e-10
+
+GL test no. 2
+ duration_inverse (s) =                                   0.0678
+ duration_forward (s) =                                   0.0668
+ error                =                              1.13398e-10
+
+MW test no. 2
+ duration_inverse (s) =                                   0.0234
+ duration_forward (s) =                                   0.0489
+ error                =                              2.48080e-14
+
+DH real test no. 3
+ duration_inverse (s) =                                   0.0731
+ duration_forward (s) =                                   0.0719
+ error                =                              1.14962e-10
+
+GL real test no. 3
+ duration_inverse (s) =                                   0.0370
+ duration_forward (s) =                                   0.0358
+ error                =                              1.08118e-10
+
+MW real test no. 3
+ duration_inverse (s) =                                   0.0139
+ duration_forward (s) =                                   0.0263
+ error                =                              2.37901e-14
+
+DH test no. 3
+ duration_inverse (s) =                                   0.1335
+ duration_forward (s) =                                   0.1332
+ error                =                              1.11713e-10
+
+GL test no. 3
+ duration_inverse (s) =                                   0.0674
+ duration_forward (s) =                                   0.0667
+ error                =                              1.12984e-10
+
+MW test no. 3
+ duration_inverse (s) =                                   0.0234
+ duration_forward (s) =                                   0.0489
+ error                =                              2.44211e-14
+
+DH real test no. 4
+ duration_inverse (s) =                                   0.0732
+ duration_forward (s) =                                   0.0720
+ error                =                              1.12545e-10
+
+GL real test no. 4
+ duration_inverse (s) =                                   0.0370
+ duration_forward (s) =                                   0.0359
+ error                =                              1.11324e-10
+
+MW real test no. 4
+ duration_inverse (s) =                                   0.0138
+ duration_forward (s) =                                   0.0261
+ error                =                              2.53629e-14
+
+DH test no. 4
+ duration_inverse (s) =                                   0.1347
+ duration_forward (s) =                                   0.1329
+ error                =                              1.15821e-10
+
+GL test no. 4
+ duration_inverse (s) =                                   0.0676
+ duration_forward (s) =                                   0.0668
+ error                =                              1.17245e-10
+
+MW test no. 4
+ duration_inverse (s) =                                   0.0233
+ duration_forward (s) =                                   0.0490
+ error                =                              2.32459e-14
+
+================================================================
+Summary
+
+NREPEAT               =                                        5
+L                     =                                      128
+spin                  =                                        0
+
+DH real
+ Average forward transform time (s) =                     0.0758
+ Average inverse transform time (s) =                     0.0782
+ Average max error                  =                1.12652e-10
+
+GL real
+ Average forward transform time (s) =                     0.0358
+ Average inverse transform time (s) =                     0.0371
+ Average max error                  =                1.09784e-10
+
+MW real
+ Average forward transform time (s) =                     0.0494
+ Average inverse transform time (s) =                     0.0168
+ Average max error                  =                2.38175e-14
+
+DH
+ Average forward transform time (s) =                     0.1333
+ Average inverse transform time (s) =                     0.1411
+ Average max error                  =                1.14219e-10
+
+GL
+ Average forward transform time (s) =                     0.0667
+ Average inverse transform time (s) =                     0.0677
+ Average max error                  =                1.14117e-10
+
+MW
+ Average forward transform time (s) =                     0.0490
+ Average inverse transform time (s) =                     0.0267
+ Average max error                  =                2.41673e-14
+
