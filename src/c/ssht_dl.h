@@ -6,6 +6,9 @@
 /*! Size of dl plane required (for memory access). */
 typedef enum {SSHT_DL_QUARTER = 0, SSHT_DL_HALF, SSHT_DL_FULL} ssht_dl_size_t;
 
+/*! Recursion to use to compute dl plane for MW methods. */
+typedef enum {SSHT_DL_RISBO = 0, SSHT_DL_TRAPANI} ssht_dl_method_t;
+
 
 double* ssht_dl_calloc(int L, ssht_dl_size_t dl_size);
 int ssht_dl_get_offset(int L, ssht_dl_size_t dl_size);

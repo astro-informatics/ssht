@@ -50,7 +50,7 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
   double ssign, elfactor;
   complex double mmfactor;
   double *dl;
-  int dl_offset, dl_stride;
+  int dl_offset1, dl_offset2, dl_stride;
   complex double *exps;
   int exps_offset;
   double elmmsign, elssign;
@@ -58,6 +58,14 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
   complex double *Fmm, *fext;
   int Fmm_offset, Fmm_stride, fext_stride;
   fftw_plan plan;
+
+
+
+ssht_dl_method_t dl_method = SSHT_DL_RISBO;  
+//ssht_dl_method_t dl_method = SSHT_DL_TRAPANI;  
+ssht_dl_size_t dl_size = (dl_method == SSHT_DL_RISBO) ? SSHT_DL_FULL : SSHT_DL_QUARTER;
+
+
 
   // Allocate memory.
   sqrt_tbl = (double*)calloc(2*(L-1)+2, sizeof(double));
@@ -98,10 +106,11 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmm)
   Fmm_offset = L-1;
   Fmm_stride = 2*L-1;    
-  dl = ssht_dl_calloc(L, SSHT_DL_QUARTER);
+  dl = ssht_dl_calloc(L, dl_size);
   SSHT_ERROR_MEM_ALLOC_CHECK(dl)
-  dl_offset = ssht_dl_get_offset(L, SSHT_DL_QUARTER);
-  dl_stride = ssht_dl_get_stride(L, SSHT_DL_QUARTER);   
+  dl_offset2 = ssht_dl_get_offset(L, dl_size);
+  dl_offset1 = (dl_size == SSHT_DL_FULL) ? dl_offset2 : 0;
+  dl_stride = ssht_dl_get_stride(L, dl_size);   
   inds_offset = L-1;
   for (el=abs(spin); el<=L-1; el++) {
 
@@ -109,19 +118,31 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
     if (el!=0 && el==abs(spin)) {
       for(eltmp=0; eltmp<=abs(spin); eltmp++)
     	ssht_dl_halfpi_trapani_eighth_table(dl, L,
-    					    SSHT_DL_QUARTER,
+    					    dl_size,
     					    eltmp, sqrt_tbl);
       ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl, L,
-						       SSHT_DL_QUARTER,
+						       dl_size,
 						       el, signs);
     }
     else {
-      ssht_dl_halfpi_trapani_eighth_table(dl, L,
-    					  SSHT_DL_QUARTER,
-    					  el, sqrt_tbl);
-      ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl, L,
-						       SSHT_DL_QUARTER,
-						       el, signs);
+
+      switch (dl_method) {
+        case SSHT_DL_RISBO:
+	  ssht_dl_beta_risbo_full_table(dl, SSHT_PION2, L, 
+					dl_size,
+					el, sqrt_tbl);
+	  break;
+        case SSHT_DL_TRAPANI:
+	  ssht_dl_halfpi_trapani_eighth_table(dl, L,
+					      dl_size,
+					      el, sqrt_tbl);
+	  ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl, L,
+							   dl_size,
+							   el, signs);	
+	  break;
+        default:
+	  SSHT_ERROR_GENERIC("Invalid dl method") 
+      }
     }
 
     // Compute Fmm.
@@ -139,8 +160,10 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
     	  ssign
     	  * elfactor
 	  * exps[m + exps_offset]    	  
-    	  * elmmsign * dl[mm*dl_stride - m + dl_offset]
-    	  * elssign * dl[mm*dl_stride - spinneg + dl_offset]
+    	  * elmmsign * dl[(mm+dl_offset1)*dl_stride - m + dl_offset2]
+    	  * elssign * dl[(mm+dl_offset1)*dl_stride - spinneg + dl_offset2]
+    	  /* * elmmsign * dl[mm*dl_stride - m + dl_offset] */
+    	  /* * elssign * dl[mm*dl_stride - spinneg + dl_offset] */
     	  * flm[ind];
       }
       for (m=0; m<=el; m++) {
@@ -149,8 +172,10 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
     	  ssign
     	  * elfactor
 	  * exps[m + exps_offset]    	  
-    	  * dl[mm*dl_stride + m + dl_offset]
-    	  * elssign * dl[mm*dl_stride - spinneg + dl_offset]
+    	  * dl[(mm+dl_offset1)*dl_stride + m + dl_offset2]
+    	  * elssign * dl[(mm+dl_offset1)*dl_stride - spinneg + dl_offset2]
+    	  /* * dl[mm*dl_stride + m + dl_offset] */
+    	  /* * elssign * dl[mm*dl_stride - spinneg + dl_offset] */
     	  * flm[ind];
       }
 
@@ -677,12 +702,22 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
   complex double *Fmm_pad, *tmp_pad;
   int f_stride, Fmt_stride, Fmt_offset, Fmm_stride, Fmm_offset;
   double *dl;
-  int dl_offset, dl_stride;
+  int dl_offset1, dl_offset2, dl_stride;
   int w_offset;
   complex double *expsm, *expsmm;
   int exps_offset;
   int elmmsign, elssign;
   int spinneg;
+
+
+
+ssht_dl_method_t dl_method = SSHT_DL_RISBO;  
+//ssht_dl_method_t dl_method = SSHT_DL_TRAPANI;  
+ssht_dl_size_t dl_size = (dl_method == SSHT_DL_RISBO) ? SSHT_DL_FULL : SSHT_DL_QUARTER;
+
+
+
+
 
   // Allocate memory.
   sqrt_tbl = (double*)calloc(2*(L-1)+2, sizeof(double));
@@ -848,10 +883,11 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
   fftw_destroy_plan(plan_fwd);
 
   // Compute flm.
-  dl = ssht_dl_calloc(L, SSHT_DL_QUARTER);
+  dl = ssht_dl_calloc(L, dl_size);
   SSHT_ERROR_MEM_ALLOC_CHECK(dl)
-  dl_offset = ssht_dl_get_offset(L, SSHT_DL_QUARTER);
-  dl_stride = ssht_dl_get_stride(L, SSHT_DL_QUARTER); 
+  dl_offset2 = ssht_dl_get_offset(L, dl_size);
+  dl_offset1 = (dl_size == SSHT_DL_FULL) ? dl_offset2 : 0;
+  dl_stride = ssht_dl_get_stride(L, dl_size); 
   inds_offset = L-1;
   for (el=0; el<=L-1; el++) {
     for (m=-el; m<=el; m++) {
@@ -865,19 +901,32 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
     if (el!=0 && el==abs(spin)) {
       for(eltmp=0; eltmp<=abs(spin); eltmp++)
     	ssht_dl_halfpi_trapani_eighth_table(dl, L,
-    					    SSHT_DL_QUARTER,
+    					    dl_size,
     					    eltmp, sqrt_tbl);
       ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl, L,
-    						       SSHT_DL_QUARTER,
+    						       dl_size,
     						       el, signs);
     }
     else {
-      ssht_dl_halfpi_trapani_eighth_table(dl, L,
-    					  SSHT_DL_QUARTER,
-    					  el, sqrt_tbl);
-      ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl, L,
-    						       SSHT_DL_QUARTER,
-    						       el, signs);
+
+      switch (dl_method) {
+        case SSHT_DL_RISBO:
+	  ssht_dl_beta_risbo_full_table(dl, SSHT_PION2, L, 
+					dl_size,
+					el, sqrt_tbl);
+	  break;
+        case SSHT_DL_TRAPANI:
+	  ssht_dl_halfpi_trapani_eighth_table(dl, L,
+					      dl_size,
+					      el, sqrt_tbl);
+	  ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl, L,
+							   dl_size,
+							   el, signs);	
+	  break;
+        default:
+	  SSHT_ERROR_GENERIC("Invalid dl method") 
+      }
+
 
     }
 
@@ -895,8 +944,10 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
 	ssign 
 	* elfactor
 	* expsm[m + exps_offset]
-	* signs[el] * dl[0*dl_stride - m + dl_offset]
-	* elssign * dl[0*dl_stride - spinneg + dl_offset]
+	* signs[el] * dl[(0+dl_offset1)*dl_stride - m + dl_offset2]
+	* elssign * dl[(0+dl_offset1)*dl_stride - spinneg + dl_offset2]
+	/* * signs[el] * dl[0*dl_stride - m + dl_offset] */
+	/* * elssign * dl[0*dl_stride - spinneg + dl_offset] */
 	* Gmm[(0+Fmm_offset)*Fmm_stride + m + Fmm_offset];
     }
     for (m=0; m<=el; m++) {
@@ -906,8 +957,10 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
 	ssign 
 	* elfactor
 	* expsm[m + exps_offset]
-	* dl[0*dl_stride + m + dl_offset]
-	* elssign * dl[0*dl_stride - spinneg + dl_offset]
+	* dl[(0+dl_offset1)*dl_stride + m + dl_offset2]
+	* elssign * dl[(0+dl_offset1)*dl_stride - spinneg + dl_offset2]
+	/* * dl[0*dl_stride + m + dl_offset] */
+	/* * elssign * dl[0*dl_stride - spinneg + dl_offset] */
 	* Gmm[(0+Fmm_offset)*Fmm_stride + m + Fmm_offset];
     }
 
@@ -921,8 +974,10 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
       	  ssign
       	  * elfactor
       	  * expsm[m + exps_offset]
-      	  * elmmsign * dl[mm*dl_stride - m + dl_offset]
-      	  * elssign * dl[mm*dl_stride - spinneg + dl_offset]
+      	  * elmmsign * dl[(mm+dl_offset1)*dl_stride - m + dl_offset2]
+      	  * elssign * dl[(mm+dl_offset1)*dl_stride - spinneg + dl_offset2]
+      	  /* * elmmsign * dl[mm*dl_stride - m + dl_offset] */
+      	  /* * elssign * dl[mm*dl_stride - spinneg + dl_offset] */
       	  * ( Gmm[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset]
       	      + signs[-m] * ssign
       	      * Gmm[(-mm+Fmm_offset)*Fmm_stride + m + Fmm_offset]);
@@ -933,8 +988,10 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
 	  ssign 
 	  * elfactor
 	  * expsm[m + exps_offset]
-	  * dl[mm*dl_stride + m + dl_offset]
-	  * elssign * dl[mm*dl_stride - spinneg + dl_offset]
+	  * dl[(mm+dl_offset1)*dl_stride + m + dl_offset2]
+	  * elssign * dl[(mm+dl_offset1)*dl_stride - spinneg + dl_offset2]
+	  /* * dl[mm*dl_stride + m + dl_offset] */
+	  /* * elssign * dl[mm*dl_stride - spinneg + dl_offset] */
 	  * ( Gmm[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset]
 	      + signs[m] * ssign
 	      * Gmm[(-mm+Fmm_offset)*Fmm_stride + m + Fmm_offset]);
