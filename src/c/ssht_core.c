@@ -128,7 +128,7 @@ ssht_dl_size_t dl_size = (dl_method == SSHT_DL_RISBO) ? SSHT_DL_FULL : SSHT_DL_Q
 
       switch (dl_method) {
         case SSHT_DL_RISBO:
-	  ssht_dl_beta_risbo_full_table(dl, SSHT_PION2, L, 
+	  ssht_dl_beta_risbo_eighth_table(dl, SSHT_PION2, L, 
 					dl_size,
 					el, sqrt_tbl);
 	  break;

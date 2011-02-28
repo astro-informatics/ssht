@@ -263,6 +263,442 @@ void ssht_dl_beta_risbo_full_table(double *dl, double beta, int L,
 }
 
 
+
+
+void ssht_dl_beta_risbo_half_table(double *dl, double beta, int L, 
+				      ssht_dl_size_t dl_size,
+				      int el, double *sqrt_tbl) {
+
+  int offset, stride;
+  double cosb, sinb, coshb, sinhb;
+  int i, j, k;
+  double rj, dlj, ddj;
+  double *dd;
+    
+
+double p, q;
+ int m, mm;
+
+
+  // Get mm offset and stride for accessing dl data.
+  offset = ssht_dl_get_offset(L, dl_size);
+  stride = ssht_dl_get_stride(L, dl_size);
+
+  // Compute Wigner plane.
+  if (el == 0) {
+    
+    dl[(0+offset)*stride + 0 + offset] = 1.0;
+
+  }
+  else if (el == 1) {
+
+    cosb = cos(beta);
+    sinb = sin(beta);
+    coshb = cos(beta / 2.0);
+    sinhb = sin(beta / 2.0);
+   
+    dl[(-1 + offset)*stride - 1 + offset] = coshb * coshb;
+    dl[(-1 + offset)*stride + 0 + offset] = sinb / SSHT_SQRT2;
+    dl[(-1 + offset)*stride + 1 + offset] = sinhb * sinhb;
+
+    dl[(0 + offset)*stride - 1 + offset] = -sinb / SSHT_SQRT2;
+    dl[(0 + offset)*stride + 0 + offset] = cosb;
+    dl[(0 + offset)*stride + 1 + offset] = sinb / SSHT_SQRT2;
+
+    dl[(1 + offset)*stride - 1 + offset] = sinhb * sinhb;
+    dl[(1 + offset)*stride + 0 + offset] = -sinb / SSHT_SQRT2;
+    dl[(1 + offset)*stride + 1 + offset] = coshb * coshb;
+
+  }
+  else {
+
+    p = sin(beta / 2.0);
+    q = -cos(beta / 2.0);
+     
+
+
+    coshb = -cos(beta / 2.0);
+    sinhb = sin(beta / 2.0);
+
+    // Initialise the plane of the dl-matrix to 0.0 for the recursion
+    // from l - 1 to l - 1/2.
+    dd = (double*)calloc((2*el+2)*(2*el+2), sizeof(double));
+    SSHT_ERROR_MEM_ALLOC_CHECK(dd)
+
+    j = 2*el - 1;
+    rj = (double) j;
+    for (k=0; k<=j-1; k++) {
+      for (i=0; i<=el; i++) {
+
+	dlj = dl[(k-(el-1)+offset)*stride + i-(el-1) + offset] / rj;
+	dd[i*(2*el+2) + k] +=
+	  sqrt_tbl[j-i] * sqrt_tbl[j-k] * dlj * coshb;
+	dd[(i+1)*(2*el+2) + k] -=
+	  sqrt_tbl[i+1] * sqrt_tbl[j-k] * dlj * sinhb;
+	dd[i*(2*el+2) + k+1] +=
+	  sqrt_tbl[j-i] * sqrt_tbl[k+1] * dlj * sinhb;
+	dd[(i+1)*(2*el+2) + k+1] +=
+	  sqrt_tbl[i+1] * sqrt_tbl[k+1] * dlj * coshb;
+
+	/* dlj = dl[(k-(el-1)+offset)*stride + i-(el-1) + offset] / rj; */
+	/* dd[i*(2*el+2) + k] +=  */
+	/*   sqrt_tbl[j-i] * sqrt_tbl[j-k] * dlj * coshb; */
+	/* dd[(i+1)*(2*el+2) + k] -=  */
+	/*   sqrt_tbl[i+1] * sqrt_tbl[j-k] * dlj * sinhb; */
+	/* dd[i*(2*el+2) + k+1] +=  */
+	/*   sqrt_tbl[j-i] * sqrt_tbl[k+1] * dlj * sinhb; */
+	/* dd[(i+1)*(2*el+2) + k+1] +=  */
+	/*   sqrt_tbl[i+1] * sqrt_tbl[k+1] * dlj * coshb; */
+      }
+    }
+
+    // Having constructed the d^(l+1/2) matrix in dd, do the second
+    // half-step recursion from dd to dl. Start by initilalising  
+    // the plane of the dl-matrix to 0.0.
+    for (k=-el; k<=el; k++) 
+      for (i=-el; i<=el; i++)
+	dl[(k+offset)*stride + i + offset] = 0.0;
+
+    j = 2*el;
+    rj = (double) j;
+    for (k=0; k<=j-1; k++) {
+      for (i=0; i<=el; i++) {
+
+	ddj = dd[i*(2*el+2) + k] / rj;
+	dl[(k-el+offset)*stride + i-el + offset] +=
+	  sqrt_tbl[j-i] * sqrt_tbl[j-k] * ddj * coshb;
+	dl[(k-el+offset)*stride + i+1-el + offset] -=
+	  sqrt_tbl[i+1] * sqrt_tbl[j-k] * ddj * sinhb;
+	dl[(k+1-el+offset)*stride + i-el + offset] +=
+	  sqrt_tbl[j-i] * sqrt_tbl[k+1] * ddj * sinhb;
+	dl[(k+1-el+offset)*stride + i+1-el + offset] +=
+	  sqrt_tbl[i+1] * sqrt_tbl[k+1] * ddj * coshb;
+
+
+	/* ddj = dd[i*(2*el+2) + k] / rj; */
+	/* dl[(k-el+offset)*stride + i-el + offset] += */
+	/*   sqrt_tbl[j-i] * sqrt_tbl[j-k] * ddj * coshb; */
+	/* dl[(k-el+offset)*stride + i+1-el + offset] -= */
+	/*   sqrt_tbl[i+1] * sqrt_tbl[j-k] * ddj * sinhb; */
+	/* dl[(k+1-el+offset)*stride + i-el + offset] += */
+	/*   sqrt_tbl[j-i] * sqrt_tbl[k+1] * ddj * sinhb; */
+	/* dl[(k+1-el+offset)*stride + i+1-el + offset] += */
+	/*   sqrt_tbl[i+1] * sqrt_tbl[k+1] * ddj * coshb; */
+      }
+    }
+
+
+    for (m=-el; m<=el; m++) 
+      for (mm=1; mm<=el; mm++) 
+	dl[(m+offset)*stride + mm + offset] = 
+	  pow(-1., el) * pow(-1.,m) * dl[(m+offset)*stride - mm + offset];
+
+
+
+    // Free temporary memory.
+    free(dd);
+  }
+
+}
+
+
+
+void ssht_dl_beta_risbo_quarter_table(double *dl, double beta, int L, 
+				      ssht_dl_size_t dl_size,
+				      int el, double *sqrt_tbl) {
+
+  int offset, stride;
+  double cosb, sinb, coshb, sinhb;
+  int i, j, k;
+  double rj, dlj, ddj;
+  double *dd;
+    
+
+double p, q;
+ int m, mm;
+
+
+  // Get mm offset and stride for accessing dl data.
+  offset = ssht_dl_get_offset(L, dl_size);
+  stride = ssht_dl_get_stride(L, dl_size);
+
+  // Compute Wigner plane.
+  if (el == 0) {
+    
+    dl[(0+offset)*stride + 0 + offset] = 1.0;
+
+  }
+  else if (el == 1) {
+
+    cosb = cos(beta);
+    sinb = sin(beta);
+    coshb = cos(beta / 2.0);
+    sinhb = sin(beta / 2.0);
+   
+    dl[(-1 + offset)*stride - 1 + offset] = coshb * coshb;
+    dl[(-1 + offset)*stride + 0 + offset] = sinb / SSHT_SQRT2;
+    dl[(-1 + offset)*stride + 1 + offset] = sinhb * sinhb;
+
+    dl[(0 + offset)*stride - 1 + offset] = -sinb / SSHT_SQRT2;
+    dl[(0 + offset)*stride + 0 + offset] = cosb;
+    dl[(0 + offset)*stride + 1 + offset] = sinb / SSHT_SQRT2;
+
+    dl[(1 + offset)*stride - 1 + offset] = sinhb * sinhb;
+    dl[(1 + offset)*stride + 0 + offset] = -sinb / SSHT_SQRT2;
+    dl[(1 + offset)*stride + 1 + offset] = coshb * coshb;
+
+  }
+  else {
+
+    p = sin(beta / 2.0);
+    q = -cos(beta / 2.0);
+     
+
+
+    coshb = -cos(beta / 2.0);
+    sinhb = sin(beta / 2.0);
+
+    // Initialise the plane of the dl-matrix to 0.0 for the recursion
+    // from l - 1 to l - 1/2.
+    dd = (double*)calloc((2*el+2)*(2*el+2), sizeof(double));
+    SSHT_ERROR_MEM_ALLOC_CHECK(dd)
+
+    j = 2*el - 1;
+    rj = (double) j;
+    for (k=0; k<=el; k++) {
+      for (i=0; i<=el; i++) {
+
+	dlj = dl[(k-(el-1)+offset)*stride + i-(el-1) + offset] / rj;
+	dd[i*(2*el+2) + k] +=
+	  sqrt_tbl[j-i] * sqrt_tbl[j-k] * dlj * coshb;
+	dd[(i+1)*(2*el+2) + k] -=
+	  sqrt_tbl[i+1] * sqrt_tbl[j-k] * dlj * sinhb;
+	dd[i*(2*el+2) + k+1] +=
+	  sqrt_tbl[j-i] * sqrt_tbl[k+1] * dlj * sinhb;
+	dd[(i+1)*(2*el+2) + k+1] +=
+	  sqrt_tbl[i+1] * sqrt_tbl[k+1] * dlj * coshb;
+
+	/* dlj = dl[(k-(el-1)+offset)*stride + i-(el-1) + offset] / rj; */
+	/* dd[i*(2*el+2) + k] +=  */
+	/*   sqrt_tbl[j-i] * sqrt_tbl[j-k] * dlj * coshb; */
+	/* dd[(i+1)*(2*el+2) + k] -=  */
+	/*   sqrt_tbl[i+1] * sqrt_tbl[j-k] * dlj * sinhb; */
+	/* dd[i*(2*el+2) + k+1] +=  */
+	/*   sqrt_tbl[j-i] * sqrt_tbl[k+1] * dlj * sinhb; */
+	/* dd[(i+1)*(2*el+2) + k+1] +=  */
+	/*   sqrt_tbl[i+1] * sqrt_tbl[k+1] * dlj * coshb; */
+      }
+    }
+
+    // Having constructed the d^(l+1/2) matrix in dd, do the second
+    // half-step recursion from dd to dl. Start by initilalising  
+    // the plane of the dl-matrix to 0.0.
+    for (k=-el; k<=el; k++) 
+      for (i=-el; i<=el; i++)
+	dl[(k+offset)*stride + i + offset] = 0.0;
+
+    j = 2*el;
+    rj = (double) j;
+    for (k=0; k<=el; k++) {
+      for (i=0; i<=el; i++) {
+
+	ddj = dd[i*(2*el+2) + k] / rj;
+	dl[(k-el+offset)*stride + i-el + offset] +=
+	  sqrt_tbl[j-i] * sqrt_tbl[j-k] * ddj * coshb;
+	dl[(k-el+offset)*stride + i+1-el + offset] -=
+	  sqrt_tbl[i+1] * sqrt_tbl[j-k] * ddj * sinhb;
+	dl[(k+1-el+offset)*stride + i-el + offset] +=
+	  sqrt_tbl[j-i] * sqrt_tbl[k+1] * ddj * sinhb;
+	dl[(k+1-el+offset)*stride + i+1-el + offset] +=
+	  sqrt_tbl[i+1] * sqrt_tbl[k+1] * ddj * coshb;
+
+
+	/* ddj = dd[i*(2*el+2) + k] / rj; */
+	/* dl[(k-el+offset)*stride + i-el + offset] += */
+	/*   sqrt_tbl[j-i] * sqrt_tbl[j-k] * ddj * coshb; */
+	/* dl[(k-el+offset)*stride + i+1-el + offset] -= */
+	/*   sqrt_tbl[i+1] * sqrt_tbl[j-k] * ddj * sinhb; */
+	/* dl[(k+1-el+offset)*stride + i-el + offset] += */
+	/*   sqrt_tbl[j-i] * sqrt_tbl[k+1] * ddj * sinhb; */
+	/* dl[(k+1-el+offset)*stride + i+1-el + offset] += */
+	/*   sqrt_tbl[i+1] * sqrt_tbl[k+1] * ddj * coshb; */
+      }
+    }
+
+
+    for (m=1; m<=el; m++) 
+      for (mm=-el; mm<=0; mm++) 
+	dl[(m+offset)*stride + mm + offset] = 
+	  pow(-1., el) * pow(-1.,mm) * dl[(-m+offset)*stride + mm + offset];
+
+    for (m=-el; m<=el; m++) 
+      for (mm=1; mm<=el; mm++) 
+	dl[(m+offset)*stride + mm + offset] = 
+	  pow(-1., el) * pow(-1.,m) * dl[(m+offset)*stride - mm + offset];
+
+
+
+    // Free temporary memory.
+    free(dd);
+  }
+
+}
+
+
+void ssht_dl_beta_risbo_eighth_table(double *dl, double beta, int L, 
+				      ssht_dl_size_t dl_size,
+				      int el, double *sqrt_tbl) {
+
+  int offset, stride;
+  double cosb, sinb, coshb, sinhb;
+  int i, j, k;
+  double rj, dlj, ddj;
+  double *dd;
+    
+
+double p, q;
+ int m, mm;
+
+
+  // Get mm offset and stride for accessing dl data.
+  offset = ssht_dl_get_offset(L, dl_size);
+  stride = ssht_dl_get_stride(L, dl_size);
+
+  // Compute Wigner plane.
+  if (el == 0) {
+    
+    dl[(0+offset)*stride + 0 + offset] = 1.0;
+
+  }
+  else if (el == 1) {
+
+    cosb = cos(beta);
+    sinb = sin(beta);
+    coshb = cos(beta / 2.0);
+    sinhb = sin(beta / 2.0);
+   
+    dl[(-1 + offset)*stride - 1 + offset] = coshb * coshb;
+    dl[(-1 + offset)*stride + 0 + offset] = sinb / SSHT_SQRT2;
+    dl[(-1 + offset)*stride + 1 + offset] = sinhb * sinhb;
+
+    dl[(0 + offset)*stride - 1 + offset] = -sinb / SSHT_SQRT2;
+    dl[(0 + offset)*stride + 0 + offset] = cosb;
+    dl[(0 + offset)*stride + 1 + offset] = sinb / SSHT_SQRT2;
+
+    dl[(1 + offset)*stride - 1 + offset] = sinhb * sinhb;
+    dl[(1 + offset)*stride + 0 + offset] = -sinb / SSHT_SQRT2;
+    dl[(1 + offset)*stride + 1 + offset] = coshb * coshb;
+
+  }
+  else {
+
+    p = sin(beta / 2.0);
+    q = -cos(beta / 2.0);
+     
+
+
+    coshb = -cos(beta / 2.0);
+    sinhb = sin(beta / 2.0);
+
+    // Initialise the plane of the dl-matrix to 0.0 for the recursion
+    // from l - 1 to l - 1/2.
+    dd = (double*)calloc((2*el+2)*(2*el+2), sizeof(double));
+    SSHT_ERROR_MEM_ALLOC_CHECK(dd)
+
+    j = 2*el - 1;
+    rj = (double) j;
+    for (k=0; k<=el; k++) {
+      for (i=0; i<=k+2; i++) {
+
+	dlj = dl[(k-(el-1)+offset)*stride + i-(el-1) + offset] / rj;
+	dd[i*(2*el+2) + k] +=
+	  sqrt_tbl[j-i] * sqrt_tbl[j-k] * dlj * coshb;
+	dd[(i+1)*(2*el+2) + k] -=
+	  sqrt_tbl[i+1] * sqrt_tbl[j-k] * dlj * sinhb;
+	dd[i*(2*el+2) + k+1] +=
+	  sqrt_tbl[j-i] * sqrt_tbl[k+1] * dlj * sinhb;
+	dd[(i+1)*(2*el+2) + k+1] +=
+	  sqrt_tbl[i+1] * sqrt_tbl[k+1] * dlj * coshb;
+
+	/* dlj = dl[(k-(el-1)+offset)*stride + i-(el-1) + offset] / rj; */
+	/* dd[i*(2*el+2) + k] +=  */
+	/*   sqrt_tbl[j-i] * sqrt_tbl[j-k] * dlj * coshb; */
+	/* dd[(i+1)*(2*el+2) + k] -=  */
+	/*   sqrt_tbl[i+1] * sqrt_tbl[j-k] * dlj * sinhb; */
+	/* dd[i*(2*el+2) + k+1] +=  */
+	/*   sqrt_tbl[j-i] * sqrt_tbl[k+1] * dlj * sinhb; */
+	/* dd[(i+1)*(2*el+2) + k+1] +=  */
+	/*   sqrt_tbl[i+1] * sqrt_tbl[k+1] * dlj * coshb; */
+      }
+    }
+
+    // Having constructed the d^(l+1/2) matrix in dd, do the second
+    // half-step recursion from dd to dl. Start by initilalising  
+    // the plane of the dl-matrix to 0.0.
+    for (k=-el; k<=el; k++) 
+      for (i=-el; i<=el; i++)
+	dl[(k+offset)*stride + i + offset] = 0.0;
+
+    j = 2*el;
+    rj = (double) j;
+    for (k=0; k<=el; k++) {
+      for (i=0; i<=k+1; i++) {
+
+	ddj = dd[i*(2*el+2) + k] / rj;
+	dl[(k-el+offset)*stride + i-el + offset] +=
+	  sqrt_tbl[j-i] * sqrt_tbl[j-k] * ddj * coshb;
+	dl[(k-el+offset)*stride + i+1-el + offset] -=
+	  sqrt_tbl[i+1] * sqrt_tbl[j-k] * ddj * sinhb;
+	dl[(k+1-el+offset)*stride + i-el + offset] +=
+	  sqrt_tbl[j-i] * sqrt_tbl[k+1] * ddj * sinhb;
+	dl[(k+1-el+offset)*stride + i+1-el + offset] +=
+	  sqrt_tbl[i+1] * sqrt_tbl[k+1] * ddj * coshb;
+
+
+	/* ddj = dd[i*(2*el+2) + k] / rj; */
+	/* dl[(k-el+offset)*stride + i-el + offset] += */
+	/*   sqrt_tbl[j-i] * sqrt_tbl[j-k] * ddj * coshb; */
+	/* dl[(k-el+offset)*stride + i+1-el + offset] -= */
+	/*   sqrt_tbl[i+1] * sqrt_tbl[j-k] * ddj * sinhb; */
+	/* dl[(k+1-el+offset)*stride + i-el + offset] += */
+	/*   sqrt_tbl[j-i] * sqrt_tbl[k+1] * ddj * sinhb; */
+	/* dl[(k+1-el+offset)*stride + i+1-el + offset] += */
+	/*   sqrt_tbl[i+1] * sqrt_tbl[k+1] * ddj * coshb; */
+      }
+    }
+
+
+    for (m=-el; m<=0; m++) 
+      for (mm=m+1; mm<=0; mm++) 
+	dl[(m+offset)*stride + mm + offset] = 
+	  pow(-1., m) * pow(-1.,mm) * dl[(mm+offset)*stride + m + offset];
+
+    for (m=1; m<=el; m++) 
+      for (mm=-el; mm<=0; mm++) 
+	dl[(m+offset)*stride + mm + offset] = 
+	  pow(-1., el) * pow(-1.,mm) * dl[(-m+offset)*stride + mm + offset];
+
+    for (m=-el; m<=el; m++) 
+      for (mm=1; mm<=el; mm++) 
+	dl[(m+offset)*stride + mm + offset] = 
+	  pow(-1., el) * pow(-1.,m) * dl[(m+offset)*stride - mm + offset];
+
+
+
+    // Free temporary memory.
+    free(dd);
+  }
+
+}
+
+
+
+
+
+
+
+
+
 /*!  
  * Calculates (for m = -l:l and mm = -l:l) lth plane of a d-matrix for
  * argument beta using the recursion method given in Kostelec and
