@@ -611,24 +611,25 @@ double p, q;
       for (i=0; i<=k+2; i++) {
 
 	dlj = dl[(k-(el-1)+offset)*stride + i-(el-1) + offset] / rj;
-	dd[i*(2*el+2) + k] +=
+	
+	dd[k*(2*el+2) + i] +=
 	  sqrt_tbl[j-i] * sqrt_tbl[j-k] * dlj * coshb;
-	dd[(i+1)*(2*el+2) + k] -=
+	dd[k*(2*el+2) + i+1] -=
 	  sqrt_tbl[i+1] * sqrt_tbl[j-k] * dlj * sinhb;
-	dd[i*(2*el+2) + k+1] +=
+	dd[(k+1)*(2*el+2) + i] +=
 	  sqrt_tbl[j-i] * sqrt_tbl[k+1] * dlj * sinhb;
-	dd[(i+1)*(2*el+2) + k+1] +=
+	dd[(k+1)*(2*el+2) + i+1] +=
 	  sqrt_tbl[i+1] * sqrt_tbl[k+1] * dlj * coshb;
 
-	/* dlj = dl[(k-(el-1)+offset)*stride + i-(el-1) + offset] / rj; */
-	/* dd[i*(2*el+2) + k] +=  */
+	/* dd[i*(2*el+2) + k] += */
 	/*   sqrt_tbl[j-i] * sqrt_tbl[j-k] * dlj * coshb; */
-	/* dd[(i+1)*(2*el+2) + k] -=  */
+	/* dd[(i+1)*(2*el+2) + k] -= */
 	/*   sqrt_tbl[i+1] * sqrt_tbl[j-k] * dlj * sinhb; */
-	/* dd[i*(2*el+2) + k+1] +=  */
+	/* dd[i*(2*el+2) + k+1] += */
 	/*   sqrt_tbl[j-i] * sqrt_tbl[k+1] * dlj * sinhb; */
-	/* dd[(i+1)*(2*el+2) + k+1] +=  */
+	/* dd[(i+1)*(2*el+2) + k+1] += */
 	/*   sqrt_tbl[i+1] * sqrt_tbl[k+1] * dlj * coshb; */
+
       }
     }
 
@@ -644,7 +645,9 @@ double p, q;
     for (k=0; k<=el; k++) {
       for (i=0; i<=k+1; i++) {
 
-	ddj = dd[i*(2*el+2) + k] / rj;
+	ddj = dd[k*(2*el+2) + i] / rj;
+	/* ddj = dd[i*(2*el+2) + k] / rj; */
+
 	dl[(k-el+offset)*stride + i-el + offset] +=
 	  sqrt_tbl[j-i] * sqrt_tbl[j-k] * ddj * coshb;
 	dl[(k-el+offset)*stride + i+1-el + offset] -=
@@ -654,16 +657,6 @@ double p, q;
 	dl[(k+1-el+offset)*stride + i+1-el + offset] +=
 	  sqrt_tbl[i+1] * sqrt_tbl[k+1] * ddj * coshb;
 
-
-	/* ddj = dd[i*(2*el+2) + k] / rj; */
-	/* dl[(k-el+offset)*stride + i-el + offset] += */
-	/*   sqrt_tbl[j-i] * sqrt_tbl[j-k] * ddj * coshb; */
-	/* dl[(k-el+offset)*stride + i+1-el + offset] -= */
-	/*   sqrt_tbl[i+1] * sqrt_tbl[j-k] * ddj * sinhb; */
-	/* dl[(k+1-el+offset)*stride + i-el + offset] += */
-	/*   sqrt_tbl[j-i] * sqrt_tbl[k+1] * ddj * sinhb; */
-	/* dl[(k+1-el+offset)*stride + i+1-el + offset] += */
-	/*   sqrt_tbl[i+1] * sqrt_tbl[k+1] * ddj * coshb; */
       }
     }
 
