@@ -40,7 +40,8 @@
  * \author Jason McEwen
  */
 void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm, 
-				  int L, int spin, ssht_dl_method_t dl_method, 
+				  int L, int spin, 
+				  ssht_dl_method_t dl_method, 
 				  int verbosity) {
 
   int el, m, mm, ind;
@@ -284,13 +285,16 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
  * \param[in] flm Harmonic coefficients.
  * \param[in] L Harmonic band-limit.
  * \param[in] spin Spin number.
+ * \param[in] dl_method Method to use when compute Wigner functions.
  * \param[in] verbosity Verbosiity flag in range [0,5].
  * \retval none
  *
  * \author Jason McEwen
  */
 void ssht_core_mw_inverse_sov_sym_real(double *f, complex double *flm, 
-				       int L, int verbosity) {
+				       int L, 
+				       ssht_dl_method_t dl_method, 
+				       int verbosity) {
 
   int el, m, mm, ind;
   //int t, p;
@@ -301,6 +305,7 @@ void ssht_core_mw_inverse_sov_sym_real(double *f, complex double *flm,
   double ssign, elfactor;
   complex double mmfactor;
   double *dl;
+  double *dl8 = NULL;
   int dl_offset, dl_stride;
   complex double *exps;
   int exps_offset;
@@ -353,29 +358,68 @@ void ssht_core_mw_inverse_sov_sym_real(double *f, complex double *flm,
   Fmm_stride = L;    
   dl = ssht_dl_calloc(L, SSHT_DL_QUARTER);
   SSHT_ERROR_MEM_ALLOC_CHECK(dl)
+  if (dl_method == SSHT_DL_RISBO) {
+    dl8 = ssht_dl_calloc(L, SSHT_DL_QUARTER_EXTENDED);
+    SSHT_ERROR_MEM_ALLOC_CHECK(dl8)
+  }
   dl_offset = ssht_dl_get_offset(L, SSHT_DL_QUARTER);
   dl_stride = ssht_dl_get_stride(L, SSHT_DL_QUARTER);   
   inds_offset = L-1;
   for (el=abs(spin); el<=L-1; el++) {
 
     // Compute Wigner plane.
-    if (el!=0 && el==abs(spin)) {
-      for(eltmp=0; eltmp<=abs(spin); eltmp++)
-    	ssht_dl_halfpi_trapani_eighth_table(dl, L,
-    					    SSHT_DL_QUARTER,
-    					    eltmp, sqrt_tbl);
-      ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl, L,
+    switch (dl_method) {
+
+      case SSHT_DL_RISBO:
+	if (el!=0 && el==abs(spin)) {
+	  for(eltmp=0; eltmp<=abs(spin); eltmp++)
+	    ssht_dl_beta_risbo_eighth_table(dl8, SSHT_PION2, L, 
+					    SSHT_DL_QUARTER_EXTENDED,
+					    eltmp, sqrt_tbl, signs);
+	  ssht_dl_beta_risbo_fill_eighth2quarter_table(dl, 
+						       dl8, L,
 						       SSHT_DL_QUARTER,
-						       el, signs);
-    }
-    else {
-      ssht_dl_halfpi_trapani_eighth_table(dl, L,
-    					  SSHT_DL_QUARTER,
-    					  el, sqrt_tbl);
-      ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl, L,
+						       SSHT_DL_QUARTER_EXTENDED,
+						       el, 
+						       signs);
+	}
+	else {
+	  ssht_dl_beta_risbo_eighth_table(dl8, SSHT_PION2, L, 
+					  SSHT_DL_QUARTER_EXTENDED,
+					  el, sqrt_tbl, signs);
+	  ssht_dl_beta_risbo_fill_eighth2quarter_table(dl, 
+						       dl8, L,
 						       SSHT_DL_QUARTER,
-						       el, signs);
+						       SSHT_DL_QUARTER_EXTENDED,
+						       el, 
+						       signs);
+	}
+	break;
+  
+      case SSHT_DL_TRAPANI:
+	if (el!=0 && el==abs(spin)) {
+	  for(eltmp=0; eltmp<=abs(spin); eltmp++)
+	    ssht_dl_halfpi_trapani_eighth_table(dl, L,
+						SSHT_DL_QUARTER,
+						eltmp, sqrt_tbl);
+	  ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl, L,
+							   SSHT_DL_QUARTER,
+							   el, signs);
+	}
+	else {
+	  ssht_dl_halfpi_trapani_eighth_table(dl, L,
+					      SSHT_DL_QUARTER,
+					      el, sqrt_tbl);
+	  ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl, L,
+							   SSHT_DL_QUARTER,
+							   el, signs);	
+	}
+	break;
+
+      default:
+	SSHT_ERROR_GENERIC("Invalid dl method") 
     }
+
 
     // Compute Fmm.
     elfactor = sqrt((double)(2.0*el+1.0)/(4.0*SSHT_PI));
@@ -403,6 +447,8 @@ void ssht_core_mw_inverse_sov_sym_real(double *f, complex double *flm,
 
   // Free dl memory.
   free(dl);
+  if (dl_method == SSHT_DL_RISBO)
+    free(dl8);
 
   // Use symmetry to compute Fmm for negative mm.
   for (mm=-(L-1); mm<=-1; mm++) 
@@ -1063,13 +1109,16 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
  * \param[out] flm Harmonic coefficients.
  * \param[in] f Function on sphere.
  * \param[in] L Harmonic band-limit.
+ * \param[in] dl_method Method to use when compute Wigner functions.
  * \param[in] verbosity Verbosiity flag in range [0,5].
  * \retval none
  *
  * \author Jason McEwen
  */
 void ssht_core_mw_forward_sov_conv_sym_real(complex double *flm, double *f, 
-					    int L, int verbosity) {
+					    int L,
+					    ssht_dl_method_t dl_method, 
+					    int verbosity) {
 
   int el, m, mm, ind, ind_nm, t, r;
   int eltmp;
@@ -1085,6 +1134,7 @@ void ssht_core_mw_forward_sov_conv_sym_real(complex double *flm, double *f,
   complex double *Fmm_pad, *tmp_pad;
   int f_stride, Fmt_stride, Fmt_offset, Fmm_stride, Fmm_offset, Gmm_stride;
   double *dl;
+  double *dl8 = NULL;
   int dl_offset, dl_stride;
   int w_offset;
   complex double *expsm, *expsmm;
@@ -1266,6 +1316,10 @@ void ssht_core_mw_forward_sov_conv_sym_real(complex double *flm, double *f,
   // Compute flm.
   dl = ssht_dl_calloc(L, SSHT_DL_QUARTER);
   SSHT_ERROR_MEM_ALLOC_CHECK(dl)
+  if (dl_method == SSHT_DL_RISBO) {
+    dl8 = ssht_dl_calloc(L, SSHT_DL_QUARTER_EXTENDED);
+    SSHT_ERROR_MEM_ALLOC_CHECK(dl8)
+  }
   dl_offset = ssht_dl_get_offset(L, SSHT_DL_QUARTER);
   dl_stride = ssht_dl_get_stride(L, SSHT_DL_QUARTER); 
   inds_offset = 0;
@@ -1278,24 +1332,58 @@ void ssht_core_mw_forward_sov_conv_sym_real(complex double *flm, double *f,
   for (el=abs(spin); el<=L-1; el++) {
 
     // Compute Wigner plane.
-    if (el!=0 && el==abs(spin)) {
-      for(eltmp=0; eltmp<=abs(spin); eltmp++)
-    	ssht_dl_halfpi_trapani_eighth_table(dl, L,
-    					    SSHT_DL_QUARTER,
-    					    eltmp, sqrt_tbl);
-      ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl, L,
-    						       SSHT_DL_QUARTER,
-    						       el, signs);
-    }
-    else {
-      ssht_dl_halfpi_trapani_eighth_table(dl, L,
-    					  SSHT_DL_QUARTER,
-    					  el, sqrt_tbl);
-      ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl, L,
-    						       SSHT_DL_QUARTER,
-    						       el, signs);
+    switch (dl_method) {
 
+      case SSHT_DL_RISBO:
+	if (el!=0 && el==abs(spin)) {
+	  for(eltmp=0; eltmp<=abs(spin); eltmp++)
+	    ssht_dl_beta_risbo_eighth_table(dl8, SSHT_PION2, L, 
+					    SSHT_DL_QUARTER_EXTENDED,
+					    eltmp, sqrt_tbl, signs);
+	  ssht_dl_beta_risbo_fill_eighth2quarter_table(dl, 
+						       dl8, L,
+						       SSHT_DL_QUARTER,
+						       SSHT_DL_QUARTER_EXTENDED,
+						       el, 
+						       signs);
+	}
+	else {
+	  ssht_dl_beta_risbo_eighth_table(dl8, SSHT_PION2, L, 
+					  SSHT_DL_QUARTER_EXTENDED,
+					  el, sqrt_tbl, signs);
+	  ssht_dl_beta_risbo_fill_eighth2quarter_table(dl, 
+						       dl8, L,
+						       SSHT_DL_QUARTER,
+						       SSHT_DL_QUARTER_EXTENDED,
+						       el, 
+						       signs);
+	}
+	break;
+  
+      case SSHT_DL_TRAPANI:
+	if (el!=0 && el==abs(spin)) {
+	  for(eltmp=0; eltmp<=abs(spin); eltmp++)
+	    ssht_dl_halfpi_trapani_eighth_table(dl, L,
+						SSHT_DL_QUARTER,
+						eltmp, sqrt_tbl);
+	  ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl, L,
+							   SSHT_DL_QUARTER,
+							   el, signs);
+	}
+	else {
+	  ssht_dl_halfpi_trapani_eighth_table(dl, L,
+					      SSHT_DL_QUARTER,
+					      el, sqrt_tbl);
+	  ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl, L,
+							   SSHT_DL_QUARTER,
+							   el, signs);	
+	}
+	break;
+
+      default:
+	SSHT_ERROR_GENERIC("Invalid dl method") 
     }
+
 
     // Compute flm.
     elfactor = sqrt((double)(2.0*el+1.0)/(4.0*SSHT_PI));
@@ -1348,6 +1436,8 @@ void ssht_core_mw_forward_sov_conv_sym_real(complex double *flm, double *f,
 
   // Free memory.
   free(dl);
+  if (dl_method == SSHT_DL_RISBO)
+    free(dl8);
   free(Fmt);
   free(Fmm);
   free(inout);
@@ -1409,7 +1499,8 @@ void ssht_core_mw_inverse_sov_sym_pole(complex double *f,
   SSHT_ERROR_MEM_ALLOC_CHECK(f_full)
 
   // Perform inverse transform.
-  ssht_core_mw_inverse_sov_sym(f_full, flm, L, spin, dl_method, verbosity);	  
+  ssht_core_mw_inverse_sov_sym(f_full, flm, L, spin, 
+			       dl_method, verbosity);	  
 
   // Copy output function values, including separate point for South pole.
   memcpy(f, f_full, (L-1)*(2*L-1)*sizeof(complex double));
@@ -1433,6 +1524,7 @@ void ssht_core_mw_inverse_sov_sym_pole(complex double *f,
  * \param[in] flm Harmonic coefficients.
  * \param[in] L Harmonic band-limit.
  * \param[in] spin Spin number.
+ * \param[in] dl_method Method to use when compute Wigner functions.
  * \param[in] verbosity Verbosiity flag in range [0,5].
  * \retval none
  *
@@ -1441,7 +1533,9 @@ void ssht_core_mw_inverse_sov_sym_pole(complex double *f,
 void ssht_core_mw_inverse_sov_sym_real_pole(double *f, 
 					    double *f_sp,
 					    complex double *flm, 
-					    int L, int verbosity) {
+					    int L, 
+					    ssht_dl_method_t dl_method, 
+					    int verbosity) {
 
   double *f_full;
   int f_stride = 2*L-1;
@@ -1451,7 +1545,8 @@ void ssht_core_mw_inverse_sov_sym_real_pole(double *f,
   SSHT_ERROR_MEM_ALLOC_CHECK(f_full)
 
   // Perform inverse transform.
-  ssht_core_mw_inverse_sov_sym_real(f_full, flm, L, verbosity);
+  ssht_core_mw_inverse_sov_sym_real(f_full, flm, L, 
+				    dl_method, verbosity);
 
   // Copy output function values, including separate point for South pole.
   memcpy(f, f_full, (L-1)*(2*L-1)*sizeof(double));
@@ -1477,6 +1572,7 @@ void ssht_core_mw_inverse_sov_sym_real_pole(double *f,
  * South pole.
  * \param[in] L Harmonic band-limit.
  * \param[in] spin Spin number.
+ * \param[in] dl_method Method to use when compute Wigner functions.
  * \param[in] verbosity Verbosiity flag in range [0,5].
  * \retval none
  *
@@ -1524,6 +1620,7 @@ void ssht_core_mw_forward_sov_conv_sym_pole(complex double *flm, complex double 
  * \param[in] f_sp Function sample on South pole.
  * \param[in] L Harmonic band-limit.
  * \param[in] spin Spin number.
+ * \param[in] dl_method Method to use when compute Wigner functions.
  * \param[in] verbosity Verbosiity flag in range [0,5].
  * \retval none
  *
@@ -1532,7 +1629,9 @@ void ssht_core_mw_forward_sov_conv_sym_pole(complex double *flm, complex double 
 void ssht_core_mw_forward_sov_conv_sym_real_pole(complex double *flm, 
 						 double *f, 
 						 double f_sp,
-						 int L, int verbosity) {
+						 int L, 
+						 ssht_dl_method_t dl_method,
+						 int verbosity) {
 
   double *f_full;
   int p, f_stride = 2*L-1;
@@ -1547,7 +1646,8 @@ void ssht_core_mw_forward_sov_conv_sym_real_pole(complex double *flm,
     f_full[(L-1)*f_stride + p] = f_sp; 
 
   // Perform forward transform.
-  ssht_core_mw_forward_sov_conv_sym_real(flm, f_full, L, verbosity);
+  ssht_core_mw_forward_sov_conv_sym_real(flm, f_full, L, 
+					 dl_method, verbosity);
 
   // Free memory.
   free(f_full);
