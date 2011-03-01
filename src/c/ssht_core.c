@@ -61,8 +61,8 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
 
 
 
-//ssht_dl_method_t dl_method = SSHT_DL_RISBO;  
-ssht_dl_method_t dl_method = SSHT_DL_TRAPANI;  
+ssht_dl_method_t dl_method = SSHT_DL_RISBO;  
+//ssht_dl_method_t dl_method = SSHT_DL_TRAPANI;  
 //ssht_dl_size_t dl_size = (dl_method == SSHT_DL_RISBO) ? SSHT_DL_FULL : SSHT_DL_QUARTER;
 ssht_dl_size_t dl_size = SSHT_DL_QUARTER;
 
@@ -135,15 +135,15 @@ double *dl8;
 
       switch (dl_method) {
         case SSHT_DL_RISBO:
-	  ssht_dl_beta_risbo_eighth_table2(dl8, SSHT_PION2, L, 
+	  ssht_dl_beta_risbo_eighth_table(dl8, SSHT_PION2, L, 
 					   SSHT_DL_QUARTER_EXTENDED,
 					   el, sqrt_tbl, signs);
 	  ssht_dl_beta_risbo_fill_eighth2quarter_table(dl, 
 						       dl8, L,
 						       dl_size,
+						       SSHT_DL_QUARTER_EXTENDED,
 						       el, 
 						       signs);
-
 	  break;
         case SSHT_DL_TRAPANI:
 	  ssht_dl_halfpi_trapani_eighth_table(dl, L,

@@ -17,29 +17,21 @@ typedef enum {SSHT_DL_RISBO = 0,
 double* ssht_dl_calloc(int L, ssht_dl_size_t dl_size);
 int ssht_dl_get_offset(int L, ssht_dl_size_t dl_size);
 int ssht_dl_get_stride(int L, ssht_dl_size_t dl_size);
+
 void ssht_dl_beta_risbo_full_table(double *dl, double beta, int L, 
 				   ssht_dl_size_t dl_size,
 				   int el, double *sqrt_tbl);
-void ssht_dl_beta_risbo_half_table(double *dl, double beta, int L, 
-				   ssht_dl_size_t dl_size,
-				   int el, double *sqrt_tbl);
-void ssht_dl_beta_risbo_quarter_table(double *dl, double beta, int L, 
-				      ssht_dl_size_t dl_size,
-				      int el, double *sqrt_tbl);
-void ssht_dl_beta_risbo_eighth_table2(double *dl, double beta, int L, 
+void ssht_dl_beta_risbo_eighth_table(double *dl, double beta, int L, 
 				     ssht_dl_size_t dl_size,
 				      int el, double *sqrt_tbl,
 				      double *signs);
-void ssht_dl_beta_risbo_fill_eighth2quarter_table(double *dl4, 
+void ssht_dl_beta_risbo_fill_eighth2quarter_table(double *dl, 
 						  double *dl8,
 						  int L,
 						  ssht_dl_size_t dl_size,
+						  ssht_dl_size_t dl8_size,
 						  int el, 
 						  double *signs);
-
-
-
-
 
 void ssht_dl_beta_kostelec_full_table(double *dlm1p1, double *dl, 
 				 double beta, int L, 
@@ -52,6 +44,7 @@ void ssht_dl_beta_kostelec_line_table(double *dlm1p1_line, double *dl_line,
 void ssht_dl_beta_kostelec_halfline_table(double *dlm1p1_line, double *dl_line, 
 					  double beta, int L, int mm, int el, 
 					  double *sqrt_tbl, double *signs);
+
 void ssht_dl_halfpi_trapani_eighth_table(double *dl, int L, 
 					 ssht_dl_size_t dl_size,
 					 int el, double *sqrt_tbl);

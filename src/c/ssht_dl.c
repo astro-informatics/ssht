@@ -21,10 +21,9 @@
  *       m in [-(L-1),(L-1)] and mm in [-(L-1),(L-1)]
  *
  * \note The routine ssht_dl_calloc is provided to allocate space to
- * store a dl plane.  The routines ssht_dl_get_mmoffset and
+ * store a dl plane.  The routines ssht_dl_get_offset and
  * ssht_dl_get_stride are provided to get appropriate offsets and
- * strides so that memory may always beaccess by dl[m*stride + mm +
- * offset].
+ * strides.
  *
  * \author Jason McEwen
  */
@@ -273,21 +272,44 @@ void ssht_dl_beta_risbo_full_table(double *dl, double beta, int L,
 }
 
 
-
-
+/*!  
+ * Calculates (for m = -l:l and mm = -l:l) lth plane of a d-matrix for
+ * argument beta using Risbo's recursion method.  Only half of the
+ * plane is computed by recusion and symmetry is used to fill the
+ * remaining plane.  For l>0, require the dl plane to be computed
+ * already with values for l-1.  Also takes a table of precomputed
+ * square roots of integers and signs to avoid recomputing them.
+ *
+ * \param[in,out] dl Wigner plane.  On input this should be initialised
+ * to the plane computed for el-1.  On output this will be replaced
+ * with the computed plane for el.
+ * \param[in] beta Angle to compute Wigner line for.
+ * \param[in] L Harmonic band-limit.
+ * \param[in] dl_size Size type of the memory to allocate.
+ * \param[in] el Harmonic index to compute Wigner plane for.
+ * \param[in] sqrt_tbl Precomputed array of square roots.  The table
+ * element at index i should contain the value sqrt(i).  Values from 0
+ * to 2*el must be precomputed (i.e. sqrt_tbl should contian 2*el+1
+ * elements).
+ * \param[in] signs Precomputed array of signs. The array element at
+ * index i should contain the value (-1)^i.  Values from 0
+ * to el must be precomputed (i.e. signs should contian el+1
+ * elements).
+ * \retval none
+ *
+ * \author Jason McEwen
+ */
 void ssht_dl_beta_risbo_half_table(double *dl, double beta, int L, 
-				      ssht_dl_size_t dl_size,
-				      int el, double *sqrt_tbl) {
+				   ssht_dl_size_t dl_size,
+				   int el, double *sqrt_tbl,
+				   double *signs) {
 
   int offset, stride;
   double cosb, sinb, coshb, sinhb;
   int i, j, k;
   double rj, dlj, ddj;
   double *dd;
-    
-
- int m, mm;
-
+  int m, mm;
 
   // Get mm offset and stride for accessing dl data.
   offset = ssht_dl_get_offset(L, dl_size);
@@ -368,13 +390,12 @@ void ssht_dl_beta_risbo_half_table(double *dl, double beta, int L,
       }
     }
 
-
+    // Fill top half of plane using symmetry.
     for (m=-el; m<=el; m++) 
       for (mm=1; mm<=el; mm++) 
 	dl[(m+offset)*stride + mm + offset] = 
-	  pow(-1., el) * pow(-1.,m) * dl[(m+offset)*stride - mm + offset];
-
-
+	  signs[el] * signs[abs(m)]
+	  * dl[(m+offset)*stride - mm + offset];
 
     // Free temporary memory.
     free(dd);
@@ -383,20 +404,44 @@ void ssht_dl_beta_risbo_half_table(double *dl, double beta, int L,
 }
 
 
-
+/*!  
+ * Calculates (for m = -l:l and mm = -l:l) lth plane of a d-matrix for
+ * argument beta using Risbo's recursion method.  Only quarter of the
+ * plane is computed by recusion and symmetry is used to fill the
+ * remaining plane.  For l>0, require the dl plane to be computed
+ * already with values for l-1.  Also takes a table of precomputed
+ * square roots of integers and signs to avoid recomputing them.
+ *
+ * \param[in,out] dl Wigner plane.  On input this should be initialised
+ * to the plane computed for el-1.  On output this will be replaced
+ * with the computed plane for el.
+ * \param[in] beta Angle to compute Wigner line for.
+ * \param[in] L Harmonic band-limit.
+ * \param[in] dl_size Size type of the memory to allocate.
+ * \param[in] el Harmonic index to compute Wigner plane for.
+ * \param[in] sqrt_tbl Precomputed array of square roots.  The table
+ * element at index i should contain the value sqrt(i).  Values from 0
+ * to 2*el must be precomputed (i.e. sqrt_tbl should contian 2*el+1
+ * elements).
+ * \param[in] signs Precomputed array of signs. The array element at
+ * index i should contain the value (-1)^i.  Values from 0
+ * to el must be precomputed (i.e. signs should contian el+1
+ * elements).
+ * \retval none
+ *
+ * \author Jason McEwen
+ */
 void ssht_dl_beta_risbo_quarter_table(double *dl, double beta, int L, 
 				      ssht_dl_size_t dl_size,
-				      int el, double *sqrt_tbl) {
+				      int el, double *sqrt_tbl,
+				      double * signs) {
 
   int offset, stride;
   double cosb, sinb, coshb, sinhb;
   int i, j, k;
   double rj, dlj, ddj;
   double *dd;
-    
-
- int m, mm;
-
+  int m, mm;
 
   // Get mm offset and stride for accessing dl data.
   offset = ssht_dl_get_offset(L, dl_size);
@@ -477,18 +522,19 @@ void ssht_dl_beta_risbo_quarter_table(double *dl, double beta, int L,
       }
     }
 
-
+    // Symmetry in m to fill half plane.
     for (m=1; m<=el; m++) 
       for (mm=-el; mm<=0; mm++) 
 	dl[(m+offset)*stride + mm + offset] = 
-	  pow(-1., el) * pow(-1.,mm) * dl[(-m+offset)*stride + mm + offset];
+	  pow(-1., el) * pow(-1.,mm) 
+	  * dl[(-m+offset)*stride + mm + offset];
 
+    // Symmetry in mm to fill entire plane.
     for (m=-el; m<=el; m++) 
       for (mm=1; mm<=el; mm++) 
 	dl[(m+offset)*stride + mm + offset] = 
-	  pow(-1., el) * pow(-1.,m) * dl[(m+offset)*stride - mm + offset];
-
-
+	  pow(-1., el) * pow(-1.,m) 
+	  * dl[(m+offset)*stride - mm + offset];
 
     // Free temporary memory.
     free(dd);
@@ -497,125 +543,38 @@ void ssht_dl_beta_risbo_quarter_table(double *dl, double beta, int L,
 }
 
 
+/*!  
+ * Calculates (for m = -l:0 and mm = -l:m) lth plane of a d-matrix for
+ * argument beta using Risbo's recursion method.  For l>0, require the
+ * dl plane to be computed already with values for l-1.  Also takes a
+ * table of precomputed square roots of integers and signs to avoid
+ * recomputing them.
+ *
+ * \note Risbo's recursion requires the boundaries of the eighth of
+ * the Wigner plane to be extended slightly.  Consequently, this
+ * routine should only be used with dl_size either
+ * SSHT_DL_QUARTER_EXTENDED or SSHT_DL_FULL.
+ *
+ * \param[in,out] dl Wigner plane.  On input this should be initialised
+ * to the plane computed for el-1.  On output this will be replaced
+ * with the computed plane for el.
+ * \param[in] beta Angle to compute Wigner line for.
+ * \param[in] L Harmonic band-limit.
+ * \param[in] dl_size Size type of the memory to allocate.
+ * \param[in] el Harmonic index to compute Wigner plane for.
+ * \param[in] sqrt_tbl Precomputed array of square roots.  The table
+ * element at index i should contain the value sqrt(i).  Values from 0
+ * to 2*el must be precomputed (i.e. sqrt_tbl should contian 2*el+1
+ * elements).
+ * \param[in] signs Precomputed array of signs. The array element at
+ * index i should contain the value (-1)^i.  Values from 0
+ * to el must be precomputed (i.e. signs should contian el+1
+ * elements).
+ * \retval none
+ *
+ * \author Jason McEwen
+ */
 void ssht_dl_beta_risbo_eighth_table(double *dl, double beta, int L, 
-				      ssht_dl_size_t dl_size,
-				      int el, double *sqrt_tbl) {
-
-  int offset, stride;
-  double cosb, sinb, coshb, sinhb;
-  int i, j, k;
-  double rj, dlj, ddj;
-  double *dd;
-    
-
- int m, mm;
-
-
-  // Get mm offset and stride for accessing dl data.
-  offset = ssht_dl_get_offset(L, dl_size);
-  stride = ssht_dl_get_stride(L, dl_size);
-
-  // Compute Wigner plane.
-  if (el == 0) {
-    
-    dl[(0+offset)*stride + 0 + offset] = 1.0;
-
-  }
-  else if (el == 1) {
-
-    cosb = cos(beta);
-    sinb = sin(beta);
-    coshb = cos(beta / 2.0);
-    sinhb = sin(beta / 2.0);
-   
-    dl[(-1 + offset)*stride - 1 + offset] = coshb * coshb;
-    dl[(-1 + offset)*stride + 0 + offset] = sinb / SSHT_SQRT2;
-    dl[(-1 + offset)*stride + 1 + offset] = sinhb * sinhb;
-
-    dl[(0 + offset)*stride - 1 + offset] = -sinb / SSHT_SQRT2;
-    dl[(0 + offset)*stride + 0 + offset] = cosb;
-    dl[(0 + offset)*stride + 1 + offset] = sinb / SSHT_SQRT2;
-
-    dl[(1 + offset)*stride - 1 + offset] = sinhb * sinhb;
-    dl[(1 + offset)*stride + 0 + offset] = -sinb / SSHT_SQRT2;
-    dl[(1 + offset)*stride + 1 + offset] = coshb * coshb;
-
-  }
-  else {
-
-    coshb = -cos(beta / 2.0);
-    sinhb = sin(beta / 2.0);
-
-    // Initialise the plane of the dl-matrix to 0.0 for the recursion
-    // from l - 1 to l - 1/2.
-    dd = (double*)calloc((2*el+2)*(2*el+2), sizeof(double));
-    SSHT_ERROR_MEM_ALLOC_CHECK(dd)
-
-    j = 2*el - 1;
-    rj = (double) j;
-    for (k=0; k<=el; k++) {
-      for (i=0; i<=k+2; i++) {
-	dlj = dl[(k-(el-1)+offset)*stride + i-(el-1) + offset] / rj;	
-	dd[k*(2*el+2) + i] +=
-	  sqrt_tbl[j-i] * sqrt_tbl[j-k] * dlj * coshb;
-	dd[k*(2*el+2) + i+1] -=
-	  sqrt_tbl[i+1] * sqrt_tbl[j-k] * dlj * sinhb;
-	dd[(k+1)*(2*el+2) + i] +=
-	  sqrt_tbl[j-i] * sqrt_tbl[k+1] * dlj * sinhb;
-	dd[(k+1)*(2*el+2) + i+1] +=
-	  sqrt_tbl[i+1] * sqrt_tbl[k+1] * dlj * coshb;
-      }
-    }
-
-    // Having constructed the d^(l+1/2) matrix in dd, do the second
-    // half-step recursion from dd to dl. Start by initilalising  
-    // the plane of the dl-matrix to 0.0.
-    for (k=-el; k<=el; k++) 
-      for (i=-el; i<=el; i++)
-	dl[(k+offset)*stride + i + offset] = 0.0;
-
-    j = 2*el;
-    rj = (double) j;
-    for (k=0; k<=el; k++) {
-      for (i=0; i<=k+1; i++) {
-	ddj = dd[k*(2*el+2) + i] / rj;
-	dl[(k-el+offset)*stride + i-el + offset] +=
-	  sqrt_tbl[j-i] * sqrt_tbl[j-k] * ddj * coshb;
-	dl[(k-el+offset)*stride + i+1-el + offset] -=
-	  sqrt_tbl[i+1] * sqrt_tbl[j-k] * ddj * sinhb;
-	dl[(k+1-el+offset)*stride + i-el + offset] +=
-	  sqrt_tbl[j-i] * sqrt_tbl[k+1] * ddj * sinhb;
-	dl[(k+1-el+offset)*stride + i+1-el + offset] +=
-	  sqrt_tbl[i+1] * sqrt_tbl[k+1] * ddj * coshb;
-      }
-    }
-
-
-    for (m=-el; m<=0; m++) 
-      for (mm=m+1; mm<=0; mm++) 
-	dl[(m+offset)*stride + mm + offset] = 
-	  pow(-1., m) * pow(-1.,mm) * dl[(mm+offset)*stride + m + offset];
-
-    for (m=1; m<=el; m++) 
-      for (mm=-el; mm<=0; mm++) 
-	dl[(m+offset)*stride + mm + offset] = 
-	  pow(-1., el) * pow(-1.,mm) * dl[(-m+offset)*stride + mm + offset];
-
-    for (m=-el; m<=el; m++) 
-      for (mm=1; mm<=el; mm++) 
-	dl[(m+offset)*stride + mm + offset] = 
-	  pow(-1., el) * pow(-1.,m) * dl[(m+offset)*stride - mm + offset];
-
-
-
-    // Free temporary memory.
-    free(dd);
-  }
-
-}
-
-
-void ssht_dl_beta_risbo_eighth_table2(double *dl, double beta, int L, 
 				      ssht_dl_size_t dl_size,
 				      int el, double *sqrt_tbl,
 				      double *signs) {
@@ -737,12 +696,35 @@ void ssht_dl_beta_risbo_eighth_table2(double *dl, double beta, int L,
 }
 
 
-
-
-void ssht_dl_beta_risbo_fill_eighth2quarter_table(double *dl4, 
+/*!
+ * Fill in quarter Wigner plane for m = 0:l and mm = 0:l from the
+ * eighth m = -l:0 and mm = -l:m. Takes a table of precomputed signs to
+ * avoid recomputing them.
+ *
+ * \note It is necessary to fill the quarter Wigner plane in separate
+ * memory since the eighth plane for m = -l:0 and mm = -l:m with be
+ * required in subsequent recursions.
+ *
+ * \param[out] dl Quarter Wigner plane, computed by copying dl8 and
+ * extending with symmetries.
+ * \param[in] dl8 Eighth Wigner plane.
+ * \param[in] L Harmonic band-limit.
+ * \param[in] dl_size Size type of the dl memory.
+ * \param[in] dl8_size Size type of the dl8 memory.
+ * \param[in] el Harmonic index to compute Wigner plane for.
+ * \param[in] signs Precomputed array of signs. The array element at
+ * index i should contain the value (-1)^i.  Values from 0
+ * to el must be precomputed (i.e. signs should contian el+1
+ * elements).
+ * \retval none
+ *
+ * \author Jason McEwen
+ */
+void ssht_dl_beta_risbo_fill_eighth2quarter_table(double *dl, 
 						  double *dl8,
 						  int L,
 						  ssht_dl_size_t dl_size,
+						  ssht_dl_size_t dl8_size,
 						  int el, 
 						  double *signs) {
 
@@ -752,26 +734,25 @@ void ssht_dl_beta_risbo_fill_eighth2quarter_table(double *dl4,
   // Get mm offset and stride for accessing dl data.
   offset = ssht_dl_get_offset(L, dl_size);
   stride = ssht_dl_get_stride(L, dl_size);
-  offset8 = ssht_dl_get_offset(L, SSHT_DL_QUARTER_EXTENDED);
-  stride8 = ssht_dl_get_stride(L, SSHT_DL_QUARTER_EXTENDED);
+  offset8 = ssht_dl_get_offset(L, dl8_size);
+  stride8 = ssht_dl_get_stride(L, dl8_size);
 
   // Symmetry through origin to get eighth of the required quarter
   // (first quadrant).
   for (m=0; m<=el; m++)
     for (mm=m; mm<=el; mm++)
-      dl4[(m+offset)*stride + mm + offset] =
+      dl[(m+offset)*stride + mm + offset] =
 	signs[m] * signs[mm]
   	* dl8[(-m+offset8)*stride8 - mm + offset8];
 
   // Diagonal symmetry to fill remaining quarter.
   for (m=0; m<=el; m++)
     for (mm=0; mm<=m-1; mm++)
-      dl4[(m+offset)*stride + mm + offset] =
+      dl[(m+offset)*stride + mm + offset] =
 	signs[m] * signs[mm]
-  	* dl4[(mm+offset)*stride + m + offset];
+  	* dl[(mm+offset)*stride + m + offset];
 
 }
-
 
 
 /*!  
