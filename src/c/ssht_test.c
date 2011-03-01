@@ -38,6 +38,7 @@ int main(int argc, char *argv[]) {
   double *f_mw_real_pole, *f_mw_ss_real_pole;
   double f_mw_real_sp, f_mw_ss_real_sp, f_mw_ss_real_np, phi_sp, phi_np;
 
+  ssht_dl_method_t dl_method = SSHT_DL_TRAPANI;
   int L = 128;
   int spin = 0;
   int irepeat;
@@ -376,7 +377,7 @@ int main(int argc, char *argv[]) {
 
     ssht_test_gen_flm_complex(flm_orig, L, spin, seed);
     time_start = clock();
-    ssht_core_mw_inverse_sov_sym(f_mw, flm_orig, L, spin, verbosity);    
+    ssht_core_mw_inverse_sov_sym(f_mw, flm_orig, L, spin, dl_method, verbosity);    
     time_end = clock();
     durations_inverse_mw[irepeat] = (time_end - time_start) / (double)CLOCKS_PER_SEC;
 
