@@ -64,6 +64,7 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
 ssht_dl_method_t dl_method = SSHT_DL_RISBO;  
 //ssht_dl_method_t dl_method = SSHT_DL_TRAPANI;  
 ssht_dl_size_t dl_size = (dl_method == SSHT_DL_RISBO) ? SSHT_DL_FULL : SSHT_DL_QUARTER;
+double *dl8;
 
 
 
@@ -107,6 +108,10 @@ ssht_dl_size_t dl_size = (dl_method == SSHT_DL_RISBO) ? SSHT_DL_FULL : SSHT_DL_Q
   Fmm_offset = L-1;
   Fmm_stride = 2*L-1;    
   dl = ssht_dl_calloc(L, dl_size);
+
+dl8 = ssht_dl_calloc(L, dl_size);
+SSHT_ERROR_MEM_ALLOC_CHECK(dl8)
+
   SSHT_ERROR_MEM_ALLOC_CHECK(dl)
   dl_offset2 = ssht_dl_get_offset(L, dl_size);
   dl_offset1 = (dl_size == SSHT_DL_FULL) ? dl_offset2 : 0;
@@ -128,9 +133,15 @@ ssht_dl_size_t dl_size = (dl_method == SSHT_DL_RISBO) ? SSHT_DL_FULL : SSHT_DL_Q
 
       switch (dl_method) {
         case SSHT_DL_RISBO:
-	  ssht_dl_beta_risbo_eighth_table(dl, SSHT_PION2, L, 
+	  ssht_dl_beta_risbo_eighth_table2(dl8, SSHT_PION2, L, 
 					dl_size,
-					el, sqrt_tbl);
+					   el, sqrt_tbl, signs);
+	  ssht_dl_beta_risbo_fill_eighth2quarter_table(dl, 
+						       dl8, L,
+						       dl_size,
+						       el, 
+						       signs);
+
 	  break;
         case SSHT_DL_TRAPANI:
 	  ssht_dl_halfpi_trapani_eighth_table(dl, L,

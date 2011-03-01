@@ -22,9 +22,16 @@ void ssht_dl_beta_risbo_half_table(double *dl, double beta, int L,
 void ssht_dl_beta_risbo_quarter_table(double *dl, double beta, int L, 
 				      ssht_dl_size_t dl_size,
 				      int el, double *sqrt_tbl);
-void ssht_dl_beta_risbo_eighth_table(double *dl, double beta, int L, 
+void ssht_dl_beta_risbo_eighth_table2(double *dl, double beta, int L, 
 				     ssht_dl_size_t dl_size,
-				     int el, double *sqrt_tbl);
+				      int el, double *sqrt_tbl,
+				      double *signs);
+void ssht_dl_beta_risbo_fill_eighth2quarter_table(double *dl4, 
+						  double *dl8,
+						  int L,
+						  ssht_dl_size_t dl_size,
+						  int el, 
+						  double *signs);
 
 
 

@@ -605,10 +605,176 @@ void ssht_dl_beta_risbo_eighth_table(double *dl, double beta, int L,
 }
 
 
+void ssht_dl_beta_risbo_eighth_table2(double *dl, double beta, int L, 
+				      ssht_dl_size_t dl_size,
+				      int el, double *sqrt_tbl,
+				      double *signs) {
+
+  int offset, stride;
+  double cosb, sinb, coshb, sinhb;
+  int i, j, k;
+  double rj, dlj, ddj;
+  double *dd;
+    
+
+ int m, mm;
+
+
+  // Get mm offset and stride for accessing dl data.
+  offset = ssht_dl_get_offset(L, dl_size);
+  stride = ssht_dl_get_stride(L, dl_size);
+
+  // Compute Wigner plane.
+  if (el == 0) {
+    
+    dl[(0+offset)*stride + 0 + offset] = 1.0;
+
+  }
+  else if (el == 1) {
+
+    cosb = cos(beta);
+    sinb = sin(beta);
+    coshb = cos(beta / 2.0);
+    sinhb = sin(beta / 2.0);
+   
+    dl[(-1 + offset)*stride - 1 + offset] = coshb * coshb;
+    dl[(-1 + offset)*stride + 0 + offset] = sinb / SSHT_SQRT2;
+    dl[(-1 + offset)*stride + 1 + offset] = sinhb * sinhb;
+
+    dl[(0 + offset)*stride - 1 + offset] = -sinb / SSHT_SQRT2;
+    dl[(0 + offset)*stride + 0 + offset] = cosb;
+    dl[(0 + offset)*stride + 1 + offset] = sinb / SSHT_SQRT2;
+
+    dl[(1 + offset)*stride - 1 + offset] = sinhb * sinhb;
+    dl[(1 + offset)*stride + 0 + offset] = -sinb / SSHT_SQRT2;
+    dl[(1 + offset)*stride + 1 + offset] = coshb * coshb;
+
+  }
+  else {
+
+    coshb = -cos(beta / 2.0);
+    sinhb = sin(beta / 2.0);
+
+    // Initialise the plane of the dl-matrix to 0.0 for the recursion
+    // from l - 1 to l - 1/2.
+    dd = (double*)calloc((el+3)*(el+3), sizeof(double));
+    SSHT_ERROR_MEM_ALLOC_CHECK(dd)
+
+    j = 2*el - 1;
+    rj = (double) j;
+    for (k=0; k<=el; k++) {
+      for (i=0; i<=k+2; i++) {
+	dlj = dl[(k-(el-1)+offset)*stride + i-(el-1) + offset] / rj;	
+//	dlj = dl[(k+1+offset)*stride + i+1 + offset] / rj;	
+	dd[k*(el+3) + i] +=
+	  sqrt_tbl[j-i] * sqrt_tbl[j-k] * dlj * coshb;
+	dd[k*(el+3) + i+1] -=
+	  sqrt_tbl[i+1] * sqrt_tbl[j-k] * dlj * sinhb;
+	dd[(k+1)*(el+3) + i] +=
+	  sqrt_tbl[j-i] * sqrt_tbl[k+1] * dlj * sinhb;
+	dd[(k+1)*(el+3) + i+1] +=
+	  sqrt_tbl[i+1] * sqrt_tbl[k+1] * dlj * coshb;
+      }
+    }
+
+    // Having constructed the d^(l+1/2) matrix in dd, do the second
+    // half-step recursion from dd to dl. Start by initilalising  
+    // the plane of the dl-matrix to 0.0.
+    for (k=-el; k<=el; k++) 
+      for (i=-el; i<=el; i++)
+	dl[(k+offset)*stride + i + offset] = 0.0;
+
+    j = 2*el;
+    rj = (double) j;
+    for (k=0; k<=el; k++) {
+      for (i=0; i<=k+1; i++) {
+	ddj = dd[k*(el+3) + i] / rj;
+	dl[(k-el+offset)*stride + i-el + offset] +=
+	  sqrt_tbl[j-i] * sqrt_tbl[j-k] * ddj * coshb;
+	dl[(k-el+offset)*stride + i+1-el + offset] -=
+	  sqrt_tbl[i+1] * sqrt_tbl[j-k] * ddj * sinhb;
+	dl[(k+1-el+offset)*stride + i-el + offset] +=
+	  sqrt_tbl[j-i] * sqrt_tbl[k+1] * ddj * sinhb;
+	dl[(k+1-el+offset)*stride + i+1-el + offset] +=
+	  sqrt_tbl[i+1] * sqrt_tbl[k+1] * ddj * coshb;
+      }
+    }
+
+    // Extend dl plane about boundaries, using symmetries, to the
+    // extents required for recursion.
+
+    // Extend above diagonal by two in mm.
+    for (m=-el; m<=0; m++)
+      for (mm=m+1; mm<=m+2; mm++)
+    	dl[(m+offset)*stride + mm + offset] =
+    	  signs[abs(m)] * signs[abs(mm)] 
+	  * dl[(mm+offset)*stride + m + offset];
+
+    // Extend right by one in m.
+    for (m=1; m<=1; m++)
+      for (mm=-el; mm<=0; mm++)
+    	dl[(m+offset)*stride + mm + offset] =
+	  signs[abs(el)] * signs[abs(mm)] 
+	  * dl[(-m+offset)*stride + mm + offset];
+
+    // Extend up by one in mm.
+    for (m=-el; m<=1; m++)
+      for (mm=1; mm<=1; mm++)
+    	dl[(m+offset)*stride + mm + offset] =
+    	  signs[abs(el)] * signs[abs(m)]
+	  * dl[(m+offset)*stride - mm + offset];
+
+    // Free temporary memory.
+    free(dd);
+  }
+
+}
 
 
 
 
+void ssht_dl_beta_risbo_fill_eighth2quarter_table(double *dl4, 
+						  double *dl8,
+						  int L,
+						  ssht_dl_size_t dl_size,
+						  int el, 
+						  double *signs) {
+
+  int offset, stride;
+  int m, mm;
+
+  // Get mm offset and stride for accessing dl data.
+  offset = ssht_dl_get_offset(L, dl_size);
+  stride = ssht_dl_get_stride(L, dl_size);
+
+
+
+  //memcpy(dl4, dl8, (2*L-1)*(2*L-1)*sizeof(double));
+
+  for (m=-el; m<=0; m++)
+    for (mm=-el; mm<=m; mm++)
+      dl4[(m+offset)*stride + mm + offset] =
+  	dl8[(m+offset)*stride + mm + offset];
+
+
+  for (m=-el; m<=0; m++) 
+    for (mm=m+1; mm<=0; mm++) 
+      dl4[(m+offset)*stride + mm + offset] = 
+	pow(-1., m) * pow(-1.,mm) * dl4[(mm+offset)*stride + m + offset];
+
+  for (m=1; m<=el; m++) 
+    for (mm=-el; mm<=0; mm++) 
+      dl4[(m+offset)*stride + mm + offset] = 
+	pow(-1., el) * pow(-1.,mm) * dl4[(-m+offset)*stride + mm + offset];
+
+  for (m=-el; m<=el; m++) 
+    for (mm=1; mm<=el; mm++) 
+      dl4[(m+offset)*stride + mm + offset] = 
+	pow(-1., el) * pow(-1.,m) * dl4[(m+offset)*stride - mm + offset];
+
+
+
+}
 
 
 
