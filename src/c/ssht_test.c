@@ -38,7 +38,7 @@ int main(int argc, char *argv[]) {
   double *f_mw_real_pole, *f_mw_ss_real_pole;
   double f_mw_real_sp, f_mw_ss_real_sp, f_mw_ss_real_np, phi_sp, phi_np;
 
-  ssht_dl_method_t dl_method = SSHT_DL_TRAPANI;
+  ssht_dl_method_t dl_method = SSHT_DL_RISBO;
   int L = 128;
   int spin = 0;
   int irepeat;
@@ -382,7 +382,7 @@ int main(int argc, char *argv[]) {
     durations_inverse_mw[irepeat] = (time_end - time_start) / (double)CLOCKS_PER_SEC;
 
     time_start = clock();
-    ssht_core_mw_forward_sov_conv_sym(flm_syn, f_mw, L, spin, verbosity);    
+    ssht_core_mw_forward_sov_conv_sym(flm_syn, f_mw, L, spin, dl_method, verbosity);    
     time_end = clock();
     durations_forward_mw[irepeat] = (time_end - time_start) / (double)CLOCKS_PER_SEC;
 
