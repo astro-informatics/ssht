@@ -62,6 +62,10 @@ double* ssht_dl_calloc(int L, ssht_dl_size_t dl_size) {
       dl = (double*)calloc(L*L, sizeof(double));
       break;
 
+    case SSHT_DL_QUARTER_EXTENDED:
+      dl = (double*)calloc((L+1)*(L+3), sizeof(double));
+      break;
+
     case SSHT_DL_HALF:
       dl = (double*)calloc(L*(2*L-1), sizeof(double));
       break;
@@ -100,6 +104,9 @@ int ssht_dl_get_offset(int L, ssht_dl_size_t dl_size) {
     case SSHT_DL_QUARTER:
       return 0;
 
+    case SSHT_DL_QUARTER_EXTENDED:
+      return L - 1;
+
     case SSHT_DL_HALF:
       return L - 1;
 
@@ -131,6 +138,9 @@ int ssht_dl_get_stride(int L, ssht_dl_size_t dl_size) {
   switch (dl_size) {     
     case SSHT_DL_QUARTER:
       return L;
+
+    case SSHT_DL_QUARTER_EXTENDED:
+      return L + 3;
 
     case SSHT_DL_HALF:
       return 2*L - 1;
@@ -615,10 +625,7 @@ void ssht_dl_beta_risbo_eighth_table2(double *dl, double beta, int L,
   int i, j, k;
   double rj, dlj, ddj;
   double *dd;
-    
-
- int m, mm;
-
+  int m, mm;
 
   // Get mm offset and stride for accessing dl data.
   offset = ssht_dl_get_offset(L, dl_size);
@@ -665,7 +672,6 @@ void ssht_dl_beta_risbo_eighth_table2(double *dl, double beta, int L,
     for (k=0; k<=el; k++) {
       for (i=0; i<=k+2; i++) {
 	dlj = dl[(k-(el-1)+offset)*stride + i-(el-1) + offset] / rj;	
-//	dlj = dl[(k+1+offset)*stride + i+1 + offset] / rj;	
 	dd[k*(el+3) + i] +=
 	  sqrt_tbl[j-i] * sqrt_tbl[j-k] * dlj * coshb;
 	dd[k*(el+3) + i+1] -=
@@ -680,8 +686,8 @@ void ssht_dl_beta_risbo_eighth_table2(double *dl, double beta, int L,
     // Having constructed the d^(l+1/2) matrix in dd, do the second
     // half-step recursion from dd to dl. Start by initilalising  
     // the plane of the dl-matrix to 0.0.
-    for (k=-el; k<=el; k++) 
-      for (i=-el; i<=el; i++)
+    for (k=-el; k<=1; k++) 
+      for (i=-el; i<=3; i++)
 	dl[(k+offset)*stride + i + offset] = 0.0;
 
     j = 2*el;
@@ -740,12 +746,14 @@ void ssht_dl_beta_risbo_fill_eighth2quarter_table(double *dl4,
 						  int el, 
 						  double *signs) {
 
-  int offset, stride;
+  int offset, stride, offset8, stride8;
   int m, mm;
 
   // Get mm offset and stride for accessing dl data.
   offset = ssht_dl_get_offset(L, dl_size);
   stride = ssht_dl_get_stride(L, dl_size);
+  offset8 = ssht_dl_get_offset(L, SSHT_DL_QUARTER_EXTENDED);
+  stride8 = ssht_dl_get_stride(L, SSHT_DL_QUARTER_EXTENDED);
 
   // Symmetry through origin to get eighth of the required quarter
   // (first quadrant).
@@ -753,7 +761,7 @@ void ssht_dl_beta_risbo_fill_eighth2quarter_table(double *dl4,
     for (mm=m; mm<=el; mm++)
       dl4[(m+offset)*stride + mm + offset] =
 	signs[m] * signs[mm]
-  	* dl8[(-m+offset)*stride - mm + offset];
+  	* dl8[(-m+offset8)*stride8 - mm + offset8];
 
   // Diagonal symmetry to fill remaining quarter.
   for (m=0; m<=el; m++)
