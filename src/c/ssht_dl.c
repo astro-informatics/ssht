@@ -747,32 +747,20 @@ void ssht_dl_beta_risbo_fill_eighth2quarter_table(double *dl4,
   offset = ssht_dl_get_offset(L, dl_size);
   stride = ssht_dl_get_stride(L, dl_size);
 
-
-
-  //memcpy(dl4, dl8, (2*L-1)*(2*L-1)*sizeof(double));
-
-  for (m=-el; m<=0; m++)
-    for (mm=-el; mm<=m; mm++)
+  // Symmetry through origin to get eighth of the required quarter
+  // (first quadrant).
+  for (m=0; m<=el; m++)
+    for (mm=m; mm<=el; mm++)
       dl4[(m+offset)*stride + mm + offset] =
-  	dl8[(m+offset)*stride + mm + offset];
+	signs[m] * signs[mm]
+  	* dl8[(-m+offset)*stride - mm + offset];
 
-
-  for (m=-el; m<=0; m++) 
-    for (mm=m+1; mm<=0; mm++) 
-      dl4[(m+offset)*stride + mm + offset] = 
-	pow(-1., m) * pow(-1.,mm) * dl4[(mm+offset)*stride + m + offset];
-
-  for (m=1; m<=el; m++) 
-    for (mm=-el; mm<=0; mm++) 
-      dl4[(m+offset)*stride + mm + offset] = 
-	pow(-1., el) * pow(-1.,mm) * dl4[(-m+offset)*stride + mm + offset];
-
-  for (m=-el; m<=el; m++) 
-    for (mm=1; mm<=el; mm++) 
-      dl4[(m+offset)*stride + mm + offset] = 
-	pow(-1., el) * pow(-1.,m) * dl4[(m+offset)*stride - mm + offset];
-
-
+  // Diagonal symmetry to fill remaining quarter.
+  for (m=0; m<=el; m++)
+    for (mm=0; mm<=m-1; mm++)
+      dl4[(m+offset)*stride + mm + offset] =
+	signs[m] * signs[mm]
+  	* dl4[(mm+offset)*stride + m + offset];
 
 }
 
