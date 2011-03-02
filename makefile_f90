@@ -28,11 +28,12 @@ SSHTDIR  = $(PROGDIR)/ssht
 SSHTLIB  = $(SSHTDIR)/lib/f90
 SSHTLIBNM= ssht
 SSHTINC  = $(SSHTDIR)/include/f90
-SSHTSRC  = $(SSHTDIR)/src/f90/mod
+SSHTSRC  = $(SSHTDIR)/src/f90
+SSHTMOD  = $(SSHTDIR)/src/f90/mod
 SSHTPROG = $(SSHTDIR)/src/f90/prog
 SSHTBIN  = $(SSHTDIR)/bin/f90
 SSHTOBJ  = $(SSHTINC)
-SSHTDOC  = $(SSHTDIR)/doc/f90/html
+SSHTDOC  = $(SSHTDIR)/doc/f90
 
 FFTWLIB      = $(PROGDIR)/fftw/lib
 FFTWLIBNM    = fftw3
@@ -40,7 +41,7 @@ FFTWLIBNM    = fftw3
 
 # ======== SOURCE LOCATIONS ========
 
-vpath %.f90 $(SSHTSRC)
+vpath %.f90 $(SSHTMOD)
 vpath %.f90 $(SSHTPROG)
 
 
@@ -115,16 +116,11 @@ $(SSHTLIB)/lib$(SSHTLIBNM).a: $(SSHTOBJS)
 # Documentation
 
 .PHONY: doc
-doc:	
-	./f90doc_fpp $(SSHTSRC)/*.f90
-	./f90doc_fpp $(SSHTPROG)/*.f90
-	mv *.html $(SSHTDOC)/.
-	./addstyle $(SSHTDOC)/ssht_*
-
+doc:
+	doxygen $(SSHTSRC)/doxygen.config
 .PHONY: cleandoc
 cleandoc:
-	rm -f $(SSHTDOC)/ssht_*.html
-	rm -f $(SSHTDOC)/ran2_dp.html
+	rm -f $(SSHTDOC)/html/*
 
 
 # Cleaning up
@@ -138,7 +134,7 @@ clean:	tidy
 
 .PHONY: tidy
 tidy:
-	rm -f $(SSHTSRC)/*~ 
+	rm -f $(SSHTMOD)/*~ 
 	rm -f $(SSHTPROG)/*~ 
 
 .PHONY: cleanall
@@ -146,15 +142,15 @@ cleanall: clean cleandoc
 
 # Module dependencies
 
-$(SSHTOBJ)/ssht_types_mod.o: $(SSHTSRC)/ssht_types_mod.f90
-$(SSHTOBJ)/ssht_error_mod.o: $(SSHTSRC)/ssht_error_mod.f90          \
+$(SSHTOBJ)/ssht_types_mod.o: $(SSHTMOD)/ssht_types_mod.f90
+$(SSHTOBJ)/ssht_error_mod.o: $(SSHTMOD)/ssht_error_mod.f90          \
                            $(SSHTOBJ)/ssht_types_mod.o
-$(SSHTOBJ)/ssht_dl_mod.o:    $(SSHTSRC)/ssht_dl_mod.f90             \
+$(SSHTOBJ)/ssht_dl_mod.o:    $(SSHTMOD)/ssht_dl_mod.f90             \
                            $(SSHTOBJ)/ssht_types_mod.o
-$(SSHTOBJ)/ssht_sampling_mod.o:  $(SSHTSRC)/ssht_sampling_mod.f90   \
+$(SSHTOBJ)/ssht_sampling_mod.o:  $(SSHTMOD)/ssht_sampling_mod.f90   \
                            $(SSHTOBJ)/ssht_types_mod.o              \
                            $(SSHTOBJ)/ssht_error_mod.o
-$(SSHTOBJ)/ssht_core_mod.o:  $(SSHTSRC)/ssht_core_mod.f90           \
+$(SSHTOBJ)/ssht_core_mod.o:  $(SSHTMOD)/ssht_core_mod.f90           \
                            $(SSHTOBJ)/ssht_types_mod.o              \
                            $(SSHTOBJ)/ssht_error_mod.o              \
                            $(SSHTOBJ)/ssht_sampling_mod.o           \
