@@ -1,15 +1,14 @@
 !------------------------------------------------------------------------------
 ! ssht_test
 !
-!! Applies SSHT algorithms to perform inverse and forward spherical harmonic 
+!> Applies SSHT algorithms to perform inverse and forward spherical harmonic 
 !! transforms (respectively) to check that the original signal is 
 !! reconstructed exactly (to numerical precision).  Test is performed on a 
 !! random signal with harmonic coefficients uniformly sampled from (-1,1).
 !!
 !! Usage: ssht_test B spin, e.g. ssht_test 64 2
-!     
-!! @author J. D. McEwen (mcewen@mrao.cam.ac.uk)
-!! @version 0.1 - November 2010
+!!     
+!! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
 !
 ! Revisions:
 !   November 2010 - Written by Jason McEwen 

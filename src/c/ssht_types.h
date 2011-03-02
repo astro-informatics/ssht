@@ -1,4 +1,4 @@
-/*! \mainpage SSHT: Spin spherical harmonic transforms
+/*! \mainpage SSHT C documentation
  *
  * The SSHT code provides functionality to perform fast and exact spin
  * spherical harmonic transforms based on the sampling theorem on the
