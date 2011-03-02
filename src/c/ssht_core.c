@@ -1733,13 +1733,11 @@ void ssht_core_mw_inverse_sov_sym_ss(complex double *f, complex double *flm,
   }
 
   // Compute Fmm.
-  // Note that mm index (first index) is increased in size by one and
+  // Note that m and mm indices are increased in size by one and
   // will be filled with zeros by calloc.
-//  Fmm = (complex double*)calloc((2*L)*(2*L-1), sizeof(complex double));
   Fmm = (complex double*)calloc((2*L)*(2*L), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmm)
   Fmm_offset = L-1;
-//  Fmm_stride = 2*L-1;    
   Fmm_stride = 2*L;    
   dl = ssht_dl_calloc(L, SSHT_DL_QUARTER);
   SSHT_ERROR_MEM_ALLOC_CHECK(dl)
@@ -1846,18 +1844,16 @@ void ssht_core_mw_inverse_sov_sym_ss(complex double *f, complex double *flm,
 
   // Use symmetry to compute Fmm for negative mm.
   for (mm=-(L-1); mm<=-1; mm++) 
-    for (m=-(L-1); m<=L-1; m++) 
+    for (m=-(L-1); m<=L; m++) 
       Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset] = 
 	signs[abs(m)] * ssign 
 	* Fmm[(-mm + Fmm_offset)*Fmm_stride + m + Fmm_offset];
 
   // Allocate space for function values.
-  // Note that t index (first index) of fext is increased in size by
+  // Note that t and p indices of fext are increased in size by
   // one compared to usual sampling.
-//  fext = (complex double*)calloc((2*L)*(2*L-1), sizeof(complex double));
   fext = (complex double*)calloc((2*L)*(2*L), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(fext)
-//  fext_stride = 2*L-1;
   fext_stride = 2*L;
 
   // Apply spatial shift.  
@@ -1877,26 +1873,8 @@ void ssht_core_mw_inverse_sov_sym_ss(complex double *f, complex double *flm,
     for (m=-(L-1); m<=-1; m++)
       fext[(mm+2*L-1+1)*fext_stride + m + 2*L-1+1] =
   	Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset];
-  /* for (mm=0; mm<=L; mm++) */
-  /*   for (m=0; m<=L-1; m++) */
-  /*     fext[mm*fext_stride + m] = */
-  /* 	Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset]; */
-  /* for (mm=0; mm<=L; mm++) */
-  /*   for (m=-(L-1); m<=-1; m++) */
-  /*     fext[mm*fext_stride + (m+2*L-1)] = */
-  /* 	Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset]; */
-  /* for (mm=-(L-1); mm<=-1; mm++) */
-  /*   for (m=0; m<=L-1; m++) */
-  /*     fext[(mm + 2*L-1+1)*fext_stride + m] = */
-  /* 	Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset]; */
-  /* for (mm=-(L-1); mm<=-1; mm++) */
-  /*   for (m=-(L-1); m<=-1; m++) */
-  /*     fext[(mm+2*L-1+1)*fext_stride + m + 2*L-1] = */
-  /* 	Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset]; */
 
   // Perform 2D FFT.    
-//  plan = fftw_plan_dft_2d(2*L, 2*L-1, Fmm, Fmm, 
-//			  FFTW_BACKWARD, FFTW_ESTIMATE);
   plan = fftw_plan_dft_2d(2*L, 2*L, Fmm, Fmm, 
 			  FFTW_BACKWARD, FFTW_ESTIMATE);
   fftw_execute_dft(plan, fext, fext);
@@ -1906,9 +1884,8 @@ void ssht_core_mw_inverse_sov_sym_ss(complex double *f, complex double *flm,
   free(Fmm);
   
   // Extract f from version of f extended to the torus (fext).
-  // Note that t index (first index) of fext is increased in size by
+  // Note that t and p indices of fext are increased in size by
   // one compared to usual sampling.
-//  memcpy(f, fext, (L+1)*(2*L-1)*sizeof(complex double));
   memcpy(f, fext, (L+1)*(2*L)*sizeof(complex double));
 
   // Free fext memory.
@@ -2003,13 +1980,11 @@ void ssht_core_mw_inverse_sov_sym_ss_real(double *f, complex double *flm,
   }
 
   // Compute Fmm.
-  // Note that mm index (first index) is increased in size by one and
+  // Note that m and mm indices are increased in size by one and
   // will be filled with zeros by calloc.
-//  Fmm = (complex double*)calloc((2*L)*L, sizeof(complex double));
   Fmm = (complex double*)calloc((2*L)*(L+1), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmm)
   Fmm_offset = L-1;
-//  Fmm_stride = L;    
   Fmm_stride = L+1;    
   dl = ssht_dl_calloc(L, SSHT_DL_QUARTER);
   SSHT_ERROR_MEM_ALLOC_CHECK(dl)
@@ -2106,14 +2081,12 @@ void ssht_core_mw_inverse_sov_sym_ss_real(double *f, complex double *flm,
 
   // Use symmetry to compute Fmm for negative mm.
   for (mm=-(L-1); mm<=-1; mm++) 
-//    for (m=0; m<=L-1; m++) 
     for (m=0; m<=L; m++) 
       Fmm[(mm + Fmm_offset)*Fmm_stride + m] = 
 	signs[abs(m)] * ssign 
 	* Fmm[(-mm + Fmm_offset)*Fmm_stride + m];
 
   // Apply spatial shift.
-//  Fmm_shift = (complex double*)calloc((2*L)*L, sizeof(complex double));
   Fmm_shift = (complex double*)calloc((2*L)*(L+1), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmm_shift)
   for (mm=0; mm<=L-1; mm++)
@@ -2126,15 +2099,13 @@ void ssht_core_mw_inverse_sov_sym_ss_real(double *f, complex double *flm,
 	Fmm[(mm + Fmm_offset)*Fmm_stride + m];
 
   // Allocate space for function values.
-//  fext_real = (double*)calloc((2*L)*(2*L-1), sizeof(double));
+  // Note that t and p indices of fext are increased in size by
+  // one compared to usual sampling.
   fext_real = (double*)calloc((2*L)*(2*L), sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(fext_real)
-//  fext_stride = 2*L-1;
   fext_stride = 2*L;
 
   // Perform 2D FFT.  
-//  plan = fftw_plan_dft_c2r_2d(2*L, 2*L-1, Fmm_shift, fext_real, 
-//			      FFTW_ESTIMATE);
   plan = fftw_plan_dft_c2r_2d(2*L, 2*L, Fmm_shift, fext_real, 
 			      FFTW_ESTIMATE);
   fftw_execute_dft_c2r(plan, Fmm_shift, fext_real);
@@ -2145,7 +2116,8 @@ void ssht_core_mw_inverse_sov_sym_ss_real(double *f, complex double *flm,
   free(Fmm_shift);
 
   // Extract f from version of f extended to the torus (fext).
-//  memcpy(f, fext_real, (L+1)*(2*L-1)*sizeof(double));
+  // Note that t and p indices of fext are increased in size by
+  // one compared to usual sampling.
   memcpy(f, fext_real, (L+1)*(2*L)*sizeof(double));
 
   // Free fext memory.
@@ -2213,10 +2185,8 @@ void ssht_core_mwdirect_inverse_ss(complex double *f, complex double *flm,
 
   // Initialise f with zeros.
   f_stride = 2*L;
-//  f_stride = 2*L-1;
   for (t=0; t<=L; t++)
     for (p=0; p<=2*L-1; p++)
-//    for (p=0; p<=2*L-2; p++)
       f[t*f_stride + p] = 0.0;
 
   // Compute inverse transform.
@@ -2242,7 +2212,6 @@ void ssht_core_mwdirect_inverse_ss(complex double *f, complex double *flm,
 
       for (m=-el; m<=el; m++) {
 	ssht_sampling_elm2ind(&ind, el, m);
-//	for (p=0; p<=2*L-2; p++) {
 	for (p=0; p<=2*L-1; p++) {
 	  phi = ssht_sampling_mw_ss_p2phi(p, L);
 	  f[t*f_stride + p] += 
@@ -2349,27 +2318,19 @@ void ssht_core_mw_forward_sov_conv_sym_ss(complex double *flm, complex double *f
   }
 
   // Compute Fourier transform over phi, i.e. compute Fmt.
-  // Note that t index (second index) is increased in size by one 
-  // compared to usual sampling.
-//  Fmt = (complex double*)calloc((2*L-1)*(2*L), sizeof(complex double));
+  // Note that t and p indices of fext are increased in size by
+  // one compared to usual sampling.
   Fmt = (complex double*)calloc((2*L)*(2*L), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmt)
   Fmt_stride = 2*L;
   Fmt_offset = L-1;
-//  f_stride = 2*L-1;
   f_stride = 2*L;
-//  inout = (complex double*)calloc(2*L-1, sizeof(complex double));
   inout = (complex double*)calloc(2*L, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
-//  plan = fftw_plan_dft_1d(2*L-1, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
   plan = fftw_plan_dft_1d(2*L, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
   for (t=0; t<=L; t++) {
     memcpy(inout, &f[t*f_stride], f_stride*sizeof(double complex));
     fftw_execute_dft(plan, inout, inout);
-    /* for(m=0; m<=L-1; m++)  */
-    /*   Fmt[(m+Fmt_offset)*Fmt_stride + t] = inout[m] / (2.0*L-1.0); */
-    /* for(m=-(L-1); m<=-1; m++)  */
-    /*   Fmt[(m+Fmt_offset)*Fmt_stride + t] = inout[m+2*L-1] / (2.0*L-1.0); */
     for(m=0; m<=L; m++) 
       Fmt[(m+Fmt_offset)*Fmt_stride + t] = inout[m] / (2.0*L);
     for(m=-(L-1); m<=-1; m++) 
@@ -2379,15 +2340,13 @@ void ssht_core_mw_forward_sov_conv_sym_ss(complex double *flm, complex double *f
   free(inout);
 
   // Extend Fmt periodically.
-//  for (m=-(L-1); m<=L-1; m++) 
   for (m=-(L-1); m<=L; m++) 
     for (t=L+1; t<=2*L-1; t++) 
       Fmt[(m+Fmt_offset)*Fmt_stride + t] = 
 	signs[abs(m)] * ssign * Fmt[(m+Fmt_offset)*Fmt_stride + (2*L-t)];
 
   // Compute Fourier transform over theta, i.e. compute Fmm.
-  // Note that mm index (second index) is increased in size by one.
-//  Fmm = (complex double*)calloc((2*L-1)*(2*L), sizeof(complex double));
+  // Note that m and mm indices are increased in size by one.
   Fmm = (complex double*)calloc((2*L)*(2*L), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmm)
   Fmm_stride = 2*L;
@@ -2395,11 +2354,9 @@ void ssht_core_mw_forward_sov_conv_sym_ss(complex double *flm, complex double *f
   inout = (complex double*)calloc(2*L, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
   plan = fftw_plan_dft_1d(2*L, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
-//  for (m=-(L-1); m<=L-1; m++) {
   for (m=-(L-1); m<=L; m++) {
     memcpy(inout, &Fmt[(m+Fmt_offset)*Fmt_stride], Fmt_stride*sizeof(complex double));
     fftw_execute_dft(plan, inout, inout);
-// JDM: this should go to mm<=L (was L-1 before; although makes no difference since mm=L case contains zeros).
     for(mm=0; mm<=L; mm++) 
       Fmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset] = 
 	inout[mm] / (2.0*L);
@@ -2727,28 +2684,21 @@ void ssht_core_mw_forward_sov_conv_sym_ss_real(complex double *flm, double *f,
   }
 
   // Compute Fourier transform over phi, i.e. compute Fmt.
-  // Note that t index (second index) is increased in size by one 
-  // compared to usual sampling.
-//  Fmt = (complex double*)calloc(L*(2*L), sizeof(complex double));
+  // Note that t and p indices of fext are increased in size by
+  // one compared to usual sampling.
   Fmt = (complex double*)calloc((L+1)*(2*L), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmt)
   Fmt_stride = 2*L;
   Fmt_offset = L-1;
-//  f_stride = 2*L-1;
   f_stride = 2*L;
-//  in_real = (double*)calloc(2*L-1, sizeof(double));
   in_real = (double*)calloc(2*L, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(in_real)
-//  out = (complex double*)calloc(L, sizeof(complex double));
   out = (complex double*)calloc(L+1, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(out)
-//  plan = fftw_plan_dft_r2c_1d(2*L-1, in_real, out, FFTW_MEASURE);
   plan = fftw_plan_dft_r2c_1d(2*L, in_real, out, FFTW_MEASURE);
   for (t=0; t<=L; t++) {
     memcpy(in_real, &f[t*f_stride], f_stride*sizeof(double));
         fftw_execute_dft_r2c(plan, in_real, out);
-    /* for(m=0; m<=L-1; m++)  */
-    /*   Fmt[m*Fmt_stride + t] = out[m] / (2.0*L-1.0); */
     for(m=0; m<=L; m++) 
       Fmt[m*Fmt_stride + t] = out[m] / (2.0*L);
 
@@ -2758,15 +2708,13 @@ void ssht_core_mw_forward_sov_conv_sym_ss_real(complex double *flm, double *f,
   fftw_destroy_plan(plan);
 
   // Extend Fmt periodically.
-//  for (m=0; m<=L-1; m++) 
   for (m=0; m<=L; m++) 
     for (t=L+1; t<=2*L-1; t++) 
       Fmt[m*Fmt_stride + t] = 
 	signs[abs(m)] * ssign * Fmt[m*Fmt_stride + (2*L-t)];
 
   // Compute Fourier transform over theta, i.e. compute Fmm.
-  // Note that mm index (second index) is increased in size by one.
-//  Fmm = (complex double*)calloc(L*(2*L), sizeof(complex double));
+  // Note that m and mm indices are increased in size by one.
   Fmm = (complex double*)calloc((L+1)*(2*L), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmm)
   Fmm_stride = 2*L;
@@ -2774,12 +2722,10 @@ void ssht_core_mw_forward_sov_conv_sym_ss_real(complex double *flm, double *f,
   inout = (complex double*)calloc(2*L, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
   plan = fftw_plan_dft_1d(2*L, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
-//  for (m=0; m<=L-1; m++) {
   for (m=0; m<=L; m++) {
     memcpy(inout, &Fmt[m*Fmt_stride], Fmt_stride*sizeof(complex double));
     fftw_execute_dft(plan, inout, inout);
-// JDM: this should go to mm<=L (was L-1 before; although makes no difference since mm=L case contains zeros).
-    for(mm=0; mm<=L-1; mm++) 
+    for(mm=0; mm<=L; mm++) 
       Fmm[m*Fmm_stride + mm + Fmm_offset] = 
 	inout[mm] / (2.0*L);
     for(mm=-(L-1); mm<=-1; mm++) 
