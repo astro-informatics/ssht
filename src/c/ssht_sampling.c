@@ -302,7 +302,6 @@ int ssht_sampling_mw_ss_ntheta(int L) {
  */
 double ssht_sampling_mw_ss_p2phi(int p, int L) {
 
-  //  return 2.0 * p * SSHT_PI / (2.0*L - 1.0);
   return 2.0 * p * SSHT_PI / (2.0*L);
 
 }
@@ -319,7 +318,6 @@ double ssht_sampling_mw_ss_p2phi(int p, int L) {
  */
 int ssht_sampling_mw_ss_nphi(int L) {
 
-  //  return 2*L-1;
   return 2*L;
 
 }
