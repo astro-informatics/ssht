@@ -1,11 +1,11 @@
 !------------------------------------------------------------------------------
 ! ssht_error_mod  -- SSHT library error class
 ! 
-!! Functionality to handle errors that may occur in the ssht library.  Public
+!> Functionality to handle errors that may occur in the ssht library.  Public
 !! ssht error codes are defined, with corresponding private error comments and 
 !! default halt execution status.
-!
-!! @author J. D. McEwen
+!!
+!! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
 !
 ! Revisions:
 !   October 2010 - Written by Jason McEwen
@@ -51,7 +51,7 @@ module ssht_error_mod
   ! Each element of the error_comment array must have the same length, thus
   ! space with trailing space characters.  When come to use trim to remove 
   ! trailing spaces.
-  !! Comment associated with each error type.
+  !> Comment associated with each error type.
   character(len=STRING_LEN), parameter :: &
        error_comment(SSHT_ERROR_NUM+1) = &
        (/ & 
@@ -70,7 +70,7 @@ module ssht_error_mod
        'File IO error                                                            ' &
        /) 
 
-  !! Default program halt status of each error type.
+  !> Default program halt status of each error type.
   logical, parameter :: &
        halt_default(SSHT_ERROR_NUM+1) = &
        (/ &
@@ -97,7 +97,7 @@ contains
   !--------------------------------------------------------------------------
   ! ssht_error
   !
-  !! Displays error message corresponding to error_code and halt program 
+  !> Displays error message corresponding to error_code and halt program 
   !! execution if required.
   !!
   !! Variables:
@@ -109,9 +109,8 @@ contains
   !!   - [comment_out]: If present the error comment is copied to comment_out
   !!     on output.
   !!   - [halt_in]: If present overrides default halt value.
-  !
-  !! @author J. D. McEwen
-  !! @version 0.1 August 2004
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   August 2004 - Written by Jason McEwen

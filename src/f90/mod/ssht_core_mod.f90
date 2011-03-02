@@ -1,9 +1,9 @@
 !------------------------------------------------------------------------------
 ! ssht_core_mod  -- SSHT library core class
 ! 
-!! Functionality to perform spin spherical harmonic transform on the sphere.
-!
-!! @author J. D. McEwen (mcewen@mrao.cam.ac.uk)
+!> Functionality to perform spin spherical harmonic transforms on the sphere.
+!!
+!! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
 !
 ! Revisions:
 !   October 2010 - Written by Jason McEwen
@@ -50,18 +50,22 @@ module ssht_core_mod
 
   ! Define implementations available publicly.
 
+  !> Generic interface that points to specific implementation.
   interface ssht_core_dh_inverse
      module procedure ssht_core_dh_inverse_sov_sym
   end interface
 
+  !> Generic interface that points to specific implementation.
   interface ssht_core_dh_forward
      module procedure ssht_core_dh_forward_sov_sym
   end interface
 
+  !> Generic interface that points to specific implementation.
   interface ssht_core_dh_inverse_real
      module procedure ssht_core_dh_inverse_sov_sym_real
   end interface
 
+  !> Generic interface that points to specific implementation.
   interface ssht_core_dh_forward_real
      module procedure ssht_core_dh_forward_sov_sym_real
   end interface
@@ -74,18 +78,22 @@ module ssht_core_mod
 
   ! Define implementations available publicly.
 
+  !> Generic interface that points to specific implementation.
   interface ssht_core_gl_inverse
      module procedure ssht_core_gl_inverse_sov_sym
   end interface
 
+  !> Generic interface that points to specific implementation.
   interface ssht_core_gl_forward
      module procedure ssht_core_gl_forward_sov_sym
   end interface
 
+  !> Generic interface that points to specific implementation.
   interface ssht_core_gl_inverse_real
      module procedure ssht_core_gl_inverse_sov_sym_real
   end interface
 
+  !> Generic interface that points to specific implementation.
   interface ssht_core_gl_forward_real
      module procedure ssht_core_gl_forward_sov_sym_real
   end interface
@@ -99,36 +107,44 @@ module ssht_core_mod
 
   ! Define implementations available publicly.
 
+  !> Generic interface that points to specific implementation.
   interface ssht_core_mweo_inverse
      module procedure ssht_core_mweo_inverse_sp
   end interface
 
+  !> Generic interface that points to specific implementation.
   interface ssht_core_mweo_forward
      module procedure ssht_core_mweo_forward_sp
   end interface
 
+  !> Generic interface that points to specific implementation.
   interface ssht_core_mweo_inverse_real
      module procedure ssht_core_mweo_inverse_real_sp
   end interface
 
+  !> Generic interface that points to specific implementation.
   interface ssht_core_mweo_forward_real
      module procedure ssht_core_mweo_forward_real_sp
   end interface
 
   ! Define implementations to use in south pole wrapper routines.
 
+  !> Generic interface that points to specific implementation.
   interface ssht_core_mweo_inverse_rsp
      module procedure ssht_core_mweo_inverse_sov_sym
   end interface
 
+  !> Generic interface that points to specific implementation.
   interface ssht_core_mweo_forward_rsp
      module procedure ssht_core_mweo_forward_sov_conv_sym
   end interface
 
+  !> Generic interface that points to specific implementation.
   interface ssht_core_mweo_inverse_real_rsp
      module procedure ssht_core_mweo_inverse_sov_sym_real
   end interface
 
+  !> Generic interface that points to specific implementation.
   interface ssht_core_mweo_forward_real_rsp
      module procedure ssht_core_mweo_forward_sov_conv_sym_real
   end interface
@@ -140,36 +156,44 @@ module ssht_core_mod
 
   ! Define implementations available publicly.
 
+  !> Generic interface that points to specific implementation.
   interface ssht_core_mw_inverse
      module procedure ssht_core_mw_inverse_sp
   end interface
 
+  !> Generic interface that points to specific implementation.
   interface ssht_core_mw_forward
      module procedure ssht_core_mw_forward_sp
   end interface
 
+  !> Generic interface that points to specific implementation.
   interface ssht_core_mw_inverse_real
      module procedure ssht_core_mw_inverse_real_sp
   end interface
 
+  !> Generic interface that points to specific implementation.
   interface ssht_core_mw_forward_real
      module procedure ssht_core_mw_forward_real_sp
   end interface
 
   ! Define implementations to use in south pole wrapper routines.
 
+  !> Generic interface that points to specific implementation.
   interface ssht_core_mw_inverse_rsp
      module procedure ssht_core_mw_inverse_sov_sym
   end interface
 
+  !> Generic interface that points to specific implementation.
   interface ssht_core_mw_forward_rsp
      module procedure ssht_core_mw_forward_sov_conv_sym
   end interface
 
+  !> Generic interface that points to specific implementation.
   interface ssht_core_mw_inverse_real_rsp
      module procedure ssht_core_mw_inverse_sov_sym_real
   end interface
 
+  !> Generic interface that points to specific implementation.
   interface ssht_core_mw_forward_real_rsp
      module procedure ssht_core_mw_forward_sov_conv_sym_real
   end interface
@@ -208,7 +232,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_mweo_inverse_sp
   !
-  !! South pole wrapper for inverse transform using MWEO method.
+  !> South pole wrapper for inverse transform using MWEO method.
   !!
   !! Variables:
   !!   - f(0:L-2, 0:2*L-2): Function on sphere (excluding sample on
@@ -220,8 +244,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   December 2010 - Written by Jason McEwen
@@ -251,7 +275,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_mweo_forward_sp
   !
-  !! South pole wrapper for forward transform using MWEO method.
+  !> South pole wrapper for forward transform using MWEO method.
   !!
   !! Variables:
   !!   - flm(0:L**2-1): Harmonic coefficients [output].
@@ -263,8 +287,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   December 2010 - Written by Jason McEwen
@@ -298,7 +322,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_mweo_inverse_real_sp
   !
-  !! South pole wrapper for inverse transform of real scalar function
+  !> South pole wrapper for inverse transform of real scalar function
   !! using MWEO method.
   !!
   !! Variables:
@@ -308,8 +332,8 @@ contains
   !!   - flm(0:L**2-1): Harmonic coefficients [input].
   !!   - L: Harmonic band-limit [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   December 2010 - Written by Jason McEwen
@@ -336,7 +360,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_mweo_forward_real_sp
   !
-  !! South pole wrapper for forward transform of real scalar function
+  !> South pole wrapper for forward transform of real scalar function
   !! using MWEO method.
   !!
   !! Variables:
@@ -346,8 +370,8 @@ contains
   !!   - f_sp: Function on sphere South pole sample [output].
   !!   - L: Harmonic band-limit [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   December 2010 - Written by Jason McEwen
@@ -379,7 +403,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_mw_inverse_sp
   !
-  !! South pole wrapper for inverse transform using MW method.
+  !> South pole wrapper for inverse transform using MW method.
   !!
   !! Variables:
   !!   - f(0:L-2, 0:2*L-2): Function on sphere (excluding sample on
@@ -391,8 +415,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   December 2010 - Written by Jason McEwen
@@ -422,7 +446,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_mw_forward_sp
   !
-  !! South pole wrapper for forward transform using MW method.
+  !> South pole wrapper for forward transform using MW method.
   !!
   !! Variables:
   !!   - flm(0:L**2-1): Harmonic coefficients [output].
@@ -434,8 +458,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   December 2010 - Written by Jason McEwen
@@ -469,7 +493,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_mw_inverse_real_sp
   !
-  !! South pole wrapper for inverse transform of real scalar function
+  !> South pole wrapper for inverse transform of real scalar function
   !! using MW method.
   !!
   !! Variables:
@@ -479,8 +503,8 @@ contains
   !!   - flm(0:L**2-1): Harmonic coefficients [input].
   !!   - L: Harmonic band-limit [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   December 2010 - Written by Jason McEwen
@@ -507,7 +531,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_mw_forward_real_sp
   !
-  !! South pole wrapper for forward transform of real scalar function
+  !> South pole wrapper for forward transform of real scalar function
   !! using MW method.
   !!
   !! Variables:
@@ -517,8 +541,8 @@ contains
   !!   - f_sp: Function on sphere South pole sample [output].
   !!   - L: Harmonic band-limit [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   December 2010 - Written by Jason McEwen
@@ -555,7 +579,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_dh_inverse_direct
   !
-  !! Compute inverse transform for DH method using direct evaluation
+  !> Compute inverse transform for DH method using direct evaluation
   !! with dlmn evaluated for each theta.
   !!
   !! Notes:
@@ -567,8 +591,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -638,7 +662,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_dh_inverse_direct_factored
   !
-  !! Compute inverse transform for DH method using direct evaluation
+  !> Compute inverse transform for DH method using direct evaluation
   !! but dlmn factored, i.e. dlmn evaluated at PI/2.
   !!
   !! Notes:
@@ -650,8 +674,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -724,7 +748,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_dh_inverse_sov_direct
   !
-  !! Compute inverse transform for DH method using separation of
+  !> Compute inverse transform for DH method using separation of
   !! variables but only discrete (not fast) Fourier transforms.
   !!
   !! Notes:
@@ -736,8 +760,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -831,7 +855,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_dh_inverse_sov
   !
-  !! Compute inverse transform for DH method using separation of
+  !> Compute inverse transform for DH method using separation of
   !! variables and fast Fourier transforms.
   !!
   !! Variables:
@@ -840,8 +864,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -939,7 +963,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_dh_inverse_sov_sym
   !
-  !! Compute inverse transform for DH method using separation of
+  !> Compute inverse transform for DH method using separation of
   !! variables, fast Fourier transforms and exploiting all symmetries
   !! (for complex spin signal).
   !!
@@ -949,8 +973,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -1101,7 +1125,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_dh_inverse_sov_sym_real
   !
-  !! Compute inverse transform for DH method of real scalar signal
+  !> Compute inverse transform for DH method of real scalar signal
   !! using separation of variables, fast Fourier transforms and
   !! exploiting all symmetries (including additional symmetries for
   !! real signals).
@@ -1112,8 +1136,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -1252,7 +1276,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_gl_inverse_sov_sym
   !
-  !! Compute inverse transform for GL method using separation of
+  !> Compute inverse transform for GL method using separation of
   !! variables, fast Fourier transforms and exploiting all symmetries
   !! (for complex spin signal).
   !!
@@ -1262,8 +1286,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -1419,7 +1443,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_gl_inverse_sov_sym_real
   !
-  !! Compute inverse transform for GL method of real scalar signal
+  !> Compute inverse transform for GL method of real scalar signal
   !! using separation of variables, fast Fourier transforms and
   !! exploiting all symmetries (including additional symmetries for
   !! real signals).
@@ -1430,8 +1454,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -1575,7 +1599,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_mweo_inverse_direct
   !
-  !! Compute inverse transform for MWEO method using direct evaluation
+  !> Compute inverse transform for MWEO method using direct evaluation
   !! with dlmn evaluated for each theta.
   !!
   !! Notes:
@@ -1587,8 +1611,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -1660,7 +1684,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_mweo_inverse_sov_direct
   !
-  !! Compute inverse transform for MWEO method using separation of
+  !> Compute inverse transform for MWEO method using separation of
   !! variables but only discrete (not fast) Fourier transforms.
   !!
   !! Notes:
@@ -1672,8 +1696,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -1762,7 +1786,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_mweo_inverse_sov
   !
-  !! Compute inverse transform for MWEO method using separation of
+  !> Compute inverse transform for MWEO method using separation of
   !! variables and fast Fourier transforms.
   !!
   !! Variables:
@@ -1771,8 +1795,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -1885,7 +1909,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_mweo_inverse_sov_sym
   !
-  !! Compute inverse transform for MWEO method using separation of
+  !> Compute inverse transform for MWEO method using separation of
   !! variables, fast Fourier transforms and exploiting all symmetries
   !! (for complex spin signal).
   !!
@@ -1895,8 +1919,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -2044,7 +2068,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_mweo_inverse_sov_sym_real
   !
-  !! Compute inverse transform for MWEO method of real scalar signal
+  !> Compute inverse transform for MWEO method of real scalar signal
   !! using separation of variables, fast Fourier transforms and
   !! exploiting all symmetries (including additional symmetries for
   !! real signals).
@@ -2055,8 +2079,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -2200,7 +2224,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_mw_inverse_sov_direct
   !
-  !! Compute inverse transform for MW method using separation of
+  !> Compute inverse transform for MW method using separation of
   !! variables but only discrete (not fast) Fourier transforms.
   !!
   !! Notes:
@@ -2212,8 +2236,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -2302,7 +2326,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_mw_inverse_sov
   !
-  !! Compute inverse transform for MW method using separation of
+  !> Compute inverse transform for MW method using separation of
   !! variables and fast Fourier transforms.
   !!
   !! Variables:
@@ -2311,8 +2335,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -2404,7 +2428,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_mw_inverse_sov_sym
   !
-  !! Compute inverse transform for MW method using separation of
+  !> Compute inverse transform for MW method using separation of
   !! variables, fast Fourier transforms and exploiting all symmetries
   !! (for complex spin signal).
   !!
@@ -2414,8 +2438,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -2543,7 +2567,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_mw_inverse_sov_sym_real
   !
-  !! Compute inverse transform for MW method of real scalar signal
+  !> Compute inverse transform for MW method of real scalar signal
   !! using separation of variables, fast Fourier transforms and
   !! exploiting all symmetries (including additional symmetries for
   !! real signals).
@@ -2554,8 +2578,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -2702,7 +2726,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_dh_forward_sov_direct
   !
-  !! Compute forward transform for DH method using separation of
+  !> Compute forward transform for DH method using separation of
   !! variables but only discrete (not fast) Fourier transforms.
   !!
   !! Notes:
@@ -2714,8 +2738,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -2812,7 +2836,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_dh_forward_sov
   !
-  !! Compute forward transform for DH method using separation of
+  !> Compute forward transform for DH method using separation of
   !! variables and fast Fourier transforms.
   !!
   !! Variables:
@@ -2821,8 +2845,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -2922,7 +2946,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_dh_forward_sov_sym
   !
-  !! Compute forward transform for DH method using separation of
+  !> Compute forward transform for DH method using separation of
   !! variables, fast Fourier transforms and exploiting all symmetries
   !! (for complex spin signal).
   !!
@@ -2932,8 +2956,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -3071,7 +3095,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_dh_forward_sov_sym_real
   !
-  !! Compute forward transform for DH method of real scalar signal
+  !> Compute forward transform for DH method of real scalar signal
   !! using separation of variables, fast Fourier transforms and
   !! exploiting all symmetries (including additional symmetries for
   !! real signals).
@@ -3082,8 +3106,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -3248,7 +3272,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_gl_forward_sov_sym
   !
-  !! Compute forward transform for GL method using separation of
+  !> Compute forward transform for GL method using separation of
   !! variables, fast Fourier transforms and exploiting all symmetries
   !! (for complex spin signal).
   !!
@@ -3258,8 +3282,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -3404,7 +3428,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_gl_forward_sov_sym_real
   !
-  !! Compute forward transform for GL method of real scalar signal
+  !> Compute forward transform for GL method of real scalar signal
   !! using separation of variables, fast Fourier transforms and
   !! exploiting all symmetries (including additional symmetries for
   !! real signals).
@@ -3415,8 +3439,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -3586,7 +3610,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_mweo_forward_sov_direct
   !
-  !! Compute forward transform for MWEO method using separation of
+  !> Compute forward transform for MWEO method using separation of
   !! variables but only discrete (not fast) Fourier transforms.
   !!
   !! Notes:
@@ -3598,8 +3622,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -3730,7 +3754,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_mweo_forward_sov
   !
-  !! Compute forward transform for MWEO method using separation of
+  !> Compute forward transform for MWEO method using separation of
   !! variables and fast Fourier transforms.
   !!
   !! Variables:
@@ -3739,8 +3763,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -3895,7 +3919,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_mweo_forward_sov_conv
   !
-  !! Compute forward transform for MWEO method using separation of
+  !> Compute forward transform for MWEO method using separation of
   !! variables, fast Fourier transforms and performing convolution with
   !! weights as product in transformed space.
   !!
@@ -3905,8 +3929,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -4147,7 +4171,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_mweo_forward_sov_conv_sym
   !
-  !! Compute forward transform for MWEO method using separation of
+  !> Compute forward transform for MWEO method using separation of
   !! variables, fast Fourier transforms, performing convolution with
   !! weights as product in transformed space and exploiting all symmetries
   !! (for complex spin signal).
@@ -4158,8 +4182,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -4437,7 +4461,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_mweo_forward_sov_conv_sym_real
   !
-  !! Compute forward transform for MWEO method of real scalar signal
+  !> Compute forward transform for MWEO method of real scalar signal
   !! using separation of variables, fast Fourier transforms,
   !! performing convolution with weights as product in transformed
   !! space and exploiting all symmetries (including additional symmetries for
@@ -4449,8 +4473,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -4743,7 +4767,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_mw_forward_sov_direct
   !
-  !! Compute forward transform for MW method using separation of
+  !> Compute forward transform for MW method using separation of
   !! variables but only discrete (not fast) Fourier transforms.
   !!
   !! Notes:
@@ -4755,8 +4779,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -4871,7 +4895,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_mw_forward_sov
   !
-  !! Compute forward transform for MW method using separation of
+  !> Compute forward transform for MW method using separation of
   !! variables and fast Fourier transforms.
   !!
   !! Variables:
@@ -4880,8 +4904,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -4997,7 +5021,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_mw_forward_sov_conv
   !
-  !! Compute forward transform for MW method using separation of
+  !> Compute forward transform for MW method using separation of
   !! variables, fast Fourier transforms and performing convolution with
   !! weights as product in transformed space.
   !!
@@ -5007,8 +5031,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -5178,7 +5202,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_mw_forward_sov_conv_sym
   !
-  !! Compute forward transform for MW method using separation of
+  !> Compute forward transform for MW method using separation of
   !! variables, fast Fourier transforms, performing convolution with
   !! weights as product in transformed space and exploiting all symmetries
   !! (for complex spin signal).
@@ -5189,8 +5213,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -5397,7 +5421,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_core_mw_forward_sov_conv_sym_real
   !
-  !! Compute forward transform for MW method of real scalar signal
+  !> Compute forward transform for MW method of real scalar signal
   !! using separation of variables, fast Fourier transforms,
   !! performing convolution with weights as product in transformed
   !! space and exploiting all symmetries (including additional symmetries for
@@ -5409,8 +5433,8 @@ contains
   !!   - L: Harmonic band-limit [input].
   !!   - spin: Spin number [input].
   !!   - verbosity: Verbosity flag [optional input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -5658,14 +5682,14 @@ contains
   !----------------------------------------------------------------------------
   ! digit
   !
-  !! Compute number of digits required to display integer (must be
+  !> Compute number of digits required to display integer (must be
   !! less than 25).
   !!
   !! Variables:
   !!   - L: Integer considered [input].
   !!   - d: Number of digits [output].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen

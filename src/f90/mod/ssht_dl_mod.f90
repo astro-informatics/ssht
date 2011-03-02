@@ -1,12 +1,9 @@
 !------------------------------------------------------------------------------
 ! ssht_dl_mod
 !
-!! Functionality to compute specified plane of the Wigner dl matrix.
+!> Functionality to compute specified plane of the Wigner dl matrix.
 !!
-!! Note:
-!!  - Copied from s2 library so SSHT library is self contained.
-!
-!! @author D. J. Mortlock
+!! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
 !
 ! Revisions:
 !   Ortober 2010 - Jason McEwen
@@ -50,25 +47,906 @@ module ssht_dl_mod
 
 
     !--------------------------------------------------------------------------
+    ! Risbo's method
+    !--------------------------------------------------------------------------
+
+    !--------------------------------------------------------------------------
+    ! ssht_dl_beta_risbo_full
+    !
+    !> Calculates the *full* lth plane of a d-matrix using Risbo's
+    !! recursion method.  For l>1, require the dl plane to be computed
+    !! already with values for l-1.
+    !!
+    !! Variables:
+    !!   - dl: Dl matrix values computed for lth plane.
+    !!   - beta: Beta euler angle to compute dl matrix for.
+    !!   - l: Plane of dl matrix to compute values for.
+    !!
+    !! @author Daniel Mortlock
+    !
+    ! Revisions:
+    !   September 2005 - Written by Daniel Mortlock (compiled into
+    !     ssht library by JDM December 2010)
+    !--------------------------------------------------------------------------
+
+    subroutine ssht_dl_beta_risbo_full(dl, beta, l)
+
+      integer, intent(in) :: l
+      real(kind = dp), intent(out) :: dl(-l:l,-l:l)
+      real(kind = dp), intent(in) :: beta
+
+      integer :: sign, i, j, k, m, mm
+      real(kind = dp) :: sinb, cosb, sinhb, coshb, rj, dlj, ddj
+      real(kind = dp) :: sqrt_jmk, sqrt_kp1, sqrt_jmi, sqrt_ip1
+      real(kind=dp) :: dd(0: 2 * l + 1, 0: 2 * l + 1)
+
+      if (l < 0) then
+
+         call ssht_error(SSHT_ERROR_ARG_INVALID, 'ssht_dl_beta_recursion', &
+              comment_add='el < 0');
+
+      ! For the special cases of l = 0 use the direct formula.
+      else if (l == 0) then
+
+         dl(0, 0) = 1.0_dp
+
+      ! For the special cases of l = 1 use the direct formula.
+      else if (l == 1) then
+
+         ! These formulae are taken directly from Brink & Satchler.
+
+         cosb = cos(beta)
+         sinb = sin(beta)
+
+         coshb = cos(beta / 2.0)
+         sinhb = sin(beta / 2.0)
+
+         dl(- 1, - 1) = coshb**2
+         dl(- 1, 0) = sinb / SQRT2
+         dl(- 1, 1) = sinhb**2
+
+         dl(0, - 1) = - sinb / SQRT2
+         dl(0, 0) = cosb
+         dl(0, 1) = sinb / SQRT2
+
+         dl(1, - 1) = sinhb**2
+         dl(1, 0) = - sinb / SQRT2
+         dl(1, 1) = coshb**2
+
+      else
+
+         sinhb = sin(beta / 2.0) ! p
+         coshb = - cos(beta / 2.0) !-q
+
+         ! Initialise the plane of the dl-matrix to 0.0 for the recursion
+         ! from l - 1 to l - 1/2.
+
+         dd(0: 2 * l + 1, 0: 2 * l + 1) = 0.0_dp
+
+         j = 2 * l - 1
+         rj = real(j)
+         do k = 0, j - 1
+            sqrt_jmk = dsqrt(real(j-k,kind=dp))
+            sqrt_kp1 = dsqrt(real(k+1,kind=dp))
+            do i = 0, j - 1
+               sqrt_jmi = dsqrt(real(j-i,kind=dp))
+               sqrt_ip1 = dsqrt(real(i+1,kind=dp))
+               dlj = dl(k - (l - 1), i - (l - 1)) / rj
+               dd(i, k) = dd(i, k) &
+                    + sqrt_jmi * sqrt_jmk * dlj * coshb
+               dd(i + 1, k) = dd(i + 1, k) &
+                    - sqrt_ip1 * sqrt_jmk * dlj * sinhb
+               dd(i, k + 1) = dd(i, k + 1) &
+                    + sqrt_jmi * sqrt_kp1 * dlj * sinhb
+               dd(i + 1, k + 1) = dd(i + 1, k + 1) &
+                    + sqrt_ip1 * sqrt_kp1 * dlj * coshb
+            end do
+         end do
+
+         ! Having constructed the d^(l+1/2) matrix in dd, do the second
+         ! half-step recursion from dd to dl. Start by initilalising  
+         ! the plane of the dl-matrix to 0.0.
+
+         dl(- l: l, - l: l) = 0.0_dp
+
+         j = 2 * l
+         rj = real(j)
+         do k = 0, j - 1
+            sqrt_jmk = dsqrt(real(j-k,kind=dp))
+            sqrt_kp1 = dsqrt(real(k+1,kind=dp))
+            do i = 0, j - 1
+               sqrt_jmi = dsqrt(real(j-i,kind=dp))
+               sqrt_ip1 = dsqrt(real(i+1,kind=dp))
+               ddj = dd(i, k) / rj
+               dl(k - l, i - l) = dl(k - l, i - l) &
+                    + sqrt_jmi * sqrt_jmk * ddj * coshb
+               dl(k - l, i + 1 - l) = dl(k - l, i + 1 - l) &
+                    - sqrt_ip1 * sqrt_jmk * ddj * sinhb
+               dl(k + 1 - l, i - l) = dl(k + 1 - l, i - l) &
+                    + sqrt_jmi * sqrt_kp1 * ddj * sinhb
+               dl(k + 1 - l, i + 1 - l) = dl(k + 1 - l, i + 1 - l) &
+                    + sqrt_ip1 * sqrt_kp1 * ddj * coshb
+            end do
+         end do
+
+      end if
+
+    end subroutine ssht_dl_beta_risbo_full
+
+
+    !--------------------------------------------------------------------------
+    ! ssht_dl_beta_risbo_full_table
+    !
+    !> Calculates the *full* lth plane of a d-matrix using Risbo's
+    !! recursion method.  For l>1, require the dl plane to be computed
+    !! already with values for l-1.  Also takes a table of precomputed
+    !! square roots of integers to avoid recomputing them.
+    !!
+    !! Variables:
+    !!   - dl: Dl matrix values computed for lth plane.
+    !!   - beta: Beta euler angle to compute dl matrix for.
+    !!   - l: Plane of dl matrix to compute values for.
+    !!   - sqrt_tbl(0:2*l): Table of precomputed square roots of integers 
+    !!     0:2*l. 
+    !!
+    !! @author J. D. McEwen
+    !
+    ! Revisions:
+    !   September 2005 - Written by Daniel Mortlock (compiled into
+    !     ssht library by JDM December 2010)
+    !--------------------------------------------------------------------------
+
+    subroutine ssht_dl_beta_risbo_full_table(dl, beta, l, sqrt_tbl)
+
+      integer, intent(in) :: l
+      real(kind = dp), intent(out) :: dl(-l:l,-l:l)
+      real(kind = dp), intent(in) :: beta
+      real(kind = dp), intent(in) :: sqrt_tbl(0:2*l)
+
+      integer :: sign, i, j, k, m, mm
+      real(kind = dp) :: sinb, cosb, sinhb, coshb, rj, dlj, ddj
+      real(kind = dp) :: sqrt_jmk, sqrt_kp1, sqrt_jmi, sqrt_ip1
+      real(kind=dp) :: dd(0: 2 * l + 1, 0: 2 * l + 1)
+
+      if (l < 0) then
+
+         call ssht_error(SSHT_ERROR_ARG_INVALID, 'ssht_dl_beta_recursion', &
+              comment_add='el < 0');
+
+      ! For the special cases of l = 0 use the direct formula.
+      else if (l == 0) then
+
+         dl(0, 0) = 1.0_dp
+
+      ! For the special cases of l = 1 use the direct formula.
+      else if (l == 1) then
+
+         ! These formulae are taken directly from Brink & Satchler.
+
+         cosb = cos(beta)
+         sinb = sin(beta)
+
+         coshb = cos(beta / 2.0)
+         sinhb = sin(beta / 2.0)
+
+         dl(- 1, - 1) = coshb**2
+         dl(- 1, 0) = sinb / SQRT2
+         dl(- 1, 1) = sinhb**2
+
+         dl(0, - 1) = - sinb / SQRT2
+         dl(0, 0) = cosb
+         dl(0, 1) = sinb / SQRT2
+
+         dl(1, - 1) = sinhb**2
+         dl(1, 0) = - sinb / SQRT2
+         dl(1, 1) = coshb**2
+
+      else
+
+         sinhb = sin(beta / 2.0) ! p
+         coshb = - cos(beta / 2.0) !-q
+
+         ! Initialise the plane of the dl-matrix to 0.0 for the recursion
+         ! from l - 1 to l - 1/2.
+
+         dd(0: 2 * l + 1, 0: 2 * l + 1) = 0.0_dp
+
+         j = 2 * l - 1
+         rj = real(j)
+         do k = 0, j - 1
+            do i = 0, j - 1
+               dlj = dl(k - (l - 1), i - (l - 1)) / rj
+               dd(i, k) = dd(i, k) &
+                    + sqrt_tbl(j-i) * sqrt_tbl(j-k) * dlj * coshb
+               dd(i + 1, k) = dd(i + 1, k) &
+                    - sqrt_tbl(i+1) * sqrt_tbl(j-k) * dlj * sinhb
+               dd(i, k + 1) = dd(i, k + 1) &
+                    + sqrt_tbl(j-i) * sqrt_tbl(k+1) * dlj * sinhb
+               dd(i + 1, k + 1) = dd(i + 1, k + 1) &
+                    + sqrt_tbl(i+1) * sqrt_tbl(k+1) * dlj * coshb
+            end do
+         end do
+
+         ! Having constructed the d^(l+1/2) matrix in dd, do the second
+         ! half-step recursion from dd to dl. Start by initilalising  
+         ! the plane of the dl-matrix to 0.0.
+
+         dl(- l: l, - l: l) = 0.0_dp
+
+         j = 2 * l
+         rj = real(j)
+         do k = 0, j - 1
+            do i = 0, j - 1
+               ddj = dd(i, k) / rj
+               dl(k - l, i - l) = dl(k - l, i - l) &
+                    + sqrt_tbl(j-i) * sqrt_tbl(j-k) * ddj * coshb
+               dl(k - l, i + 1 - l) = dl(k - l, i + 1 - l) &
+                    - sqrt_tbl(i+1) * sqrt_tbl(j-k) * ddj * sinhb
+               dl(k + 1 - l, i - l) = dl(k + 1 - l, i - l) &
+                    + sqrt_tbl(j-i) * sqrt_tbl(k+1) * ddj * sinhb
+               dl(k + 1 - l, i + 1 - l) = dl(k + 1 - l, i + 1 - l) &
+                    + sqrt_tbl(i+1) * sqrt_tbl(k+1) * ddj * coshb
+            end do
+         end do
+
+      end if
+
+    end subroutine ssht_dl_beta_risbo_full_table
+
+
+    !--------------------------------------------------------------------------
+    ! ssht_dl_beta_risbo_half_table
+    !
+    !> Calculates *half* (for m = -l:l and mm = -l:0) of lth plane of
+    !! a d-matrix using Risbo's recursion method.  For l>1, require
+    !! the dl plane to be computed already with values for l-1.  Also
+    !! takes a table of precomputed square roots of integers to avoid
+    !! recomputing them.
+    !!
+    !! Variables:
+    !!   - dl: Dl matrix values computed for lth plane.
+    !!   - beta: Beta euler angle to compute dl matrix for.
+    !!   - l: Plane of dl matrix to compute values for.
+    !!   - sqrt_tbl(0:2*l): Table of precomputed square roots of integers 
+    !!     0:2*l. 
+    !!
+    !! @author J. D. McEwen
+    !
+    ! Revisions:
+    !   September 2005 - Written by Daniel Mortlock (compiled into
+    !     ssht library by JDM December 2010)
+    !--------------------------------------------------------------------------
+
+    subroutine ssht_dl_beta_risbo_half_table(dl, beta, l, sqrt_tbl)
+
+      integer, intent(in) :: l
+      real(kind = dp), intent(out) :: dl(-l:l,-l:l)
+      real(kind = dp), intent(in) :: beta
+      real(kind = dp), intent(in) :: sqrt_tbl(0:2*l)
+
+      integer :: sign, i, j, k, m, mm
+      real(kind = dp) :: sinb, cosb, sinhb, coshb, rj, dlj, ddj
+      real(kind = dp) :: sqrt_jmk, sqrt_kp1, sqrt_jmi, sqrt_ip1
+      real(kind=dp) :: dd(0: 2 * l + 1, 0: 2 * l + 1)
+
+      if (l < 0) then
+
+         call ssht_error(SSHT_ERROR_ARG_INVALID, 'ssht_dl_beta_recursion', &
+              comment_add='el < 0');
+
+      ! For the special cases of l = 0 use the direct formula.
+      else if (l == 0) then
+
+         dl(0, 0) = 1.0_dp
+
+      ! For the special cases of l = 1 use the direct formula.
+      else if (l == 1) then
+
+         ! These formulae are taken directly from Brink & Satchler.
+
+         cosb = cos(beta)
+         sinb = sin(beta)
+
+         coshb = cos(beta / 2.0)
+         sinhb = sin(beta / 2.0)
+
+         dl(- 1, - 1) = coshb**2
+         dl(- 1, 0) = sinb / SQRT2
+         dl(- 1, 1) = sinhb**2
+
+         dl(0, - 1) = - sinb / SQRT2
+         dl(0, 0) = cosb
+         dl(0, 1) = sinb / SQRT2
+
+         dl(1, - 1) = sinhb**2
+         dl(1, 0) = - sinb / SQRT2
+         dl(1, 1) = coshb**2
+
+      else
+
+         sinhb = sin(beta / 2.0) ! p
+         coshb = - cos(beta / 2.0) !-q
+
+         ! Initialise the plane of the dl-matrix to 0.0 for the recursion
+         ! from l - 1 to l - 1/2.
+
+         dd(0: 2 * l + 1, 0: 2 * l + 1) = 0.0_dp
+
+         j = 2 * l - 1
+         rj = real(j)
+         do k = 0, j - 1
+            do i = 0, l !j/2 + 1
+               dlj = dl(k - (l - 1), i - (l - 1)) / rj
+               dd(i, k) = dd(i, k) &
+                    + sqrt_tbl(j-i) * sqrt_tbl(j-k) * dlj * coshb
+               dd(i + 1, k) = dd(i + 1, k) &
+                    - sqrt_tbl(i+1) * sqrt_tbl(j-k) * dlj * sinhb
+               dd(i, k + 1) = dd(i, k + 1) &
+                    + sqrt_tbl(j-i) * sqrt_tbl(k+1) * dlj * sinhb
+               dd(i + 1, k + 1) = dd(i + 1, k + 1) &
+                    + sqrt_tbl(i+1) * sqrt_tbl(k+1) * dlj * coshb
+            end do
+         end do
+
+         ! Having constructed the d^(l+1/2) matrix in dd, do the second
+         ! half-step recursion from dd to dl. Start by initilalising  
+         ! the plane of the dl-matrix to 0.0.
+
+         dl(- l: l, - l: l) = 0.0_dp
+
+         j = 2 * l
+         rj = real(j)
+         do k = 0, j - 1
+            do i = 0, l !j/2
+               ddj = dd(i, k) / rj
+               dl(k - l, i - l) = dl(k - l, i - l) &
+                    + sqrt_tbl(j-i) * sqrt_tbl(j-k) * ddj * coshb
+               dl(k - l, i + 1 - l) = dl(k - l, i + 1 - l) &
+                    - sqrt_tbl(i+1) * sqrt_tbl(j-k) * ddj * sinhb
+               dl(k + 1 - l, i - l) = dl(k + 1 - l, i - l) &
+                    + sqrt_tbl(j-i) * sqrt_tbl(k+1) * ddj * sinhb
+               dl(k + 1 - l, i + 1 - l) = dl(k + 1 - l, i + 1 - l) &
+                    + sqrt_tbl(i+1) * sqrt_tbl(k+1) * ddj * coshb
+            end do
+         end do
+
+      end if
+
+    end subroutine ssht_dl_beta_risbo_half_table
+
+
+    !--------------------------------------------------------------------------
+    ! ssht_dl_beta_risbo_fill_half2full
+    !
+    !> Fill in the full Wigner plane from the half m = -l:l and 
+    !! mm = -l:0, i.e. compute positive mm's.
+    !!
+    !! Variables:
+    !!   - dl: Dl matrix values for lth plane.
+    !!   - l: Plane of dl matrix to compute values for.
+    !!
+    !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
+    !
+    ! Revisions:
+    !   December 2010 - Written by Jason McEwen
+    !--------------------------------------------------------------------------
+
+    subroutine ssht_dl_beta_risbo_fill_half2full(dl, l)
+
+      integer, intent(in) :: l
+      real(kind = dp), intent(inout) :: dl(-l:l,-l:l)
+
+      integer :: m, mm
+
+      ! Symmetry through origin.
+      do m = -l, l
+         do mm = 1, l
+            dl(m,mm) = (-1)**(m+mm) * dl(-m,-mm)
+         end do
+      end do
+
+    end subroutine ssht_dl_beta_risbo_fill_half2full
+
+
+    !--------------------------------------------------------------------------
+    ! Trapani & Navaza's method
+    !--------------------------------------------------------------------------    
+    
+    !--------------------------------------------------------------------------
+    ! ssht_dl_halfpi_trapani_eighth
+    !
+    !> Calculates *eighth* (for m = 0:l and mm = 0:m of lth plane of a
+    !! d-matrix for PI/2 using Trapani & Navaza's recursion method.  For l>0,
+    !! require the dl plane to be computed already with values for
+    !! l-1.
+    !!
+    !! Variables:
+    !!   - dl: Dl matrix values computed for lth plane.
+    !!   - l: Plane of dl matrix to compute values for.
+    !!
+    !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
+    !
+    ! Revisions:
+    !   December 2010 - Written by Jason McEwen
+    !--------------------------------------------------------------------------
+
+    subroutine ssht_dl_halfpi_trapani_eighth(dl, el)
+
+      integer, intent(in) :: el
+      real(dp), intent(inout) :: dl(-el:el,-el:el)
+
+      real(dp) :: dmm(0:el)
+      integer :: m, mm
+      real(dp) :: t1, t2
+
+      if (el == 0) then
+
+         dl(0,0) = 1d0
+
+      else
+
+         ! Eqn (9) of T&N (2006).
+         dmm(0) = - sqrt( (2d0*el-1d0) / real(2d0*el,dp) ) &
+              * dl(el-1,0)
+
+         ! Eqn (10) of T&N (2006).
+         do mm = 1, el
+            dmm(mm) = sqrt( el/2d0 * (2d0*el-1d0) / real((el+mm) * (el+mm-1), dp) ) &
+                 * dl(el-1,mm-1)
+         end do
+
+         dl(el,0:el) = dmm(0:el)
+
+         ! Eqn (11) of T&N (2006).
+         do mm = 0, el
+
+            ! m = el - 1 case (t2 = 0). 
+            m = el-1
+            t1 = ( 2e0 * mm / sqrt(real((el-m) * (el+m+1), dp)) ) * &
+                 dl(m+1,mm)
+            dl(m,mm) = t1
+
+            ! Remaining m cases.
+            do m = el-2, mm, -1
+               t1 = ( 2e0 * mm / sqrt(real((el-m) * (el+m+1), dp)) ) * &
+                    dl(m+1,mm)
+               t2 = sqrt( (el-m-1) * (el+m+2) / real((el-m) * (el+m+1), dp) ) * &
+                    dl(m+2,mm)
+               dl(m,mm) = t1 - t2
+            end do
+         end do
+
+      end if
+
+    end subroutine ssht_dl_halfpi_trapani_eighth
+
+
+    !--------------------------------------------------------------------------
+    ! ssht_dl_halfpi_trapani_eighth_table
+    !
+    !> Calculates *eighth* (for m = 0:l and mm = 0:m) of lth plane of a
+    !! d-matrix for PI/2 using Trapani & Navaza's recursion method.  For l>0,
+    !! require the dl plane to be computed already with values for
+    !! l-1.  Also takes a table of precomputed square roots of
+    !! integers to avoid recomputing them.
+    !!
+    !! Variables:
+    !!   - dl: Dl matrix values computed for lth plane.
+    !!   - l: Plane of dl matrix to compute values for.
+    !!   - sqrt_tbl(0:2*l+1): Table of precomputed square roots of integers 
+    !!     0:2*l+1. 
+    !!
+    !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
+    !
+    ! Revisions:
+    !   December 2010 - Written by Jason McEwen
+    !--------------------------------------------------------------------------
+
+    subroutine ssht_dl_halfpi_trapani_eighth_table(dl, el, sqrt_tbl)
+
+      integer, intent(in) :: el
+      real(dp), intent(inout) :: dl(0:el,0:el)
+      real(kind = dp), intent(in) :: sqrt_tbl(0:2*el+1)
+
+
+      real(dp) :: dmm(0:el)
+      integer :: m, mm
+      real(dp) :: t1, t2
+
+      if (el == 0) then
+
+         dl(0,0) = 1d0
+
+      else
+
+         ! Eqn (9) of T&N (2006).
+         dmm(0) = - sqrt_tbl(2*el-1) / sqrt_tbl(2*el) &
+              * dl(el-1,0)
+
+         ! Eqn (10) of T&N (2006).
+         do mm = 1, el
+            dmm(mm) = sqrt_tbl(el) / SQRT2 &
+                 * sqrt_tbl(2*el-1) / sqrt_tbl(el+mm) / sqrt_tbl(el+mm-1) &
+                 * dl(el-1,mm-1)
+         end do
+
+         dl(el,0:el) = dmm(0:el)
+
+         ! Eqn (11) of T&N (2006).
+         do mm = 0, el
+
+            ! m = el-1 case (t2 = 0). 
+            m = el-1
+            dl(m,mm) = 2e0 * mm / sqrt_tbl(el-m) / sqrt_tbl(el+m+1) &
+                 * dl(m+1,mm)
+
+            ! Remaining m cases.
+            do m = el-2, mm, -1
+               t1 = 2e0 * mm / sqrt_tbl(el-m) / sqrt_tbl(el+m+1) &
+                    * dl(m+1,mm)
+               t2 = sqrt_tbl(el-m-1) * sqrt_tbl(el+m+2) / sqrt_tbl(el-m) / sqrt_tbl(el+m+1) &
+                    * dl(m+2,mm)
+               dl(m,mm) = t1 - t2
+            end do
+         end do
+
+      end if
+
+    end subroutine ssht_dl_halfpi_trapani_eighth_table
+
+
+    !--------------------------------------------------------------------------
+    ! ssht_dl_halfpi_trapani_fill_eighth2full
+    !
+    !> Fill in the full Wigner plane from the eighth m = 0:l and 
+    !! mm = 0:m.
+    !!
+    !! Variables:
+    !!   - dl: Dl matrix values for lth plane.
+    !!   - l: Plane of dl matrix to compute values for.
+    !!
+    !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
+    !
+    ! Revisions:
+    !   December 2010 - Written by Jason McEwen
+    !--------------------------------------------------------------------------
+ 
+    subroutine ssht_dl_halfpi_trapani_fill_eighth2full(dl, el)
+
+      integer, intent(in) :: el
+      real(kind = dp), intent(inout) :: dl(-el:el,-el:el)
+
+      integer :: m, mm
+
+      ! Diagonal symmetry to fill in quarter.
+      do m = 0, el
+         do mm = m+1, el
+            dl(m,mm) = (-1)**(m+mm) * dl(mm,m)
+         end do
+      end do
+
+      ! Symmetry in m to fill in half.
+      do mm = 0, el
+         do m = -el, -1
+            dl(m,mm) = (-1)**(el+mm) * dl(-m,mm)
+         end do
+      end do
+
+      ! Symmetry in mm to fill in remaining plane.
+      do mm = -el, -1
+         do m = -el, el
+            dl(m,mm) = (-1)**(el+m) * dl(m,-mm)
+         end do
+      end do
+
+    end subroutine ssht_dl_halfpi_trapani_fill_eighth2full
+
+
+    !--------------------------------------------------------------------------
+    ! ssht_dl_halfpi_trapani_fill_eighth2full_table
+    !
+    !> Fill in the full Wigner plane from the eighth m = 0:l and mm =
+    !! 0:m. Takes a table of precomputed signs to avoid recomputing
+    !! them.
+    !!
+    !! Variables:
+    !!   - dl: Dl matrix values for lth plane.
+    !!   - l: Plane of dl matrix to compute values for.
+    !!   - signs(0:l): Table of precompute terms (-1)^l.
+    !!
+    !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
+    !
+    ! Revisions:
+    !   December 2010 - Written by Jason McEwen
+    !--------------------------------------------------------------------------
+ 
+    subroutine ssht_dl_halfpi_trapani_fill_eighth2full_table(dl, el, signs)
+
+      integer, intent(in) :: el
+      real(kind = dp), intent(inout) :: dl(-el:el,-el:el)
+      real(kind = dp), intent(in) :: signs(0:el)
+
+      integer :: m, mm
+
+      ! Diagonal symmetry to fill in quarter.
+      do m = 0, el
+         do mm = m+1, el
+            dl(m,mm) = signs(m) * signs(mm) * dl(mm,m)
+         end do
+      end do
+
+      ! Symmetry in m to fill in half.
+      do mm = 0, el
+         do m = -el, -1
+            dl(m,mm) = signs(el) * signs(mm) * dl(-m,mm)
+         end do
+      end do
+
+      ! Symmetry in mm to fill in remaining plane.
+      do mm = -el, -1
+         do m = -el, el
+            dl(m,mm) = signs(el) * signs(abs(m)) * dl(m,-mm)
+         end do
+      end do
+
+    end subroutine ssht_dl_halfpi_trapani_fill_eighth2full_table
+
+
+    !--------------------------------------------------------------------------
+    ! ssht_dl_halfpi_trapani_fill_eighth2tophalf
+    !
+    !> Fill in half Wigner plane for m = -l:l and mm = 0:l from the
+    !! eighth m = 0:l and mm = 0:m, i.e. compute positive mm's.
+    !!
+    !! Variables:
+    !!   - dl: Dl matrix values for lth plane.
+    !!   - l: Plane of dl matrix to compute values for.
+    !!
+    !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
+    !
+    ! Revisions:
+    !   December 2010 - Written by Jason McEwen
+    !--------------------------------------------------------------------------
+ 
+    subroutine ssht_dl_halfpi_trapani_fill_eighth2tophalf(dl, el)
+
+      integer, intent(in) :: el
+      real(kind = dp), intent(inout) :: dl(-el:el,0:el)
+
+      integer :: m, mm
+
+      ! Diagonal symmetry to fill in quarter.
+      do m = 0, el
+         do mm = m+1, el
+            dl(m,mm) = (-1)**(m+mm) * dl(mm,m)
+         end do
+      end do
+
+      ! Symmetry in m to fill in half.
+      do m = -el, -1
+         do mm = 0, el
+            dl(m,mm) = (-1)**(el+mm) * dl(-m,mm)
+         end do
+      end do
+
+    end subroutine ssht_dl_halfpi_trapani_fill_eighth2tophalf
+
+
+    !--------------------------------------------------------------------------
+    ! ssht_dl_halfpi_trapani_fill_eighth2tophalf_table
+    !
+    !> Fill in half Wigner plane for m = -l:l and mm = 0:l from the
+    !! eighth m = 0:l and mm = 0:m, i.e. compute positive mm's.  Takes
+    !! a table of precomputed signs to avoid recomputing them.
+    !!
+    !! Variables:
+    !!   - dl: Dl matrix values for lth plane.
+    !!   - l: Plane of dl matrix to compute values for.
+    !!   - signs(0:l): Table of precompute terms (-1)^l.
+    !!
+    !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
+    !
+    ! Revisions:
+    !   December 2010 - Written by Jason McEwen
+    !--------------------------------------------------------------------------
+ 
+    subroutine ssht_dl_halfpi_trapani_fill_eighth2tophalf_table(dl, el, signs)
+
+      integer, intent(in) :: el
+      real(kind = dp), intent(inout) :: dl(-el:el,0:el)
+      real(kind = dp), intent(in) :: signs(0:el)
+
+      integer :: m, mm
+
+      ! Diagonal symmetry to fill in quarter.
+      do m = 0, el
+         do mm = m+1, el
+            dl(m,mm) = signs(m) * signs(mm) * dl(mm,m)
+         end do
+      end do
+
+      ! Symmetry in m to fill in half.
+      do mm = 0, el
+         do m = -el, -1
+            dl(m,mm) = signs(el) * signs(mm) * dl(-m,mm)
+         end do
+      end do
+
+    end subroutine ssht_dl_halfpi_trapani_fill_eighth2tophalf_table
+
+
+    !--------------------------------------------------------------------------
+    ! ssht_dl_halfpi_trapani_fill_eighth2righthalf
+    !
+    !> Fill in half Wigner plane for m = 0:l and mm = -l:l from the
+    !! eighth m = 0:l and mm = 0:m.
+    !!
+    !! Variables:
+    !!   - dl: Dl matrix values for lth plane.
+    !!   - l: Plane of dl matrix to compute values for.
+    !!
+    !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
+    !
+    ! Revisions:
+    !   December 2010 - Written by Jason McEwen
+    !--------------------------------------------------------------------------
+ 
+    subroutine ssht_dl_halfpi_trapani_fill_eighth2righthalf(dl, el)
+
+      integer, intent(in) :: el
+      real(kind = dp), intent(inout) :: dl(0:el,-el:el)
+
+      integer :: m, mm
+
+      ! Diagonal symmetry to fill in quarter.
+      do m = 0, el
+         do mm = m+1, el
+            dl(m,mm) = (-1)**(m+mm) * dl(mm,m)
+         end do
+      end do
+
+      ! Symmetry in mm to fill in half.
+      do m = 0, el
+         do mm = -el, -1
+            dl(m,mm) = (-1)**(el+m) * dl(m,-mm)
+         end do
+      end do
+
+    end subroutine ssht_dl_halfpi_trapani_fill_eighth2righthalf
+
+
+    !--------------------------------------------------------------------------
+    ! ssht_dl_halfpi_trapani_fill_eighth2righthalf_table
+    !
+    !> Fill in half Wigner plane for m = 0:l and mm = -l:l from the
+    !! eighth m = 0:l and mm = 0:m. Takes a table of precomputed signs
+    !! to avoid recomputing them.
+    !!
+    !! Variables:
+    !!   - dl: Dl matrix values for lth plane.
+    !!   - l: Plane of dl matrix to compute values for.
+    !!   - signs(0:l): Table of precompute terms (-1)^l.
+    !!
+    !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
+    !
+    ! Revisions:
+    !   December 2010 - Written by Jason McEwen
+    !--------------------------------------------------------------------------
+ 
+    subroutine ssht_dl_halfpi_trapani_fill_eighth2righthalf_table(dl, el, signs)
+
+      integer, intent(in) :: el
+      real(kind = dp), intent(inout) :: dl(0:el,-el:el)
+      real(kind = dp), intent(in) :: signs(0:el)
+
+      integer :: m, mm
+
+      ! Diagonal symmetry to fill in quarter.
+      do m = 0, el
+         do mm = m+1, el
+            dl(m,mm) = signs(m) * signs(mm) * dl(mm,m)
+         end do
+      end do
+
+      ! Symmetry in mm to fill in half.
+      do mm = -el, -1
+         do m = 0, el
+            dl(m,mm) = signs(el) * signs(m) * dl(m,-mm)
+         end do
+      end do
+
+    end subroutine ssht_dl_halfpi_trapani_fill_eighth2righthalf_table
+
+
+    !--------------------------------------------------------------------------
+    ! ssht_dl_halfpi_trapani_fill_eighth2quarter
+    !
+    !> Fill in quarter Wigner plane for m = 0:l and mm = 0:l from the
+    !! eighth m = 0:l and mm = 0:m, i.e. compute positive mm's.
+    !!
+    !! Variables:
+    !!   - dl: Dl matrix values for lth plane.
+    !!   - l: Plane of dl matrix to compute values for.
+    !!
+    !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
+    !
+    ! Revisions:
+    !   December 2010 - Written by Jason McEwen
+    !--------------------------------------------------------------------------
+
+    subroutine ssht_dl_halfpi_trapani_fill_eighth2quarter(dl, el)
+
+      integer, intent(in) :: el
+      real(kind = dp), intent(inout) :: dl(0:el,0:el)
+
+      integer :: m, mm
+
+      ! Diagonal symmetry to fill in quarter.
+      do m = 0, el
+         do mm = m+1, el
+            dl(m,mm) = (-1)**(m+mm) * dl(mm,m)
+         end do
+      end do
+
+    end subroutine ssht_dl_halfpi_trapani_fill_eighth2quarter
+
+
+    !--------------------------------------------------------------------------
+    ! ssht_dl_halfpi_trapani_fill_eighth2quarter_table
+    !
+    !> Fill in quarter Wigner plane for m = 0:l and mm = 0:l from the
+    !! eighth m = 0:l and mm = 0:m, i.e. compute positive mm's.  Takes
+    !! a table of precomputed signs to avoid recomputing them.
+    !!
+    !! Variables:
+    !!   - dl: Dl matrix values for lth plane.
+    !!   - l: Plane of dl matrix to compute values for.
+    !!   - signs(0:l): Table of precompute terms (-1)^l.
+    !!
+    !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
+    !
+    ! Revisions:
+    !   December 2010 - Written by Jason McEwen
+    !--------------------------------------------------------------------------
+
+    subroutine ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl, el, signs)
+
+      integer, intent(in) :: el
+      real(kind = dp), intent(inout) :: dl(0:el,0:el)
+      real(kind = dp), intent(in) :: signs(0:el)
+
+      integer :: m, mm
+
+      ! Diagonal symmetry to fill in quarter.
+      do m = 0, el
+         do mm = m+1, el
+            dl(m,mm) = signs(m) * signs(mm) * dl(mm,m)
+         end do
+      end do
+
+    end subroutine ssht_dl_halfpi_trapani_fill_eighth2quarter_table
+
+
+    !--------------------------------------------------------------------------
     ! Operator method
     !--------------------------------------------------------------------------
 
     !--------------------------------------------------------------------------
     ! ssht_dl_beta_operator
     !
-    !! Calculates the lth plane of a d-matrix using Turok & Bucher's
+    !> Calculates the lth plane of a d-matrix using Turok & Bucher's
     !! operator-based method.
     !!
     !! Variables:
     !!   - dl: Dl matrix values computed for lth plane.
     !!   - beta: Beta euler angle to compute dl matrix for.
     !!   - l: Plane of dl matrix to compute values for.
-    !
-    !! @author D. J. Mortlock
+    !!
+    !! @author Daniel Mortlock
     !
     ! Revisions:
-    !   September 2005 - Written by Daniel Mortlock  (compiled into
-    !     ssht library by JDM September 2005)
+    !   September 2010 - Written by Daniel Mortlock  (compiled into
+    !     ssht library by JDM September 2010)
     !--------------------------------------------------------------------------
     
     subroutine ssht_dl_beta_operator(dl, beta, l)
@@ -89,7 +967,7 @@ module ssht_dl_mod
     !--------------------------------------------------------------------------
     ! ssht_dl_beta_operator_quarter
     !
-    !! Does the left quarter of the d-matrix. Beta is the angle of rotation,
+    !> Does the left quarter of the d-matrix. Beta is the angle of rotation,
     !! l is the plane of the matrix required and dl is the two dimensional 
     !! array representing the lth plane of the matrix. This array must be
     !! already allocated on entry with dimensions given by the command
@@ -99,8 +977,8 @@ module ssht_dl_mod
     !!   - dl: Dl matrix values computed for lth plane.
     !!   - beta: Beta euler angle to compute dl matrix for.
     !!   - l: Plane of dl matrix to compute values for.
-    !
-    !! @author D. J. Mortlock
+    !!
+    !! @author Daniel Mortlock
     !
     ! Revisions:
     !   September 2005 - Written by Daniel Mortlock  (compiled into
@@ -248,14 +1126,14 @@ module ssht_dl_mod
     !--------------------------------------------------------------------------
     ! ssht_dl_beta_operator_fill
     !
-    !! Computes the three remaining (top, bottom and right) quarters of the
+    !> Computes the three remaining (top, bottom and right) quarters of the
     !! d-matrix, given the left quarter.
     !!
     !! Variables:
     !!   - dl: Dl matrix values computed for lth plane.
     !!   - beta: Beta euler angle to compute dl matrix for.
-    !
-    !! @author D. J. Mortlock
+    !!
+    !! @author Daniel Mortlock
     !
     ! Revisions:
     !   September 2005 - Written by Daniel Mortlock  (compiled into
@@ -309,888 +1187,6 @@ module ssht_dl_mod
       end do
   
     end subroutine ssht_dl_beta_operator_fill
-
-
-    !--------------------------------------------------------------------------
-    ! Risbo's method
-    !--------------------------------------------------------------------------
-
-    !--------------------------------------------------------------------------
-    ! ssht_dl_beta_risbo_full
-    !
-    !! Calculates the *full* lth plane of a d-matrix using Risbo's
-    !! recursion method.  For l>1, require the dl plane to be computed
-    !! already with values for l-1.
-    !!
-    !! Variables:
-    !!   - dl: Dl matrix values computed for lth plane.
-    !!   - beta: Beta euler angle to compute dl matrix for.
-    !!   - l: Plane of dl matrix to compute values for.
-    !
-    !! @author D. J. Mortlock
-    !
-    ! Revisions:
-    !   September 2005 - Written by Daniel Mortlock (compiled into
-    !     ssht library by JDM December 2010)
-    !--------------------------------------------------------------------------
-
-    subroutine ssht_dl_beta_risbo_full(dl, beta, l)
-
-      integer, intent(in) :: l
-      real(kind = dp), intent(out) :: dl(-l:l,-l:l)
-      real(kind = dp), intent(in) :: beta
-
-      integer :: sign, i, j, k, m, mm
-      real(kind = dp) :: sinb, cosb, sinhb, coshb, rj, dlj, ddj
-      real(kind = dp) :: sqrt_jmk, sqrt_kp1, sqrt_jmi, sqrt_ip1
-      real(kind=dp) :: dd(0: 2 * l + 1, 0: 2 * l + 1)
-
-      if (l < 0) then
-
-         call ssht_error(SSHT_ERROR_ARG_INVALID, 'ssht_dl_beta_recursion', &
-              comment_add='el < 0');
-
-      ! For the special cases of l = 0 use the direct formula.
-      else if (l == 0) then
-
-         dl(0, 0) = 1.0_dp
-
-      ! For the special cases of l = 1 use the direct formula.
-      else if (l == 1) then
-
-         ! These formulae are taken directly from Brink & Satchler.
-
-         cosb = cos(beta)
-         sinb = sin(beta)
-
-         coshb = cos(beta / 2.0)
-         sinhb = sin(beta / 2.0)
-
-         dl(- 1, - 1) = coshb**2
-         dl(- 1, 0) = sinb / SQRT2
-         dl(- 1, 1) = sinhb**2
-
-         dl(0, - 1) = - sinb / SQRT2
-         dl(0, 0) = cosb
-         dl(0, 1) = sinb / SQRT2
-
-         dl(1, - 1) = sinhb**2
-         dl(1, 0) = - sinb / SQRT2
-         dl(1, 1) = coshb**2
-
-      else
-
-         sinhb = sin(beta / 2.0) ! p
-         coshb = - cos(beta / 2.0) !-q
-
-         ! Initialise the plane of the dl-matrix to 0.0 for the recursion
-         ! from l - 1 to l - 1/2.
-
-         dd(0: 2 * l + 1, 0: 2 * l + 1) = 0.0_dp
-
-         j = 2 * l - 1
-         rj = real(j)
-         do k = 0, j - 1
-            sqrt_jmk = dsqrt(real(j-k,kind=dp))
-            sqrt_kp1 = dsqrt(real(k+1,kind=dp))
-            do i = 0, j - 1
-               sqrt_jmi = dsqrt(real(j-i,kind=dp))
-               sqrt_ip1 = dsqrt(real(i+1,kind=dp))
-               dlj = dl(k - (l - 1), i - (l - 1)) / rj
-               dd(i, k) = dd(i, k) &
-                    + sqrt_jmi * sqrt_jmk * dlj * coshb
-               dd(i + 1, k) = dd(i + 1, k) &
-                    - sqrt_ip1 * sqrt_jmk * dlj * sinhb
-               dd(i, k + 1) = dd(i, k + 1) &
-                    + sqrt_jmi * sqrt_kp1 * dlj * sinhb
-               dd(i + 1, k + 1) = dd(i + 1, k + 1) &
-                    + sqrt_ip1 * sqrt_kp1 * dlj * coshb
-            end do
-         end do
-
-         ! Having constructed the d^(l+1/2) matrix in dd, do the second
-         ! half-step recursion from dd to dl. Start by initilalising  
-         ! the plane of the dl-matrix to 0.0.
-
-         dl(- l: l, - l: l) = 0.0_dp
-
-         j = 2 * l
-         rj = real(j)
-         do k = 0, j - 1
-            sqrt_jmk = dsqrt(real(j-k,kind=dp))
-            sqrt_kp1 = dsqrt(real(k+1,kind=dp))
-            do i = 0, j - 1
-               sqrt_jmi = dsqrt(real(j-i,kind=dp))
-               sqrt_ip1 = dsqrt(real(i+1,kind=dp))
-               ddj = dd(i, k) / rj
-               dl(k - l, i - l) = dl(k - l, i - l) &
-                    + sqrt_jmi * sqrt_jmk * ddj * coshb
-               dl(k - l, i + 1 - l) = dl(k - l, i + 1 - l) &
-                    - sqrt_ip1 * sqrt_jmk * ddj * sinhb
-               dl(k + 1 - l, i - l) = dl(k + 1 - l, i - l) &
-                    + sqrt_jmi * sqrt_kp1 * ddj * sinhb
-               dl(k + 1 - l, i + 1 - l) = dl(k + 1 - l, i + 1 - l) &
-                    + sqrt_ip1 * sqrt_kp1 * ddj * coshb
-            end do
-         end do
-
-      end if
-
-    end subroutine ssht_dl_beta_risbo_full
-
-
-    !--------------------------------------------------------------------------
-    ! ssht_dl_beta_risbo_full_table
-    !
-    !! Calculates the *full* lth plane of a d-matrix using Risbo's
-    !! recursion method.  For l>1, require the dl plane to be computed
-    !! already with values for l-1.  Also takes a table of precomputed
-    !! square roots of integers to avoid recomputing them.
-    !!
-    !! Variables:
-    !!   - dl: Dl matrix values computed for lth plane.
-    !!   - beta: Beta euler angle to compute dl matrix for.
-    !!   - l: Plane of dl matrix to compute values for.
-    !!   - sqrt_tbl(0:2*l): Table of precomputed square roots of integers 
-    !!     0:2*l. 
-    !
-    !! @author D. J. Mortlock
-    !
-    ! Revisions:
-    !   September 2005 - Written by Daniel Mortlock (compiled into
-    !     ssht library by JDM December 2010)
-    !--------------------------------------------------------------------------
-
-    subroutine ssht_dl_beta_risbo_full_table(dl, beta, l, sqrt_tbl)
-
-      integer, intent(in) :: l
-      real(kind = dp), intent(out) :: dl(-l:l,-l:l)
-      real(kind = dp), intent(in) :: beta
-      real(kind = dp), intent(in) :: sqrt_tbl(0:2*l)
-
-      integer :: sign, i, j, k, m, mm
-      real(kind = dp) :: sinb, cosb, sinhb, coshb, rj, dlj, ddj
-      real(kind = dp) :: sqrt_jmk, sqrt_kp1, sqrt_jmi, sqrt_ip1
-      real(kind=dp) :: dd(0: 2 * l + 1, 0: 2 * l + 1)
-
-
-      if (l < 0) then
-
-         call ssht_error(SSHT_ERROR_ARG_INVALID, 'ssht_dl_beta_recursion', &
-              comment_add='el < 0');
-
-      ! For the special cases of l = 0 use the direct formula.
-      else if (l == 0) then
-
-         dl(0, 0) = 1.0_dp
-
-      ! For the special cases of l = 1 use the direct formula.
-      else if (l == 1) then
-
-         ! These formulae are taken directly from Brink & Satchler.
-
-         cosb = cos(beta)
-         sinb = sin(beta)
-
-         coshb = cos(beta / 2.0)
-         sinhb = sin(beta / 2.0)
-
-         dl(- 1, - 1) = coshb**2
-         dl(- 1, 0) = sinb / SQRT2
-         dl(- 1, 1) = sinhb**2
-
-         dl(0, - 1) = - sinb / SQRT2
-         dl(0, 0) = cosb
-         dl(0, 1) = sinb / SQRT2
-
-         dl(1, - 1) = sinhb**2
-         dl(1, 0) = - sinb / SQRT2
-         dl(1, 1) = coshb**2
-
-      else
-
-         sinhb = sin(beta / 2.0) ! p
-         coshb = - cos(beta / 2.0) !-q
-
-         ! Initialise the plane of the dl-matrix to 0.0 for the recursion
-         ! from l - 1 to l - 1/2.
-
-         dd(0: 2 * l + 1, 0: 2 * l + 1) = 0.0_dp
-
-         j = 2 * l - 1
-         rj = real(j)
-         do k = 0, j - 1
-            do i = 0, j - 1
-               dlj = dl(k - (l - 1), i - (l - 1)) / rj
-               dd(i, k) = dd(i, k) &
-                    + sqrt_tbl(j-i) * sqrt_tbl(j-k) * dlj * coshb
-               dd(i + 1, k) = dd(i + 1, k) &
-                    - sqrt_tbl(i+1) * sqrt_tbl(j-k) * dlj * sinhb
-               dd(i, k + 1) = dd(i, k + 1) &
-                    + sqrt_tbl(j-i) * sqrt_tbl(k+1) * dlj * sinhb
-               dd(i + 1, k + 1) = dd(i + 1, k + 1) &
-                    + sqrt_tbl(i+1) * sqrt_tbl(k+1) * dlj * coshb
-            end do
-         end do
-
-         ! Having constructed the d^(l+1/2) matrix in dd, do the second
-         ! half-step recursion from dd to dl. Start by initilalising  
-         ! the plane of the dl-matrix to 0.0.
-
-         dl(- l: l, - l: l) = 0.0_dp
-
-         j = 2 * l
-         rj = real(j)
-         do k = 0, j - 1
-            do i = 0, j - 1
-               ddj = dd(i, k) / rj
-               dl(k - l, i - l) = dl(k - l, i - l) &
-                    + sqrt_tbl(j-i) * sqrt_tbl(j-k) * ddj * coshb
-               dl(k - l, i + 1 - l) = dl(k - l, i + 1 - l) &
-                    - sqrt_tbl(i+1) * sqrt_tbl(j-k) * ddj * sinhb
-               dl(k + 1 - l, i - l) = dl(k + 1 - l, i - l) &
-                    + sqrt_tbl(j-i) * sqrt_tbl(k+1) * ddj * sinhb
-               dl(k + 1 - l, i + 1 - l) = dl(k + 1 - l, i + 1 - l) &
-                    + sqrt_tbl(i+1) * sqrt_tbl(k+1) * ddj * coshb
-            end do
-         end do
-
-      end if
-
-    end subroutine ssht_dl_beta_risbo_full_table
-
-
-    !--------------------------------------------------------------------------
-    ! ssht_dl_beta_risbo_half_table
-    !
-    !! Calculates *half* (for m = -l:l and mm = -l:0) of lth plane of
-    !! a d-matrix using Risbo's recursion method.  For l>1, require
-    !! the dl plane to be computed already with values for l-1.  Also
-    !! takes a table of precomputed square roots of integers to avoid
-    !! recomputing them.
-    !!
-    !! Variables:
-    !!   - dl: Dl matrix values computed for lth plane.
-    !!   - beta: Beta euler angle to compute dl matrix for.
-    !!   - l: Plane of dl matrix to compute values for.
-    !!   - sqrt_tbl(0:2*l): Table of precomputed square roots of integers 
-    !!     0:2*l. 
-    !
-    !! @author D. J. Mortlock
-    !
-    ! Revisions:
-    !   September 2005 - Written by Daniel Mortlock (compiled into
-    !     ssht library by JDM December 2010)
-    !--------------------------------------------------------------------------
-
-    subroutine ssht_dl_beta_risbo_half_table(dl, beta, l, sqrt_tbl)
-
-      integer, intent(in) :: l
-      real(kind = dp), intent(out) :: dl(-l:l,-l:l)
-      real(kind = dp), intent(in) :: beta
-      real(kind = dp), intent(in) :: sqrt_tbl(0:2*l)
-
-      integer :: sign, i, j, k, m, mm
-      real(kind = dp) :: sinb, cosb, sinhb, coshb, rj, dlj, ddj
-      real(kind = dp) :: sqrt_jmk, sqrt_kp1, sqrt_jmi, sqrt_ip1
-      real(kind=dp) :: dd(0: 2 * l + 1, 0: 2 * l + 1)
-
-      if (l < 0) then
-
-         call ssht_error(SSHT_ERROR_ARG_INVALID, 'ssht_dl_beta_recursion', &
-              comment_add='el < 0');
-
-      ! For the special cases of l = 0 use the direct formula.
-      else if (l == 0) then
-
-         dl(0, 0) = 1.0_dp
-
-      ! For the special cases of l = 1 use the direct formula.
-      else if (l == 1) then
-
-         ! These formulae are taken directly from Brink & Satchler.
-
-         cosb = cos(beta)
-         sinb = sin(beta)
-
-         coshb = cos(beta / 2.0)
-         sinhb = sin(beta / 2.0)
-
-         dl(- 1, - 1) = coshb**2
-         dl(- 1, 0) = sinb / SQRT2
-         dl(- 1, 1) = sinhb**2
-
-         dl(0, - 1) = - sinb / SQRT2
-         dl(0, 0) = cosb
-         dl(0, 1) = sinb / SQRT2
-
-         dl(1, - 1) = sinhb**2
-         dl(1, 0) = - sinb / SQRT2
-         dl(1, 1) = coshb**2
-
-      else
-
-         sinhb = sin(beta / 2.0) ! p
-         coshb = - cos(beta / 2.0) !-q
-
-         ! Initialise the plane of the dl-matrix to 0.0 for the recursion
-         ! from l - 1 to l - 1/2.
-
-         dd(0: 2 * l + 1, 0: 2 * l + 1) = 0.0_dp
-
-         j = 2 * l - 1
-         rj = real(j)
-         do k = 0, j - 1
-            do i = 0, l !j/2 + 1
-               dlj = dl(k - (l - 1), i - (l - 1)) / rj
-               dd(i, k) = dd(i, k) &
-                    + sqrt_tbl(j-i) * sqrt_tbl(j-k) * dlj * coshb
-               dd(i + 1, k) = dd(i + 1, k) &
-                    - sqrt_tbl(i+1) * sqrt_tbl(j-k) * dlj * sinhb
-               dd(i, k + 1) = dd(i, k + 1) &
-                    + sqrt_tbl(j-i) * sqrt_tbl(k+1) * dlj * sinhb
-               dd(i + 1, k + 1) = dd(i + 1, k + 1) &
-                    + sqrt_tbl(i+1) * sqrt_tbl(k+1) * dlj * coshb
-            end do
-         end do
-
-         ! Having constructed the d^(l+1/2) matrix in dd, do the second
-         ! half-step recursion from dd to dl. Start by initilalising  
-         ! the plane of the dl-matrix to 0.0.
-
-         dl(- l: l, - l: l) = 0.0_dp
-
-         j = 2 * l
-         rj = real(j)
-         do k = 0, j - 1
-            do i = 0, l !j/2
-               ddj = dd(i, k) / rj
-               dl(k - l, i - l) = dl(k - l, i - l) &
-                    + sqrt_tbl(j-i) * sqrt_tbl(j-k) * ddj * coshb
-               dl(k - l, i + 1 - l) = dl(k - l, i + 1 - l) &
-                    - sqrt_tbl(i+1) * sqrt_tbl(j-k) * ddj * sinhb
-               dl(k + 1 - l, i - l) = dl(k + 1 - l, i - l) &
-                    + sqrt_tbl(j-i) * sqrt_tbl(k+1) * ddj * sinhb
-               dl(k + 1 - l, i + 1 - l) = dl(k + 1 - l, i + 1 - l) &
-                    + sqrt_tbl(i+1) * sqrt_tbl(k+1) * ddj * coshb
-            end do
-         end do
-
-      end if
-
-    end subroutine ssht_dl_beta_risbo_half_table
-
-
-    !--------------------------------------------------------------------------
-    ! ssht_dl_beta_risbo_fill_half2full
-    !
-    !! Fill in the full Wigner plane from the half m = -l:l and 
-    !! mm = -l:0, i.e. compute positive mm's.
-    !!
-    !! Variables:
-    !!   - dl: Dl matrix values for lth plane.
-    !!   - l: Plane of dl matrix to compute values for.
-    !
-    !! @author J. D. McEwen
-    !
-    ! Revisions:
-    !   December 2010 - Written by Jason McEwen
-    !--------------------------------------------------------------------------
-
-    subroutine ssht_dl_beta_risbo_fill_half2full(dl, l)
-
-      integer, intent(in) :: l
-      real(kind = dp), intent(inout) :: dl(-l:l,-l:l)
-
-      integer :: m, mm
-
-      ! Symmetry through origin.
-      do m = -l, l
-         do mm = 1, l
-            dl(m,mm) = (-1)**(m+mm) * dl(-m,-mm)
-         end do
-      end do
-
-    end subroutine ssht_dl_beta_risbo_fill_half2full
-
-
-    !--------------------------------------------------------------------------
-    ! Trapani & Navaza's method
-    !--------------------------------------------------------------------------    
-    
-    !--------------------------------------------------------------------------
-    ! ssht_dl_halfpi_trapani_eighth
-    !
-    !! Calculates *eighth* (for m = 0:l and mm = 0:m of lth plane of a
-    !! d-matrix for PI/2 using Trapani & Navaza's recursion method.  For l>0,
-    !! require the dl plane to be computed already with values for
-    !! l-1.
-    !!
-    !! Variables:
-    !!   - dl: Dl matrix values computed for lth plane.
-    !!   - l: Plane of dl matrix to compute values for.
-    !
-    !! @author J. D. McEwen
-    !
-    ! Revisions:
-    !   December 2010 - Written by Jason McEwen
-    !--------------------------------------------------------------------------
-
-    subroutine ssht_dl_halfpi_trapani_eighth(dl, el)
-
-      integer, intent(in) :: el
-      real(dp), intent(inout) :: dl(-el:el,-el:el)
-
-      real(dp) :: dmm(0:el)
-      integer :: m, mm
-      real(dp) :: t1, t2
-
-      if (el == 0) then
-
-         dl(0,0) = 1d0
-
-      else
-
-         ! Eqn (9) of T&N (2006).
-         dmm(0) = - sqrt( (2d0*el-1d0) / real(2d0*el,dp) ) &
-              * dl(el-1,0)
-
-         ! Eqn (10) of T&N (2006).
-         do mm = 1, el
-            dmm(mm) = sqrt( el/2d0 * (2d0*el-1d0) / real((el+mm) * (el+mm-1), dp) ) &
-                 * dl(el-1,mm-1)
-         end do
-
-         dl(el,0:el) = dmm(0:el)
-
-         ! Eqn (11) of T&N (2006).
-         do mm = 0, el
-
-            ! m = el - 1 case (t2 = 0). 
-            m = el-1
-            t1 = ( 2e0 * mm / sqrt(real((el-m) * (el+m+1), dp)) ) * &
-                 dl(m+1,mm)
-            dl(m,mm) = t1
-
-            ! Remaining m cases.
-            do m = el-2, mm, -1
-               t1 = ( 2e0 * mm / sqrt(real((el-m) * (el+m+1), dp)) ) * &
-                    dl(m+1,mm)
-               t2 = sqrt( (el-m-1) * (el+m+2) / real((el-m) * (el+m+1), dp) ) * &
-                    dl(m+2,mm)
-               dl(m,mm) = t1 - t2
-            end do
-         end do
-
-      end if
-
-    end subroutine ssht_dl_halfpi_trapani_eighth
-
-
-    !--------------------------------------------------------------------------
-    ! ssht_dl_halfpi_trapani_eighth_table
-    !
-    !! Calculates *eighth* (for m = 0:l and mm = 0:m) of lth plane of a
-    !! d-matrix for PI/2 using Trapani & Navaza's recursion method.  For l>0,
-    !! require the dl plane to be computed already with values for
-    !! l-1.  Also takes a table of precomputed square roots of
-    !! integers to avoid recomputing them.
-    !!
-    !! Variables:
-    !!   - dl: Dl matrix values computed for lth plane.
-    !!   - l: Plane of dl matrix to compute values for.
-    !!   - sqrt_tbl(0:2*l+1): Table of precomputed square roots of integers 
-    !!     0:2*l+1. 
-    !
-    !! @author J. D. McEwen
-    !
-    ! Revisions:
-    !   December 2010 - Written by Jason McEwen
-    !--------------------------------------------------------------------------
-
-    subroutine ssht_dl_halfpi_trapani_eighth_table(dl, el, sqrt_tbl)
-
-      integer, intent(in) :: el
-      real(dp), intent(inout) :: dl(0:el,0:el)
-      real(kind = dp), intent(in) :: sqrt_tbl(0:2*el+1)
-
-
-      real(dp) :: dmm(0:el)
-      integer :: m, mm
-      real(dp) :: t1, t2
-
-      if (el == 0) then
-
-         dl(0,0) = 1d0
-
-      else
-
-         ! Eqn (9) of T&N (2006).
-         dmm(0) = - sqrt_tbl(2*el-1) / sqrt_tbl(2*el) &
-              * dl(el-1,0)
-
-         ! Eqn (10) of T&N (2006).
-         do mm = 1, el
-            dmm(mm) = sqrt_tbl(el) / SQRT2 &
-                 * sqrt_tbl(2*el-1) / sqrt_tbl(el+mm) / sqrt_tbl(el+mm-1) &
-                 * dl(el-1,mm-1)
-         end do
-
-         dl(el,0:el) = dmm(0:el)
-
-         ! Eqn (11) of T&N (2006).
-         do mm = 0, el
-
-            ! m = el-1 case (t2 = 0). 
-            m = el-1
-            dl(m,mm) = 2e0 * mm / sqrt_tbl(el-m) / sqrt_tbl(el+m+1) &
-                 * dl(m+1,mm)
-
-            ! Remaining m cases.
-            do m = el-2, mm, -1
-               t1 = 2e0 * mm / sqrt_tbl(el-m) / sqrt_tbl(el+m+1) &
-                    * dl(m+1,mm)
-               t2 = sqrt_tbl(el-m-1) * sqrt_tbl(el+m+2) / sqrt_tbl(el-m) / sqrt_tbl(el+m+1) &
-                    * dl(m+2,mm)
-               dl(m,mm) = t1 - t2
-            end do
-         end do
-
-      end if
-
-    end subroutine ssht_dl_halfpi_trapani_eighth_table
-
-
-    !--------------------------------------------------------------------------
-    ! ssht_dl_halfpi_trapani_fill_eighth2full
-    !
-    !! Fill in the full Wigner plane from the eighth m = 0:l and 
-    !! mm = 0:m.
-    !!
-    !! Variables:
-    !!   - dl: Dl matrix values for lth plane.
-    !!   - l: Plane of dl matrix to compute values for.
-    !
-    !! @author J. D. McEwen
-    !
-    ! Revisions:
-    !   December 2010 - Written by Jason McEwen
-    !--------------------------------------------------------------------------
- 
-    subroutine ssht_dl_halfpi_trapani_fill_eighth2full(dl, el)
-
-      integer, intent(in) :: el
-      real(kind = dp), intent(inout) :: dl(-el:el,-el:el)
-
-      integer :: m, mm
-
-      ! Diagonal symmetry to fill in quarter.
-      do m = 0, el
-         do mm = m+1, el
-            dl(m,mm) = (-1)**(m+mm) * dl(mm,m)
-         end do
-      end do
-
-      ! Symmetry in m to fill in half.
-      do mm = 0, el
-         do m = -el, -1
-            dl(m,mm) = (-1)**(el+mm) * dl(-m,mm)
-         end do
-      end do
-
-      ! Symmetry in mm to fill in remaining plane.
-      do mm = -el, -1
-         do m = -el, el
-            dl(m,mm) = (-1)**(el+m) * dl(m,-mm)
-         end do
-      end do
-
-    end subroutine ssht_dl_halfpi_trapani_fill_eighth2full
-
-
-    !--------------------------------------------------------------------------
-    ! ssht_dl_halfpi_trapani_fill_eighth2full_table
-    !
-    !! Fill in the full Wigner plane from the eighth m = 0:l and mm =
-    !! 0:m. Takes a table of precomputed signs to avoid recomputing
-    !! them.
-    !!
-    !! Variables:
-    !!   - dl: Dl matrix values for lth plane.
-    !!   - l: Plane of dl matrix to compute values for.
-    !!   - signs(0:l): Table of precompute terms (-1)^l.
-    !
-    !! @author J. D. McEwen
-    !
-    ! Revisions:
-    !   December 2010 - Written by Jason McEwen
-    !--------------------------------------------------------------------------
- 
-    subroutine ssht_dl_halfpi_trapani_fill_eighth2full_table(dl, el, signs)
-
-      integer, intent(in) :: el
-      real(kind = dp), intent(inout) :: dl(-el:el,-el:el)
-      real(kind = dp), intent(in) :: signs(0:el)
-
-      integer :: m, mm
-
-      ! Diagonal symmetry to fill in quarter.
-      do m = 0, el
-         do mm = m+1, el
-            dl(m,mm) = signs(m) * signs(mm) * dl(mm,m)
-         end do
-      end do
-
-      ! Symmetry in m to fill in half.
-      do mm = 0, el
-         do m = -el, -1
-            dl(m,mm) = signs(el) * signs(mm) * dl(-m,mm)
-         end do
-      end do
-
-      ! Symmetry in mm to fill in remaining plane.
-      do mm = -el, -1
-         do m = -el, el
-            dl(m,mm) = signs(el) * signs(abs(m)) * dl(m,-mm)
-         end do
-      end do
-
-    end subroutine ssht_dl_halfpi_trapani_fill_eighth2full_table
-
-
-    !--------------------------------------------------------------------------
-    ! ssht_dl_halfpi_trapani_fill_eighth2tophalf
-    !
-    !! Fill in half Wigner plane for m = -l:l and mm = 0:l from the
-    !! eighth m = 0:l and mm = 0:m, i.e. compute positive mm's.
-    !!
-    !! Variables:
-    !!   - dl: Dl matrix values for lth plane.
-    !!   - l: Plane of dl matrix to compute values for.
-    !
-    !! @author J. D. McEwen
-    !
-    ! Revisions:
-    !   December 2010 - Written by Jason McEwen
-    !--------------------------------------------------------------------------
- 
-    subroutine ssht_dl_halfpi_trapani_fill_eighth2tophalf(dl, el)
-
-      integer, intent(in) :: el
-      real(kind = dp), intent(inout) :: dl(-el:el,0:el)
-
-      integer :: m, mm
-
-      ! Diagonal symmetry to fill in quarter.
-      do m = 0, el
-         do mm = m+1, el
-            dl(m,mm) = (-1)**(m+mm) * dl(mm,m)
-         end do
-      end do
-
-      ! Symmetry in m to fill in half.
-      do m = -el, -1
-         do mm = 0, el
-            dl(m,mm) = (-1)**(el+mm) * dl(-m,mm)
-         end do
-      end do
-
-    end subroutine ssht_dl_halfpi_trapani_fill_eighth2tophalf
-
-
-    !--------------------------------------------------------------------------
-    ! ssht_dl_halfpi_trapani_fill_eighth2tophalf_table
-    !
-    !! Fill in half Wigner plane for m = -l:l and mm = 0:l from the
-    !! eighth m = 0:l and mm = 0:m, i.e. compute positive mm's.  Takes
-    !! a table of precomputed signs to avoid recomputing them.
-    !!
-    !! Variables:
-    !!   - dl: Dl matrix values for lth plane.
-    !!   - l: Plane of dl matrix to compute values for.
-    !!   - signs(0:l): Table of precompute terms (-1)^l.
-    !
-    !! @author J. D. McEwen
-    !
-    ! Revisions:
-    !   December 2010 - Written by Jason McEwen
-    !--------------------------------------------------------------------------
- 
-    subroutine ssht_dl_halfpi_trapani_fill_eighth2tophalf_table(dl, el, signs)
-
-      integer, intent(in) :: el
-      real(kind = dp), intent(inout) :: dl(-el:el,0:el)
-      real(kind = dp), intent(in) :: signs(0:el)
-
-      integer :: m, mm
-
-      ! Diagonal symmetry to fill in quarter.
-      do m = 0, el
-         do mm = m+1, el
-            dl(m,mm) = signs(m) * signs(mm) * dl(mm,m)
-         end do
-      end do
-
-      ! Symmetry in m to fill in half.
-      do mm = 0, el
-         do m = -el, -1
-            dl(m,mm) = signs(el) * signs(mm) * dl(-m,mm)
-         end do
-      end do
-
-    end subroutine ssht_dl_halfpi_trapani_fill_eighth2tophalf_table
-
-
-    !--------------------------------------------------------------------------
-    ! ssht_dl_halfpi_trapani_fill_eighth2righthalf
-    !
-    !! Fill in half Wigner plane for m = 0:l and mm = -l:l from the
-    !! eighth m = 0:l and mm = 0:m.
-    !!
-    !! Variables:
-    !!   - dl: Dl matrix values for lth plane.
-    !!   - l: Plane of dl matrix to compute values for.
-    !
-    !! @author J. D. McEwen
-    !
-    ! Revisions:
-    !   December 2010 - Written by Jason McEwen
-    !--------------------------------------------------------------------------
- 
-    subroutine ssht_dl_halfpi_trapani_fill_eighth2righthalf(dl, el)
-
-      integer, intent(in) :: el
-      real(kind = dp), intent(inout) :: dl(0:el,-el:el)
-
-      integer :: m, mm
-
-      ! Diagonal symmetry to fill in quarter.
-      do m = 0, el
-         do mm = m+1, el
-            dl(m,mm) = (-1)**(m+mm) * dl(mm,m)
-         end do
-      end do
-
-      ! Symmetry in mm to fill in half.
-      do m = 0, el
-         do mm = -el, -1
-            dl(m,mm) = (-1)**(el+m) * dl(m,-mm)
-         end do
-      end do
-
-    end subroutine ssht_dl_halfpi_trapani_fill_eighth2righthalf
-
-
-    !--------------------------------------------------------------------------
-    ! ssht_dl_halfpi_trapani_fill_eighth2righthalf_table
-    !
-    !! Fill in half Wigner plane for m = 0:l and mm = -l:l from the
-    !! eighth m = 0:l and mm = 0:m. Takes a table of precomputed signs
-    !! to avoid recomputing them.
-    !!
-    !! Variables:
-    !!   - dl: Dl matrix values for lth plane.
-    !!   - l: Plane of dl matrix to compute values for.
-    !!   - signs(0:l): Table of precompute terms (-1)^l.
-    !
-    !! @author J. D. McEwen
-    !
-    ! Revisions:
-    !   December 2010 - Written by Jason McEwen
-    !--------------------------------------------------------------------------
- 
-    subroutine ssht_dl_halfpi_trapani_fill_eighth2righthalf_table(dl, el, signs)
-
-      integer, intent(in) :: el
-      real(kind = dp), intent(inout) :: dl(0:el,-el:el)
-      real(kind = dp), intent(in) :: signs(0:el)
-
-      integer :: m, mm
-
-      ! Diagonal symmetry to fill in quarter.
-      do m = 0, el
-         do mm = m+1, el
-            dl(m,mm) = signs(m) * signs(mm) * dl(mm,m)
-         end do
-      end do
-
-      ! Symmetry in mm to fill in half.
-      do mm = -el, -1
-         do m = 0, el
-            dl(m,mm) = signs(el) * signs(m) * dl(m,-mm)
-         end do
-      end do
-
-    end subroutine ssht_dl_halfpi_trapani_fill_eighth2righthalf_table
-
-
-    !--------------------------------------------------------------------------
-    ! ssht_dl_halfpi_trapani_fill_eighth2quarter
-    !
-    !! Fill in quarter Wigner plane for m = 0:l and mm = 0:l from the
-    !! eighth m = 0:l and mm = 0:m, i.e. compute positive mm's.
-    !!
-    !! Variables:
-    !!   - dl: Dl matrix values for lth plane.
-    !!   - l: Plane of dl matrix to compute values for.
-    !
-    !! @author J. D. McEwen
-    !
-    ! Revisions:
-    !   December 2010 - Written by Jason McEwen
-    !--------------------------------------------------------------------------
-
-    subroutine ssht_dl_halfpi_trapani_fill_eighth2quarter(dl, el)
-
-      integer, intent(in) :: el
-      real(kind = dp), intent(inout) :: dl(0:el,0:el)
-
-      integer :: m, mm
-
-      ! Diagonal symmetry to fill in quarter.
-      do m = 0, el
-         do mm = m+1, el
-            dl(m,mm) = (-1)**(m+mm) * dl(mm,m)
-         end do
-      end do
-
-    end subroutine ssht_dl_halfpi_trapani_fill_eighth2quarter
-
-
-    !--------------------------------------------------------------------------
-    ! ssht_dl_halfpi_trapani_fill_eighth2quarter_table
-    !
-    !! Fill in quarter Wigner plane for m = 0:l and mm = 0:l from the
-    !! eighth m = 0:l and mm = 0:m, i.e. compute positive mm's.  Takes
-    !! a table of precomputed signs to avoid recomputing them.
-    !!
-    !! Variables:
-    !!   - dl: Dl matrix values for lth plane.
-    !!   - l: Plane of dl matrix to compute values for.
-    !!   - signs(0:l): Table of precompute terms (-1)^l.
-    !
-    !! @author J. D. McEwen
-    !
-    ! Revisions:
-    !   December 2010 - Written by Jason McEwen
-    !--------------------------------------------------------------------------
-
-    subroutine ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl, el, signs)
-
-      integer, intent(in) :: el
-      real(kind = dp), intent(inout) :: dl(0:el,0:el)
-      real(kind = dp), intent(in) :: signs(0:el)
-
-      integer :: m, mm
-
-      ! Diagonal symmetry to fill in quarter.
-      do m = 0, el
-         do mm = m+1, el
-            dl(m,mm) = signs(m) * signs(mm) * dl(mm,m)
-         end do
-      end do
-
-    end subroutine ssht_dl_halfpi_trapani_fill_eighth2quarter_table
 
 
 end module ssht_dl_mod

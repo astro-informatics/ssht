@@ -1,10 +1,10 @@
 !------------------------------------------------------------------------------
 ! ssht_sampling_mod  -- SSHT library sampling class
 ! 
-!! Functionality to define sample positions for various algorithms, to compute
+!> Functionality to define sample positions for various algorithms, to compute
 !! weights and to convert 1D and 2D harmonic indices.
-!
-!! @author J. D. McEwen (mcewen@mrao.cam.ac.uk)
+!!
+!! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
 !
 ! Revisions:
 !   November 2010 - Written by Jason McEwen
@@ -43,19 +43,19 @@ module ssht_sampling_mod
   ! Global variables
   !---------------------------------------
 
-  !! Flag to indicate Driscoll and Healy sampling.
+  !> Flag to indicate Driscoll and Healy sampling.
   integer, public, parameter :: SSHT_SAMPLING_DH = 1
 
-  !! Flag to indicate Gauss-Legendre sampling.
+  !> Flag to indicate Gauss-Legendre sampling.
   integer, public, parameter :: SSHT_SAMPLING_GL = 2
 
-  !! Flag to indicate McEwen and Wiaux sampling.
+  !> Flag to indicate McEwen and Wiaux sampling.
   integer, public, parameter :: SSHT_SAMPLING_MW = 3
 
-  !! Flag to indicate McEwen and Wiaux sampling for even-odd algorithm.
+  !> Flag to indicate McEwen and Wiaux sampling for even-odd algorithm.
   integer, public, parameter :: SSHT_SAMPLING_MWEO = 4
 
-  !! Flag to indicate default sampling (McEwen and Wiaux sampling).
+  !> Flag to indicate default sampling (McEwen and Wiaux sampling).
   integer, public, parameter :: SSHT_SAMPLING_DEFAULT = SSHT_SAMPLING_MW
 
 
@@ -79,15 +79,14 @@ contains
   !--------------------------------------------------------------------------
   ! ssht_sampling_weight_dh
   !
-  !! Compute Discoll and Healy weights.
+  !> Compute Discoll and Healy weights.
   !!
   !! Variables:
   !!  - theta_t: Theta value to compute weight for [input].
   !!  - L: Harmonic band-limit [input].
   !!  - w: Corresponding weight [output]
-  !
-  !! @author J. D. McEwen
-  !! @version 0.1 October 2007
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2007 - Written by Jason McEwen
@@ -113,14 +112,13 @@ contains
   !--------------------------------------------------------------------------
   ! ssht_sampling_weight_mw
   !
-  !! Compute weights for toroidal extension.
+  !> Compute weights for toroidal extension.
   !!
   !! Variables:
   !!  - p: Integer index to compute weight for [input].
   !!  - w: Corresponding weight [output]
-  !
-  !! @author J. D. McEwen
-  !! @version 0.1 October 2010
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -149,16 +147,15 @@ contains
   !--------------------------------------------------------------------------
   ! ssht_sampling_gl_thetas_weights
   !
-  !! Compute theta positions (roots of Legendre polynomials) and 
+  !> Compute theta positions (roots of Legendre polynomials) and 
   !! corresponding weights.
   !!
   !! Variables:
   !!  - thetas(0:L-1): Theta positions [output].
   !!  - weights(0:L-1): Corresponding weights [output]
   !!  - L: Harmonic band-limit [input].
-  !
-  !! @author J. D. McEwen
-  !! @version 0.1 November 2010
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   November 2010 - Written by Jason McEwen
@@ -185,7 +182,7 @@ contains
   !--------------------------------------------------------------------------
   ! gauleg
   !
-  !! Given the lower and upper limits of integration x1 and x2, this
+  !> Given the lower and upper limits of integration x1 and x2, this
   !! routine returns arrays x[1..n] and w[1..n] of length n,
   !! containing the abscissas and weights of the Gauss-Legendre
   !! n-point quadrature formula.
@@ -196,7 +193,7 @@ contains
   !!   - x: Node positions (i.e. roots of Legendre polynomials) [output].
   !!   - w: Corresponding weights [output].
   !!   - n: Number of points [input].
-  !
+  !!
   !! @author Numerical recipes.
   !
   ! Revisions:
@@ -248,7 +245,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_sampling_dh_t2theta
   !
-  !! Convert theta index to angle for Driscoll and Healy sampling.
+  !> Convert theta index to angle for Driscoll and Healy sampling.
   !!
   !! Notes:
   !!  - t ranges from [0 .. 2*L-1] => 2*L points in (0,pi).
@@ -257,8 +254,8 @@ contains
   !!  - t: Theta index [input].
   !!  - L: Harmonic band-limit [input].
   !!  - theta: Theta angle [output].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -278,7 +275,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_sampling_dh_p2phi
   !
-  !! Convert phi index to angle for Driscoll and Healy sampling.
+  !> Convert phi index to angle for Driscoll and Healy sampling.
   !!
   !! Notes:
   !!  - p ranges from [0 .. 2*L-2] => 2*L-1 points in [0,2*pi).
@@ -287,8 +284,8 @@ contains
   !!  - p: Phi index [input].
   !!  - L: Harmonic band-limit [input].
   !!  - phi: Phi angle [output].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -308,7 +305,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_sampling_gl_p2phi
   !
-  !! Convert phi index to angle for Gauss-Legendre sampling.
+  !> Convert phi index to angle for Gauss-Legendre sampling.
   !!
   !! Notes:
   !!  - p ranges from [0 .. 2*L-2] => 2*L-1 points in [0,2*pi).
@@ -317,8 +314,8 @@ contains
   !!  - p: Phi index [input].
   !!  - L: Harmonic band-limit [input].
   !!  - phi: Phi angle [output].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   November 2010 - Written by Jason McEwen
@@ -338,7 +335,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_sampling_mw_t2theta
   !
-  !! Convert theta index to angle for McEwen and Wiaux sampling.
+  !> Convert theta index to angle for McEwen and Wiaux sampling.
   !!
   !! Notes:
   !!  - t ranges from [0 .. 2*L-2] => 2*L-1 points in (0,2*pi).
@@ -347,8 +344,8 @@ contains
   !!  - t: Theta index [input].
   !!  - L: Harmonic band-limit [input].
   !!  - theta: Theta angle [output].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -368,7 +365,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_sampling_mw_p2phi
   !
-  !! Convert phi index to angle for McEwen and Wiaux sampling.
+  !> Convert phi index to angle for McEwen and Wiaux sampling.
   !!
   !! Notes:
   !!  - p ranges from [0 .. 2*L-2] => 2*L-1 points in [0,2*pi).
@@ -377,8 +374,8 @@ contains
   !!  - p: Phi index [input].
   !!  - L: Harmonic band-limit [input].
   !!  - phi: Phi angle [output].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -398,7 +395,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_sampling_mweo_t2theta
   !
-  !! Convert theta index to angle for McEwen and Wiaux even-odd sampling.
+  !> Convert theta index to angle for McEwen and Wiaux even-odd sampling.
   !!
   !! Notes:
   !!  - t ranges from [0 .. 2*L-2] => 2*L-1 points in (0,2*pi).
@@ -407,8 +404,8 @@ contains
   !!  - t: Theta index [input].
   !!  - L: Harmonic band-limit [input].
   !!  - theta: Theta angle [output].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -428,7 +425,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_sampling_mweo_p2phi
   !
-  !! Convert phi index to angle for McEwen and Wiaux even-odd sampling.
+  !> Convert phi index to angle for McEwen and Wiaux even-odd sampling.
   !!
   !! Notes:
   !!  - p ranges from [0 .. 2*L-2] => 2*L-1 points in (0,2*pi).
@@ -437,8 +434,8 @@ contains
   !!  - p: Phi index [input].
   !!  - L: Harmonic band-limit [input].
   !!  - phi: Phi angle [output].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -463,7 +460,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_sampling_elm2ind
   !
-  !! Convert (el,m) harmonic indices to 1D index used to access flm array.
+  !> Convert (el,m) harmonic indices to 1D index used to access flm array.
   !!
   !! Notes:
   !!  - el ranges from [0 .. L-1].
@@ -474,8 +471,8 @@ contains
   !!  - ind: 1D index to access flm array [output].
   !!  - el: Harmonic index [input].
   !!  - m: Azimuthal harmonic index [input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
@@ -494,7 +491,7 @@ contains
   !----------------------------------------------------------------------------
   ! ssht_sampling_ind2elm
   !
-  !! Convert 1D index used to access flm array to (el,m) harmonic indices.
+  !> Convert 1D index used to access flm array to (el,m) harmonic indices.
   !!
   !! Notes:
   !!  - el ranges from [0 .. L-1].
@@ -505,8 +502,8 @@ contains
   !!  - el: Harmonic index [output].
   !!  - m: Azimuthal harmonic index [output].
   !!  - ind: 1D index to access flm array [input].
-  !
-  !! @author J. D. McEwen
+  !!
+  !! @author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
   !
   ! Revisions:
   !   October 2010 - Written by Jason McEwen
