@@ -3063,9 +3063,9 @@ void ssht_core_mw_inverse_sov_sym_ss_pole(complex double *f,
    memcpy(&f[(t-1)*f_stride], &f_full[t*f_stride], 
 	  (2*L)*sizeof(complex double));
   *f_np = f_full[0];
-  *phi_np = ssht_sampling_mw_p2phi(0, L);
+  *phi_np = ssht_sampling_mw_ss_p2phi(0, L);
   *f_sp = f_full[L*f_stride + 0];
-  *phi_sp = ssht_sampling_mw_p2phi(0, L);
+  *phi_sp = ssht_sampling_mw_ss_p2phi(0, L);
 	
   // Free memory.
   free(f_full);
@@ -3100,10 +3100,10 @@ void ssht_core_mw_inverse_sov_sym_ss_real_pole(double *f,
 					       int verbosity) {
 
   double *f_full;
-  int t, f_stride = 2*L-1;
+  int t, f_stride = 2*L;
 
   // Allocate full array.
-  f_full = (double*)calloc((L+1)*(2*L-1), sizeof(double));
+  f_full = (double*)calloc((L+1)*(2*L), sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(f_full)
 
   // Perform inverse transform.
@@ -3113,7 +3113,7 @@ void ssht_core_mw_inverse_sov_sym_ss_real_pole(double *f,
   // Copy output function values, including separate points for  poles.
   for (t=1; t<=L-1; t++)
    memcpy(&f[(t-1)*f_stride], &f_full[t*f_stride], 
-	  (2*L-1)*sizeof(double));
+	  (2*L)*sizeof(double));
   *f_np = f_full[0];
   *f_sp = f_full[L*f_stride + 0];
 
@@ -3208,17 +3208,17 @@ void ssht_core_mw_forward_sov_conv_sym_ss_real_pole(complex double *flm,
 						    int verbosity) {
 
   double *f_full;
-  int t, p, f_stride = 2*L-1;
+  int t, p, f_stride = 2*L;
 
   // Copy function values to full array.
-  f_full = (double*)calloc((L+1)*(2*L-1), sizeof(double));
+  f_full = (double*)calloc((L+1)*(2*L), sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(f_full)
   for (t=1; t<=L-1; t++)
     memcpy(&f_full[t*f_stride], &f[(t-1)*f_stride], 
-	   (2*L-1)*sizeof(double));
+	   (2*L)*sizeof(double));
 
   // Define poles for all phi.
-  for (p=0; p<=2*L-2; p++) {
+  for (p=0; p<=2*L-1; p++) {
     f_full[0*f_stride + p] = f_np; 
     f_full[L*f_stride + p] = f_sp; 
   }
