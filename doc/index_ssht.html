@@ -1,0 +1,359 @@
+<HTML>
+<HEAD>
+  <TITLE> SSHT documentation </TITLE>
+  <LINK rel="stylesheet" href="stylesheet.css" type="text/css" />
+</HEAD>
+
+<H1 ALIGN=center> SSHT code </H1>
+<H2 ALIGN=center> Fast spin spherical harmonic transforms </H2>
+<H3 ALIGN=center> By Jason McEwen & Yves Wiaux </H3>
+
+<p>
+The SSHT code provides functionality to perform fast and exact
+spin spherical harmonic transforms based on the sampling theorem on the
+sphere derived in our paper:
+<i>A novel sampling theorem on the sphere</i> (<a
+href="http://arxiv.org/abs/XXX.XXX">ArXiv</a>|<a
+href="http://dx.doi.org/10.1111/XXX">DOI</a>).
+
+<p>
+This documentation outlines the various harmonic transforms supported
+in SSHT, before describing installation details and documenting the C,
+Fortran and MATLAB source code.  Support, version, license and reference
+information then follows.
+
+For an overview see the <a href="../README.txt">README.txt</a>
+file.
+
+<HR>
+<H2> Spin spherical harmonic transform routines </H2>
+
+<p>
+Routines are provided to compute forward and inverse transforms using
+our optimal sampling (the MW routines).  A extension of our sampling
+theorem to a sub-optimal but diametrically symmetric sampling, which
+is important for certain applications, is also provided (the MWSS
+routines).
+
+<p>
+We also provide optimal routines to perform spherical harmonic
+transforms using Gauss-Legendre quadrature (the GL routines), although
+these are slower than the MW routines.
+
+<p>
+Finally, we provide routines to perform transforms based on the
+quadrature of Driscoll & Healy (the DH routines).  Note that we do NOT
+implement the fast Driscoll & Healy algorithms (which may be found in
+s2kit) but simply apply the quadrature rule to implement a simple
+algorithm based on a separation of variables, hence these routines are
+slower still.
+
+<p>
+All of these transforms correspond to sampling theorems on the sphere,
+with exact forward and inverse transforms for band-limited signals.
+In practice reconstruction accuracy is limited by machine precision.
+For all of the algorithms we find maximum reconstruction errors are of
+the order 10^(-12) or smaller.  Please set our paper for a discussion of
+the various algorithms implemented in the SSHT package and for a
+comparison of their performance.
+
+
+
+<HR>
+<H2> Source </H2>
+
+<a href="c/html/index.html">C</a>
+<a href="f90/html/index.html">f90</a>
+
+<HR>
+<H2> Installation </H2>
+
+<p>
+The S2DW <i>library</i> requires only the <a
+href="http://www.fftw.org/">FFTW</a> and <a
+href="http://heasarc.gsfc.nasa.gov/docs/software/fitsio/fitsio.html">CFITSIO</a>
+packages.  If one wishes to also use the utility programs then the <a
+href="http://healpix.jpl.nasa.gov/">HEALPix</a> and <a
+href="http://www.mrao.cam.ac.uk/~jdm57/software.html">S2</a> packages
+are also required.  Please note that all S2DW code is written in
+Fortran 90 and a suitable Fortran compiler will be required.
+
+
+<H3> Compiling library </H3>
+
+Before compiling you may need to edit the <a href="../makefile">makefile</a> to specify your
+compiler and to link with the appropriate libraries.  Once you have
+set the makefile up for your system then the S2DW library may be
+compilied by running:
+<blockquote>   
+<code> >> make lib</code>
+</blockquote>
+
+For details on how to use the S2DW library code see the documentation
+<a href="#library">below<a>.
+
+<H3> Testing </H3>
+
+A test program is provided to test the installation of the S2DW
+library.  To make this program simply run:
+<blockquote>   
+<code>>> make test</code>
+</blockquote>
+The test may then be performed by running:
+<blockquote>   
+<code>>> make runtest</code>
+</blockquote>
+If you see the message '<i>Tests passed!</i>' printed then the S2DW
+library has been installed correctly and is reconstructing the
+spherical harmonic coefficients of a random test signal exactly from its
+wavelet and scaling coefficients.  By default the test is performed at
+a band limit of B=64.  To run the test for other band limits run:
+<blockquote> <code>>> ./bin/s2dw_test xx</code> </blockquote> 
+where xx is the band limit of the test.
+
+<H3> Compiling utility programs </H3>
+<p>
+The utility programs require the <a
+href="http://healpix.jpl.nasa.gov/">HEALPix</a> and <a
+href="http://www.mrao.cam.ac.uk/~jdm57/software.html">S2</a> packages
+to handle real space representations of data on the sphere (these are
+not required for the S2DW library).  Before attempting to compile the
+utility programs please ensure that these libraries are
+linked correctly in the <a href="../makefile">makefile</a>.  Once these
+libraries are linked you may compile the S2DW utility
+programs by running:
+<blockquote>   
+<code>>> make prog</code>
+</blockquote>
+
+For details on how to use the S2DW utility programs see the documentation
+<a href="#utility">below<a>.
+
+<H3> Documentation </H3>
+<p>
+By default, the S2DW code ships with only this single documentation
+page.  The remainder of the documentation is automatically generated
+from the source code using 
+<a href="http://theory.lcs.mit.edu/~edemaine/f90doc/">f90doc</a>.  
+Please ensure that you have f90doc installed in order to generate this
+documentation.  Once f90doc is installed the documentation may be 
+generated by running:
+<blockquote>   
+<code>>> make docs</code>
+</blockquote>
+
+<H3> Cleaning up </H3>
+
+To clean up your version of the S2DW code and return all code to its
+original state run:
+<blockquote>   
+<code>>> make clean</code>
+</blockquote>
+
+To remove all documentation, except the front page (i.e. this file),
+run:
+<blockquote>   
+<code>>> make cleandocs</code>
+</blockquote>
+
+
+
+
+
+<HR>
+<a name="library"><H2> Library documentation </H2></a>
+
+The S2DW library contains all functionality to compute the scale
+discretised wavelet transform on the sphere from the spherical
+harmonic coefficients of a signal.  Real space representations of
+signals on the sphere are not considered.  An overview of the modules
+that comprise the S2DW library is given here.  Please click on the link
+for each module for detailed documentation.
+
+<p>
+<CODE><a href=s2dw_core_mod.html>s2dw_core_mod</a></CODE>: 
+Provides core functionality to perform a scale discretised wavelet
+transform on the sphere.
+
+<p>
+<CODE><a href=s2dw_dl_mod.html>s2dw_dl_mod</a></CODE>: 
+Functionality to compute specified plane of the Wigner dl matrix.
+
+<p>
+<CODE><a href=s2dw_error_mod.html>s2dw_error_mod</a></CODE>: 
+ Functionality to handle errors that may occur in the S2DW
+ library. Public S2DW error codes are defined, with corresponding
+ private error comments and default halt execution status. 
+
+<p>
+<CODE><a href=s2dw_fileio_mod.html>s2dw_fileio_mod</a></CODE>: 
+Functionality to read and write S2DW formatted fits files containing 
+wavelet and scaling coefficients.
+
+<p>
+<CODE><a href=s2dw_types_mod.html>s2dw_types_mod</a></CODE>: 
+ Definition of intrinsic types and constants used in the S2DW library.
+
+
+
+<HR>
+<a name="utility"><H2> Utility program documentation </H2> </a>
+
+The S2DW utility programs provide functionality for dealing with data
+on the sphere in real space, where the <a
+href="http://healpix.jpl.nasa.gov/">HEALPix</a> pixelisation of the
+sphere is adopted.  Once spherical harmonic coefficients are computed,
+the utility programs make use to the S2DW library to perform the scale
+discretised wavelet transform on the sphere.  Please click on the link
+for each program for detailed documentation.
+
+<P>
+<CODE><a href=s2dw_analysis.html>s2dw_analysis</a></CODE>: 
+Computes the S2DW wavelet and scaling coefficients of a Healpix sky map.
+
+<P>
+<CODE><a href=s2dw_synthesis.html>s2dw_synthesis</a></CODE>: 
+Reconstructs a Healpix sky map from S2DW wavelet and scaling coefficients.
+
+<P>
+<CODE><a href=s2dw_test.html>s2dw_test</a></CODE>:
+Performs S2DW transform analysis and synthesis and check that the
+original signal is reconstructed exactly (to numerical precision).
+Note that this utility program does not deal with real space
+representations of data on the sphere and hence does not require the
+<a href="http://healpix.jpl.nasa.gov/">HEALPix</a> or <a
+href="http://www.mrao.cam.ac.uk/~jdm57/software.html">S2</a> packages.
+
+<P>
+<CODE><a href=s2dw_wav2sky.html>s2dw_wav2sky</a></CODE>: 
+Converts wavelet coefficients read from a S2DW formatted fits/matlab file 
+to a sky Healpix fits file. 
+
+<P>
+<CODE><a href=s2dw_wavplot.html>s2dw_wavplot</a></CODE>: 
+Computes a Healpix sky map of wavelet for a given j for subsequent plotting.
+
+<P>
+<CODE><a href=s2dw_fits2mat.html>s2dw_fits2mat</a></CODE>: 
+Converts a fits S2DW file containing wavelet and scaling coefficients to
+a matlab S2DW file.
+
+<P>
+<CODE><a href=s2dw_mat2fits.html>s2dw_mat2fits</a></CODE>: 
+Converts a matlab S2DW file containing wavelet and scaling coefficients
+to a fits S2DW file.
+
+<HR>
+<H2> MATLAB usage </H2>
+
+The data associated with a scale discretised wavelet tranform of a
+signal (including wavelet and scaling coefficients and other
+parameters) may be written to either a FITS or Matlab m file.  The
+binary FITS files are considerably smaller and faster to read/write.
+However, for users who wish to analyse wavelet coefficients in
+Matlab it is also possible to write matlab readable m files.  Utility
+routines also exist to convert between these two file types.  A Matlab
+routine to write the data back to an m file from within Matlab is
+provided in the ./matlab subdirectory:
+
+<P>
+<CODE><a href=../matlab/s2dw_matlab_wav_write.m>s2dw_matlab_wav_write.m</a></CODE>: 
+Write S2DW data manipulated in Matlab to a S2DW m file that can be read
+by Matlab and the S2DW Fortran code.
+
+
+
+<HR>
+<H2> Support  </H2>
+
+For support or to report any bugs please contact Jason McEwen 
+(<CODE>mcewen AT mrao.cam.ac.uk</CODE>).
+
+
+<HR>
+<H2> Version </H2>
+
+<P>
+<STRONG>Authors:</STRONG> J. D. McEwen & Y. Wiaux
+<P>
+<STRONG>Version:</STRONG> 1.0 - December 2008
+
+<H3> Version History </H3>
+
+<ul>
+
+<P>
+
+<li>Version 1.0<br>  Initial public release of S2DW code.  Development
+functionality removed from library and obselete matlab interface
+functions removed.<br><br>
+
+<li>Version 0.3<br> Dynamic memory allocation of wavelet coefficients
+added to reduce memory requirements.  Functionality to read/write
+matlab files added.  Some further test/development functions
+removed.<br><br>
+
+<li>Version 0.2<br> Synthesis reordered to provide memory and
+execution time performance improvements.  Dynamic temporary memory
+allocation added to reduce memory requirements.  Some test/development
+functions removed.<br><br>
+
+<li>Version 0.1<br>
+Original S2DW version.
+
+</ul>
+
+
+<HR>
+<H2> License </H2>
+
+     <blockquote>
+     <p>
+
+     S2DW package to compute the scale discretised wavelet transform on
+     the sphere<br>
+     Copyright (C) 2010  Jason McEwen
+
+     <p>
+     This program is free software; you can redistribute it and/or
+     modify it under the terms of the GNU General Public License
+     as published by the Free Software Foundation; either version 2
+     of the License, or (at your option) any later version.
+
+     <p>
+     This program is distributed in the hope that it will be useful,
+     but WITHOUT ANY WARRANTY; without even the implied warranty of
+     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+     GNU General Public License for more details 
+     (<a href="../LICENSE.txt">LICENSE.txt</a>).
+
+     <p>
+     You should have received a copy of the GNU General Public License
+     along with this program; if not, write to the Free Software
+     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
+     MA  02110-1301, USA.
+
+     </blockquote>
+
+
+<HR>
+<H2> Acknowledgements </H2>
+
+<p>
+We thank Gilles Puy very much for testing the S2DW code.
+
+<p>
+The code to compute Wigner dl functions was provided by Daniel Mortlock.
+
+<p>
+This documentation has been generated largely by <a
+href="http://theory.lcs.mit.edu/~edemaine/f90doc/">f90doc</a>, with
+some minor modifications.
+
+
+<HR>
+<p align=right>
+<font size="0.8em">Last modified: December 2008</font>
+
+</HTML>
+
