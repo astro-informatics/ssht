@@ -89,10 +89,10 @@ $(SSHTOBJ)/%.o: %.f90
 	$(FC) $(FFLAGS) $(FFLAGSPROG) $(PPFLAGS) -c $< -o $@ 
 
 .PHONY: default
-default: lib
+default: lib test
 
 .PHONY: all
-all:     lib prog test
+all:     lib test
 
 .PHONY: test
 test:    $(SSHTBIN)/ssht_test
@@ -100,9 +100,6 @@ test:    $(SSHTBIN)/ssht_test
 .PHONY: runtest
 runtest: test
 	$(SSHTBIN)/ssht_test 64 0
-
-.PHONY: prog
-prog:    $(SSHTBIN)/ssht_forward $(SSHTBIN)/ssht_inverse
 
 
 # Library
@@ -164,20 +161,6 @@ $(SSHTBIN)/ssht_test:       $(SSHTOBJ)/ssht_test.o
 	$(FC)                                          \
 	-o $(SSHTBIN)/ssht_test                        \
 	$(SSHTOBJ)/ssht_test.o                         \
-	$(LDFLAGS) $(PPFLAGS)
-
-$(SSHTOBJ)/ssht_forward.o:     $(SSHTPROG)/ssht_forward.f90 $(SSHTLIB)/lib$(SSHTLIBNM).a
-$(SSHTBIN)/ssht_forward:       $(SSHTOBJ)/ssht_forward.o
-	$(FC)                                          \
-	-o $(SSHTBIN)/ssht_forward                     \
-	$(SSHTOBJ)/ssht_forward.o                      \
-	$(LDFLAGS) $(PPFLAGS)
-
-$(SSHTOBJ)/ssht_inverse.o:     $(SSHTPROG)/ssht_inverse.f90 $(SSHTLIB)/lib$(SSHTLIBNM).a
-$(SSHTBIN)/ssht_inverse:       $(SSHTOBJ)/ssht_inverse.o
-	$(FC)                                          \
-	-o $(SSHTBIN)/ssht_inverse                     \
-	$(SSHTOBJ)/ssht_inverse.o                      \
 	$(LDFLAGS) $(PPFLAGS)
 
 
