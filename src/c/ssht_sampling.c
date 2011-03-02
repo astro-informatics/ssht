@@ -3,7 +3,7 @@
  * Functionality to define sample positions for various algorithms,
  * to compute weights and to convert 1D and 2D harmonic indices.
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 
 
@@ -28,7 +28,7 @@ void gauleg(double x1, double x2, double *x, double *w, int n);
  * \param[out] w Corresponding weight.
  * \retval Weight value computed.
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 complex double ssht_sampling_weight_mw(int p) {
 
@@ -55,7 +55,7 @@ complex double ssht_sampling_weight_mw(int p) {
  * \param[in] L Harmonic band-limit.
  * return w Weight value computed.
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 
 double ssht_sampling_weight_dh(double theta_t, int L) {
@@ -85,7 +85,7 @@ double ssht_sampling_weight_dh(double theta_t, int L) {
  * \param[in] L Harmonic band-limit.
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_sampling_gl_thetas_weights(double *thetas, double *weights, int L) {
    
@@ -169,7 +169,7 @@ void gauleg(double x1, double x2, double *x, double *w, int n) {
  * \param[in] L Harmonic band-limit.
  * \retval ntheta Number of theta samples.
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 int ssht_sampling_mw_ntheta(int L) {
 
@@ -188,7 +188,7 @@ int ssht_sampling_mw_ntheta(int L) {
  * \param[in] L Harmonic band-limit.
  * \retval theta Theta angle.
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 double ssht_sampling_mw_t2theta(int t, int L) {
 
@@ -203,7 +203,7 @@ double ssht_sampling_mw_t2theta(int t, int L) {
  * \param[in] L Harmonic band-limit.
  * \retval nphi Number of phi samples.
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 int ssht_sampling_mw_nphi(int L) {
 
@@ -222,7 +222,7 @@ int ssht_sampling_mw_nphi(int L) {
  * \param[in] L Harmonic band-limit.
  * \retval phi Phi angle.
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 double ssht_sampling_mw_p2phi(int p, int L) {
 
@@ -240,7 +240,7 @@ double ssht_sampling_mw_p2phi(int p, int L) {
  * \param[in] L Harmonic band-limit.
  * \retval n Number of samples.
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 int ssht_sampling_mw_n(int L) {
 
@@ -260,7 +260,7 @@ int ssht_sampling_mw_n(int L) {
  * \param[in] L Harmonic band-limit.
  * \retval theta Theta angle.
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 double ssht_sampling_mw_ss_t2theta(int t, int L) {
 
@@ -279,7 +279,7 @@ double ssht_sampling_mw_ss_t2theta(int t, int L) {
  * \param[in] L Harmonic band-limit.
  * \retval ntheta Number of theta samples.
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 int ssht_sampling_mw_ss_ntheta(int L) {
 
@@ -292,13 +292,13 @@ int ssht_sampling_mw_ss_ntheta(int L) {
  * Convert phi index to angle for McEwen and Wiaux symmetric sampling.
  *
  * \note
- *  - p ranges from [0 .. 2*L-2] => 2*L-1 points in [0,2*pi).
+ *  - p ranges from [0 .. 2*L-1] => 2*L points in [0,2*pi).
  *
  * \param[in] p Phi index.
  * \param[in] L Harmonic band-limit.
  * \retval phi Phi angle.
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 double ssht_sampling_mw_ss_p2phi(int p, int L) {
 
@@ -314,7 +314,7 @@ double ssht_sampling_mw_ss_p2phi(int p, int L) {
  * \param[in] L Harmonic band-limit.
  * \retval nphi Number of phi samples.
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 int ssht_sampling_mw_ss_nphi(int L) {
 
@@ -333,7 +333,7 @@ int ssht_sampling_mw_ss_nphi(int L) {
  * \param[in] L Harmonic band-limit.
  * \retval n Number of samples.
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 int ssht_sampling_mw_ss_n(int L) {
 
@@ -352,7 +352,7 @@ int ssht_sampling_mw_ss_n(int L) {
  * \param[in] L Harmonic band-limit.
  * \retval theta Theta angle.
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 double ssht_sampling_dh_t2theta(int t, int L) {
 
@@ -367,7 +367,7 @@ double ssht_sampling_dh_t2theta(int t, int L) {
  * \param[in] L Harmonic band-limit.
  * \retval ntheta Number of theta samples.
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 int ssht_sampling_dh_ntheta(int L) {
 
@@ -386,7 +386,7 @@ int ssht_sampling_dh_ntheta(int L) {
  * \param[in] L Harmonic band-limit.
  * \retval phi Phi angle.
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 double ssht_sampling_dh_p2phi(int p, int L) {
 
@@ -401,7 +401,7 @@ double ssht_sampling_dh_p2phi(int p, int L) {
  * \param[in] L Harmonic band-limit.
  * \retval nphi Number of phi samples.
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 int ssht_sampling_dh_nphi(int L) {
 
@@ -416,7 +416,7 @@ int ssht_sampling_dh_nphi(int L) {
  * \param[in] L Harmonic band-limit.
  * \retval n Number of samples.
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 int ssht_sampling_dh_n(int L) {
 
@@ -431,7 +431,7 @@ int ssht_sampling_dh_n(int L) {
  * \param[in] L Harmonic band-limit.
  * \retval ntheta Number of theta samples.
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 int ssht_sampling_gl_ntheta(int L) {
 
@@ -450,7 +450,7 @@ int ssht_sampling_gl_ntheta(int L) {
  * \param[in] L Harmonic band-limit.
  * \retval phi Phi angle.
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 double ssht_sampling_gl_p2phi(int p, int L) {
 
@@ -465,7 +465,7 @@ double ssht_sampling_gl_p2phi(int p, int L) {
  * \param[in] L Harmonic band-limit.
  * \retval nphi Number of phi samples.
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 int ssht_sampling_gl_nphi(int L) {
 
@@ -480,7 +480,7 @@ int ssht_sampling_gl_nphi(int L) {
  * \param[in] L Harmonic band-limit.
  * \retval n Number of samples.
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 int ssht_sampling_gl_n(int L) {
 
@@ -508,7 +508,7 @@ int ssht_sampling_gl_n(int L) {
  * \param[in]  m   Azimuthal harmonic index [input].
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 inline void ssht_sampling_elm2ind(int *ind, int el, int m) {
 
@@ -531,7 +531,7 @@ inline void ssht_sampling_elm2ind(int *ind, int el, int m) {
  * \param[out] m   Azimuthal harmonic index [input].
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 inline void ssht_sampling_ind2elm(int *el, int *m, int ind) {
 

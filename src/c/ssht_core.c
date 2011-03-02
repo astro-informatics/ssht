@@ -37,7 +37,7 @@
  * \param[in] verbosity Verbosiity flag in range [0,5].
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm, 
 				  int L, int spin, 
@@ -289,7 +289,7 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
  * \param[in] verbosity Verbosiity flag in range [0,5].
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_core_mw_inverse_sov_sym_real(double *f, complex double *flm, 
 				       int L, 
@@ -529,7 +529,7 @@ void ssht_core_mw_inverse_sov_sym_real(double *f, complex double *flm,
  * \param[in] verbosity Verbosiity flag in range [0,5].
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_core_mwdirect_inverse(complex double *f, complex double *flm, 
 				 int L, int spin, int verbosity) {
@@ -628,7 +628,7 @@ void ssht_core_mwdirect_inverse(complex double *f, complex double *flm,
  * \param[in] verbosity Verbosiity flag in range [0,5].
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_core_mwdirect_inverse_sov(complex double *f, complex double *flm, 
 				     int L, int spin, int verbosity) {
@@ -749,7 +749,7 @@ void ssht_core_mwdirect_inverse_sov(complex double *f, complex double *flm,
  * \param[in] verbosity Verbosiity flag in range [0,5].
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f, 
 				       int L, int spin, 
@@ -1113,7 +1113,7 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
  * \param[in] verbosity Verbosiity flag in range [0,5].
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_core_mw_forward_sov_conv_sym_real(complex double *flm, double *f, 
 					    int L,
@@ -1482,7 +1482,7 @@ void ssht_core_mw_forward_sov_conv_sym_real(complex double *flm, double *f,
  * \param[in] verbosity Verbosiity flag in range [0,5].
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_core_mw_inverse_sov_sym_pole(complex double *f, 
 				       complex double *f_sp, double *phi_sp,
@@ -1528,7 +1528,7 @@ void ssht_core_mw_inverse_sov_sym_pole(complex double *f,
  * \param[in] verbosity Verbosiity flag in range [0,5].
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_core_mw_inverse_sov_sym_real_pole(double *f, 
 					    double *f_sp,
@@ -1576,7 +1576,7 @@ void ssht_core_mw_inverse_sov_sym_real_pole(double *f,
  * \param[in] verbosity Verbosiity flag in range [0,5].
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_core_mw_forward_sov_conv_sym_pole(complex double *flm, complex double *f,
 					    complex double f_sp, double phi_sp,
@@ -1624,7 +1624,7 @@ void ssht_core_mw_forward_sov_conv_sym_pole(complex double *flm, complex double 
  * \param[in] verbosity Verbosiity flag in range [0,5].
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_core_mw_forward_sov_conv_sym_real_pole(complex double *flm, 
 						 double *f, 
@@ -1673,7 +1673,7 @@ void ssht_core_mw_forward_sov_conv_sym_real_pole(complex double *flm,
  * \param[in] verbosity Verbosiity flag in range [0,5].
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_core_mw_inverse_sov_sym_ss(complex double *f, complex double *flm, 
 				     int L, int spin, 
@@ -1918,7 +1918,7 @@ void ssht_core_mw_inverse_sov_sym_ss(complex double *f, complex double *flm,
  * \param[in] verbosity Verbosiity flag in range [0,5].
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_core_mw_inverse_sov_sym_ss_real(double *f, complex double *flm, 
 					  int L, 
@@ -2150,7 +2150,7 @@ void ssht_core_mw_inverse_sov_sym_ss_real(double *f, complex double *flm,
  * \param[in] verbosity Verbosiity flag in range [0,5].
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_core_mwdirect_inverse_ss(complex double *f, complex double *flm, 
 				   int L, int spin, int verbosity) {
@@ -2250,7 +2250,7 @@ void ssht_core_mwdirect_inverse_ss(complex double *f, complex double *flm,
  * \param[in] verbosity Verbosiity flag in range [0,5].
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_core_mw_forward_sov_conv_sym_ss(complex double *flm, complex double *f, 
 					  int L, int spin, 
@@ -2619,7 +2619,7 @@ void ssht_core_mw_forward_sov_conv_sym_ss(complex double *flm, complex double *f
  * \param[in] verbosity Verbosiity flag in range [0,5].
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_core_mw_forward_sov_conv_sym_ss_real(complex double *flm, double *f, 
 					       int L, 
@@ -2983,7 +2983,7 @@ void ssht_core_mw_forward_sov_conv_sym_ss_real(complex double *flm, double *f,
  * \param[in] verbosity Verbosiity flag in range [0,5].
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_core_mw_inverse_sov_sym_ss_pole(complex double *f, 
 					  complex double *f_np, double *phi_np,
@@ -3035,7 +3035,7 @@ void ssht_core_mw_inverse_sov_sym_ss_pole(complex double *f,
  * \param[in] verbosity Verbosiity flag in range [0,5].
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_core_mw_inverse_sov_sym_ss_real_pole(double *f, 
 					       double *f_np,
@@ -3090,7 +3090,7 @@ void ssht_core_mw_inverse_sov_sym_ss_real_pole(double *f,
  * \param[in] verbosity Verbosiity flag in range [0,5].
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_core_mw_forward_sov_conv_sym_ss_pole(complex double *flm, complex double *f,
 					       complex double f_np, double phi_np,
@@ -3143,7 +3143,7 @@ void ssht_core_mw_forward_sov_conv_sym_ss_pole(complex double *flm, complex doub
  * \param[in] verbosity Verbosiity flag in range [0,5].
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_core_mw_forward_sov_conv_sym_ss_real_pole(complex double *flm, 
 						    double *f, 
@@ -3195,7 +3195,7 @@ void ssht_core_mw_forward_sov_conv_sym_ss_real_pole(complex double *flm,
  * \param[in] verbosity Verbosiity flag in range [0,5].
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_core_gl_inverse_sov(complex double *f, complex double *flm, 
 			      int L, int spin, int verbosity) {
@@ -3326,7 +3326,7 @@ void ssht_core_gl_inverse_sov(complex double *f, complex double *flm,
  * \param[in] verbosity Verbosiity flag in range [0,5].
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_core_gl_inverse_sov_real(double *f, complex double *flm, 
 				   int L, int verbosity) {
@@ -3459,7 +3459,7 @@ void ssht_core_gl_inverse_sov_real(double *f, complex double *flm,
  * \param[in] verbosity Verbosiity flag in range [0,5].
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_core_gl_forward_sov(complex double *flm, complex double *f, 
 			      int L, int spin, int verbosity) {
@@ -3606,7 +3606,7 @@ void ssht_core_gl_forward_sov(complex double *flm, complex double *f,
  * \param[in] verbosity Verbosiity flag in range [0,5].
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_core_gl_forward_sov_real(complex double *flm, double *f, 
 				   int L, int verbosity) {
@@ -3770,7 +3770,7 @@ void ssht_core_gl_forward_sov_real(complex double *flm, double *f,
  * \param[in] verbosity Verbosiity flag in range [0,5].
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_core_dh_inverse_sov(complex double *f, complex double *flm, 
 			      int L, int spin, int verbosity) {
@@ -3889,7 +3889,7 @@ void ssht_core_dh_inverse_sov(complex double *f, complex double *flm,
  * \param[in] verbosity Verbosiity flag in range [0,5].
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_core_dh_inverse_sov_real(double *f, complex double *flm, 
 				   int L, int verbosity) {
@@ -4010,7 +4010,7 @@ void ssht_core_dh_inverse_sov_real(double *f, complex double *flm,
  * \param[in] verbosity Verbosiity flag in range [0,5].
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_core_dh_forward_sov(complex double *flm, complex double *f, 
 			      int L, int spin, int verbosity) {
@@ -4147,7 +4147,7 @@ void ssht_core_dh_forward_sov(complex double *flm, complex double *f,
  * \param[in] verbosity Verbosiity flag in range [0,5].
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_core_dh_forward_sov_real(complex double *flm, double *f, 
 				   int L, int verbosity) {

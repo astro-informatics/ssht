@@ -8,7 +8,7 @@
  *
  * Usage: ssht_test B spin, e.g. ssht_test 64 2
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 
 #include <stdio.h>
@@ -646,7 +646,7 @@ int main(int argc, char *argv[]) {
  * \param[in] seed Integer seed required for random number generator.
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_test_gen_flm_real(complex double *flm, int L, int seed) {
 
@@ -679,7 +679,7 @@ void ssht_test_gen_flm_real(complex double *flm, int L, int seed) {
  * \param[in] seed Integer seed required for random number generator.
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_test_gen_flm_complex(complex double *flm, int L, int spin, int seed) {
 
@@ -696,13 +696,13 @@ void ssht_test_gen_flm_complex(complex double *flm, int L, int spin, int seed) {
  * Generate uniform deviate in range [0,1) given seed. (Using double
  * precision.)
  *
- * \notes Uniform deviate (Num rec 1992, chap 7.1), original routine
+ * \note Uniform deviate (Num rec 1992, chap 7.1), original routine
  * said to be 'perfect'.
  *
  * \param[in] idum Seed.
  * \retval ran_dp Generated uniform deviate.
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 double ran2_dp(int idum) {
 

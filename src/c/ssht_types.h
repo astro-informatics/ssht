@@ -1,10 +1,18 @@
 /*! \mainpage SSHT: Spin spherical harmonic transforms
  *
- * The SSHT package to provide functionality to compute forward and
- * inverse harmonic transforms of spin functions on the sphere.
+ * The SSHT code provides functionality to perform fast and exact spin
+ * spherical harmonic transforms based on the sampling theorem on the
+ * sphere derived in our paper: <i>A novel sampling theorem on the
+ * sphere</i> (<a href="http://arxiv.org/abs/XXX.XXX">ArXiv</a>|
+ * <a href="http://dx.doi.org/10.1111/XXX">DOI</a>).
  *   
- * \author Jason McEwen
- * \date January 2011
+ * We document the C source code here.  For an example of usage, 
+ * see the ssht_test.c program.
+ * For installation instructions, see the general SSHT 
+ * documentation available 
+ * <a href="../../index_ssht.html">here</a>.
+ *
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  * \version 0.1
  */
 
@@ -12,7 +20,7 @@
 /*! \file ssht_types.h
  *  Types used in SSHT package.
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 
 #ifndef SSHT_TYPES

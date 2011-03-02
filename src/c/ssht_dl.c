@@ -11,6 +11,12 @@
  *     - allocated by dl = (double*)calloc(L*L, sizeof(double))
  *     - accessed by dl[m*L + mm], i.e. m in [0,(L-1)] and 
  *       mm in [0,(L-1)]
+ *  - SSHT_DL_QUARTER_EXTENDED: 
+ *     - allocated by dl = (double*)calloc((L+1)*(L+3), sizeof(double))
+ *     - require extended size when using Risbo recursion for
+ *       partial Wigner plane
+ *     - accessed by dl[(m + (L-1))*(L+3) + mm + L-1], i.e. m in 
+ *       [-(L-1),0] and mm in [-(L-1),0]
  *  - SSHT_DL_HALF: 
  *     - allocated by dl = (double*)calloc(L*(2*L-1), sizeof(double))
  *     - accessed by dl[m*(2*L-1) + mm + L-1], i.e. m in [0,(L-1)] and 
@@ -25,7 +31,7 @@
  * ssht_dl_get_stride are provided to get appropriate offsets and
  * strides.
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 
 #include <stdlib.h>
@@ -48,7 +54,7 @@ double logfact(int n);
  *            whether will need half or quarted dl plane, for example).
  * \retval dl Pointer to dl array with memory allocated.
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 double* ssht_dl_calloc(int L, ssht_dl_size_t dl_size) {
   
@@ -95,7 +101,7 @@ double* ssht_dl_calloc(int L, ssht_dl_size_t dl_size) {
  *            whether will need half or quarted dl plane, for example).
  * \retval offset The offset to be used to access dl memory.
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 int ssht_dl_get_offset(int L, ssht_dl_size_t dl_size) {
     
@@ -130,7 +136,7 @@ int ssht_dl_get_offset(int L, ssht_dl_size_t dl_size) {
  *            whether will need half or quarted dl plane, for example).
  * \retval stride The stride to be used to access dl memory.
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 int ssht_dl_get_stride(int L, ssht_dl_size_t dl_size) {
     
@@ -174,7 +180,7 @@ int ssht_dl_get_stride(int L, ssht_dl_size_t dl_size) {
  * elements).
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_dl_beta_risbo_full_table(double *dl, double beta, int L, 
 				      ssht_dl_size_t dl_size,
@@ -297,7 +303,7 @@ void ssht_dl_beta_risbo_full_table(double *dl, double beta, int L,
  * elements).
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_dl_beta_risbo_half_table(double *dl, double beta, int L, 
 				   ssht_dl_size_t dl_size,
@@ -429,7 +435,7 @@ void ssht_dl_beta_risbo_half_table(double *dl, double beta, int L,
  * elements).
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_dl_beta_risbo_quarter_table(double *dl, double beta, int L, 
 				      ssht_dl_size_t dl_size,
@@ -572,7 +578,7 @@ void ssht_dl_beta_risbo_quarter_table(double *dl, double beta, int L,
  * elements).
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_dl_beta_risbo_eighth_table(double *dl, double beta, int L, 
 				      ssht_dl_size_t dl_size,
@@ -718,7 +724,7 @@ void ssht_dl_beta_risbo_eighth_table(double *dl, double beta, int L,
  * elements).
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_dl_beta_risbo_fill_eighth2quarter_table(double *dl, 
 						  double *dl8,
@@ -781,7 +787,7 @@ void ssht_dl_beta_risbo_fill_eighth2quarter_table(double *dl,
  * elements).
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_dl_beta_kostelec_full_table(double *dlm1p1, double *dl, 
 				      double beta, int L, 
@@ -914,7 +920,7 @@ void ssht_dl_beta_kostelec_full_table(double *dlm1p1, double *dl,
  * elements).
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_dl_beta_kostelec_line_table(double *dlm1p1_line, double *dl_line, 
 				      double beta, int L, int mm, int el, 
@@ -1062,7 +1068,7 @@ void ssht_dl_beta_kostelec_line_table(double *dlm1p1_line, double *dl_line,
  * elements).
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_dl_beta_kostelec_halfline_table(double *dlm1p1_line, double *dl_line, 
 					  double beta, int L, int mm, int el, 
@@ -1196,7 +1202,7 @@ void ssht_dl_beta_kostelec_halfline_table(double *dlm1p1_line, double *dl_line,
  * elements).
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_dl_halfpi_trapani_eighth_table(double *dl, int L, 
 					 ssht_dl_size_t dl_size,
@@ -1314,7 +1320,7 @@ void ssht_dl_halfpi_trapani_eighth_table(double *dl, int L,
  * elements).
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_dl_halfpi_trapani_quarter_table(double *dl, int L, 
 					 ssht_dl_size_t dl_size,
@@ -1426,7 +1432,7 @@ void ssht_dl_halfpi_trapani_quarter_table(double *dl, int L,
  * elements).
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_dl_halfpi_trapani_fill_eighth2righthalf_table(double *dl, int L,
 							ssht_dl_size_t dl_size,
@@ -1471,7 +1477,7 @@ void ssht_dl_halfpi_trapani_fill_eighth2righthalf_table(double *dl, int L,
  * elements).
  * \retval none
  *
- * \author Jason McEwen
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_dl_halfpi_trapani_fill_eighth2quarter_table(double *dl, int L,
 						     ssht_dl_size_t dl_size,
