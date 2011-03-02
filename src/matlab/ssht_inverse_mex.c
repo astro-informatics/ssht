@@ -19,6 +19,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
                   int nrhs, const mxArray *prhs[])
 {
 
+  ssht_dl_method_t dl_method = SSHT_DL_TRAPANI;
   int i, L, spin, reality, verbosity=0, flm_m, flm_n;
   int south_pole_exists, north_pole_exists;
   double *flm_real, *flm_imag, *f_real, *f_imag;
@@ -161,22 +162,26 @@ void mexFunction( int nlhs, mxArray *plhs[],
       if (reality) {
 	fr = (double*)calloc(ntheta*nphi, sizeof(double));
 	ssht_core_mw_inverse_sov_sym_real_pole(fr, &fr_sp, 
-					       flm, L, verbosity);
+					       flm, L, 
+					       dl_method, verbosity);
       }
       else {
 	f = (complex double*)calloc(ntheta*nphi, sizeof(complex double));
 	ssht_core_mw_inverse_sov_sym_pole(f, &f_sp, &phi_sp,
-					  flm, L, spin, verbosity);
+					  flm, L, spin, 
+					  dl_method, verbosity);
       }
     }
     else {
       if (reality) {
 	fr = (double*)calloc(ntheta*nphi, sizeof(double));
-	ssht_core_mw_inverse_sov_sym_real(fr, flm, L, verbosity);
+	ssht_core_mw_inverse_sov_sym_real(fr, flm, L, 
+					  dl_method, verbosity);
       }
       else {
 	f = (complex double*)calloc(ntheta*nphi, sizeof(complex double));
-	ssht_core_mw_inverse_sov_sym(f, flm, L, spin, verbosity);
+	ssht_core_mw_inverse_sov_sym(f, flm, L, spin, 
+				     dl_method, verbosity);
       }
     }
 
@@ -197,22 +202,26 @@ void mexFunction( int nlhs, mxArray *plhs[],
 	fr = (double*)calloc(ntheta*nphi, sizeof(double));
 	ssht_core_mw_inverse_sov_sym_ss_real_pole(fr, 
 						  &fr_np, &fr_sp,
-						  flm, L, verbosity);
+						  flm, L, 
+						  dl_method, verbosity);
       }
       else {
 	f = (complex double*)calloc(ntheta*nphi, sizeof(complex double));
 	ssht_core_mw_inverse_sov_sym_ss_pole(f, &f_np, &phi_np, &f_sp, &phi_sp,
-					     flm, L, spin, verbosity);
+					     flm, L, spin, 
+					     dl_method, verbosity);
       }
     }
     else {
       if (reality) {
 	fr = (double*)calloc(ntheta*nphi, sizeof(double));
-	ssht_core_mw_inverse_sov_sym_ss_real(fr, flm, L, verbosity);
+	ssht_core_mw_inverse_sov_sym_ss_real(fr, flm, L, 
+					     dl_method, verbosity);
       }
       else {
 	f = (complex double*)calloc(ntheta*nphi, sizeof(complex double));
-	ssht_core_mw_inverse_sov_sym_ss(f, flm, L, spin, verbosity);
+	ssht_core_mw_inverse_sov_sym_ss(f, flm, L, spin, 
+					dl_method, verbosity);
       }
     }
 

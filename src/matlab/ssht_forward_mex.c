@@ -21,6 +21,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
                   int nrhs, const mxArray *prhs[])
 {
 
+  ssht_dl_method_t dl_method = SSHT_DL_TRAPANI;
   int i, L, spin, reality, verbosity=0, f_m, f_n;
   int f_is_complex, fsp_is_complex, fnp_is_complex;
   int south_pole_exists, north_pole_exists;
@@ -243,17 +244,21 @@ void mexFunction( int nlhs, mxArray *plhs[],
       if (reality)
 	ssht_core_mw_forward_sov_conv_sym_real_pole(flm, 
 						    fr, fspr,
-						    L, verbosity);
+						    L, 
+						    dl_method, verbosity);
       else
 	ssht_core_mw_forward_sov_conv_sym_pole(flm, 
 					       f, fsp, phi_sp, 
-					       L, spin, verbosity);
+					       L, spin, 
+					       dl_method, verbosity);
     }
     else {
       if (reality)
-	ssht_core_mw_forward_sov_conv_sym_real(flm, fr, L, verbosity);
+	ssht_core_mw_forward_sov_conv_sym_real(flm, fr, L, 
+					       dl_method, verbosity);
       else
-	ssht_core_mw_forward_sov_conv_sym(flm, f, L, spin, verbosity);
+	ssht_core_mw_forward_sov_conv_sym(flm, f, L, spin, 
+					  dl_method, verbosity);
     }
 
     /* mexPrintf("flm_m = %d; flm_n = %d\n", flm_m, flm_n); */
@@ -283,17 +288,21 @@ void mexFunction( int nlhs, mxArray *plhs[],
       if (reality)
 	ssht_core_mw_forward_sov_conv_sym_ss_real_pole(flm, 
 						       fr, fnpr, fspr,
-						       L, verbosity);   
+						       L, 
+						       dl_method, verbosity);   
       else
 	ssht_core_mw_forward_sov_conv_sym_ss_pole(flm, 
 						  f, fnp, phi_np, fsp, phi_sp,
-						  L, spin, verbosity);   
+						  L, spin, 
+						  dl_method, verbosity);   
     }
     else {
       if (reality)
-	ssht_core_mw_forward_sov_conv_sym_ss_real(flm, fr, L, verbosity);   
+	ssht_core_mw_forward_sov_conv_sym_ss_real(flm, fr, L, 
+						  dl_method, verbosity);   
       else
-	ssht_core_mw_forward_sov_conv_sym_ss(flm, f, L, spin, verbosity);   
+	ssht_core_mw_forward_sov_conv_sym_ss(flm, f, L, spin, 
+					     dl_method, verbosity);   
     }
 
   }
