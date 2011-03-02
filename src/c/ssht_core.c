@@ -2005,10 +2005,12 @@ void ssht_core_mw_inverse_sov_sym_ss_real(double *f, complex double *flm,
   // Compute Fmm.
   // Note that mm index (first index) is increased in size by one and
   // will be filled with zeros by calloc.
-  Fmm = (complex double*)calloc((2*L)*L, sizeof(complex double));
+//  Fmm = (complex double*)calloc((2*L)*L, sizeof(complex double));
+  Fmm = (complex double*)calloc((2*L)*(L+1), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmm)
   Fmm_offset = L-1;
-  Fmm_stride = L;    
+//  Fmm_stride = L;    
+  Fmm_stride = L+1;    
   dl = ssht_dl_calloc(L, SSHT_DL_QUARTER);
   SSHT_ERROR_MEM_ALLOC_CHECK(dl)
   if (dl_method == SSHT_DL_RISBO) {
@@ -2104,13 +2106,15 @@ void ssht_core_mw_inverse_sov_sym_ss_real(double *f, complex double *flm,
 
   // Use symmetry to compute Fmm for negative mm.
   for (mm=-(L-1); mm<=-1; mm++) 
-    for (m=0; m<=L-1; m++) 
+//    for (m=0; m<=L-1; m++) 
+    for (m=0; m<=L; m++) 
       Fmm[(mm + Fmm_offset)*Fmm_stride + m] = 
 	signs[abs(m)] * ssign 
 	* Fmm[(-mm + Fmm_offset)*Fmm_stride + m];
 
   // Apply spatial shift.
-  Fmm_shift = (complex double*)calloc((2*L)*L, sizeof(complex double));
+//  Fmm_shift = (complex double*)calloc((2*L)*L, sizeof(complex double));
+  Fmm_shift = (complex double*)calloc((2*L)*(L+1), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmm_shift)
   for (mm=0; mm<=L-1; mm++)
     for (m=0; m<=L-1; m++)
@@ -2122,12 +2126,16 @@ void ssht_core_mw_inverse_sov_sym_ss_real(double *f, complex double *flm,
 	Fmm[(mm + Fmm_offset)*Fmm_stride + m];
 
   // Allocate space for function values.
-  fext_real = (double*)calloc((2*L)*(2*L-1), sizeof(double));
+//  fext_real = (double*)calloc((2*L)*(2*L-1), sizeof(double));
+  fext_real = (double*)calloc((2*L)*(2*L), sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(fext_real)
-  fext_stride = 2*L-1;
+//  fext_stride = 2*L-1;
+  fext_stride = 2*L;
 
   // Perform 2D FFT.  
-  plan = fftw_plan_dft_c2r_2d(2*L, 2*L-1, Fmm_shift, fext_real, 
+//  plan = fftw_plan_dft_c2r_2d(2*L, 2*L-1, Fmm_shift, fext_real, 
+//			      FFTW_ESTIMATE);
+  plan = fftw_plan_dft_c2r_2d(2*L, 2*L, Fmm_shift, fext_real, 
 			      FFTW_ESTIMATE);
   fftw_execute_dft_c2r(plan, Fmm_shift, fext_real);
   fftw_destroy_plan(plan);
@@ -2137,7 +2145,8 @@ void ssht_core_mw_inverse_sov_sym_ss_real(double *f, complex double *flm,
   free(Fmm_shift);
 
   // Extract f from version of f extended to the torus (fext).
-  memcpy(f, fext_real, (L+1)*(2*L-1)*sizeof(double));
+//  memcpy(f, fext_real, (L+1)*(2*L-1)*sizeof(double));
+  memcpy(f, fext_real, (L+1)*(2*L)*sizeof(double));
 
   // Free fext memory.
   free(fext_real);
@@ -2720,44 +2729,56 @@ void ssht_core_mw_forward_sov_conv_sym_ss_real(complex double *flm, double *f,
   // Compute Fourier transform over phi, i.e. compute Fmt.
   // Note that t index (second index) is increased in size by one 
   // compared to usual sampling.
-  Fmt = (complex double*)calloc(L*(2*L), sizeof(complex double));
+//  Fmt = (complex double*)calloc(L*(2*L), sizeof(complex double));
+  Fmt = (complex double*)calloc((L+1)*(2*L), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmt)
   Fmt_stride = 2*L;
   Fmt_offset = L-1;
-  f_stride = 2*L-1;
-  in_real = (double*)calloc(2*L-1, sizeof(double));
+//  f_stride = 2*L-1;
+  f_stride = 2*L;
+//  in_real = (double*)calloc(2*L-1, sizeof(double));
+  in_real = (double*)calloc(2*L, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(in_real)
-  out = (complex double*)calloc(L, sizeof(complex double));
+//  out = (complex double*)calloc(L, sizeof(complex double));
+  out = (complex double*)calloc(L+1, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(out)
-  plan = fftw_plan_dft_r2c_1d(2*L-1, in_real, out, FFTW_MEASURE);
+//  plan = fftw_plan_dft_r2c_1d(2*L-1, in_real, out, FFTW_MEASURE);
+  plan = fftw_plan_dft_r2c_1d(2*L, in_real, out, FFTW_MEASURE);
   for (t=0; t<=L; t++) {
     memcpy(in_real, &f[t*f_stride], f_stride*sizeof(double));
         fftw_execute_dft_r2c(plan, in_real, out);
-    for(m=0; m<=L-1; m++) 
-      Fmt[m*Fmt_stride + t] = out[m] / (2.0*L-1.0);
+    /* for(m=0; m<=L-1; m++)  */
+    /*   Fmt[m*Fmt_stride + t] = out[m] / (2.0*L-1.0); */
+    for(m=0; m<=L; m++) 
+      Fmt[m*Fmt_stride + t] = out[m] / (2.0*L);
+
   }
   free(in_real);
   free(out);
   fftw_destroy_plan(plan);
 
   // Extend Fmt periodically.
-  for (m=0; m<=L-1; m++) 
+//  for (m=0; m<=L-1; m++) 
+  for (m=0; m<=L; m++) 
     for (t=L+1; t<=2*L-1; t++) 
       Fmt[m*Fmt_stride + t] = 
 	signs[abs(m)] * ssign * Fmt[m*Fmt_stride + (2*L-t)];
 
   // Compute Fourier transform over theta, i.e. compute Fmm.
   // Note that mm index (second index) is increased in size by one.
-  Fmm = (complex double*)calloc(L*(2*L), sizeof(complex double));
+//  Fmm = (complex double*)calloc(L*(2*L), sizeof(complex double));
+  Fmm = (complex double*)calloc((L+1)*(2*L), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmm)
   Fmm_stride = 2*L;
   Fmm_offset = L-1;
   inout = (complex double*)calloc(2*L, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
   plan = fftw_plan_dft_1d(2*L, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
-  for (m=0; m<=L-1; m++) {
+//  for (m=0; m<=L-1; m++) {
+  for (m=0; m<=L; m++) {
     memcpy(inout, &Fmt[m*Fmt_stride], Fmt_stride*sizeof(complex double));
     fftw_execute_dft(plan, inout, inout);
+// JDM: this should go to mm<=L (was L-1 before; although makes no difference since mm=L case contains zeros).
     for(mm=0; mm<=L-1; mm++) 
       Fmm[m*Fmm_stride + mm + Fmm_offset] = 
 	inout[mm] / (2.0*L);
