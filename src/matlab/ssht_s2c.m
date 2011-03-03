@@ -1,5 +1,5 @@
 function [x, y, z] = ssht_s2c(theta, phi, r)
-% ssht_s2c - Convert spherical to carteisan coordinates
+% ssht_s2c - Convert spherical to cartesian coordinates
 %
 % Convert cartesian to spherical coordinates.  
 %
