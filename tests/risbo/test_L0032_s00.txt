@@ -1,0 +1,70 @@
+
+SSHT test program (C implementation)
+================================================================
+MW real test no. 0
+ duration_inverse (s) =                                   0.0000
+ duration_forward (s) =                                   0.0100
+ error                =                              4.23925e-15
+
+MW test no. 0
+ duration_inverse (s) =                                   0.0000
+ duration_forward (s) =                                   0.0000
+ error                =                              4.64838e-15
+
+MW real test no. 1
+ duration_inverse (s) =                                   0.0000
+ duration_forward (s) =                                   0.0000
+ error                =                              4.99600e-15
+
+MW test no. 1
+ duration_inverse (s) =                                   0.0000
+ duration_forward (s) =                                   0.0000
+ error                =                              4.72073e-15
+
+MW real test no. 2
+ duration_inverse (s) =                                   0.0000
+ duration_forward (s) =                                   0.0100
+ error                =                              4.64970e-15
+
+MW test no. 2
+ duration_inverse (s) =                                   0.0000
+ duration_forward (s) =                                   0.0000
+ error                =                              5.39002e-15
+
+MW real test no. 3
+ duration_inverse (s) =                                   0.0000
+ duration_forward (s) =                                   0.0000
+ error                =                              5.99931e-15
+
+MW test no. 3
+ duration_inverse (s) =                                   0.0000
+ duration_forward (s) =                                   0.0000
+ error                =                              5.60415e-15
+
+MW real test no. 4
+ duration_inverse (s) =                                   0.0000
+ duration_forward (s) =                                   0.0000
+ error                =                              4.66304e-15
+
+MW test no. 4
+ duration_inverse (s) =                                   0.0000
+ duration_forward (s) =                                   0.0000
+ error                =                              4.96134e-15
+
+================================================================
+Summary
+
+NREPEAT               =                                        5
+L                     =                                       32
+spin                  =                                        0
+
+MW real
+ Average forward transform time (s) =                     0.0040
+ Average inverse transform time (s) =                     0.0000
+ Average max error                  =                4.90946e-15
+
+MW
+ Average forward transform time (s) =                     0.0000
+ Average inverse transform time (s) =                     0.0000
+ Average max error                  =                5.06492e-15
+
