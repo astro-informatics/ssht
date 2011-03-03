@@ -26,6 +26,10 @@ function [thetas, phis, varargout] = ssht_sampling(L, varargin)
 %
 % Author: Jason McEwen (www.jasonmcewen.org)
 
+% SSHT package to perform spin spherical harmonic transforms
+% Copyright (C) 2011  Jason McEwen
+% See LICENSE.txt for license details
+
 % Parse arguments.
 p = inputParser;
 p.addRequired('L', @isnumeric);          

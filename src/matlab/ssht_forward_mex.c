@@ -1,3 +1,7 @@
+// SSHT package to perform spin spherical harmonic transforms
+// Copyright (C) 2011  Jason McEwen
+// See LICENSE.txt for license details
+
 
 #include <ssht.h>
 #include "ssht_mex.h"

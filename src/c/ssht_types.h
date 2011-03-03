@@ -1,3 +1,7 @@
+// SSHT package to perform spin spherical harmonic transforms
+// Copyright (C) 2011  Jason McEwen
+// See LICENSE.txt for license details
+
 /*! \mainpage SSHT C documentation
  *
  * The SSHT code provides functionality to perform fast and exact spin

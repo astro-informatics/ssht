@@ -1,3 +1,7 @@
+// SSHT package to perform spin spherical harmonic transforms
+// Copyright (C) 2011  Jason McEwen
+// See LICENSE.txt for license details
+
 /*! 
  * \file ssht_test.c
  * Applies SSHT algorithms to perform inverse and forward spherical

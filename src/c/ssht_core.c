@@ -1,3 +1,8 @@
+// SSHT package to perform spin spherical harmonic transforms
+// Copyright (C) 2011  Jason McEwen
+// See LICENSE.txt for license details
+
+
 /*! 
  * \file ssht_core.c
  * Core algorithms to perform spin spherical harmonic transform on the sphere.

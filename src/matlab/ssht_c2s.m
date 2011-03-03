@@ -9,6 +9,10 @@ function [theta, phi, r] = ssht_c2s(x, y, z)
 %
 % Author: Jason McEwen (www.jasonmcewen.org)
 
+% SSHT package to perform spin spherical harmonic transforms
+% Copyright (C) 2011  Jason McEwen
+% See LICENSE.txt for license details
+
 TOL = 1e-10;
 
 r = sqrt(x.^2 + y.^2 + z.^2);

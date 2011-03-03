@@ -1,3 +1,7 @@
+// SSHT package to perform spin spherical harmonic transforms
+// Copyright (C) 2011  Jason McEwen
+// See LICENSE.txt for license details
+
 
 #ifndef SSHT_DL
 #define SSHT_DL

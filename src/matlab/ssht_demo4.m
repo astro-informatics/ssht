@@ -9,6 +9,10 @@
 %
 % Author: Jason McEwen (www.jasonmcewen.org)
 
+% SSHT package to perform spin spherical harmonic transforms
+% Copyright (C) 2011  Jason McEwen
+% See LICENSE.txt for license details
+
 clear all;
 
 % Define parameters.

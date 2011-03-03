@@ -1,3 +1,8 @@
+// SSHT package to perform spin spherical harmonic transforms
+// Copyright (C) 2011  Jason McEwen
+// See LICENSE.txt for license details
+
+
 /*! 
  * \file ssht_dl.c
  * Functionality to compute Wigner plane and manage its storage.
