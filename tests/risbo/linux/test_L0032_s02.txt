@@ -1,0 +1,40 @@
+
+SSHT test program (C implementation)
+================================================================
+MW test no. 0
+ duration_inverse (s) =                                   0.0000
+ duration_forward (s) =                                   0.0100
+ error                =                              4.31133e-15
+
+MW test no. 1
+ duration_inverse (s) =                                   0.0000
+ duration_forward (s) =                                   0.0000
+ error                =                              4.82021e-15
+
+MW test no. 2
+ duration_inverse (s) =                                   0.0000
+ duration_forward (s) =                                   0.0000
+ error                =                              4.24941e-15
+
+MW test no. 3
+ duration_inverse (s) =                                   0.0100
+ duration_forward (s) =                                   0.0000
+ error                =                              4.87741e-15
+
+MW test no. 4
+ duration_inverse (s) =                                   0.0000
+ duration_forward (s) =                                   0.0000
+ error                =                              4.26534e-15
+
+================================================================
+Summary
+
+NREPEAT               =                                        5
+L                     =                                       32
+spin                  =                                        2
+
+MW
+ Average forward transform time (s) =                     0.0020
+ Average inverse transform time (s) =                     0.0020
+ Average max error                  =                4.50474e-15
+
