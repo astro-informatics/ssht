@@ -17,7 +17,7 @@
 ./bin/c/ssht_test 1024 2 > test_L1024_s02.txt
 
 #./bin/c/ssht_test 2048 0 > test_L2048_s00.txt
-./bin/c/ssht_test 2048 2 > test_L2048_s02.txt
+#./bin/c/ssht_test 2048 2 > test_L2048_s02.txt
 
 #./bin/c/ssht_test 4096 0 > test_L4096_s00.txt
-./bin/c/ssht_test 4096 2 > test_L4096_s02.txt
+#./bin/c/ssht_test 4096 2 > test_L4096_s02.txt
