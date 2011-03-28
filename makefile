@@ -4,14 +4,6 @@ CC      = gcc
 #OPT	= -Wall -g
 OPT	= -Wall -O3
 
-MLAB	= /Applications/MATLAB_R2010a.app
-MLABINC	= ${MLAB}/extern/include
-MLABLIB	= ${MLAB}/extern/lib
-
-MEXEXT	= mexmaci64
-MEX 	= ${MLAB}/bin/mex
-MEXFLAGS= -cxx
-
 
 # ======== LINKS ========
 
@@ -23,6 +15,25 @@ ifeq ($(UNAME), Darwin)
   PROGDIR = /Users/mcewen/src
 endif
 
+ifeq ($(UNAME), Linux)
+  MLAB		= /usr/local/MATLAB/R2010b
+  MLABINC	= ${MLAB}/extern/include
+  MLABLIB	= ${MLAB}/extern/lib
+
+  MEXEXT	= mexa64
+  MEX 		= ${MLAB}/bin/mex
+  MEXFLAGS	= -cxx
+endif
+ifeq ($(UNAME), Darwin)
+  MLAB		= /Applications/MATLAB_R2010a.app
+  MLABINC	= ${MLAB}/extern/include
+  MLABLIB	= ${MLAB}/extern/lib
+
+  MEXEXT	= mexmaci64
+  MEX 		= ${MLAB}/bin/mex
+  MEXFLAGS	= -cxx
+endif
+
 SSHTDIR  = $(PROGDIR)/ssht
 SSHTLIB  = $(SSHTDIR)/lib/c
 SSHTLIBNM= ssht
@@ -32,7 +43,13 @@ SSHTOBJ  = $(SSHTSRC)
 SSHTINC  = $(SSHTDIR)/include/c
 SSHTDOC  = $(SSHTDIR)/doc/c
 
-FFTWDIR      = $(PROGDIR)/fftw
+ifeq ($(UNAME), Linux)
+  FFTWDIR      = $(PROGDIR)/fftw-3.2.2_fPIC
+endif
+ifeq ($(UNAME), Darwin)
+  FFTWDIR      = $(PROGDIR)/fftw
+endif
+
 FFTWINC	     = $(FFTWDIR)/include
 FFTWLIB      = $(FFTWDIR)/lib
 FFTWLIBNM    = fftw3
@@ -51,8 +68,12 @@ vpath %_mex.c $(SSHTSRCMAT)
 
 # ======== FFFLAGS ========
 
-FFLAGS  = -I$(FFTWINC) -I$(SSHTINC)
-
+FFLAGS  = -I$(FFTWINC) -I$(SSHTINC) 
+ifeq ($(UNAME), Linux)
+  # Add -fPIC flag (required for mex build).
+  # (Note that fftw must also be built with -fPIC.)
+  FFLAGS += -fPIC
+endif
 
 # ======== LDFLAGS ========
 
