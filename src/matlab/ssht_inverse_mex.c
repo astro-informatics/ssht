@@ -107,9 +107,9 @@ void mexFunction( int nlhs, mxArray *plhs[],
 		      "Spin number must be integer.");
   }
   spin = (int)mxGetScalar(prhs[iin]);
-  if (mxGetScalar(prhs[iin]) > (double)spin || spin < 0)
+  if (mxGetScalar(prhs[iin]) > (double)spin)
     mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:spinNonInt",
-		      "Spin number must be positive integer.");
+		      "Spin number must be integer.");
   if (spin >= L)
     mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:spinInvalid",
 		      "Spin number must be strictly less than band-limit.");
