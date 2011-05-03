@@ -258,8 +258,8 @@ void mexFunction( int nlhs, mxArray *plhs[],
     }
     else {
       if (reality)
-	ssht_core_mw_forward_sov_conv_sym_real(flm, fr, L, 
-					       dl_method, verbosity);
+	ssht_adjoint_mw_inverse_sov_sym_real(flm, fr, L, 
+					     dl_method, verbosity);
       else
 	ssht_adjoint_mw_inverse_sov_sym(flm, f, L, spin, 
 					dl_method, verbosity);
