@@ -220,9 +220,9 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
   // Apply phase modulation to account for sampling offset.
   for (mm=-(L-1); mm<=L-1; mm++) {
     mmfactor = cexp(I*mm*SSHT_PI/(2.0*L-1.0));
-    for (m=-(L-1); m<=L-1; m++)
-      Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset] *=
-  	mmfactor;
+    for (m=-(L-1); m<=L-1; m++) 
+      Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset] *= 
+	mmfactor;
   }
 
   // Allocate space for function values.
@@ -279,38 +279,6 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
   free(inds);
 
 }
-
-
-
-
-
-
-
-
-/* /\*!   */
-/*  * Compute adjoint of inverse transform for MW method using separation */
-/*  * of variables, fast Fourier transforms and exploiting all symmetries */
-/*  * (for complex spin signal). */
-/*  * */
-/*  * \param[out] flm Harmonic coefficients. */
-/*  * \param[in] f Function on sphere. */
-/*  * \param[in] L Harmonic band-limit. */
-/*  * \param[in] spin Spin number. */
-/*  * \param[in] dl_method Method to use when compute Wigner functions. */
-/*  * \param[in] verbosity Verbosiity flag in range [0,5]. */
-/*  * \retval none */
-/*  * */
-/*  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a> */
-/*  *\/ */
-/* void ssht_core_mw_inverse_sov_sym_adjoint(complex double *flm,  */
-/* 					  complex double *f,  */
-/* 					  int L, int spin,  */
-/* 					  ssht_dl_method_t dl_method, */
-/* 					  int verbosity) { */
-
-
-
-/* } */
 
 
 /*!  
@@ -874,8 +842,7 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
   for (m=-(L-1); m<=L-1; m++) 
     for (t=L; t<=2*L-2; t++) 
       Fmt[(m+Fmt_offset)*Fmt_stride + t] = 
-	0.0;
-//	signs[abs(m)] * ssign * Fmt[(m+Fmt_offset)*Fmt_stride + (2*L-2-t)];
+	signs[abs(m)] * ssign * Fmt[(m+Fmt_offset)*Fmt_stride + (2*L-2-t)];
 
   // Compute Fourier transform over theta, i.e. compute Fmm.
   Fmm = (complex double*)calloc((2*L-1)*(2*L-1), sizeof(complex double));
@@ -898,8 +865,8 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
   // Apply phase modulation to account for sampling offset.
   for (m=-(L-1); m<=L-1; m++)
     for (mm=-(L-1); mm<=L-1; mm++)
-      Fmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset] *=
-  	expsmm[mm + exps_offset];
+      Fmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset] *= 
+	expsmm[mm + exps_offset];
 
   // Compute weights.
   w = (double complex*)calloc(4*L-3, sizeof(complex double));
@@ -932,49 +899,49 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
   SSHT_ERROR_MEM_ALLOC_CHECK(tmp_pad)
   Gmm = (complex double*)calloc((2*L-1)*(2*L-1), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Gmm)
-  /* for (m=-(L-1); m<=L-1; m++) { */
+  for (m=-(L-1); m<=L-1; m++) {
 
-  /*   // Zero-pad Fmm. */
-  /*   for (mm=-2*(L-1); mm<=-L; mm++) */
-  /*     Fmm_pad[mm+w_offset] = 0.0; */
-  /*   for (mm=L; mm<=2*(L-1); mm++) */
-  /*     Fmm_pad[mm+w_offset] = 0.0; */
-  /*   for (mm=-(L-1); mm<=L-1; mm++) */
-  /*     Fmm_pad[mm + w_offset] =  */
-  /* 	Fmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset]; */
+    // Zero-pad Fmm.
+    for (mm=-2*(L-1); mm<=-L; mm++)
+      Fmm_pad[mm+w_offset] = 0.0;
+    for (mm=L; mm<=2*(L-1); mm++)
+      Fmm_pad[mm+w_offset] = 0.0;
+    for (mm=-(L-1); mm<=L-1; mm++)
+      Fmm_pad[mm + w_offset] = 
+	Fmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset];
 
-  /*   // Compute IFFT of Fmm. */
-  /*   for (mm=1; mm<=2*L-2; mm++) */
-  /*     inout[mm + w_offset] = Fmm_pad[mm - 2*(L-1) - 1 + w_offset]; */
-  /*   for (mm=-2*(L-1); mm<=0; mm++) */
-  /*     inout[mm + w_offset] = Fmm_pad[mm + 2*(L-1) + w_offset]; */
-  /*   fftw_execute_dft(plan_bwd, inout, inout); */
-  /*   for (mm=0; mm<=2*L-2; mm++) */
-  /*     Fmm_pad[mm + w_offset] = inout[mm - 2*(L-1) + w_offset]; */
-  /*   for (mm=-2*(L-1); mm<=-1; mm++) */
-  /*     Fmm_pad[mm + w_offset] = inout[mm + 2*(L-1) + 1 + w_offset]; */
+    // Compute IFFT of Fmm.
+    for (mm=1; mm<=2*L-2; mm++)
+      inout[mm + w_offset] = Fmm_pad[mm - 2*(L-1) - 1 + w_offset];
+    for (mm=-2*(L-1); mm<=0; mm++)
+      inout[mm + w_offset] = Fmm_pad[mm + 2*(L-1) + w_offset];
+    fftw_execute_dft(plan_bwd, inout, inout);
+    for (mm=0; mm<=2*L-2; mm++)
+      Fmm_pad[mm + w_offset] = inout[mm - 2*(L-1) + w_offset];
+    for (mm=-2*(L-1); mm<=-1; mm++)
+      Fmm_pad[mm + w_offset] = inout[mm + 2*(L-1) + 1 + w_offset];
 
-  /*   // Compute product of Fmm and weight in real space. */
-  /*   for (r=-2*(L-1); r<=2*(L-1); r++)  */
-  /*     Fmm_pad[r + w_offset] *= wr[-r + w_offset]; */
+    // Compute product of Fmm and weight in real space.
+    for (r=-2*(L-1); r<=2*(L-1); r++) 
+      Fmm_pad[r + w_offset] *= wr[-r + w_offset];
 
-  /*   // Compute Gmm by FFT. */
-  /*   for (mm=1; mm<=2*L-2; mm++) */
-  /*     inout[mm + w_offset] = Fmm_pad[mm - 2*(L-1) - 1 + w_offset]; */
-  /*   for (mm=-2*(L-1); mm<=0; mm++) */
-  /*     inout[mm + w_offset] = Fmm_pad[mm + 2*(L-1) + w_offset]; */
-  /*   fftw_execute_dft(plan_fwd, inout, inout); */
-  /*   for (mm=0; mm<=2*L-2; mm++) */
-  /*     Fmm_pad[mm + w_offset] = inout[mm - 2*(L-1) + w_offset]; */
-  /*   for (mm=-2*(L-1); mm<=-1; mm++) */
-  /*     Fmm_pad[mm + w_offset] = inout[mm + 2*(L-1) + 1 + w_offset]; */
+    // Compute Gmm by FFT.
+    for (mm=1; mm<=2*L-2; mm++)
+      inout[mm + w_offset] = Fmm_pad[mm - 2*(L-1) - 1 + w_offset];
+    for (mm=-2*(L-1); mm<=0; mm++)
+      inout[mm + w_offset] = Fmm_pad[mm + 2*(L-1) + w_offset];
+    fftw_execute_dft(plan_fwd, inout, inout);
+    for (mm=0; mm<=2*L-2; mm++)
+      Fmm_pad[mm + w_offset] = inout[mm - 2*(L-1) + w_offset];
+    for (mm=-2*(L-1); mm<=-1; mm++)
+      Fmm_pad[mm + w_offset] = inout[mm + 2*(L-1) + 1 + w_offset];
 
-  /*   // Extract section of Gmm of interest. */
-  /*   for (mm=-(L-1); mm<=L-1; mm++) */
-  /*     Gmm[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset] =  */
-  /* 	Fmm_pad[mm + w_offset] * 2.0 * SSHT_PI / (4.0*L-3.0); */
+    // Extract section of Gmm of interest.
+    for (mm=-(L-1); mm<=L-1; mm++)
+      Gmm[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset] = 
+	Fmm_pad[mm + w_offset] * 2.0 * SSHT_PI / (4.0*L-3.0);
 
-  /* } */
+  }
   fftw_destroy_plan(plan_bwd);
   fftw_destroy_plan(plan_fwd);
 
@@ -1065,8 +1032,7 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
 	* expsm[m + exps_offset]
 	* signs[el] * dl[0*dl_stride - m + dl_offset]
 	* elssign * dl[0*dl_stride - spinneg + dl_offset]
-	* Fmm[(m+Fmm_offset)*Fmm_stride + 0 + Fmm_offset];
-//	* Gmm[(0+Fmm_offset)*Fmm_stride + m + Fmm_offset];
+	* Gmm[(0+Fmm_offset)*Fmm_stride + m + Fmm_offset];
     }
     for (m=0; m<=el; m++) {
       // mm = 0
@@ -1077,8 +1043,7 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
 	* expsm[m + exps_offset]
 	* dl[0*dl_stride + m + dl_offset]
 	* elssign * dl[0*dl_stride - spinneg + dl_offset]
-	* Fmm[(m+Fmm_offset)*Fmm_stride + 0 + Fmm_offset];
-//      * Gmm[(0+Fmm_offset)*Fmm_stride + m + Fmm_offset];
+	* Gmm[(0+Fmm_offset)*Fmm_stride + m + Fmm_offset];
     }
 
     for (mm=1; mm<=el; mm++) {
@@ -1093,12 +1058,9 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
       	  * expsm[m + exps_offset]
       	  * elmmsign * dl[mm*dl_stride - m + dl_offset]
       	  * elssign * dl[mm*dl_stride - spinneg + dl_offset]
-      	  * ( Fmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset]
+      	  * ( Gmm[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset]
       	      + signs[-m] * ssign
-      	      * Fmm[(m+Fmm_offset)*Fmm_stride - mm + Fmm_offset]);
-	  /* * ( Gmm[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset] */
-      	  /*     + signs[-m] * ssign */
-      	  /*     * Gmm[(-mm+Fmm_offset)*Fmm_stride + m + Fmm_offset]); */
+      	      * Gmm[(-mm+Fmm_offset)*Fmm_stride + m + Fmm_offset]);
       }
       for (m=0; m<=el; m++) {
 	ind = inds[m + inds_offset];
@@ -1108,12 +1070,9 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
 	  * expsm[m + exps_offset]
 	  * dl[mm*dl_stride + m + dl_offset]
 	  * elssign * dl[mm*dl_stride - spinneg + dl_offset]
-	  * ( Fmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset]
+	  * ( Gmm[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset]
 	      + signs[m] * ssign
-	      * Fmm[(m+Fmm_offset)*Fmm_stride - mm + Fmm_offset]);
-	/* * ( Gmm[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset] */
-	/*       + signs[m] * ssign */
-	/*       * Gmm[(-mm+Fmm_offset)*Fmm_stride + m + Fmm_offset]); */
+	      * Gmm[(-mm+Fmm_offset)*Fmm_stride + m + Fmm_offset]);
       }
 
     }  

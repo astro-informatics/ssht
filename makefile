@@ -86,13 +86,15 @@ LDFLAGSMEX = -L$(SSHTLIB) -l$(SSHTLIBNM) $(FFTWLIB)/lib$(FFTWLIBNM).a
 
 SSHTOBJS = $(SSHTOBJ)/ssht_sampling.o    \
            $(SSHTOBJ)/ssht_dl.o          \
-           $(SSHTOBJ)/ssht_core.o
+           $(SSHTOBJ)/ssht_core.o        \
+           $(SSHTOBJ)/ssht_adjoint.o
 
 SSHTHEADERS = ssht_types.h     \
               ssht_error.h     \
 	      ssht_sampling.h  \
 	      ssht_dl.h        \
-	      ssht_core.h
+	      ssht_core.h      \
+	      ssht_adjoint.h
 
 SSHTOBJSMAT = $(SSHTOBJMAT)/ssht_sampling_mex.o    \
               $(SSHTOBJMAT)/ssht_forward_mex.o     \
