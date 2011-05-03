@@ -98,11 +98,13 @@ SSHTHEADERS = ssht_types.h     \
 
 SSHTOBJSMAT = $(SSHTOBJMAT)/ssht_sampling_mex.o    \
               $(SSHTOBJMAT)/ssht_forward_mex.o     \
-              $(SSHTOBJMAT)/ssht_inverse_mex.o
+              $(SSHTOBJMAT)/ssht_inverse_mex.o     \
+              $(SSHTOBJMAT)/ssht_inverse_adjoint_mex.o
 
 SSHTOBJSMEX = $(SSHTOBJMEX)/ssht_sampling_mex.$(MEXEXT)    \
               $(SSHTOBJMEX)/ssht_forward_mex.$(MEXEXT)     \
-              $(SSHTOBJMEX)/ssht_inverse_mex.$(MEXEXT)
+              $(SSHTOBJMEX)/ssht_inverse_mex.$(MEXEXT)     \
+              $(SSHTOBJMEX)/ssht_inverse_adjoint_mex.$(MEXEXT)
 
 
 # ======== MAKE RULES ========

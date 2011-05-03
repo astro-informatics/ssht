@@ -118,9 +118,11 @@ void ssht_adjoint_mw_inverse_sov_sym(complex double *flm,
     memcpy(inout, &f[t*f_stride], f_stride*sizeof(double complex));
     fftw_execute_dft(plan, inout, inout);
     for(m=0; m<=L-1; m++) 
-      Fmt[(m+Fmt_offset)*Fmt_stride + t] = inout[m] / (2.0*L-1.0);
+      Fmt[(m+Fmt_offset)*Fmt_stride + t] = inout[m];
+// / (2.0*L-1.0);
     for(m=-(L-1); m<=-1; m++) 
-      Fmt[(m+Fmt_offset)*Fmt_stride + t] = inout[m+2*L-1] / (2.0*L-1.0);
+      Fmt[(m+Fmt_offset)*Fmt_stride + t] = inout[m+2*L-1]; 
+// / (2.0*L-1.0);
   }
 
   // Extend Fmt periodically.
@@ -140,10 +142,12 @@ void ssht_adjoint_mw_inverse_sov_sym(complex double *flm,
     fftw_execute_dft(plan, inout, inout);
     for(mm=0; mm<=L-1; mm++) 
       Fmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset] = 
-	inout[mm] / (2.0*L-1.0);
+	inout[mm]; 
+// / (2.0*L-1.0);
     for(mm=-(L-1); mm<=-1; mm++) 
       Fmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset] = 
-	inout[mm+2*L-1] / (2.0*L-1.0);
+	inout[mm+2*L-1]; 
+// / (2.0*L-1.0);
   }
   fftw_destroy_plan(plan);
   free(inout);
