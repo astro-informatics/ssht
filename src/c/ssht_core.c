@@ -220,9 +220,9 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
   // Apply phase modulation to account for sampling offset.
   for (mm=-(L-1); mm<=L-1; mm++) {
     mmfactor = cexp(I*mm*SSHT_PI/(2.0*L-1.0));
-    for (m=-(L-1); m<=L-1; m++) 
-      Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset] *= 
-	mmfactor;
+    for (m=-(L-1); m<=L-1; m++)
+      Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset] *=
+  	mmfactor;
   }
 
   // Allocate space for function values.
@@ -865,8 +865,8 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
   // Apply phase modulation to account for sampling offset.
   for (m=-(L-1); m<=L-1; m++)
     for (mm=-(L-1); mm<=L-1; mm++)
-      Fmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset] *= 
-	expsmm[mm + exps_offset];
+      Fmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset] *=
+  	expsmm[mm + exps_offset];
 
   // Compute weights.
   w = (double complex*)calloc(4*L-3, sizeof(complex double));
