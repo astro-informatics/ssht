@@ -32,5 +32,9 @@ void ssht_adjoint_mw_inverse_sov_sym_ss_real(complex double *flm, double *f,
 					     int L, 
 					     ssht_dl_method_t dl_method, 
 					     int verbosity);
+void ssht_adjoint_mw_forward_sov_sym_ss(complex double *f, complex double *flm,
+					int L, int spin,
+					ssht_dl_method_t dl_method,
+					int verbosity);
 
 #endif

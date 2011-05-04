@@ -227,7 +227,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
       }
       else {
 	f = (complex double*)calloc(ntheta*nphi, sizeof(complex double));
-	ssht_core_mw_inverse_sov_sym_ss(f, flm, L, spin, 
+	ssht_adjoint_mw_forward_sov_sym_ss(f, flm, L, spin, 
 					dl_method, verbosity);
       }
     }

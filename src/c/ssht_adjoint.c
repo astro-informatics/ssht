@@ -1905,3 +1905,381 @@ void ssht_adjoint_mw_inverse_sov_sym_ss_real(complex double *flm, double *f,
     printf("%s %s", SSHT_PROMPT, "Forward transform computed!");  
 
 }
+
+
+void ssht_adjoint_mw_forward_sov_sym_ss(complex double *f, complex double *flm,
+					int L, int spin,
+					ssht_dl_method_t dl_method,
+					int verbosity) {
+
+  int el, m, mm, ind;
+  //int t, p;
+  int eltmp;
+  double *sqrt_tbl, *signs;
+  int el2pel, inds_offset;
+  int *inds;
+  double ssign, elfactor;
+  complex double mmfactor;
+  double *dl;
+  double *dl8 = NULL;
+  int dl_offset, dl_stride;
+  complex double *exps;
+  int exps_offset;
+  double elmmsign, elssign;
+  int spinneg;
+  complex double *Fmm, *fext;
+  int Fmm_offset, Fmm_stride, fext_stride;
+
+  fftw_plan plan, plan_bwd, plan_fwd;
+  complex double *Ftm, *Gmm;
+  complex double *w, *wr;
+  int w_offset;
+  complex double *Fmm_pad, *tmp_pad;
+  int f_stride, Ftm_stride, Ftm_offset;
+  int r, t, p;
+  complex double *inout;
+
+  int Gmm_offset, Gmm_stride;
+
+
+  // Allocate memory.
+  sqrt_tbl = (double*)calloc(2*(L-1)+2, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(sqrt_tbl)
+  signs = (double*)calloc(L+1, sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(signs)
+  exps = (complex double*)calloc(2*L-1, sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(exps)
+  inds = (int*)calloc(2*L-1, sizeof(int));
+  SSHT_ERROR_MEM_ALLOC_CHECK(inds)
+
+  // Perform precomputations.
+  for (el=0; el<=2*(L-1)+1; el++)
+    sqrt_tbl[el] = sqrt((double)el);
+  for (m=0; m<=L-1; m=m+2) {
+    signs[m]   =  1.0;
+    signs[m+1] = -1.0;
+  }
+  ssign = signs[abs(spin)];
+  spinneg = spin <= 0 ? spin : -spin;
+  exps_offset = L-1;
+  for (m=-(L-1); m<=L-1; m++)
+    exps[m + exps_offset] = cexp(-I*SSHT_PION2*(m+spin));
+
+  // Print messages depending on verbosity level.
+  if (verbosity > 0) {
+    printf("%s %s\n", SSHT_PROMPT,
+	   "Computing inverse transform using MW sampling with ");
+    printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (",
+	   L, ",", spin, ", FALSE)");
+    if (verbosity > 1)
+      printf("%s %s\n", SSHT_PROMPT,
+	     "Using routine ssht_core_mw_inverse_sov_sym...");
+  }
+
+
+  // ==========================
+  // 1.
+
+  // Compute Fmm.
+  Fmm = (complex double*)calloc((2*L-1)*(2*L-1), sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(Fmm)
+  Fmm_offset = L-1;
+  Fmm_stride = 2*L-1;
+  dl = ssht_dl_calloc(L, SSHT_DL_QUARTER);
+  SSHT_ERROR_MEM_ALLOC_CHECK(dl)
+  if (dl_method == SSHT_DL_RISBO) {
+    dl8 = ssht_dl_calloc(L, SSHT_DL_QUARTER_EXTENDED);
+    SSHT_ERROR_MEM_ALLOC_CHECK(dl8)
+  }
+  dl_offset = ssht_dl_get_offset(L, SSHT_DL_QUARTER);
+  dl_stride = ssht_dl_get_stride(L, SSHT_DL_QUARTER);
+  inds_offset = L-1;
+  for (el=abs(spin); el<=L-1; el++) {
+
+    // Compute Wigner plane.
+    switch (dl_method) {
+
+      case SSHT_DL_RISBO:
+	if (el!=0 && el==abs(spin)) {
+	  for(eltmp=0; eltmp<=abs(spin); eltmp++)
+	    ssht_dl_beta_risbo_eighth_table(dl8, SSHT_PION2, L,
+					    SSHT_DL_QUARTER_EXTENDED,
+					    eltmp, sqrt_tbl, signs);
+	  ssht_dl_beta_risbo_fill_eighth2quarter_table(dl,
+						       dl8, L,
+						       SSHT_DL_QUARTER,
+						       SSHT_DL_QUARTER_EXTENDED,
+						       el,
+						       signs);
+	}
+	else {
+	  ssht_dl_beta_risbo_eighth_table(dl8, SSHT_PION2, L,
+					  SSHT_DL_QUARTER_EXTENDED,
+					  el, sqrt_tbl, signs);
+	  ssht_dl_beta_risbo_fill_eighth2quarter_table(dl,
+						       dl8, L,
+						       SSHT_DL_QUARTER,
+						       SSHT_DL_QUARTER_EXTENDED,
+						       el,
+						       signs);
+	}
+	break;
+  
+      case SSHT_DL_TRAPANI:
+	if (el!=0 && el==abs(spin)) {
+	  for(eltmp=0; eltmp<=abs(spin); eltmp++)
+	    ssht_dl_halfpi_trapani_eighth_table(dl, L,
+						SSHT_DL_QUARTER,
+						eltmp, sqrt_tbl);
+	  ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl, L,
+							   SSHT_DL_QUARTER,
+							   el, signs);
+	}
+	else {
+	  ssht_dl_halfpi_trapani_eighth_table(dl, L,
+					      SSHT_DL_QUARTER,
+					      el, sqrt_tbl);
+	  ssht_dl_halfpi_trapani_fill_eighth2quarter_table(dl, L,
+							   SSHT_DL_QUARTER,
+							   el, signs);
+	}
+	break;
+
+      default:
+	SSHT_ERROR_GENERIC("Invalid dl method")
+    }
+
+    // Compute Fmm.
+    elfactor = sqrt((double)(2.0*el+1.0)/(4.0*SSHT_PI));
+    el2pel = el *el + el;
+    for (m=-el; m<=el; m++)
+      inds[m + inds_offset] = el2pel + m;
+    for (mm=0; mm<=el; mm++) {
+      elmmsign = signs[el] * signs[mm];
+      elssign = spin <= 0 ? 1.0 : elmmsign;
+
+      for (m=-el; m<=-1; m++) {
+	ind = inds[m + inds_offset];
+    	Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset] +=
+    	  ssign
+    	  * elfactor
+	  * exps[m + exps_offset]
+    	  * elmmsign * dl[mm*dl_stride - m + dl_offset]
+    	  * elssign * dl[mm*dl_stride - spinneg + dl_offset]
+    	  * flm[ind];
+      }
+      for (m=0; m<=el; m++) {
+	ind = inds[m + inds_offset];
+    	Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset] +=
+    	  ssign
+    	  * elfactor
+	  * exps[m + exps_offset]
+    	  * dl[mm*dl_stride + m + dl_offset]
+    	  * elssign * dl[mm*dl_stride - spinneg + dl_offset]
+    	  * flm[ind];
+      }
+
+    }
+
+  }
+
+  // Free dl memory.
+  free(dl);
+  if (dl_method == SSHT_DL_RISBO)
+    free(dl8);
+
+  // Use symmetry to compute Fmm for negative mm.
+  for (mm=-(L-1); mm<=-1; mm++)
+    for (m=-(L-1); m<=L-1; m++)
+      Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset] =
+	signs[abs(m)] * ssign
+	* Fmm[(-mm + Fmm_offset)*Fmm_stride + m + Fmm_offset];
+
+  /* // Apply phase modulation to account for sampling offset. */
+  /* for (mm=-(L-1); mm<=L-1; mm++) { */
+  /*   mmfactor = cexp(I*mm*SSHT_PI/(2.0*L-1.0)); */
+  /*   for (m=-(L-1); m<=L-1; m++) */
+  /*     Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset] *= */
+  /* 	mmfactor; */
+  /* } */
+
+
+
+
+  // ==========================
+  // 2.
+
+
+
+
+  // Compute weights.
+  w = (double complex*)calloc(4*L-3, sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(w)
+  w_offset = 2*(L-1);
+  for (mm=-2*(L-1); mm<=2*(L-1); mm++)
+    w[mm+w_offset] = ssht_sampling_weight_mw(mm);
+
+  // Compute IFFT of w to give wr.
+  wr = (double complex*)calloc(4*L-3, sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(wr)
+  inout = (complex double*)calloc(4*L-3, sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(inout)
+  plan_bwd = fftw_plan_dft_1d(4*L-3, inout, inout, FFTW_BACKWARD, FFTW_MEASURE);
+  plan_fwd = fftw_plan_dft_1d(4*L-3, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
+  for (mm=1; mm<=2*L-2; mm++)
+    inout[mm + w_offset] = w[mm - 2*(L-1) - 1 + w_offset];
+  for (mm=-2*(L-1); mm<=0; mm++)
+    inout[mm + w_offset] = w[mm + 2*(L-1) + w_offset];
+  fftw_execute_dft(plan_bwd, inout, inout);
+  for (mm=0; mm<=2*L-2; mm++)
+    wr[mm + w_offset] = inout[mm - 2*(L-1) + w_offset];
+  for (mm=-2*(L-1); mm<=-1; mm++)
+    wr[mm + w_offset] = inout[mm + 2*(L-1) + 1 + w_offset];
+
+  // Compute Gmm by convolution implemented as product in real space.
+  Fmm_pad = (complex double*)calloc(4*L-3, sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(Fmm_pad)
+  tmp_pad = (complex double*)calloc(4*L-3, sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(tmp_pad)
+
+
+  Gmm = (complex double*)calloc((2*L)*(2*L), sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(Gmm)
+  Gmm_stride = 2*L;
+  Gmm_offset = L-1;
+//  Gmm = (complex double*)calloc((2*L-1)*(2*L-1), sizeof(complex double));
+//  SSHT_ERROR_MEM_ALLOC_CHECK(Gmm)
+  for (m=-(L-1); m<=L-1; m++) {
+
+    // Zero-pad Fmm.
+    for (mm=-2*(L-1); mm<=-L; mm++)
+      Fmm_pad[mm+w_offset] = 0.0;
+    for (mm=L; mm<=2*(L-1); mm++)
+      Fmm_pad[mm+w_offset] = 0.0;
+    for (mm=-(L-1); mm<=L-1; mm++)
+      Fmm_pad[mm + w_offset] =
+	Fmm[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset];
+//	Fmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset];
+
+    // Compute IFFT of Fmm.
+    for (mm=1; mm<=2*L-2; mm++)
+      inout[mm + w_offset] = Fmm_pad[mm - 2*(L-1) - 1 + w_offset];
+    for (mm=-2*(L-1); mm<=0; mm++)
+      inout[mm + w_offset] = Fmm_pad[mm + 2*(L-1) + w_offset];
+    fftw_execute_dft(plan_bwd, inout, inout);
+    for (mm=0; mm<=2*L-2; mm++)
+      Fmm_pad[mm + w_offset] = inout[mm - 2*(L-1) + w_offset];
+    for (mm=-2*(L-1); mm<=-1; mm++)
+      Fmm_pad[mm + w_offset] = inout[mm + 2*(L-1) + 1 + w_offset];
+
+    // Compute product of Fmm and weight in real space.
+    for (r=-2*(L-1); r<=2*(L-1); r++)
+      Fmm_pad[r + w_offset] *= wr[-r + w_offset];
+
+    // Compute Gmm by FFT.
+    for (mm=1; mm<=2*L-2; mm++)
+      inout[mm + w_offset] = Fmm_pad[mm - 2*(L-1) - 1 + w_offset];
+    for (mm=-2*(L-1); mm<=0; mm++)
+      inout[mm + w_offset] = Fmm_pad[mm + 2*(L-1) + w_offset];
+    fftw_execute_dft(plan_fwd, inout, inout);
+    for (mm=0; mm<=2*L-2; mm++)
+      Fmm_pad[mm + w_offset] = inout[mm - 2*(L-1) + w_offset];
+    for (mm=-2*(L-1); mm<=-1; mm++)
+      Fmm_pad[mm + w_offset] = inout[mm + 2*(L-1) + 1 + w_offset];
+
+    // Extract section of Gmm of interest.
+    for (mm=-(L-1); mm<=L-1; mm++)
+      Gmm[(mm+Gmm_offset)*Gmm_stride + m + Gmm_offset] =
+	Fmm_pad[mm + w_offset] * 2.0 * SSHT_PI / (4.0*L-3.0);
+
+  }
+  fftw_destroy_plan(plan_bwd);
+  fftw_destroy_plan(plan_fwd);
+
+
+  // ==========================
+  // 3. Gmm -> Fmt
+
+
+
+
+
+  inout = (complex double*)calloc(2*L, sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(inout)
+  plan = fftw_plan_dft_1d(2*L, inout, inout, FFTW_BACKWARD, FFTW_MEASURE);
+
+
+
+
+  // Compute Fourier transform over theta.
+  Ftm = (complex double*)calloc((2*L)*(2*L), sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(Ftm)
+  Ftm_stride = 2*L;
+  Ftm_offset = L-1;
+  for (m=-(L-1); m<=L; m++) {
+
+    for(mm=0; mm<=L; mm++)
+      inout[mm] = Gmm[(mm+Gmm_offset)*Gmm_stride + m + Gmm_offset];
+    for(mm=-(L-1); mm<=-1; mm++)
+      inout[mm+2*L-1+1] = Gmm[(mm+Gmm_offset)*Gmm_stride + m + Gmm_offset];
+    fftw_execute_dft(plan, inout, inout);
+
+    for(t=0; t<=2*L-1; t++)
+      Ftm[t*Ftm_stride + m + Ftm_offset] = inout[t] / (2.0*L);
+
+  }
+
+
+
+  // ==========================
+  // 4.
+
+  // Adjoint of periodic extension of Ftm.
+  for(t=1; t<=L-1; t++)
+    for (m=-(L-1); m<=L; m++)
+      Ftm[t*Ftm_stride + m + Ftm_offset] = 
+	Ftm[t*Ftm_stride + m + Ftm_offset] 
+	+ signs[abs(m)] * ssign * Ftm[(2*L-t)*Ftm_stride + m + Ftm_offset];
+
+  // ==========================
+  // 5.
+
+  // Compute Fourier transform over phi.
+  f_stride = 2*L;
+  for(t=0; t<=L; t++) {
+
+    for(m=0; m<=L; m++)
+      inout[m] = Ftm[t*Ftm_stride + m + Ftm_offset];
+    for(m=-(L-1); m<=-1; m++)
+      inout[m+2*L-1+1] = Ftm[t*Ftm_stride + m + Ftm_offset];
+    fftw_execute_dft(plan, inout, inout);
+
+    for(p=0; p<=2*L-1; p++)
+      f[t*f_stride + p] = inout[p] / (2.0*L);
+
+  }
+  fftw_destroy_plan(plan);
+  free(inout);
+
+
+
+
+
+
+
+
+  // Free Fmm memory.
+  free(Fmm);
+  
+
+  // Print finished if verbosity set.
+  if (verbosity > 0)
+    printf("%s %s", SSHT_PROMPT, "Inverse transform computed!");
+
+  // Free precomputation memory.
+  free(sqrt_tbl);
+  free(signs);
+  free(exps);
+  free(inds);
+
+}
