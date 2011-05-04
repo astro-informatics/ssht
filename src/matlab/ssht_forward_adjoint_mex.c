@@ -223,7 +223,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
     else {
       if (reality) {
 	fr = (double*)calloc(ntheta*nphi, sizeof(double));
-	ssht_core_mw_inverse_sov_sym_ss_real(fr, flm, L, 
+	ssht_adjoint_mw_forward_sov_sym_ss_real(fr, flm, L, spin, 
 					     dl_method, verbosity);
       }
       else {
