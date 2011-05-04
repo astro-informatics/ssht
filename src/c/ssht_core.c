@@ -1199,7 +1199,7 @@ void ssht_core_mw_forward_sov_conv_sym_real(complex double *flm, double *f,
   plan = fftw_plan_dft_r2c_1d(2*L-1, in_real, out, FFTW_MEASURE);
   for (t=0; t<=L-1; t++) {
     memcpy(in_real, &f[t*f_stride], f_stride*sizeof(double));
-        fftw_execute_dft_r2c(plan, in_real, out);
+    fftw_execute_dft_r2c(plan, in_real, out);
     for(m=0; m<=L-1; m++) 
       Fmt[m*Fmt_stride + t] = out[m] / (2.0*L-1.0);
   }

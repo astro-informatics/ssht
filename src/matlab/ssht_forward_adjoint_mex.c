@@ -179,8 +179,9 @@ void mexFunction( int nlhs, mxArray *plhs[],
     else {
       if (reality) {
 	fr = (double*)calloc(ntheta*nphi, sizeof(double));
-	ssht_core_mw_inverse_sov_sym_real(fr, flm, L, 
-					  dl_method, verbosity);
+	ssht_adjoint_mw_forward_sov_sym_real(fr, flm, L, spin, 
+					     dl_method, verbosity);
+
       }
       else {
 	f = (complex double*)calloc(ntheta*nphi, sizeof(complex double));
