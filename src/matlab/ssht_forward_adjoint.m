@@ -1,16 +1,13 @@
 function [f, varargout] = ssht_forward_adjoint(flm, L, varargin)
-
-
-
-
-% ssht_inverse - Compute inverse spin spherical harmonic transform
+% ssht_forward_adjoint - Compute adjoint forward spin spherical
+% harmonic transform 
 %
-% Computes inverse spin spherical harmonic transform for various
+% Computes adjoint forward spin spherical harmonic transform for various
 % exact sampling theorems.
 %
 % Default usage is given by
 %
-%   f = ssht_inverse(flm, L, <options>)
+%   f = ssht_forward_adjoint(flm, L, <options>)
 %
 % where L is the harmonic band-limit, flm is the vector of L^2
 % harmonic coefficients and f is the sampled function values
@@ -19,9 +16,7 @@ function [f, varargout] = ssht_forward_adjoint(flm, L, varargin)
 % Options consist of parameter type and value pairs.  Valid options
 % include:
 %  'Method'          = { 'MW'         [McEwen & Wiaux sampling (default)],
-%                        'MWSS'       [McEwen & Wiaux symmetric sampling],
-%                        'DH'         [Driscoll & Healy sampling],
-%                        'GL'         [Gauss-Legendre sampling] }
+%                        'MWSS'       [McEwen & Wiaux symmetric sampling] }
 %  'Spin'            = { non-negative integers (default=0) }
 %  'Reality'         = { false        [do not assume f real (default)],
 %                        true         [assume f real (improves performance)] }
@@ -37,13 +32,13 @@ function [f, varargout] = ssht_forward_adjoint(flm, L, varargin)
 % plane).  For the MW method this interface is called through the
 % usage
 %
-%   [f, f_sp, phi_sp] = ssht_inverse(flm, L, <options>)
+%   [f, f_sp, phi_sp] = ssht_forward_adjoint(flm, L, <options>)
 %
 % where f does not contain samples on the South pole, f_sp is the
 % South pole sample and phi_sp is its corresponding phi value.  For
 % the MWSS method this interface is called through the usage
 %
-%   [f, f_sp, phi_sp, f_np, phi_np] = ssht_inverse(flm, L, <options>)
+%   [f, f_sp, phi_sp, f_np, phi_np] = ssht_forward_adjoint(flm, L, <options>)
 %
 % where f_np is the North pole sample and phi_np is its corresponding
 % phi value.

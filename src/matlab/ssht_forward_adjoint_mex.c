@@ -10,7 +10,7 @@
 
 
 /**
- * Compute forward adjont transform.
+ * Compute forward adjoint transform.
  *
  * Usage: 
  *   [f, f_sp, phi_sp, f_np, phi_np] = ...
@@ -38,31 +38,31 @@ void mexFunction( int nlhs, mxArray *plhs[],
 
   /* Check number of arguments. */
   if(nrhs!=7) {
-    mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:nrhs",
+    mexErrMsgIdAndTxt("ssht_forward_adjoint_mex:InvalidInput:nrhs",
 		      "Require five inputs.");
   }
   if(nlhs!=5) {
-    mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidOutput:nlhs",
+    mexErrMsgIdAndTxt("ssht_forward_adjoint_mex:InvalidOutput:nlhs",
 		      "Require one output.");
   }
 
   /* Parse reality. */
   iin = 4;
   if( !mxIsLogicalScalar(prhs[iin]) )
-    mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:reality",
+    mexErrMsgIdAndTxt("ssht_forward_adjoint_mex:InvalidInput:reality",
 		      "Reality flag must be logical.");
   reality = mxIsLogicalScalarTrue(prhs[iin]);
 
   /* Parse harmonic coefficients flm. */
   iin = 0;
   if( !mxIsDouble(prhs[iin]) || !mxIsComplex(prhs[iin]) ) {
-    mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:flm",
+    mexErrMsgIdAndTxt("ssht_forward_adjoint_mex:InvalidInput:flm",
 		      "Harmonic coefficients must be complex doubles.");
   }
   flm_m = mxGetM(prhs[iin]);
   flm_n = mxGetN(prhs[iin]);
   if (flm_m != 1 && flm_n != 1)
-    mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:flmVector",
+    mexErrMsgIdAndTxt("ssht_forward_adjoint_mex:InvalidInput:flmVector",
 		      "Harmonic coefficients must be contained in vector.");
   flm_real = mxGetPr(prhs[iin]);
   flm_imag = mxGetPi(prhs[iin]);
@@ -75,26 +75,26 @@ void mexFunction( int nlhs, mxArray *plhs[],
   if( !mxIsDouble(prhs[iin]) || 
       mxIsComplex(prhs[iin]) || 
       mxGetNumberOfElements(prhs[iin])!=1 ) {
-    mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:bandLimit",
+    mexErrMsgIdAndTxt("ssht_forward_adjoint_mex:InvalidInput:bandLimit",
 		      "Harmonic band-limit must be integer.");
   }
   L = (int)mxGetScalar(prhs[iin]);
   if (mxGetScalar(prhs[iin]) > (double)L || L <= 0)
-    mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:bandLimitNonInt",
+    mexErrMsgIdAndTxt("ssht_forward_adjoint_mex:InvalidInput:bandLimitNonInt",
 		      "Harmonic band-limit must be positive integer.");
   if (flm_m * flm_n != L * L)
-    mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:flmSize",
+    mexErrMsgIdAndTxt("ssht_forward_adjoint_mex:InvalidInput:flmSize",
 		      "Invalid number of harmonic coefficients.");
 
   /* Parse method. */
   iin = 2;
   if( !mxIsChar(prhs[iin]) ) {
-    mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:methodChar",
+    mexErrMsgIdAndTxt("ssht_forward_adjoint_mex:InvalidInput:methodChar",
 		      "Method must be string.");
   }
   len = (mxGetM(prhs[iin]) * mxGetN(prhs[iin])) + 1;
   if (len >= SSHT_STRING_LEN) 
-    mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:methodTooLong",
+    mexErrMsgIdAndTxt("ssht_forward_adjoint_mex:InvalidInput:methodTooLong",
 		      "Method exceeds string length.");
   mxGetString(prhs[iin], method, len);
 
@@ -103,31 +103,31 @@ void mexFunction( int nlhs, mxArray *plhs[],
   if( !mxIsDouble(prhs[iin]) || 
       mxIsComplex(prhs[iin]) || 
       mxGetNumberOfElements(prhs[iin])!=1 ) {
-    mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:spin",
+    mexErrMsgIdAndTxt("ssht_forward_adjoint_mex:InvalidInput:spin",
 		      "Spin number must be integer.");
   }
   spin = (int)mxGetScalar(prhs[iin]);
   if (mxGetScalar(prhs[iin]) > (double)spin)
-    mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:spinNonInt",
+    mexErrMsgIdAndTxt("ssht_forward_adjoint_mex:InvalidInput:spinNonInt",
 		      "Spin number must be integer.");
   if (spin >= L)
-    mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:spinInvalid",
+    mexErrMsgIdAndTxt("ssht_forward_adjoint_mex:InvalidInput:spinInvalid",
 		      "Spin number must be strictly less than band-limit.");
   if (spin != 0 && reality)
-    mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:spinReality",
+    mexErrMsgIdAndTxt("ssht_forward_adjoint_mex:InvalidInput:spinReality",
 		      "A spin function on the sphere cannot be real."); 
 
   /* Parse South pole flag. */
   iin = 5;
   if( !mxIsLogicalScalar(prhs[iin]) )
-    mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:southPoleExists",
+    mexErrMsgIdAndTxt("ssht_forward_adjoint_mex:InvalidInput:southPoleExists",
 		      "South pole flag must be logical.");
   south_pole_exists = mxIsLogicalScalarTrue(prhs[iin]);
 
   /* Parse North pole flag. */
   iin = 6;
   if( !mxIsLogicalScalar(prhs[iin]) )
-    mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:northPoleExists",
+    mexErrMsgIdAndTxt("ssht_forward_adjoint_mex:InvalidInput:northPoleExists",
 		      "North pole flag must be logical.");
   north_pole_exists = mxIsLogicalScalarTrue(prhs[iin]);
 
@@ -136,26 +136,26 @@ void mexFunction( int nlhs, mxArray *plhs[],
 
     if (strcmp(method, SSHT_SAMPLING_MW) != 0 &&
 	strcmp(method, SSHT_SAMPLING_MWSS) != 0) 
-      mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:poleWithInvalidMethod",
+      mexErrMsgIdAndTxt("ssht_forward_adjoint_mex:InvalidInput:poleWithInvalidMethod",
 			"Polar interfaces only supported by MW or MWSS methods.");
 
     if (!south_pole_exists)
-      mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:noSouthPole",
+      mexErrMsgIdAndTxt("ssht_forward_adjoint_mex:InvalidInput:noSouthPole",
 			"South pole sample must be specified if North pole is.");
 
     if (south_pole_exists && !north_pole_exists)
       if (strcmp(method, SSHT_SAMPLING_MW) != 0)
-	mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:noNorthPole",
+	mexErrMsgIdAndTxt("ssht_forward_adjoint_mex:InvalidInput:noNorthPole",
 			  "North pole must be specified for MWSS method.");
 
     if (south_pole_exists && north_pole_exists)
       if (strcmp(method, SSHT_SAMPLING_MWSS) != 0)
-	mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:northPoleWithInvalidMethod",
+	mexErrMsgIdAndTxt("ssht_forward_adjoint_mex:InvalidInput:northPoleWithInvalidMethod",
 			  "North pole must not be specified for MW method.");
 
   }
 
-  /* Compute inverse transform. */
+  /* Compute adjoint forward transform. */
   if (strcmp(method, SSHT_SAMPLING_MW) == 0) {
 
     ntheta = ssht_sampling_mw_ntheta(L);
@@ -165,15 +165,15 @@ void mexFunction( int nlhs, mxArray *plhs[],
       ntheta = ntheta - 1;
       if (reality) {
 	fr = (double*)calloc(ntheta*nphi, sizeof(double));
-	ssht_core_mw_inverse_sov_sym_real_pole(fr, &fr_sp, 
-					       flm, L, 
-					       dl_method, verbosity);
+	ssht_adjoint_mw_forward_sov_sym_real_pole(fr, &fr_sp, 
+						  flm, L, 
+						  dl_method, verbosity);
       }
       else {
 	f = (complex double*)calloc(ntheta*nphi, sizeof(complex double));
-	ssht_core_mw_inverse_sov_sym_pole(f, &f_sp, &phi_sp,
-					  flm, L, spin, 
-					  dl_method, verbosity);
+	ssht_adjoint_mw_forward_sov_sym_pole(f, &f_sp, &phi_sp,
+					     flm, L, spin, 
+					     dl_method, verbosity);
       }
     }
     else {
@@ -181,15 +181,11 @@ void mexFunction( int nlhs, mxArray *plhs[],
 	fr = (double*)calloc(ntheta*nphi, sizeof(double));
 	ssht_adjoint_mw_forward_sov_sym_real(fr, flm, L, spin, 
 					     dl_method, verbosity);
-
       }
       else {
 	f = (complex double*)calloc(ntheta*nphi, sizeof(complex double));
 	ssht_adjoint_mw_forward_sov_sym(f, flm, L, spin, 
 					dl_method, verbosity);
-	/* ssht_core_mw_inverse_sov_sym(f, flm, L, spin,  */
-	/* 			     dl_method, verbosity); */
-
       }
     }
 
@@ -208,16 +204,16 @@ void mexFunction( int nlhs, mxArray *plhs[],
       ntheta = ntheta - 2;
       if (reality) {
 	fr = (double*)calloc(ntheta*nphi, sizeof(double));
-	ssht_core_mw_inverse_sov_sym_ss_real_pole(fr, 
-						  &fr_np, &fr_sp,
-						  flm, L, 
-						  dl_method, verbosity);
+	ssht_adjoint_mw_forward_sov_sym_ss_real_pole(fr, 
+						     &fr_np, &fr_sp,
+						     flm, L, 
+						     dl_method, verbosity);
       }
       else {
 	f = (complex double*)calloc(ntheta*nphi, sizeof(complex double));
-	ssht_core_mw_inverse_sov_sym_ss_pole(f, &f_np, &phi_np, &f_sp, &phi_sp,
-					     flm, L, spin, 
-					     dl_method, verbosity);
+	ssht_adjoint_mw_forward_sov_sym_ss_pole(f, &f_np, &phi_np, &f_sp, &phi_sp,
+					       flm, L, spin, 
+					       dl_method, verbosity);
       }
     }
     else {
@@ -234,37 +230,9 @@ void mexFunction( int nlhs, mxArray *plhs[],
     }
 
   }
-  else if (strcmp(method, SSHT_SAMPLING_GL) == 0) {
-
-    ntheta = ssht_sampling_gl_ntheta(L);
-    nphi = ssht_sampling_gl_nphi(L);
-    if (reality) {
-      fr = (double*)calloc(ntheta*nphi, sizeof(double));
-      ssht_core_gl_inverse_sov_real(fr, flm, L, verbosity);
-    }
-    else {
-      f = (complex double*)calloc(ntheta*nphi, sizeof(complex double));
-      ssht_core_gl_inverse_sov(f, flm, L, spin, verbosity);
-    }
-
-  }
-  else if (strcmp(method, SSHT_SAMPLING_DH) == 0) {
-
-    ntheta = ssht_sampling_dh_ntheta(L);
-    nphi = ssht_sampling_dh_nphi(L);
-    if (reality) {
-      fr = (double*)calloc(ntheta*nphi, sizeof(double));
-      ssht_core_dh_inverse_sov_real(fr, flm, L, verbosity);
-    }
-    else {
-      f = (complex double*)calloc(ntheta*nphi, sizeof(complex double));
-      ssht_core_dh_inverse_sov(f, flm, L, spin, verbosity);
-    }
-   
-  }
   else {
 
-    mexErrMsgIdAndTxt("ssht_inverse_mex:InvalidInput:method",
+    mexErrMsgIdAndTxt("ssht_forward_adjoint_mex:InvalidInput:method",
 		      "Method invalid.");
 
   } 
