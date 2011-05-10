@@ -51,22 +51,19 @@ void ssht_adjoint_mw_inverse_sov_sym(complex double *flm,
 				     ssht_dl_method_t dl_method,
 				     int verbosity) {
 
-  int el, m, mm, ind, t, r;
+  int el, m, mm, ind, t;
   int eltmp;
   double *sqrt_tbl, *signs;
   int el2pel, inds_offset;
   int *inds;
   double ssign, elfactor;
-  fftw_plan plan, plan_bwd, plan_fwd;
+  fftw_plan plan;
   complex double *inout;
-  complex double *Fmt, *Fmm, *Gmm;
-  complex double *w, *wr;
-  complex double *Fmm_pad, *tmp_pad;
+  complex double *Fmt, *Fmm;
   int f_stride, Fmt_stride, Fmt_offset, Fmm_stride, Fmm_offset;
   double *dl;
   double *dl8 = NULL;
   int dl_offset, dl_stride;
-  int w_offset;
   complex double *expsm, *expsmm;
   int exps_offset;
   int elmmsign, elssign;
@@ -102,12 +99,12 @@ void ssht_adjoint_mw_inverse_sov_sym(complex double *flm,
   // Print messages depending on verbosity level.
   if (verbosity > 0) {
     printf("%s %s\n", SSHT_PROMPT, 
-	   "Computing forward transform using MW sampling with ");
+	   "Computing adjoint inverse transform using MW sampling with ");
     printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
 	   L, ",", spin, ", FALSE)");
     if (verbosity > 1)
       printf("%s %s\n", SSHT_PROMPT, 
-	     "Using routine ssht_core_mw_forward_sov_conv_sym...");
+	     "Using routine ssht_adjoint_mw_inverse_sov_sym...");
   }
 
   // Compute Fourier transform over phi, i.e. compute Fmt.
@@ -124,18 +121,14 @@ void ssht_adjoint_mw_inverse_sov_sym(complex double *flm,
     fftw_execute_dft(plan, inout, inout);
     for(m=0; m<=L-1; m++) 
       Fmt[(m+Fmt_offset)*Fmt_stride + t] = inout[m];
-// / (2.0*L-1.0);
     for(m=-(L-1); m<=-1; m++) 
       Fmt[(m+Fmt_offset)*Fmt_stride + t] = inout[m+2*L-1]; 
-// / (2.0*L-1.0);
   }
 
-  // Extend Fmt periodically.
+  // Apply adjoint of periodic entension.
   for (m=-(L-1); m<=L-1; m++) 
     for (t=L; t<=2*L-2; t++) 
-      Fmt[(m+Fmt_offset)*Fmt_stride + t] = 
-	0.0;
-//	signs[abs(m)] * ssign * Fmt[(m+Fmt_offset)*Fmt_stride + (2*L-2-t)];
+      Fmt[(m+Fmt_offset)*Fmt_stride + t] = 0.0;
 
   // Compute Fourier transform over theta, i.e. compute Fmm.
   Fmm = (complex double*)calloc((2*L-1)*(2*L-1), sizeof(complex double));
@@ -146,99 +139,20 @@ void ssht_adjoint_mw_inverse_sov_sym(complex double *flm,
     memcpy(inout, &Fmt[(m+Fmt_offset)*Fmt_stride], Fmt_stride*sizeof(complex double));
     fftw_execute_dft(plan, inout, inout);
     for(mm=0; mm<=L-1; mm++) 
-      Fmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset] = 
+      Fmm[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset] = 
 	inout[mm]; 
-// / (2.0*L-1.0);
     for(mm=-(L-1); mm<=-1; mm++) 
-      Fmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset] = 
+      Fmm[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset] = 
 	inout[mm+2*L-1]; 
-// / (2.0*L-1.0);
   }
   fftw_destroy_plan(plan);
   free(inout);
 
   // Apply phase modulation to account for sampling offset.
-  for (m=-(L-1); m<=L-1; m++)
-    for (mm=-(L-1); mm<=L-1; mm++)
-      Fmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset] *=
+  for (mm=-(L-1); mm<=L-1; mm++)
+    for (m=-(L-1); m<=L-1; m++)
+      Fmm[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset] *=
   	expsmm[mm + exps_offset];
-
-  // Compute weights.
-  w = (double complex*)calloc(4*L-3, sizeof(complex double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(w)
-  w_offset = 2*(L-1);
-  for (mm=-2*(L-1); mm<=2*(L-1); mm++)
-    w[mm+w_offset] = ssht_sampling_weight_mw(mm);
-
-  // Compute IFFT of w to give wr.
-  wr = (double complex*)calloc(4*L-3, sizeof(complex double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(wr)
-  inout = (complex double*)calloc(4*L-3, sizeof(complex double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(inout)
-  plan_bwd = fftw_plan_dft_1d(4*L-3, inout, inout, FFTW_BACKWARD, FFTW_MEASURE);
-  plan_fwd = fftw_plan_dft_1d(4*L-3, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
-  for (mm=1; mm<=2*L-2; mm++) 
-    inout[mm + w_offset] = w[mm - 2*(L-1) - 1 + w_offset];
-  for (mm=-2*(L-1); mm<=0; mm++) 
-    inout[mm + w_offset] = w[mm + 2*(L-1) + w_offset];
-  fftw_execute_dft(plan_bwd, inout, inout);
-  for (mm=0; mm<=2*L-2; mm++) 
-    wr[mm + w_offset] = inout[mm - 2*(L-1) + w_offset];
-  for (mm=-2*(L-1); mm<=-1; mm++) 
-    wr[mm + w_offset] = inout[mm + 2*(L-1) + 1 + w_offset];
-
-  // Compute Gmm by convolution implemented as product in real space.
-  Fmm_pad = (complex double*)calloc(4*L-3, sizeof(complex double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(Fmm_pad)
-  tmp_pad = (complex double*)calloc(4*L-3, sizeof(complex double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(tmp_pad)
-  Gmm = (complex double*)calloc((2*L-1)*(2*L-1), sizeof(complex double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(Gmm)
-  /* for (m=-(L-1); m<=L-1; m++) { */
-
-  /*   // Zero-pad Fmm. */
-  /*   for (mm=-2*(L-1); mm<=-L; mm++) */
-  /*     Fmm_pad[mm+w_offset] = 0.0; */
-  /*   for (mm=L; mm<=2*(L-1); mm++) */
-  /*     Fmm_pad[mm+w_offset] = 0.0; */
-  /*   for (mm=-(L-1); mm<=L-1; mm++) */
-  /*     Fmm_pad[mm + w_offset] =  */
-  /* 	Fmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset]; */
-
-  /*   // Compute IFFT of Fmm. */
-  /*   for (mm=1; mm<=2*L-2; mm++) */
-  /*     inout[mm + w_offset] = Fmm_pad[mm - 2*(L-1) - 1 + w_offset]; */
-  /*   for (mm=-2*(L-1); mm<=0; mm++) */
-  /*     inout[mm + w_offset] = Fmm_pad[mm + 2*(L-1) + w_offset]; */
-  /*   fftw_execute_dft(plan_bwd, inout, inout); */
-  /*   for (mm=0; mm<=2*L-2; mm++) */
-  /*     Fmm_pad[mm + w_offset] = inout[mm - 2*(L-1) + w_offset]; */
-  /*   for (mm=-2*(L-1); mm<=-1; mm++) */
-  /*     Fmm_pad[mm + w_offset] = inout[mm + 2*(L-1) + 1 + w_offset]; */
-
-  /*   // Compute product of Fmm and weight in real space. */
-  /*   for (r=-2*(L-1); r<=2*(L-1); r++)  */
-  /*     Fmm_pad[r + w_offset] *= wr[-r + w_offset]; */
-
-  /*   // Compute Gmm by FFT. */
-  /*   for (mm=1; mm<=2*L-2; mm++) */
-  /*     inout[mm + w_offset] = Fmm_pad[mm - 2*(L-1) - 1 + w_offset]; */
-  /*   for (mm=-2*(L-1); mm<=0; mm++) */
-  /*     inout[mm + w_offset] = Fmm_pad[mm + 2*(L-1) + w_offset]; */
-  /*   fftw_execute_dft(plan_fwd, inout, inout); */
-  /*   for (mm=0; mm<=2*L-2; mm++) */
-  /*     Fmm_pad[mm + w_offset] = inout[mm - 2*(L-1) + w_offset]; */
-  /*   for (mm=-2*(L-1); mm<=-1; mm++) */
-  /*     Fmm_pad[mm + w_offset] = inout[mm + 2*(L-1) + 1 + w_offset]; */
-
-  /*   // Extract section of Gmm of interest. */
-  /*   for (mm=-(L-1); mm<=L-1; mm++) */
-  /*     Gmm[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset] =  */
-  /* 	Fmm_pad[mm + w_offset] * 2.0 * SSHT_PI / (4.0*L-3.0); */
-
-  /* } */
-  fftw_destroy_plan(plan_bwd);
-  fftw_destroy_plan(plan_fwd);
 
   // Compute flm.
   dl = ssht_dl_calloc(L, SSHT_DL_QUARTER);
@@ -327,8 +241,7 @@ void ssht_adjoint_mw_inverse_sov_sym(complex double *flm,
 	* expsm[m + exps_offset]
 	* signs[el] * dl[0*dl_stride - m + dl_offset]
 	* elssign * dl[0*dl_stride - spinneg + dl_offset]
-	* Fmm[(m+Fmm_offset)*Fmm_stride + 0 + Fmm_offset];
-//	* Gmm[(0+Fmm_offset)*Fmm_stride + m + Fmm_offset];
+	* Fmm[(0+Fmm_offset)*Fmm_stride + m + Fmm_offset];
     }
     for (m=0; m<=el; m++) {
       // mm = 0
@@ -339,8 +252,7 @@ void ssht_adjoint_mw_inverse_sov_sym(complex double *flm,
 	* expsm[m + exps_offset]
 	* dl[0*dl_stride + m + dl_offset]
 	* elssign * dl[0*dl_stride - spinneg + dl_offset]
-	* Fmm[(m+Fmm_offset)*Fmm_stride + 0 + Fmm_offset];
-//      * Gmm[(0+Fmm_offset)*Fmm_stride + m + Fmm_offset];
+	* Fmm[(0+Fmm_offset)*Fmm_stride + m + Fmm_offset];
     }
 
     for (mm=1; mm<=el; mm++) {
@@ -355,12 +267,9 @@ void ssht_adjoint_mw_inverse_sov_sym(complex double *flm,
       	  * expsm[m + exps_offset]
       	  * elmmsign * dl[mm*dl_stride - m + dl_offset]
       	  * elssign * dl[mm*dl_stride - spinneg + dl_offset]
-      	  * ( Fmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset]
+	  * ( Fmm[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset]
       	      + signs[-m] * ssign
-      	      * Fmm[(m+Fmm_offset)*Fmm_stride - mm + Fmm_offset]);
-	  /* * ( Gmm[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset] */
-      	  /*     + signs[-m] * ssign */
-      	  /*     * Gmm[(-mm+Fmm_offset)*Fmm_stride + m + Fmm_offset]); */
+      	      * Fmm[(-mm+Fmm_offset)*Fmm_stride + m + Fmm_offset]);
       }
       for (m=0; m<=el; m++) {
 	ind = inds[m + inds_offset];
@@ -370,12 +279,9 @@ void ssht_adjoint_mw_inverse_sov_sym(complex double *flm,
 	  * expsm[m + exps_offset]
 	  * dl[mm*dl_stride + m + dl_offset]
 	  * elssign * dl[mm*dl_stride - spinneg + dl_offset]
-	  * ( Fmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset]
+	  * ( Fmm[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset]
 	      + signs[m] * ssign
-	      * Fmm[(m+Fmm_offset)*Fmm_stride - mm + Fmm_offset]);
-	/* * ( Gmm[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset] */
-	/*       + signs[m] * ssign */
-	/*       * Gmm[(-mm+Fmm_offset)*Fmm_stride + m + Fmm_offset]); */
+	      * Fmm[(-mm+Fmm_offset)*Fmm_stride + m + Fmm_offset]);
       }
 
     }  
@@ -386,19 +292,19 @@ void ssht_adjoint_mw_inverse_sov_sym(complex double *flm,
   free(dl);
   if (dl_method == SSHT_DL_RISBO)
     free(dl8);
-  free(Fmt);
-  free(Fmm);
-  free(inout);
-  free(w);
-  free(wr);
-  free(Fmm_pad);
-  free(tmp_pad);
-  free(Gmm);
-  free(sqrt_tbl);
-  free(signs); 
-  free(expsm);
-  free(expsmm);
-  free(inds);
+  /* free(Fmt); */
+  /* free(Fmm); */
+  /* free(inout); */
+  /* free(w); */
+  /* free(wr); */
+  /* free(Fmm_pad); */
+  /* free(tmp_pad); */
+  /* free(Gmm); */
+  /* free(sqrt_tbl); */
+  /* free(signs);  */
+  /* free(expsm); */
+  /* free(expsmm); */
+  /* free(inds); */
 
   // Print finished if verbosity set.
   if (verbosity > 0) 
@@ -775,12 +681,22 @@ void ssht_adjoint_mw_inverse_sov_sym_real(complex double *flm,
 }
 
 
-
-
-
-
-
-
+/*!  
+ * Compute adjoint of forward transform for MW method using separation
+ * of variables, fast Fourier transforms, performing convolution with
+ * weights as product in transformed space and exploiting all
+ * symmetries (for complex spin signal).
+ *
+ * \param[out] f Function on sphere.
+ * \param[in] flm Harmonic coefficients.
+ * \param[in] L Harmonic band-limit.
+ * \param[in] spin Spin number.
+ * \param[in] dl_method Method to use when compute Wigner functions.
+ * \param[in] verbosity Verbosiity flag in range [0,5].
+ * \retval none
+ *
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
+ */
 void ssht_adjoint_mw_forward_sov_sym(complex double *f, complex double *flm,
 				     int L, int spin,
 				     ssht_dl_method_t dl_method,
@@ -1160,6 +1076,24 @@ void ssht_adjoint_mw_forward_sov_sym(complex double *f, complex double *flm,
 
 }
 
+
+/*!  
+ * Compute adjoint of forward transform for MW method of real scalar
+ * signal using separation of variables, fast Fourier transforms,
+ * performing convolution with weights as product in transformed space
+ * and exploiting all symmetries (including additional symmetries for
+ * real signals).
+ *
+ * \param[out] f Function on sphere.
+ * \param[in] flm Harmonic coefficients.
+ * \param[in] L Harmonic band-limit.
+ * \param[in] spin Spin number.
+ * \param[in] dl_method Method to use when compute Wigner functions.
+ * \param[in] verbosity Verbosiity flag in range [0,5].
+ * \retval none
+ *
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
+ */
 void ssht_adjoint_mw_forward_sov_sym_real(double *f, 
 					  complex double *flm,
 					  int L, int spin,
@@ -1554,8 +1488,6 @@ void ssht_adjoint_mw_forward_sov_sym_real(double *f,
   free(inds);
 
 }
-
-
 
 
 //============================================================================
@@ -2302,6 +2234,22 @@ void ssht_adjoint_mw_inverse_sov_sym_ss_real(complex double *flm, double *f,
 }
 
 
+/*!  
+ * Compute adjoint of forward transform for MW method with symmetric
+ * sampling using separation of variables, fast Fourier transforms,
+ * performing convolution with weights as product in transformed space
+ * and exploiting all symmetries (for complex spin signal).
+ *
+ * \param[out] f Function on sphere.
+ * \param[in] flm Harmonic coefficients.
+ * \param[in] L Harmonic band-limit.
+ * \param[in] spin Spin number.
+ * \param[in] dl_method Method to use when compute Wigner functions.
+ * \param[in] verbosity Verbosiity flag in range [0,5].
+ * \retval none
+ *
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
+ */
 void ssht_adjoint_mw_forward_sov_sym_ss(complex double *f, complex double *flm,
 					int L, int spin,
 					ssht_dl_method_t dl_method,
@@ -2680,7 +2628,23 @@ void ssht_adjoint_mw_forward_sov_sym_ss(complex double *f, complex double *flm,
 }
 
 
-
+/*!  
+ * Compute adjoint of forward transform for MW method with symmetric
+ * sampling of real scalar signal using separation of variables, fast
+ * Fourier transforms, performing convolution with weights as product
+ * in transformed space and exploiting all symmetries (including
+ * additional symmetries for real signals).
+ *
+ * \param[out] f Function on sphere.
+ * \param[in] flm Harmonic coefficients.
+ * \param[in] L Harmonic band-limit.
+ * \param[in] spin Spin number.
+ * \param[in] dl_method Method to use when compute Wigner functions.
+ * \param[in] verbosity Verbosiity flag in range [0,5].
+ * \retval none
+ *
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
+ */
 void ssht_adjoint_mw_forward_sov_sym_ss_real(double *f, 
 					  complex double *flm,
 					  int L, int spin,
