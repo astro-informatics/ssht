@@ -329,7 +329,6 @@ void ssht_adjoint_mw_inverse_sov_sym_real(complex double *flm,
 					  int verbosity) {
 
   int el, m, mm, ind, ind_nm, t;
-  //, r;
   int eltmp;
   double *sqrt_tbl, *signs;
   int el2pel, inds_offset;
@@ -616,8 +615,10 @@ void ssht_adjoint_mw_forward_sov_sym(complex double *f, complex double *flm,
   int exps_offset;
   double elmmsign, elssign;
   int spinneg;
-  complex double *Fmm, *fext;
-  int Fmm_offset, Fmm_stride, fext_stride;
+  complex double *Fmm;
+  //, *fext;
+  int Fmm_offset, Fmm_stride; 
+  //, fext_stride;
 
   fftw_plan plan, plan_bwd, plan_fwd;
   complex double *Ftm, *Gmm;
@@ -661,10 +662,6 @@ void ssht_adjoint_mw_forward_sov_sym(complex double *f, complex double *flm,
       printf("%s %s\n", SSHT_PROMPT,
 	     "Using routine ssht_adjoint_mw_forward_sov_sym...");
   }
-
-
-  // ==========================
-  // 1.
 
   // Compute Fmm.
   Fmm = (complex double*)calloc((2*L-1)*(2*L-1), sizeof(complex double));
@@ -746,7 +743,7 @@ void ssht_adjoint_mw_forward_sov_sym(complex double *f, complex double *flm,
 
       for (m=-el; m<=-1; m++) {
 	ind = inds[m + inds_offset];
-    	Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset] +=
+    	Fmm[(m + Fmm_offset)*Fmm_stride + mm + Fmm_offset] +=
     	  ssign
     	  * elfactor
 	  * exps[m + exps_offset]
@@ -756,7 +753,7 @@ void ssht_adjoint_mw_forward_sov_sym(complex double *f, complex double *flm,
       }
       for (m=0; m<=el; m++) {
 	ind = inds[m + inds_offset];
-    	Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset] +=
+    	Fmm[(m + Fmm_offset)*Fmm_stride + mm + Fmm_offset] +=
     	  ssign
     	  * elfactor
 	  * exps[m + exps_offset]
@@ -775,28 +772,11 @@ void ssht_adjoint_mw_forward_sov_sym(complex double *f, complex double *flm,
     free(dl8);
 
   // Use symmetry to compute Fmm for negative mm.
-  for (mm=-(L-1); mm<=-1; mm++)
-    for (m=-(L-1); m<=L-1; m++)
-      Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset] =
+  for (m=-(L-1); m<=L-1; m++)
+    for (mm=-(L-1); mm<=-1; mm++)
+      Fmm[(m + Fmm_offset)*Fmm_stride + mm + Fmm_offset] =
 	signs[abs(m)] * ssign
-	* Fmm[(-mm + Fmm_offset)*Fmm_stride + m + Fmm_offset];
-
-  /* // Apply phase modulation to account for sampling offset. */
-  /* for (mm=-(L-1); mm<=L-1; mm++) { */
-  /*   mmfactor = cexp(I*mm*SSHT_PI/(2.0*L-1.0)); */
-  /*   for (m=-(L-1); m<=L-1; m++) */
-  /*     Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset] *= */
-  /* 	mmfactor; */
-  /* } */
-
-
-
-
-  // ==========================
-  // 2.
-
-
-
+	* Fmm[(m + Fmm_offset)*Fmm_stride - mm + Fmm_offset];
 
   // Compute weights.
   w = (double complex*)calloc(4*L-3, sizeof(complex double));
@@ -838,8 +818,7 @@ void ssht_adjoint_mw_forward_sov_sym(complex double *f, complex double *flm,
       Fmm_pad[mm+w_offset] = 0.0;
     for (mm=-(L-1); mm<=L-1; mm++)
       Fmm_pad[mm + w_offset] =
-	Fmm[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset];
-//	Fmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset];
+	Fmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset];
 
     // Compute IFFT of Fmm.
     for (mm=1; mm<=2*L-2; mm++)
@@ -869,38 +848,26 @@ void ssht_adjoint_mw_forward_sov_sym(complex double *f, complex double *flm,
 
     // Extract section of Gmm of interest.
     for (mm=-(L-1); mm<=L-1; mm++)
-      Gmm[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset] =
+      Gmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset] =
 	Fmm_pad[mm + w_offset] * 2.0 * SSHT_PI / (4.0*L-3.0);
 
   }
   fftw_destroy_plan(plan_bwd);
   fftw_destroy_plan(plan_fwd);
-
-
+  free(inout);
 
   // Apply phase modulation to account for sampling offset.
   for (mm=-(L-1); mm<=L-1; mm++) {
     mmfactor = cexp(I*mm*SSHT_PI/(2.0*L-1.0));
     for (m=-(L-1); m<=L-1; m++)
-      Gmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset] *=
+      Gmm[(m + Fmm_offset)*Fmm_stride + mm + Fmm_offset] *=
   	mmfactor;
   }
 
-  // ==========================
-  // 3. Gmm -> Fmt
-
-
-
-
-
+  // Compute Fourier transform over theta.
   inout = (complex double*)calloc(2*L-1, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
   plan = fftw_plan_dft_1d(2*L-1, inout, inout, FFTW_BACKWARD, FFTW_MEASURE);
-
-
-
-
-  // Compute Fourier transform over theta.
   Ftm = (complex double*)calloc((2*L-1)*(2*L-1), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Ftm)
   Ftm_stride = 2*L-1;
@@ -908,9 +875,9 @@ void ssht_adjoint_mw_forward_sov_sym(complex double *f, complex double *flm,
   for (m=-(L-1); m<=L-1; m++) {
 
     for(mm=0; mm<=L-1; mm++)
-      inout[mm] = Gmm[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset];
+      inout[mm] = Gmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset];
     for(mm=-(L-1); mm<=-1; mm++)
-      inout[mm+2*L-1] = Gmm[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset];
+      inout[mm+2*L-1] = Gmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset];
     fftw_execute_dft(plan, inout, inout);
 
     for(t=0; t<=2*L-2; t++)
@@ -918,20 +885,12 @@ void ssht_adjoint_mw_forward_sov_sym(complex double *f, complex double *flm,
 
   }
 
-
-
-  // ==========================
-  // 4.
-
   // Adjoint of periodic extension of Ftm.
   for(t=0; t<=L-2; t++)
     for (m=-(L-1); m<=L-1; m++)
       Ftm[t*Ftm_stride + m + Ftm_offset] = 
 	Ftm[t*Ftm_stride + m + Ftm_offset] 
 	+ signs[abs(m)] * ssign * Ftm[(2*L-2-t)*Ftm_stride + m + Ftm_offset];
-
-  // ==========================
-  // 5.
 
   // Compute Fourier transform over phi.
   f_stride = 2*L-1;
@@ -950,26 +909,24 @@ void ssht_adjoint_mw_forward_sov_sym(complex double *f, complex double *flm,
   fftw_destroy_plan(plan);
   free(inout);
 
-
-
-
-
-
-
-
-  // Free Fmm memory.
+  // Free memory.
   free(Fmm);
-  
-
-  // Print finished if verbosity set.
-  if (verbosity > 0)
-    printf("%s %s", SSHT_PROMPT, "Inverse transform computed!");
+  free(Ftm);
+  free(w);
+  free(wr);
+  free(Fmm_pad);
+  free(tmp_pad);
+  free(Gmm);
 
   // Free precomputation memory.
   free(sqrt_tbl);
   free(signs);
   free(exps);
   free(inds);
+
+  // Print finished if verbosity set.
+  if (verbosity > 0)
+    printf("%s %s", SSHT_PROMPT, "Adjoint forward transform computed!");
 
 }
 
