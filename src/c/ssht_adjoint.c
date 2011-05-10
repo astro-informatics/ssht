@@ -938,7 +938,6 @@ void ssht_adjoint_mw_forward_sov_sym(complex double *f, complex double *flm,
  * \param[out] f Function on sphere.
  * \param[in] flm Harmonic coefficients.
  * \param[in] L Harmonic band-limit.
- * \param[in] spin Spin number.
  * \param[in] dl_method Method to use when compute Wigner functions.
  * \param[in] verbosity Verbosiity flag in range [0,5].
  * \retval none
@@ -947,7 +946,7 @@ void ssht_adjoint_mw_forward_sov_sym(complex double *f, complex double *flm,
  */
 void ssht_adjoint_mw_forward_sov_sym_real(double *f, 
 					  complex double *flm,
-					  int L, int spin,
+					  int L,
 					  ssht_dl_method_t dl_method,
 					  int verbosity) {
 
@@ -979,6 +978,7 @@ void ssht_adjoint_mw_forward_sov_sym_real(double *f,
   complex double *in;
   double *out_real;
   int Gmm_stride;
+  int spin = 0;
 
   // Allocate memory.
   sqrt_tbl = (double*)calloc(2*(L-1)+2, sizeof(double));
@@ -1273,6 +1273,202 @@ void ssht_adjoint_mw_forward_sov_sym_real(double *f,
   // Print finished if verbosity set.
   if (verbosity > 0)
     printf("%s %s", SSHT_PROMPT, "Adjoint forward transform computed!");
+
+}
+
+
+//============================================================================
+// MW South pole interfaces
+//============================================================================
+
+
+/*!  
+ * South pole wrapper for adjoint forward transform for MW method.
+ * The South pole is defined by a single sample and its corresponding
+ * phi angle, rather than specifying samples for all phi at the South
+ * pole (which are simply related by the rotation of a spin function
+ * in its tangent plane).
+ *
+ * \param[out] f Function on sphere (excluding South pole).
+ * \param[out] f_sp Function sample on South pole.
+ * \param[out] phi_sp Phi angle corresponding to quoted sample at 
+ * South pole.
+ * \param[in] flm Harmonic coefficients.
+ * \param[in] L Harmonic band-limit.
+ * \param[in] spin Spin number.
+ * \param[in] dl_method Method to use when compute Wigner functions.
+ * \param[in] verbosity Verbosiity flag in range [0,5].
+ * \retval none
+ *
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
+ */
+void ssht_adjoint_mw_forward_sov_sym_pole(complex double *f, 
+					  complex double *f_sp, double *phi_sp,
+					  complex double *flm, 
+					  int L, int spin, 
+					  ssht_dl_method_t dl_method,
+					  int verbosity) {
+
+  complex double* f_full;
+  int f_stride = 2*L-1;
+
+  // Allocate full array.
+  f_full = (complex double*)calloc(L*(2*L-1), sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(f_full)
+
+  // Perform inverse transform.
+  ssht_adjoint_mw_forward_sov_sym(f_full, flm, L, spin, 
+				  dl_method, verbosity);	  
+
+  // Copy output function values, including separate point for South pole.
+  memcpy(f, f_full, (L-1)*(2*L-1)*sizeof(complex double));
+  *f_sp = f_full[(L-1)*f_stride + 0];
+  *phi_sp = ssht_sampling_mw_p2phi(0, L);
+	
+  // Free memory.
+  free(f_full);
+
+}
+
+
+/*!  
+ * South pole wrapper for adjoint forward transform of real scalar
+ * function for MW method.  The South pole is defined by a single
+ * sample, rather than specifying samples for all phi at the South
+ * pole (which for a scalar function are identical).
+ *
+ * \param[out] f Function on sphere (excluding South pole).
+ * \param[out] f_sp Function sample on South pole.
+ * \param[in] flm Harmonic coefficients.
+ * \param[in] L Harmonic band-limit.
+ * \param[in] spin Spin number.
+ * \param[in] dl_method Method to use when compute Wigner functions.
+ * \param[in] verbosity Verbosiity flag in range [0,5].
+ * \retval none
+ *
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
+ */
+void ssht_adjoint_mw_forward_sov_sym_real_pole(double *f, 
+					       double *f_sp,
+					       complex double *flm, 
+					       int L, 
+					       ssht_dl_method_t dl_method, 
+					       int verbosity) {
+
+  double *f_full;
+  int f_stride = 2*L-1;
+
+  // Allocate full array.
+  f_full = (double*)calloc(L*(2*L-1), sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(f_full)
+
+  // Perform inverse transform.
+  ssht_adjoint_mw_forward_sov_sym_real(f_full, flm, L, 
+				       dl_method, verbosity);
+
+  // Copy output function values, including separate point for South pole.
+  memcpy(f, f_full, (L-1)*(2*L-1)*sizeof(double));
+  *f_sp = f_full[(L-1)*f_stride + 0];
+
+  // Free memory.
+  free(f_full);
+
+}
+
+
+/*!  
+ * South pole wrapper for adjoint inverse transform for MW method.
+ * The South pole is defined by a single sample and its corresponding
+ * phi angle, rather than specifying samples for all phi at the South
+ * pole (which are simply related by the rotation of a spin function
+ * in its tangent plane).
+ *
+ * \param[out] flm Harmonic coefficients.
+ * \param[in] f Function on sphere (excluding South pole).
+ * \param[in] f_sp Function sample on South pole.
+ * \param[in] phi_sp Phi angle corresponding to quoted sample at 
+ * South pole.
+ * \param[in] L Harmonic band-limit.
+ * \param[in] spin Spin number.
+ * \param[in] dl_method Method to use when compute Wigner functions.
+ * \param[in] verbosity Verbosiity flag in range [0,5].
+ * \retval none
+ *
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
+ */
+void ssht_adjoint_mw_inverse_sov_sym_pole(complex double *flm, complex double *f,
+					  complex double f_sp, double phi_sp,
+					  int L, int spin, 
+					  ssht_dl_method_t dl_method,
+					  int verbosity) {
+
+  complex double *f_full;
+  int p, f_stride = 2*L-1;
+  double phi;
+
+  // Copy function values to full array.
+  f_full = (complex double*)calloc(L*(2*L-1), sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(f_full)
+  memcpy(f_full, f, (L-1)*(2*L-1)*sizeof(complex double));
+
+  // Define South pole for all phi.
+  for (p=0; p<=2*L-2; p++) {
+    phi = ssht_sampling_mw_p2phi(p, L);
+    f_full[(L-1)*f_stride + p] = f_sp * cexp(I*spin*(phi-phi_sp)); 
+  }
+
+  // Perform forward transform.
+  ssht_adjoint_mw_inverse_sov_sym(flm, f_full, L, spin, 
+				  dl_method, verbosity);
+
+  // Free memory.
+  free(f_full);
+
+}
+
+
+/*!  
+ * South pole wrapper for adjoint inverse transform of real scalar
+ * function for MW method.  The South pole is defined by a single
+ * sample, rather than specifying samples for all phi at the South
+ * pole (which for a scalar function are identical).
+ *
+ * \param[out] flm Harmonic coefficients.
+ * \param[in] f Function on sphere (excluding South pole).
+ * \param[in] f_sp Function sample on South pole.
+ * \param[in] L Harmonic band-limit.
+ * \param[in] spin Spin number.
+ * \param[in] dl_method Method to use when compute Wigner functions.
+ * \param[in] verbosity Verbosiity flag in range [0,5].
+ * \retval none
+ *
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
+ */
+void ssht_adjoint_mw_inverse_sov_sym_real_pole(complex double *flm, 
+					       double *f, 
+					       double f_sp,
+					       int L, 
+					       ssht_dl_method_t dl_method,
+					       int verbosity) {
+
+  double *f_full;
+  int p, f_stride = 2*L-1;
+
+  // Copy function values to full array.
+  f_full = (double*)calloc(L*(2*L-1), sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(f_full)
+  memcpy(f_full, f, (L-1)*(2*L-1)*sizeof(double));
+
+  // Define South pole for all phi.
+  for (p=0; p<=2*L-2; p++)
+    f_full[(L-1)*f_stride + p] = f_sp; 
+
+  // Perform forward transform.
+  ssht_adjoint_mw_inverse_sov_sym_real(flm, f_full, L, 
+				       dl_method, verbosity);
+
+  // Free memory.
+  free(f_full);
 
 }
 
@@ -2176,7 +2372,6 @@ void ssht_adjoint_mw_forward_sov_sym_ss(complex double *f, complex double *flm,
  * \param[out] f Function on sphere.
  * \param[in] flm Harmonic coefficients.
  * \param[in] L Harmonic band-limit.
- * \param[in] spin Spin number.
  * \param[in] dl_method Method to use when compute Wigner functions.
  * \param[in] verbosity Verbosiity flag in range [0,5].
  * \retval none
@@ -2185,7 +2380,7 @@ void ssht_adjoint_mw_forward_sov_sym_ss(complex double *f, complex double *flm,
  */
 void ssht_adjoint_mw_forward_sov_sym_ss_real(double *f, 
 					     complex double *flm,
-					     int L, int spin,
+					     int L,
 					     ssht_dl_method_t dl_method,
 					     int verbosity) {
 
@@ -2216,6 +2411,7 @@ void ssht_adjoint_mw_forward_sov_sym_ss_real(double *f,
   complex double *in;
   double *out_real;
   int Gmm_offset, Gmm_stride;
+  int spin = 0;
 
   // Allocate memory.
   sqrt_tbl = (double*)calloc(2*(L-1)+2, sizeof(double));
@@ -2506,3 +2702,224 @@ void ssht_adjoint_mw_forward_sov_sym_ss_real(double *f,
 
 }
 
+
+//============================================================================
+// MW SS Noth-South pole interfaces
+//============================================================================
+
+
+/*!  
+ * North-South pole wrapper for adjoint forward transform for MW
+ * method with symmetric sampling.  The poles are defined by single
+ * samples and their corresponding phi angle, rather than specifying
+ * samples for all phi at the poles (which are simply related by the
+ * rotation of a spin function in its tangent plane).
+ *
+ * \param[out] f Function on sphere (excluding poles).
+ * \param[out] f_np Function sample on North pole.
+ * \param[out] phi_np Phi angle corresponding to quoted sample at 
+ * North pole.
+ * \param[out] f_sp Function sample on South pole.
+ * \param[out] phi_sp Phi angle corresponding to quoted sample at 
+ * South pole.
+ * \param[in] flm Harmonic coefficients.
+ * \param[in] L Harmonic band-limit.
+ * \param[in] spin Spin number.
+ * \param[in] dl_method Method to use when compute Wigner functions.
+ * \param[in] verbosity Verbosiity flag in range [0,5].
+ * \retval none
+ *
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
+ */
+void ssht_adjoint_mw_forward_sov_sym_ss_pole(complex double *f, 
+					     complex double *f_np, double *phi_np,
+					     complex double *f_sp, double *phi_sp,
+					     complex double *flm, 
+					     int L, int spin, 
+					     ssht_dl_method_t dl_method,
+					     int verbosity) {
+
+  complex double* f_full;
+  int t, f_stride = 2*L;
+
+  // Allocate full array.
+  f_full = (complex double*)calloc((L+1)*(2*L), sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(f_full)
+
+  // Perform inverse transform.
+  ssht_adjoint_mw_forward_sov_sym_ss(f_full, flm, L, spin, 
+				     dl_method, verbosity);	  
+
+  // Copy output function values, including separate points for  poles.
+ for (t=1; t<=L-1; t++)
+   memcpy(&f[(t-1)*f_stride], &f_full[t*f_stride], 
+	  (2*L)*sizeof(complex double));
+  *f_np = f_full[0];
+  *phi_np = ssht_sampling_mw_ss_p2phi(0, L);
+  *f_sp = f_full[L*f_stride + 0];
+  *phi_sp = ssht_sampling_mw_ss_p2phi(0, L);
+	
+  // Free memory.
+  free(f_full);
+
+}
+
+
+/*!  
+ * North-South pole wrapper for adjoint forward transform of real
+ * scalar function for MW method with symmetric sampling.  The poles
+ * are defined by single samples, rather than specifying samples for
+ * all phi at the poles (which for a scalar function are identical).
+ *
+ * \param[out] f Function on sphere (excluding poles).
+ * \param[out] f_sp Function sample on South pole.
+ * \param[out] f_np Function sample on North pole.
+ * \param[in] flm Harmonic coefficients.
+ * \param[in] L Harmonic band-limit.
+ * \param[in] spin Spin number.
+ * \param[in] dl_method Method to use when compute Wigner functions.
+ * \param[in] verbosity Verbosiity flag in range [0,5].
+ * \retval none
+ *
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
+ */
+void ssht_adjoint_mw_forward_sov_sym_ss_real_pole(double *f, 
+						  double *f_np,
+						  double *f_sp,
+						  complex double *flm, 
+						  int L, 
+						  ssht_dl_method_t dl_method,
+						  int verbosity) {
+
+  double *f_full;
+  int t, f_stride = 2*L;
+
+  // Allocate full array.
+  f_full = (double*)calloc((L+1)*(2*L), sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(f_full)
+
+  // Perform inverse transform.
+  ssht_adjoint_mw_forward_sov_sym_ss_real(f_full, flm, L, 
+					  dl_method, verbosity);
+
+  // Copy output function values, including separate points for  poles.
+  for (t=1; t<=L-1; t++)
+   memcpy(&f[(t-1)*f_stride], &f_full[t*f_stride], 
+	  (2*L)*sizeof(double));
+  *f_np = f_full[0];
+  *f_sp = f_full[L*f_stride + 0];
+
+  // Free memory.
+  free(f_full);
+
+}
+
+
+/*!  
+ * North-South pole wrapper for adjoint inverse transform for MW
+ * method with symmetric sampling.  The poles are defined by single
+ * samples and their corresponding phi angle, rather than specifying
+ * samples for all phi at the poles (which are simply related by the
+ * rotation of a spin function in its tangent plane).
+ *
+ * \param[out] flm Harmonic coefficients.
+ * \param[in] f Function on sphere (excluding poles).
+ * \param[in] f_np Function sample on North pole.
+ * \param[in] phi_np Phi angle corresponding to quoted sample at 
+ * North pole.
+ * \param[in] f_sp Function sample on South pole.
+ * \param[in] phi_sp Phi angle corresponding to quoted sample at 
+ * South pole.
+ * \param[in] L Harmonic band-limit.
+ * \param[in] spin Spin number.
+ * \param[in] dl_method Method to use when compute Wigner functions.
+ * \param[in] verbosity Verbosiity flag in range [0,5].
+ * \retval none
+ *
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
+ */
+void ssht_adjoint_mw_inverse_sov_sym_ss_pole(complex double *flm, complex double *f,
+					     complex double f_np, double phi_np,
+					     complex double f_sp, double phi_sp,
+					     int L, int spin, 
+					     ssht_dl_method_t dl_method,
+					     int verbosity) {
+
+  complex double *f_full;
+  int t, p, f_stride = 2*L;
+  double phi;
+
+  // Copy function values to full array.
+  f_full = (complex double*)calloc((L+1)*(2*L), sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(f_full)
+  for (t=1; t<=L-1; t++)
+    memcpy(&f_full[t*f_stride], &f[(t-1)*f_stride], 
+	   (2*L)*sizeof(complex double));
+
+  // Define poles for all phi.
+  for (p=0; p<=2*L-1; p++) {
+    phi = ssht_sampling_mw_ss_p2phi(p, L);
+    f_full[0*f_stride + p] = f_np * cexp(-I*spin*(phi-phi_np)); 
+    f_full[L*f_stride + p] = f_sp * cexp(I*spin*(phi-phi_sp)); 
+  }
+
+  // Perform forward transform.
+  ssht_adjoint_mw_inverse_sov_sym_ss(flm, f_full, L, spin, 
+				     dl_method, verbosity);
+
+  // Free memory.
+  free(f_full);
+
+}
+
+
+/*!  
+ * North-South pole wrapper for adjoint inverse transform of real
+ * scalar function for MW method with symmetric sampling.  The poles
+ * are defined by single samples, rather than specifying samples for
+ * all phi at the poles (which for a scalar function are identical).
+ *
+ * \param[out] flm Harmonic coefficients.
+ * \param[in] f Function on sphere (excluding poles).
+ * \param[in] f_np Function sample on North pole.
+ * \param[in] f_sp Function sample on South pole.
+ * \param[in] L Harmonic band-limit.
+ * \param[in] spin Spin number.
+ * \param[in] dl_method Method to use when compute Wigner functions.
+ * \param[in] verbosity Verbosiity flag in range [0,5].
+ * \retval none
+ *
+ * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
+ */
+void ssht_adjoint_mw_inverse_sov_sym_ss_real_pole(complex double *flm, 
+						  double *f, 
+						  double f_np,
+						  double f_sp,
+						  int L, 
+						  ssht_dl_method_t dl_method,
+						  int verbosity) {
+
+  double *f_full;
+  int t, p, f_stride = 2*L;
+
+  // Copy function values to full array.
+  f_full = (double*)calloc((L+1)*(2*L), sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(f_full)
+  for (t=1; t<=L-1; t++)
+    memcpy(&f_full[t*f_stride], &f[(t-1)*f_stride], 
+	   (2*L)*sizeof(double));
+
+  // Define poles for all phi.
+  for (p=0; p<=2*L-1; p++) {
+    f_full[0*f_stride + p] = f_np; 
+    f_full[L*f_stride + p] = f_sp; 
+  }
+
+  // Perform forward transform.
+  ssht_adjoint_mw_inverse_sov_sym_ss_real(flm, f_full, L, 
+					  dl_method, verbosity);
+
+  // Free memory.
+  free(f_full);
+
+}
