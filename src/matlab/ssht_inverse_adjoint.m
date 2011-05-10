@@ -1,16 +1,13 @@
 function [flm] = ssht_inverse_adjoint(f, L, varargin)
-
-
-
-
-% ssht_forward - Compute forward spin spherical harmonic transform
+% ssht_inverse_adjoint - Compute adjoint inverse spin spherical
+% harmonic transform
 %
-% Computes forward spin spherical harmonic transform for various
-% exact sampling theorems.
+% Computes adjoint inverse spin spherical harmonic transform for
+% various exact sampling theorems.
 %
 % Default usage is given by
 %
-%   flm = ssht_forward(f, L, <options>)
+%   flm = ssht_inverse_adjoint(f, L, <options>)
 %
 % where L is the harmonic band-limit, flm is the vector of L^2
 % harmonic coefficients and f is the sampled function values
@@ -19,9 +16,7 @@ function [flm] = ssht_inverse_adjoint(f, L, varargin)
 % Options consist of parameter type and value pairs.  Valid options
 % include:
 %  'Method'          = { 'MW'         [McEwen & Wiaux sampling (default)],
-%                        'MWSS'       [McEwen & Wiaux symmetric sampling],
-%                        'DH'         [Driscoll & Healy sampling],
-%                        'GL'         [Gauss-Legendre sampling] }
+%                        'MWSS'       [McEwen & Wiaux symmetric sampling] }
 %  'Spin'            = { non-negative integers (default=0) }
 %  'Reality'         = { false        [do not assume f real (default)],
 %                        true         [assume f real (improves performance)] }
