@@ -8,14 +8,19 @@ DESCRIPTION
      spin spherical harmonic transforms.
 
 VERSION
-     Release 0.1, 5 March 2011
+     Release 0.2, 20 May 2011
 
 AUTHORS
      J. D. McEwen (www.jasonmcewen.org)
      Y. Wiaux
 
-REFERENCE
-     To appear.
+REFERENCES
+     J. D. McEwen and Y. Wiaux, A novel sampling theorem on the
+     sphere, to appear, 2011
+
+     J. D. McEwen, G. Puy, J.-Ph. Thiran, P. Vandergheynst, D. Van De
+     Ville and Y. Wiaux, Efficient and compressive sampling on the
+     sphere, to appear, 2011.
 
 DOCUMENTATION
      See doc/index.html

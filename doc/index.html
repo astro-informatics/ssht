@@ -36,7 +36,7 @@ harmonics, sphere, transforms, fourier, fast, algorithms, mcewen, wiaux" />
 	<img src="images/logo.jpg" width="140" height="140" border=0> 
       </td>
       <td width=500 align="left" valign="center">
-	<h1 class="title">ssht<span class="fade">0.1</span></h1>
+	<h1 class="title">ssht<span class="fade">0.2</span></h1>
 	<p id="slogantitle">Spin spherical harmonic transforms</p>
       </td>			
     </tr>
@@ -51,7 +51,10 @@ harmonics, sphere, transforms, fourier, fast, algorithms, mcewen, wiaux" />
 <h2>News</h2>
 
 <ul>
-<li><strong>5 March 2010</strong><br />
+<li><strong>20 May 2011</strong><br />
+SSHT 0.2 including fast adjoint algorithm released privately.
+</li>
+<li><strong>5 March 2011</strong><br />
 SSHT 0.1 released privately.
 </li>
 </ul>
@@ -72,11 +75,20 @@ SSHT 0.1 released privately.
   <i>A novel sampling theorem on the sphere</i> (<a
   href="http://arxiv.org/abs/XXX.XXX">ArXiv</a>|<a
   href="http://dx.doi.org/10.1111/XXX">DOI</a>).
-  
+
+  In some applications, adjoint forward and inverse spherical harmonic
+  transforms are also required (for example, when solving convex
+  optimisation problems).  We provide functionality to perform
+  fast and exact adjoint transforms, based on the fast algorithms
+  derived in our paper: 
+  <i>Efficient and compressive sampling on the sphere</i> (<a
+  href="http://arxiv.org/abs/XXX.XXX">ArXiv</a>|<a
+  href="http://dx.doi.org/10.1111/XXX">DOI</a>).
+
   <p>
   This documentation outlines the various harmonic transforms
   supported in SSHT, before describing installation details and
-  documenting the C, Fortran and MATLAB source code.  Reference,
+  documenting the C, Fortran and Matlab source code.  Reference,
   version, and license information then follows.
   
   For an overview see the <a href="../README.txt">README.txt</a>
@@ -86,10 +98,12 @@ SSHT 0.1 released privately.
 <a name="routines"><h2>Spin spherical harmonic transform routines</h2></a>
 
   <p> Routines are provided to compute forward and inverse transforms
-  using our optimal sampling (the MW routines).  A extension of our
+  using our optimal sampling (the MW routines).  An extension of our
   sampling theorem to a sub-optimal but diametrically symmetric
   sampling, which is important for certain applications, is also
-  provided (the MWSS routines).
+  provided (the MWSS routines).  For the MW and MWSS routines we also
+  provide fast algorithms to perform adjoint forward and inverse
+  transforms.
 
   <p> We also provide optimal routines to perform spherical harmonic
   transforms using Gauss-Legendre quadrature (the GL routines),
@@ -117,11 +131,12 @@ SSHT 0.1 released privately.
   <p> The <strong>SSHT</strong> package contains both C and Fortran 90
   implementations.  The C version is recommended since it is faster
   (due to more efficient memory addressing) and, in addition to the MW
-  routines, it also contains the MWSS, GL and DH routines described
-  <a href="#routines">above</a>.  The Fortran version contains the
-  core MW routines and additional development and testing routines.
-  Furthermore, a Matlab interface to the C implementation is
-  provided. 
+  routines, it also contains the MWSS, GL and DH routines described <a
+   href="#routines">above</a>.  Furthermore, fast adjoint algorithms
+  are provided in the C implementation only.  The Fortran version
+  contains the core MW routines and additional development and testing
+  routines.  Furthermore, a Matlab interface to the C implementation
+  is provided.
 
   <h4>Dependencies</h4>
 
@@ -238,6 +253,7 @@ and <a href="f90/html/index.html">Fortran 90</a> implementations.  The
   functions, with brief descriptions are given here:
 
   <pre>
+
   <a href="../src/matlab/ssht_c2s.m">ssht_c2s</a>
   Convert cartesian to spherical coordinates
 
@@ -247,11 +263,17 @@ and <a href="f90/html/index.html">Fortran 90</a> implementations.  The
   <a href="../src/matlab/ssht_forward.m">ssht_forward</a>
   Compute forward spin spherical harmonic transform
 
+  <a href="../src/matlab/ssht_forward_adjoint.m">ssht_forward_adjoint</a>
+  Compute adjoint forward spin spherical harmonic transform
+
   <a href="../src/matlab/ssht_ind2elm.m">ssht_ind2elm</a>
   Convert vector index to harmonic indices
 
   <a href="../src/matlab/ssht_inverse.m">ssht_inverse</a>
   Compute inverse spin spherical harmonic transform
+
+  <a href="../src/matlab/ssht_inverse_adjoint.m">ssht_inverse_adjoint</a>
+  Compute adjoint inverse spin spherical harmonic transform
 
   <a href="../src/matlab/ssht_plot_mollweide.m">ssht_plot_mollweide</a>
   Plot function using Mollweide projection
@@ -339,17 +361,28 @@ href="http://www.mrao.cam.ac.uk/~jdm57/publications.html#mcewen:fssht">A novel
 sampling theorem on the sphere</a>, to appear.
 </blockquote>
 
+  <p> If you make use of our fast adjoint algorithms, then please also cite:
+
+<blockquote> J. D. McEwen, G. Puy, J.-Ph. Thiran, P. Vandergheynst, D. Van De Ville
+and Y. Wiaux, <a
+href="http://www.mrao.cam.ac.uk/~jdm57/publications.html#mcewen:css2">Efficient
+and compressive sampling on the sphere</a>, to appear.
+</blockquote>
+
 
 <!--------------------------------------------------------------->
 <a name="version"><h2>Version</h2></a>
 
   <p>
-  Version: 0.1<br>
-  Release date: 5 March 2010
+  Version: 0.2<br>
+  Release date: 20 May 2011
 
   <h4>Version history</h4>
   <p>
-  <ul><li>0.1: First release</li></ul>
+ <ul>
+   <li>v0.2 (20 May 2011): Fast adjoint algorithms added.</li>
+   <li>v0.1 (5 March 2011): First private release.</li>
+  </ul>
 
 <!--------------------------------------------------------------->
 <a name="license"><h2>License</h2></a>

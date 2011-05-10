@@ -90,10 +90,10 @@ module ssht_types_mod
   ! --------------------------------------
 
   !> Version string.
-  character(len=*), public, parameter :: SSHT_VERSION = '0.1'
+  character(len=*), public, parameter :: SSHT_VERSION = '0.2'
 
   !> Verbosity prompt.
-  character(len=*), public, parameter :: SSHT_PROMPT = '[ssht-0.1] '
+  character(len=*), public, parameter :: SSHT_PROMPT = '[ssht-0.2] '
 
 
 end module ssht_types_mod
