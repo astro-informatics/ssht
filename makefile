@@ -12,7 +12,7 @@ ifeq ($(UNAME), Linux)
   PROGDIR = /home/jdm57/src
 endif
 ifeq ($(UNAME), Darwin)
-  PROGDIR = /Users/mcewen/src
+  PROGDIR = /Users/jdm/AP/Src
 endif
 
 ifeq ($(UNAME), Linux)
@@ -25,7 +25,7 @@ ifeq ($(UNAME), Linux)
   MEXFLAGS	= -cxx
 endif
 ifeq ($(UNAME), Darwin)
-  MLAB		= /Applications/MATLAB_R2010a.app
+  MLAB		= /Applications/MATLAB_R2011a.app
   MLABINC	= ${MLAB}/extern/include
   MLABLIB	= ${MLAB}/extern/lib
 
