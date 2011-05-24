@@ -179,7 +179,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
     else {
       if (reality) {
 	fr = (double*)calloc(ntheta*nphi, sizeof(double));
-	ssht_adjoint_mw_forward_sov_sym_real(fr, flm, L, spin, 
+	ssht_adjoint_mw_forward_sov_sym_real(fr, flm, L, 
 					     dl_method, verbosity);
       }
       else {
@@ -219,7 +219,7 @@ void mexFunction( int nlhs, mxArray *plhs[],
     else {
       if (reality) {
 	fr = (double*)calloc(ntheta*nphi, sizeof(double));
-	ssht_adjoint_mw_forward_sov_sym_ss_real(fr, flm, L, spin, 
+	ssht_adjoint_mw_forward_sov_sym_ss_real(fr, flm, L,
 					     dl_method, verbosity);
       }
       else {
