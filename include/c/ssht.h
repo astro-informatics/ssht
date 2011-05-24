@@ -7,5 +7,6 @@
 #include "../../src/c/ssht_sampling.h"
 #include "../../src/c/ssht_dl.h"
 #include "../../src/c/ssht_core.h"
+#include "../../src/c/ssht_adjoint.h"
 
 #endif
