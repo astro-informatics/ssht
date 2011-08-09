@@ -66,7 +66,7 @@ if strcmpi(args.Type, 'parametric')
    if abs(maxf - minf) < TOL
       f_normalised = f;
    else
-      f_normalised = (f - minf)./(maxf - minf).*PARAMETRIC_SCALE + 1.0;
+      f_normalised = (f - minf)./(maxf - minf).*PARAMETRIC_SCALE + 0.1;
    end
 else
    f_normalised = ones(size(f));
@@ -89,7 +89,7 @@ z = z .* f_normalised;
 
 % Plot.
 h = surf(x,y,z,f);
-caxis([minf, maxf]);
+if (abs(minf-maxf)>TOL) caxis([minf, maxf]); end
 if args.ColourBar 
    colorbar('vert'); 
 end

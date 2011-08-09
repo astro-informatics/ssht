@@ -43,6 +43,7 @@ end
 % Compute real space version of Earth.
 f = ssht_inverse(flm, L, 'Method', method, 'Reality', true);
 f_smooth = ssht_inverse(flm_smooth, L, 'Method', method, 'Reality', true);
+f = fliplr(f); f_smooth = fliplr(f_smooth);
 
 % Plot functions on sphere.
 figure;
