@@ -11,18 +11,14 @@ ifeq ($(FC),gfortran)
   OPTGFORTRAN = -m64 
 endif
 
-OPT = $(OPTNAGFOR) $(OPTGFORTRAN) -O3 #-g3 -ggdb
+OPT = $(OPTNAGFOR) $(OPTGFORTRAN) -O3  -DSSHT_VERSION=\"1.0b1\" -DSSHT_BUILD=\"`svnversion -n .`\" 
+#-g3 -ggdb
 
 
 # ======== LINKS ========
 
 UNAME := $(shell uname)
-ifeq ($(UNAME), Linux)
-  PROGDIR = /home/jdm57/src
-endif
-ifeq ($(UNAME), Darwin)
-  PROGDIR = /Users/mcewen/src
-endif
+PROGDIR = ..
 
 SSHTDIR  = $(PROGDIR)/ssht
 SSHTLIB  = $(SSHTDIR)/lib/f90

@@ -1,20 +1,14 @@
 # ======== COMPILER ========
 
 CC      = gcc
-#OPT	= -Wall -g
 OPT	= -Wall -O3 -DSSHT_VERSION=\"1.0b1\" -DSSHT_BUILD=\"`svnversion -n .`\"
-
+#OPT	= -Wall -g -DSSHT_VERSION=\"1.0b1\" -DSSHT_BUILD=\"`svnversion -n .`\"
 
 
 # ======== LINKS ========
 
 UNAME := $(shell uname)
-ifeq ($(UNAME), Linux)
-  PROGDIR = /home/jdm57/src
-endif
-ifeq ($(UNAME), Darwin)
-  PROGDIR = /Users/jdm/AP/Src
-endif
+PROGDIR = ..
 
 ifeq ($(UNAME), Linux)
   MLAB		= /usr/local/MATLAB/R2010b

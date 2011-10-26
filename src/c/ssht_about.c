@@ -30,4 +30,6 @@ int main(int argc, char *argv[]) {
   printf("%s%s%s\n", SSHT_PROMPT, "Build: ", SSHT_BUILD);
   printf("%s%s\n", SSHT_PROMPT, "==========================================================");
 
+  return 0;
+
 }
