@@ -1,4 +1,4 @@
-% ssht_demo8 - Run demo8
+% ssht_demo0 - Run demo0
 %
 % Plot spherical harmonic functions on the sphere.
 % 
