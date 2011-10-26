@@ -8,7 +8,7 @@ DESCRIPTION
      spin spherical harmonic transforms.
 
 VERSION
-     Release 0.2, 20 May 2011
+     Release 1.0b1, 31 October 2011
 
 AUTHORS
      J. D. McEwen (www.jasonmcewen.org)
@@ -16,11 +16,12 @@ AUTHORS
 
 REFERENCES
      J. D. McEwen and Y. Wiaux, A novel sampling theorem on the
-     sphere, to appear, 2011
+     sphere, IEEE Trans. Sig. Proc., in press, 2011 (arXiv:xxxx.xxxx).
 
      J. D. McEwen, G. Puy, J.-Ph. Thiran, P. Vandergheynst, D. Van De
      Ville and Y. Wiaux, Efficient and compressive sampling on the
-     sphere, to appear, 2011.
+     sphere,  IEEE Trans. Sig. Proc., submitted, 2011
+     (arXiv:xxxx.xxxx).
 
 DOCUMENTATION
      See doc/index.html
@@ -35,7 +36,7 @@ DOWNLOAD
      http://www.jasonmcewen.org/
 
 SUPPORT
-     See http://cosmocoffee.info/ forums
+     Please email the authors.
 
 NOTE
      The package is still under development

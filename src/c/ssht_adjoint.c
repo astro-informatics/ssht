@@ -98,12 +98,12 @@ void ssht_adjoint_mw_inverse_sov_sym(complex double *flm,
 
   // Print messages depending on verbosity level.
   if (verbosity > 0) {
-    printf("%s %s\n", SSHT_PROMPT, 
+    printf("%s%s\n", SSHT_PROMPT, 
 	   "Computing adjoint inverse transform using MW sampling with ");
     printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
 	   L, ",", spin, ", FALSE)");
     if (verbosity > 1)
-      printf("%s %s\n", SSHT_PROMPT, 
+      printf("%s%s\n", SSHT_PROMPT, 
 	     "Using routine ssht_adjoint_mw_inverse_sov_sym...");
   }
 
@@ -302,7 +302,7 @@ void ssht_adjoint_mw_inverse_sov_sym(complex double *flm,
 
   // Print finished if verbosity set.
   if (verbosity > 0) 
-    printf("%s %s", SSHT_PROMPT, "Adjoint inverse transform computed!");  
+    printf("%s%s", SSHT_PROMPT, "Adjoint inverse transform computed!");  
 
 }
 
@@ -377,12 +377,12 @@ void ssht_adjoint_mw_inverse_sov_sym_real(complex double *flm,
 
   // Print messages depending on verbosity level.
   if (verbosity > 0) {
-    printf("%s %s\n", SSHT_PROMPT, 
+    printf("%s%s\n", SSHT_PROMPT, 
 	   "Computing adjoint inverse transform using MW sampling with ");
     printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
 	   L, ",", spin, ", TRUE)");
     if (verbosity > 1)
-      printf("%s %s\n", SSHT_PROMPT, 
+      printf("%s%s\n", SSHT_PROMPT, 
 	     "Using routine ssht_adjoint_mw_inverse_sov_sym_real...");
   }
 
@@ -574,7 +574,7 @@ void ssht_adjoint_mw_inverse_sov_sym_real(complex double *flm,
 
   // Print finished if verbosity set.
   if (verbosity > 0) 
-    printf("%s %s", SSHT_PROMPT, "Adjoint inverse transform computed!");  
+    printf("%s%s", SSHT_PROMPT, "Adjoint inverse transform computed!");  
 
 }
 
@@ -651,12 +651,12 @@ void ssht_adjoint_mw_forward_sov_sym(complex double *f, complex double *flm,
 
   // Print messages depending on verbosity level.
   if (verbosity > 0) {
-    printf("%s %s\n", SSHT_PROMPT,
+    printf("%s%s\n", SSHT_PROMPT,
 	   "Computing adjoint forward transform using MW sampling with ");
     printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (",
 	   L, ",", spin, ", FALSE)");
     if (verbosity > 1)
-      printf("%s %s\n", SSHT_PROMPT,
+      printf("%s%s\n", SSHT_PROMPT,
 	     "Using routine ssht_adjoint_mw_forward_sov_sym...");
   }
 
@@ -923,7 +923,7 @@ void ssht_adjoint_mw_forward_sov_sym(complex double *f, complex double *flm,
 
   // Print finished if verbosity set.
   if (verbosity > 0)
-    printf("%s %s", SSHT_PROMPT, "Adjoint forward transform computed!");
+    printf("%s%s", SSHT_PROMPT, "Adjoint forward transform computed!");
 
 }
 
@@ -1005,12 +1005,12 @@ void ssht_adjoint_mw_forward_sov_sym_real(double *f,
 
   // Print messages depending on verbosity level.
   if (verbosity > 0) {
-    printf("%s %s\n", SSHT_PROMPT,
+    printf("%s%s\n", SSHT_PROMPT,
 	   "Computing adjoint forward transform using MW sampling with ");
     printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (",
 	   L, ",", spin, ", FALSE)");
     if (verbosity > 1)
-      printf("%s %s\n", SSHT_PROMPT,
+      printf("%s%s\n", SSHT_PROMPT,
 	     "Using routine ssht_adjoint_mw_forward_sov_sym_real...");
   }
 
@@ -1272,7 +1272,7 @@ void ssht_adjoint_mw_forward_sov_sym_real(double *f,
 
   // Print finished if verbosity set.
   if (verbosity > 0)
-    printf("%s %s", SSHT_PROMPT, "Adjoint forward transform computed!");
+    printf("%s%s", SSHT_PROMPT, "Adjoint forward transform computed!");
 
 }
 
@@ -1545,12 +1545,12 @@ void ssht_adjoint_mw_inverse_sov_sym_ss(complex double *flm, complex double *f,
 
   // Print messages depending on verbosity level.
   if (verbosity > 0) {
-    printf("%s %s\n", SSHT_PROMPT, 
+    printf("%s%s\n", SSHT_PROMPT, 
 	   "Computing adjoint inverse transform using MW symmetric sampling with ");
     printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
 	   L, ",", spin, ", FALSE)");
     if (verbosity > 1)
-      printf("%s %s\n", SSHT_PROMPT, 
+      printf("%s%s\n", SSHT_PROMPT, 
 	     "Using routine ssht_adjoint_mw_inverse_sov_sym_ss...");
   }
 
@@ -1751,7 +1751,7 @@ void ssht_adjoint_mw_inverse_sov_sym_ss(complex double *flm, complex double *f,
 
   // Print finished if verbosity set.
   if (verbosity > 0) 
-    printf("%s %s", SSHT_PROMPT, "Adjoint inverse transform computed!");  
+    printf("%s%s", SSHT_PROMPT, "Adjoint inverse transform computed!");  
 
 }
 
@@ -1821,12 +1821,12 @@ void ssht_adjoint_mw_inverse_sov_sym_ss_real(complex double *flm, double *f,
 
   // Print messages depending on verbosity level.
   if (verbosity > 0) {
-    printf("%s %s\n", SSHT_PROMPT, 
+    printf("%s%s\n", SSHT_PROMPT, 
 	   "Computing adjoint inverse transform using MW symmetric sampling with ");
     printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
 	   L, ",", spin, ", TRUE)");
     if (verbosity > 1)
-      printf("%s %s\n", SSHT_PROMPT, 
+      printf("%s%s\n", SSHT_PROMPT, 
 	     "Using routine ssht_adjoint_mw_inverse_sov_sym_ss_real...");
   }
 
@@ -2013,7 +2013,7 @@ void ssht_adjoint_mw_inverse_sov_sym_ss_real(complex double *flm, double *f,
 
   // Print finished if verbosity set.
   if (verbosity > 0) 
-    printf("%s %s", SSHT_PROMPT, "Adjoint inverse transform computed!");  
+    printf("%s%s", SSHT_PROMPT, "Adjoint inverse transform computed!");  
 
 }
 
@@ -2091,12 +2091,12 @@ void ssht_adjoint_mw_forward_sov_sym_ss(complex double *f, complex double *flm,
 
   // Print messages depending on verbosity level.
   if (verbosity > 0) {
-    printf("%s %s\n", SSHT_PROMPT,
+    printf("%s%s\n", SSHT_PROMPT,
 	   "Computing adjoint forward transform using MW symmetric sampling with ");
     printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (",
 	   L, ",", spin, ", FALSE)");
     if (verbosity > 1)
-      printf("%s %s\n", SSHT_PROMPT,
+      printf("%s%s\n", SSHT_PROMPT,
 	     "Using routine ssht_adjoint_mw_forward_sov_sym_ss...");
   }
 
@@ -2357,7 +2357,7 @@ void ssht_adjoint_mw_forward_sov_sym_ss(complex double *f, complex double *flm,
 
   // Print finished if verbosity set.
   if (verbosity > 0)
-    printf("%s %s", SSHT_PROMPT, "Adjoint forward transform computed!");
+    printf("%s%s", SSHT_PROMPT, "Adjoint forward transform computed!");
 
 }
 
@@ -2438,12 +2438,12 @@ void ssht_adjoint_mw_forward_sov_sym_ss_real(double *f,
 
   // Print messages depending on verbosity level.
   if (verbosity > 0) {
-    printf("%s %s\n", SSHT_PROMPT,
+    printf("%s%s\n", SSHT_PROMPT,
 	   "Computing adjoint forward transform using MW symmetric sampling with ");
     printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (",
 	   L, ",", spin, ", FALSE)");
     if (verbosity > 1)
-      printf("%s %s\n", SSHT_PROMPT,
+      printf("%s%s\n", SSHT_PROMPT,
 	     "Using routine ssht_adjoint_mw_forward_sov_sym_ss_real...");
   }
 
@@ -2698,7 +2698,7 @@ void ssht_adjoint_mw_forward_sov_sym_ss_real(double *f,
 
   // Print finished if verbosity set.
   if (verbosity > 0)
-    printf("%s %s", SSHT_PROMPT, "Adjoint forward transform computed!");
+    printf("%s%s", SSHT_PROMPT, "Adjoint forward transform computed!");
 
 }
 

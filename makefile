@@ -2,7 +2,8 @@
 
 CC      = gcc
 #OPT	= -Wall -g
-OPT	= -Wall -O3
+OPT	= -Wall -O3 -DSSHT_VERSION=\"1.0b1\" -DSSHT_BUILD=\"`svnversion -n .`\"
+
 
 
 # ======== LINKS ========
@@ -114,20 +115,25 @@ SSHTOBJSMEX = $(SSHTOBJMEX)/ssht_sampling_mex.$(MEXEXT)        \
 $(SSHTOBJ)/%.o: %.c $(SSHTHEADERS)
 	$(CC) $(OPT) $(FFLAGS) -c $< -o $@
 
+.PHONY: default
+default: lib test about
+
 .PHONY: test
 test: $(SSHTBIN)/ssht_test
 $(SSHTBIN)/ssht_test: $(SSHTOBJ)/ssht_test.o $(SSHTLIB)/lib$(SSHTLIBNM).a
 	$(CC) $(OPT) $< -o $(SSHTBIN)/ssht_test $(LDFLAGS) 
 
+.PHONY: about
+about: $(SSHTBIN)/ssht_about
+$(SSHTBIN)/ssht_about: $(SSHTOBJ)/ssht_about.o 
+	$(CC) $(OPT) $< -o $(SSHTBIN)/ssht_about
+
 .PHONY: runtest
 runtest: test
 	$(SSHTBIN)/ssht_test 64 0
 
-.PHONY: default
-default: test
-
 .PHONY: all
-all: lib test matlab
+all: lib test about matlab
 
 
 # Library
@@ -167,6 +173,7 @@ clean:	tidy
 	rm -f $(SSHTOBJ)/*.o
 	rm -f $(SSHTLIB)/lib$(SSHTLIBNM).a
 	rm -f $(SSHTBIN)/ssht_test
+	rm -f $(SSHTBIN)/ssht_about
 	rm -f $(SSHTOBJMAT)/*.o
 	rm -f $(SSHTOBJMEX)/*.$(MEXEXT)
 

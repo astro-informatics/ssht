@@ -36,7 +36,7 @@ harmonics, sphere, transforms, fourier, fast, algorithms, mcewen, wiaux" />
 	<img src="images/logo.jpg" width="140" height="140" border=0> 
       </td>
       <td width=500 align="left" valign="center">
-	<h1 class="title">ssht<span class="fade">0.2</span></h1>
+	<h1 class="title">ssht<span class="fade">1.0b1</span></h1>
 	<p id="slogantitle">Spin spherical harmonic transforms</p>
       </td>			
     </tr>
@@ -51,11 +51,14 @@ harmonics, sphere, transforms, fourier, fast, algorithms, mcewen, wiaux" />
 <h2>News</h2>
 
 <ul>
+<li><strong>31 October 2011</strong><br />
+Public release of SSHT 1.0b1 (first beta).
+</li>
 <li><strong>20 May 2011</strong><br />
-SSHT 0.2 including fast adjoint algorithm released privately.
+Private release of SSHT 0.2, including fast adjoint algorithms.
 </li>
 <li><strong>5 March 2011</strong><br />
-SSHT 0.1 released privately.
+Private release of SSHT 0.1.
 </li>
 </ul>
 
@@ -198,6 +201,8 @@ SSHT 0.1 released privately.
   <p> where <code>&ltbandlimit&gt</code> and <code>&ltspin&gt</code> are
   the harmonic band-limit and spin number, respectively, of your test.
 
+  <p>To check the version and build numbers of your version run:
+  <pre> >> ./bin/c/ssht_about </pre>
 
   <h4>Documentation</h4>
 
@@ -363,16 +368,17 @@ and <a href="f90/html/index.html">Fortran 90</a> implementations.  The
   and our related academic paper:
 
 <blockquote> J. D. McEwen and Y. Wiaux, <a
-href="http://www.mrao.cam.ac.uk/~jdm57/publications.html#mcewen:fssht">A novel
-sampling theorem on the sphere</a>, to appear.
-</blockquote>
+ href="http://www.mrao.cam.ac.uk/~jdm57/publications.html#mcewen:fssht">A
+novel sampling theorem on the sphere</a>, IEEE Trans. Sig. Proc., in
+press, 2011 (arXiv:xxxx.xxxx).  </blockquote>
 
   <p> If you make use of our fast adjoint algorithms, then please also cite:
 
-<blockquote> J. D. McEwen, G. Puy, J.-Ph. Thiran, P. Vandergheynst, D. Van De Ville
-and Y. Wiaux, <a
-href="http://www.mrao.cam.ac.uk/~jdm57/publications.html#mcewen:css2">Efficient
-and compressive sampling on the sphere</a>, to appear.
+<blockquote> J. D. McEwen, G. Puy, J.-Ph. Thiran, P. Vandergheynst,
+D. Van De Ville and Y. Wiaux, <a
+ href="http://www.mrao.cam.ac.uk/~jdm57/publications.html#mcewen:css2">Efficient
+and compressive sampling on the sphere</a>, IEEE Trans. Sig. Proc.,
+submitted, 2011 (arXiv:xxxx.xxxx).
 </blockquote>
 
 
@@ -380,14 +386,15 @@ and compressive sampling on the sphere</a>, to appear.
 <a name="version"><h2>Version</h2></a>
 
   <p>
-  Version: 0.2<br>
-  Release date: 20 May 2011
+  Version: 1.0b1<br>
+  Release date: 31 October 2011
 
   <h4>Version history</h4>
   <p>
  <ul>
-   <li>v0.2 (20 May 2011): Fast adjoint algorithms added.</li>
-   <li>v0.1 (5 March 2011): First private release.</li>
+   <li>1.0b1 (31 October 2011): Public release of first beta.</li>
+   <li>0.2 (20 May 2011): Fast adjoint algorithms added.</li>
+   <li>0.1 (5 March 2011): First private release.</li>
   </ul>
 
 <!--------------------------------------------------------------->

@@ -93,12 +93,12 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
 
   // Print messages depending on verbosity level.
   if (verbosity > 0) {
-    printf("%s %s\n", SSHT_PROMPT, 
+    printf("%s%s\n", SSHT_PROMPT, 
 	   "Computing inverse transform using MW sampling with ");
     printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
 	   L, ",", spin, ", FALSE)");
     if (verbosity > 1)
-      printf("%s %s\n", SSHT_PROMPT, 
+      printf("%s%s\n", SSHT_PROMPT, 
 	     "Using routine ssht_core_mw_inverse_sov_sym...");
   }
 
@@ -270,7 +270,7 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, complex double *flm,
 
   // Print finished if verbosity set.
   if (verbosity > 0) 
-    printf("%s %s", SSHT_PROMPT, "Inverse transform computed!");  
+    printf("%s%s", SSHT_PROMPT, "Inverse transform computed!");  
 
   // Free precomputation memory.
   free(sqrt_tbl);
@@ -347,12 +347,12 @@ void ssht_core_mw_inverse_sov_sym_real(double *f, complex double *flm,
 
   // Print messages depending on verbosity level.
   if (verbosity > 0) {
-    printf("%s %s\n", SSHT_PROMPT, 
+    printf("%s%s\n", SSHT_PROMPT, 
 	   "Computing inverse transform using MW sampling with ");
     printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
 	   L, ",", spin, ", TRUE)");
     if (verbosity > 1)
-      printf("%s %s\n", SSHT_PROMPT, 
+      printf("%s%s\n", SSHT_PROMPT, 
 	     "Using routine ssht_core_mw_inverse_sov_sym_real...");
   }
 
@@ -510,7 +510,7 @@ void ssht_core_mw_inverse_sov_sym_real(double *f, complex double *flm,
 
   // Print finished if verbosity set.
   if (verbosity > 0) 
-    printf("%s %s", SSHT_PROMPT, "Inverse transform computed!");  
+    printf("%s%s", SSHT_PROMPT, "Inverse transform computed!");  
 
   // Free precomputation memory.
   free(sqrt_tbl);
@@ -558,12 +558,12 @@ void ssht_core_mwdirect_inverse(complex double *f, complex double *flm,
 
   // Print messages depending on verbosity level.
   if (verbosity > 0) {
-    printf("%s %s\n", SSHT_PROMPT, 
+    printf("%s%s\n", SSHT_PROMPT, 
 	   "Computing inverse transform using MW sampling with ");
     printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
 	   L, ",", spin, ", FALSE)");
     if (verbosity > 1)
-      printf("%s %s\n", SSHT_PROMPT, 
+      printf("%s%s\n", SSHT_PROMPT, 
 	     "Using routine ssht_core_mwdirect_inverse...");
   }
 
@@ -615,7 +615,7 @@ void ssht_core_mwdirect_inverse(complex double *f, complex double *flm,
      
   // Print finished if verbosity set.
   if (verbosity > 0) 
-    printf("%s %s", SSHT_PROMPT, "Inverse transform computed!");  
+    printf("%s%s", SSHT_PROMPT, "Inverse transform computed!");  
 
 }
 
@@ -664,12 +664,12 @@ void ssht_core_mwdirect_inverse_sov(complex double *f, complex double *flm,
 
   // Print messages depending on verbosity level.
   if (verbosity > 0) {
-    printf("%s %s\n", SSHT_PROMPT, 
+    printf("%s%s\n", SSHT_PROMPT, 
 	   "Computing inverse transform using MW sampling with ");
     printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
 	   L, ",", spin, ", FALSE)");
     if (verbosity > 1)
-      printf("%s %s\n", SSHT_PROMPT, 
+      printf("%s%s\n", SSHT_PROMPT, 
 	     "Using routine ssht_core_mwdirect_inverse_sov...");
   }
 
@@ -735,7 +735,7 @@ void ssht_core_mwdirect_inverse_sov(complex double *f, complex double *flm,
   
   // Print finished if verbosity set.
   if (verbosity > 0) 
-    printf("%s %s", SSHT_PROMPT, "Inverse transform computed!");  
+    printf("%s%s", SSHT_PROMPT, "Inverse transform computed!");  
 
 }
 
@@ -811,12 +811,12 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
 
   // Print messages depending on verbosity level.
   if (verbosity > 0) {
-    printf("%s %s\n", SSHT_PROMPT, 
+    printf("%s%s\n", SSHT_PROMPT, 
 	   "Computing forward transform using MW sampling with ");
     printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
 	   L, ",", spin, ", FALSE)");
     if (verbosity > 1)
-      printf("%s %s\n", SSHT_PROMPT, 
+      printf("%s%s\n", SSHT_PROMPT, 
 	     "Using routine ssht_core_mw_forward_sov_conv_sym...");
   }
 
@@ -1099,7 +1099,7 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, complex double *f,
 
   // Print finished if verbosity set.
   if (verbosity > 0) 
-    printf("%s %s", SSHT_PROMPT, "Forward transform computed!");  
+    printf("%s%s", SSHT_PROMPT, "Forward transform computed!");  
 
 }
 
@@ -1177,12 +1177,12 @@ void ssht_core_mw_forward_sov_conv_sym_real(complex double *flm, double *f,
 
   // Print messages depending on verbosity level.
   if (verbosity > 0) {
-    printf("%s %s\n", SSHT_PROMPT, 
+    printf("%s%s\n", SSHT_PROMPT, 
 	   "Computing forward transform using MW sampling with ");
     printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
 	   L, ",", spin, ", TRUE)");
     if (verbosity > 1)
-      printf("%s %s\n", SSHT_PROMPT, 
+      printf("%s%s\n", SSHT_PROMPT, 
 	     "Using routine ssht_core_mw_forward_sov_conv_sym_real...");
   }
 
@@ -1459,7 +1459,7 @@ void ssht_core_mw_forward_sov_conv_sym_real(complex double *flm, double *f,
 
   // Print finished if verbosity set.
   if (verbosity > 0) 
-    printf("%s %s", SSHT_PROMPT, "Forward transform computed!");  
+    printf("%s%s", SSHT_PROMPT, "Forward transform computed!");  
 
 }
 
@@ -1728,12 +1728,12 @@ void ssht_core_mw_inverse_sov_sym_ss(complex double *f, complex double *flm,
 
   // Print messages depending on verbosity level.
   if (verbosity > 0) {
-    printf("%s %s\n", SSHT_PROMPT, 
+    printf("%s%s\n", SSHT_PROMPT, 
 	   "Computing inverse transform using MW symmetric sampling with ");
     printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
 	   L, ",", spin, ", FALSE)");
     if (verbosity > 1)
-      printf("%s %s\n", SSHT_PROMPT, 
+      printf("%s%s\n", SSHT_PROMPT, 
 	     "Using routine ssht_core_mw_inverse_sov_sym_ss...");
   }
 
@@ -1898,7 +1898,7 @@ void ssht_core_mw_inverse_sov_sym_ss(complex double *f, complex double *flm,
 
   // Print finished if verbosity set.
   if (verbosity > 0) 
-    printf("%s %s", SSHT_PROMPT, "Inverse transform computed!");  
+    printf("%s%s", SSHT_PROMPT, "Inverse transform computed!");  
 
   // Free precomputation memory.
   free(sqrt_tbl);
@@ -1975,12 +1975,12 @@ void ssht_core_mw_inverse_sov_sym_ss_real(double *f, complex double *flm,
 
   // Print messages depending on verbosity level.
   if (verbosity > 0) {
-    printf("%s %s\n", SSHT_PROMPT, 
+    printf("%s%s\n", SSHT_PROMPT, 
 	   "Computing inverse transform using MW symmetric sampling with ");
     printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
 	   L, ",", spin, ", TRUE)");
     if (verbosity > 1)
-      printf("%s %s\n", SSHT_PROMPT, 
+      printf("%s%s\n", SSHT_PROMPT, 
 	     "Using routine ssht_core_mw_inverse_sov_sym_ss_real...");
   }
 
@@ -2130,7 +2130,7 @@ void ssht_core_mw_inverse_sov_sym_ss_real(double *f, complex double *flm,
 
   // Print finished if verbosity set.
   if (verbosity > 0) 
-    printf("%s %s", SSHT_PROMPT, "Inverse transform computed!");  
+    printf("%s%s", SSHT_PROMPT, "Inverse transform computed!");  
 
   // Free precomputation memory.
   free(sqrt_tbl);
@@ -2179,12 +2179,12 @@ void ssht_core_mwdirect_inverse_ss(complex double *f, complex double *flm,
 
   // Print messages depending on verbosity level.
   if (verbosity > 0) {
-    printf("%s %s\n", SSHT_PROMPT, 
+    printf("%s%s\n", SSHT_PROMPT, 
 	   "Computing inverse transform using MW sampling with ");
     printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
 	   L, ",", spin, ", FALSE)");
     if (verbosity > 1)
-      printf("%s %s\n", SSHT_PROMPT, 
+      printf("%s%s\n", SSHT_PROMPT, 
 	     "Using routine ssht_core_mwdirect_inverse_ss...");
   }
 
@@ -2236,7 +2236,7 @@ void ssht_core_mwdirect_inverse_ss(complex double *f, complex double *flm,
      
   // Print finished if verbosity set.
   if (verbosity > 0) 
-    printf("%s %s", SSHT_PROMPT, "Inverse transform computed!");  
+    printf("%s%s", SSHT_PROMPT, "Inverse transform computed!");  
 
 }
 
@@ -2313,12 +2313,12 @@ void ssht_core_mw_forward_sov_conv_sym_ss(complex double *flm, complex double *f
 
   // Print messages depending on verbosity level.
   if (verbosity > 0) {
-    printf("%s %s\n", SSHT_PROMPT, 
+    printf("%s%s\n", SSHT_PROMPT, 
 	   "Computing forward transform using MW symmetric sampling with ");
     printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
 	   L, ",", spin, ", FALSE)");
     if (verbosity > 1)
-      printf("%s %s\n", SSHT_PROMPT, 
+      printf("%s%s\n", SSHT_PROMPT, 
 	     "Using routine ssht_core_mw_forward_sov_conv_sym_ss...");
   }
 
@@ -2605,7 +2605,7 @@ void ssht_core_mw_forward_sov_conv_sym_ss(complex double *flm, complex double *f
 
   // Print finished if verbosity set.
   if (verbosity > 0) 
-    printf("%s %s", SSHT_PROMPT, "Forward transform computed!");  
+    printf("%s%s", SSHT_PROMPT, "Forward transform computed!");  
 
 }
 
@@ -2679,12 +2679,12 @@ void ssht_core_mw_forward_sov_conv_sym_ss_real(complex double *flm, double *f,
 
   // Print messages depending on verbosity level.
   if (verbosity > 0) {
-    printf("%s %s\n", SSHT_PROMPT, 
+    printf("%s%s\n", SSHT_PROMPT, 
 	   "Computing forward transform using MW symmetric sampling with ");
     printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
 	   L, ",", spin, ", TRUE)");
     if (verbosity > 1)
-      printf("%s %s\n", SSHT_PROMPT, 
+      printf("%s%s\n", SSHT_PROMPT, 
 	     "Using routine ssht_core_mw_forward_sov_conv_sym_ss_real...");
   }
 
@@ -2957,7 +2957,7 @@ void ssht_core_mw_forward_sov_conv_sym_ss_real(complex double *flm, double *f,
 
   // Print finished if verbosity set.
   if (verbosity > 0) 
-    printf("%s %s", SSHT_PROMPT, "Forward transform computed!");  
+    printf("%s%s", SSHT_PROMPT, "Forward transform computed!");  
 
 }
 
@@ -3232,12 +3232,12 @@ void ssht_core_gl_inverse_sov(complex double *f, complex double *flm,
 
   // Print messages depending on verbosity level.
   if (verbosity > 0) {
-    printf("%s %s\n", SSHT_PROMPT, 
+    printf("%s%s\n", SSHT_PROMPT, 
 	   "Computing inverse transform using GL sampling with ");
     printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
 	   L, ",", spin, ", FALSE)");
     if (verbosity > 1)
-      printf("%s %s\n", SSHT_PROMPT, 
+      printf("%s%s\n", SSHT_PROMPT, 
 	     "Using routine ssht_core_gl_inverse_sov...");
   }
 
@@ -3314,7 +3314,7 @@ void ssht_core_gl_inverse_sov(complex double *f, complex double *flm,
   
   // Print finished if verbosity set.
   if (verbosity > 0) 
-    printf("%s %s", SSHT_PROMPT, "Inverse transform computed!");  
+    printf("%s%s", SSHT_PROMPT, "Inverse transform computed!");  
 
 }
 
@@ -3366,12 +3366,12 @@ void ssht_core_gl_inverse_sov_real(double *f, complex double *flm,
 
   // Print messages depending on verbosity level.
   if (verbosity > 0) {
-    printf("%s %s\n", SSHT_PROMPT, 
+    printf("%s%s\n", SSHT_PROMPT, 
 	   "Computing inverse transform using GL sampling with ");
     printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
 	   L, ",", spin, ", TRUE)");
     if (verbosity > 1)
-      printf("%s %s\n", SSHT_PROMPT, 
+      printf("%s%s\n", SSHT_PROMPT, 
 	     "Using routine ssht_core_gl_inverse_sov_real...");
   }
 
@@ -3448,7 +3448,7 @@ void ssht_core_gl_inverse_sov_real(double *f, complex double *flm,
   
   // Print finished if verbosity set.
   if (verbosity > 0) 
-    printf("%s %s", SSHT_PROMPT, "Inverse transform computed!");  
+    printf("%s%s", SSHT_PROMPT, "Inverse transform computed!");  
 
 }
 
@@ -3502,12 +3502,12 @@ void ssht_core_gl_forward_sov(complex double *flm, complex double *f,
 
   // Print messages depending on verbosity level.
   if (verbosity > 0) {
-    printf("%s %s\n", SSHT_PROMPT, 
+    printf("%s%s\n", SSHT_PROMPT, 
 	   "Computing forward transform using GL sampling with ");
     printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
 	   L, ",", spin, ", FALSE)");
     if (verbosity > 1)
-      printf("%s %s\n", SSHT_PROMPT, 
+      printf("%s%s\n", SSHT_PROMPT, 
 	     "Using routine ssht_core_gl_forward_sov...");
   }
 
@@ -3594,7 +3594,7 @@ void ssht_core_gl_forward_sov(complex double *flm, complex double *f,
 
   // Print finished if verbosity set.
   if (verbosity > 0) 
-    printf("%s %s", SSHT_PROMPT, "Forward transform computed!");  
+    printf("%s%s", SSHT_PROMPT, "Forward transform computed!");  
 
 }
 
@@ -3652,12 +3652,12 @@ void ssht_core_gl_forward_sov_real(complex double *flm, double *f,
 
  // Print messages depending on verbosity level.
   if (verbosity > 0) {
-    printf("%s %s\n", SSHT_PROMPT, 
+    printf("%s%s\n", SSHT_PROMPT, 
 	   "Computing forward transform using GL sampling with ");
     printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
 	   L, ",", spin, ", TRUE)");
     if (verbosity > 1)
-      printf("%s %s\n", SSHT_PROMPT, 
+      printf("%s%s\n", SSHT_PROMPT, 
 	     "Using routine ssht_core_gl_forward_sov_real...");
   }
 
@@ -3754,7 +3754,7 @@ void ssht_core_gl_forward_sov_real(complex double *flm, double *f,
 
   // Print finished if verbosity set.
   if (verbosity > 0) 
-    printf("%s %s", SSHT_PROMPT, "Forward transform computed!");  
+    printf("%s%s", SSHT_PROMPT, "Forward transform computed!");  
 
 }
 
@@ -3806,12 +3806,12 @@ void ssht_core_dh_inverse_sov(complex double *f, complex double *flm,
 
   // Print messages depending on verbosity level.
   if (verbosity > 0) {
-    printf("%s %s\n", SSHT_PROMPT, 
+    printf("%s%s\n", SSHT_PROMPT, 
 	   "Computing inverse transform using DH sampling with ");
     printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
 	   L, ",", spin, ", FALSE)");
     if (verbosity > 1)
-      printf("%s %s\n", SSHT_PROMPT, 
+      printf("%s%s\n", SSHT_PROMPT, 
 	     "Using routine ssht_core_dh_inverse_sov...");
   }
 
@@ -3877,7 +3877,7 @@ void ssht_core_dh_inverse_sov(complex double *f, complex double *flm,
   
   // Print finished if verbosity set.
   if (verbosity > 0) 
-    printf("%s %s", SSHT_PROMPT, "Inverse transform computed!");  
+    printf("%s%s", SSHT_PROMPT, "Inverse transform computed!");  
 
 }
 
@@ -3928,12 +3928,12 @@ void ssht_core_dh_inverse_sov_real(double *f, complex double *flm,
 
   // Print messages depending on verbosity level.
   if (verbosity > 0) {
-    printf("%s %s\n", SSHT_PROMPT, 
+    printf("%s%s\n", SSHT_PROMPT, 
 	   "Computing inverse transform using DH sampling with ");
     printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
 	   L, ",", spin, ", TRUE)");
     if (verbosity > 1)
-      printf("%s %s\n", SSHT_PROMPT, 
+      printf("%s%s\n", SSHT_PROMPT, 
 	     "Using routine ssht_core_dh_inverse_sov_real...");
   }
 
@@ -3999,7 +3999,7 @@ void ssht_core_dh_inverse_sov_real(double *f, complex double *flm,
   
   // Print finished if verbosity set.
   if (verbosity > 0) 
-    printf("%s %s", SSHT_PROMPT, "Inverse transform computed!");  
+    printf("%s%s", SSHT_PROMPT, "Inverse transform computed!");  
 
 }
 
@@ -4052,12 +4052,12 @@ void ssht_core_dh_forward_sov(complex double *flm, complex double *f,
 
  // Print messages depending on verbosity level.
   if (verbosity > 0) {
-    printf("%s %s\n", SSHT_PROMPT, 
+    printf("%s%s\n", SSHT_PROMPT, 
 	   "Computing forward transform using DH sampling with ");
     printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
 	   L, ",", spin, ", FALSE)");
     if (verbosity > 1)
-      printf("%s %s\n", SSHT_PROMPT, 
+      printf("%s%s\n", SSHT_PROMPT, 
 	     "Using routine ssht_core_dh_forward_sov...");
   }
 
@@ -4135,7 +4135,7 @@ void ssht_core_dh_forward_sov(complex double *flm, complex double *f,
 
   // Print finished if verbosity set.
   if (verbosity > 0) 
-    printf("%s %s", SSHT_PROMPT, "Forward transform computed!");  
+    printf("%s%s", SSHT_PROMPT, "Forward transform computed!");  
 
 }
 
@@ -4192,12 +4192,12 @@ void ssht_core_dh_forward_sov_real(complex double *flm, double *f,
 
  // Print messages depending on verbosity level.
   if (verbosity > 0) {
-    printf("%s %s\n", SSHT_PROMPT, 
+    printf("%s%s\n", SSHT_PROMPT, 
 	   "Computing forward transform using GL sampling with ");
     printf("%s%s%d%s%d%s\n", SSHT_PROMPT, "parameters  (L,spin,reality) = (", 
 	   L, ",", spin, ", TRUE)");
     if (verbosity > 1)
-      printf("%s %s\n", SSHT_PROMPT, 
+      printf("%s%s\n", SSHT_PROMPT, 
 	     "Using routine ssht_core_gl_forward_sov_real...");
   }
 
@@ -4285,6 +4285,6 @@ void ssht_core_dh_forward_sov_real(complex double *flm, double *f,
 
   // Print finished if verbosity set.
   if (verbosity > 0) 
-    printf("%s %s", SSHT_PROMPT, "Forward transform computed!");  
+    printf("%s%s", SSHT_PROMPT, "Forward transform computed!");  
 
 }
