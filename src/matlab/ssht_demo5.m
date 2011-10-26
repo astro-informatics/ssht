@@ -1,7 +1,7 @@
 % ssht_demo5 - Run demo5
 %
 % Simulate a Gaussian cosmic microwave background (CMB) from the 7-year
-% power spectrum measured by NASA's Wilkinson Microwave Anisotropy Probe
+% power spectrum fitted by NASA's Wilkinson Microwave Anisotropy Probe
 % (WMAP) satellite.
 %
 % Default usage is given by
@@ -17,14 +17,16 @@
 clear all;
 
 % Define parameters.
-L = 512
+L = 256
 methods = {'MW', 'MWSS', 'GL', 'DH'};
 method = char(methods(1))
 close_plot = true;
 plot_samples = false;
 
 % Load power spectrum.
-load('data/wmap_tt_spectrum_7yr_v4p1.mat')
+%load('data/wmap_lcdm_pl_model_yr1_v1.mat')
+%load('data/wmap_tt_spectrum_7yr_v4p1.mat')
+load('data/wmap_lcdm_pl_model_wmap7baoh0.mat');
 
 % Simulate CMB in harmonic space.
 cmb_lm = zeros(L^2,1);

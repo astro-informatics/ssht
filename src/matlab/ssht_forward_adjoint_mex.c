@@ -55,10 +55,6 @@ void mexFunction( int nlhs, mxArray *plhs[],
 
   /* Parse harmonic coefficients flm. */
   iin = 0;
-  if( !mxIsDouble(prhs[iin]) || !mxIsComplex(prhs[iin]) ) {
-    mexErrMsgIdAndTxt("ssht_forward_adjoint_mex:InvalidInput:flm",
-		      "Harmonic coefficients must be complex doubles.");
-  }
   flm_m = mxGetM(prhs[iin]);
   flm_n = mxGetN(prhs[iin]);
   if (flm_m != 1 && flm_n != 1)
@@ -68,7 +64,12 @@ void mexFunction( int nlhs, mxArray *plhs[],
   flm_imag = mxGetPi(prhs[iin]);
   flm = (complex double*)malloc(flm_m * flm_n * sizeof(complex double));
   for (i=0; i<flm_m*flm_n; i++)
-    flm[i] = flm_real[i] + I * flm_imag[i];
+    flm[i] = flm_real[i];
+  if( mxIsComplex(prhs[iin]) ) {
+    flm_imag = mxGetPi(prhs[iin]);
+    for (i=0; i<flm_m*flm_n; i++)
+      flm[i] += I * flm_imag[i];
+  }
 
   /* Parse harmonic band-limit L. */
   iin = 1;

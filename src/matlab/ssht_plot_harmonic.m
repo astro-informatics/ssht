@@ -5,9 +5,10 @@ function ssht_plot_harmonic(flm, L)
 %
 % Default usage is given by
 %
-%   ssht_plot_harmonic(f, L)
+%   ssht_plot_harmonic(flm, L)
 %
-% where f is the sampled function and L is the harmonic band-limit.
+% where flm is the spherical harmonic coefficients of the function and L is
+% the harmonic band-limit.
 %
 % Author: Jason McEwen (www.jasonmcewen.org)
 

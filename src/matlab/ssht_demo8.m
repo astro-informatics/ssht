@@ -18,7 +18,7 @@ close all;
 % Define parameters.
 L = 64;
 el = 4
-m = 3
+m = 2
 type = 'colour';
 
 % Generate spherical harmonics.
@@ -34,10 +34,9 @@ f = ssht_inverse(complex(real(flm), imag(flm)), L);
 
 % Plot function on sphere.
 figure(1);
-subplot(2,1,1)
+subplot(1,2,1)
 ssht_plot_sphere(real(f), L, 'Type', type, ...
-    'ColourBar', true, 'Lighting', true);
-subplot(2,1,2)
+    'ColourBar', false, 'Lighting', true);
+subplot(1,2,2)
 ssht_plot_sphere(imag(f), L, 'Type', type, ...
-    'ColourBar', true, 'Lighting', true);
-
+    'ColourBar', false, 'Lighting', true);
