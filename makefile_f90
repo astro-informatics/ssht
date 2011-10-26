@@ -85,13 +85,13 @@ $(SSHTOBJ)/%.o: %.f90
 	$(FC) $(FFLAGS) $(FFLAGSPROG) $(PPFLAGS) -c $< -o $@ 
 
 .PHONY: default
-default: lib test
+default: lib test about
 
 .PHONY: all
-all:     lib test
+all:     lib test about
 
 .PHONY: test
-test:    $(SSHTBIN)/ssht_test
+test:    $(SSHTBIN)/ssht_test about
 
 .PHONY: runtest
 runtest: test
@@ -159,4 +159,11 @@ $(SSHTBIN)/ssht_test:       $(SSHTOBJ)/ssht_test.o
 	$(SSHTOBJ)/ssht_test.o                         \
 	$(LDFLAGS) $(PPFLAGS)
 
-
+.PHONY: about
+about: $(SSHTBIN)/ssht_about
+$(SSHTOBJ)/ssht_about.o:     $(SSHTPROG)/ssht_about.f90 
+$(SSHTBIN)/ssht_about:       $(SSHTOBJ)/ssht_about.o lib
+	$(FC)                                          \
+	-o $(SSHTBIN)/ssht_about                       \
+	$(SSHTOBJ)/ssht_about.o                        \
+	$(LDFLAGS) $(PPFLAGS)

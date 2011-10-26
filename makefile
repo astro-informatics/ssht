@@ -113,7 +113,7 @@ $(SSHTOBJ)/%.o: %.c $(SSHTHEADERS)
 default: lib test about
 
 .PHONY: test
-test: $(SSHTBIN)/ssht_test
+test: $(SSHTBIN)/ssht_test about
 $(SSHTBIN)/ssht_test: $(SSHTOBJ)/ssht_test.o $(SSHTLIB)/lib$(SSHTLIBNM).a
 	$(CC) $(OPT) $< -o $(SSHTBIN)/ssht_test $(LDFLAGS) 
 
