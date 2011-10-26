@@ -19,7 +19,6 @@
 !! <a href="../../index_ssht.html">here</a>.
 !!
 !! \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
-!! \version 0.1
 !!
 
 !------------------------------------------------------------------------------
