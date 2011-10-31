@@ -16,12 +16,11 @@ AUTHORS
 
 REFERENCES
      J. D. McEwen and Y. Wiaux, A novel sampling theorem on the
-     sphere, IEEE Trans. Sig. Proc., in press, 2011 (arXiv:xxxx.xxxx).
+     sphere, IEEE Trans. Sig. Proc., in press, 2011 (arXiv:1110.6298).
 
      J. D. McEwen, G. Puy, J.-Ph. Thiran, P. Vandergheynst, D. Van De
      Ville and Y. Wiaux, Efficient and compressive sampling on the
-     sphere,  IEEE Trans. Sig. Proc., submitted, 2011
-     (arXiv:xxxx.xxxx).
+     sphere,  IEEE Trans. Sig. Proc., submitted, 2011.
 
 DOCUMENTATION
      See doc/index.html
@@ -39,8 +38,8 @@ SUPPORT
      Please email the authors.
 
 NOTE
-     The package is still under development
-     Please report problems/bugs by email to: mcewen@mrao.cam.ac.uk
+     The package is in beta and is still under development.
+     Please report problems/bugs by email to: jason.mcewen@ucl.ac.uk
 
 LICENSE
      SSHT package to perform spin spherical harmonic transforms
@@ -60,4 +59,3 @@ LICENSE
      along with this program; if not, write to the Free Software
      Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
      MA  02110-1301, USA.
-
