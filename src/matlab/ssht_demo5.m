@@ -30,15 +30,17 @@ load('data/wmap_lcdm_pl_model_wmap7baoh0.mat');
 
 % Simulate CMB in harmonic space.
 cmb_lm = zeros(L^2,1);
-for el = 2:L-1   
+for el = 2:L-1      
    cl(el-1) = cl(el-1) * 2*pi / (el*(el+1));
-   ind = ssht_elm2ind(el, 0);
-   cmb_lm(ind) = sqrt(cl(el-1)) .* randn;
-   for m = 1:el
-      ind = ssht_elm2ind(el, m);
-      cmb_lm(ind) = ...
-         sqrt(cl(el-1)./2) .* randn ...
-         + sqrt(-1) * sqrt(cl(el-1)./2) .* randn;
+   for m = -el:el
+     ind = ssht_elm2ind(el, m);
+     if m == 0
+       cmb_lm(ind) = sqrt(cl(el-1)) .* randn;
+     else
+        cmb_lm(ind) = ...
+           sqrt(cl(el-1)./2) .* randn ...
+           + sqrt(-1) * sqrt(cl(el-1)./2) .* randn;
+     end
    end
 end
 
