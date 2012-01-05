@@ -11,7 +11,8 @@ ifeq ($(FC),gfortran)
   OPTGFORTRAN = -m64 
 endif
 
-OPT = $(OPTNAGFOR) $(OPTGFORTRAN) -O3  -DSSHT_VERSION=\"1.0b1\" -DSSHT_BUILD=\"`svnversion -n .`\" 
+OPT = $(OPTNAGFOR) $(OPTGFORTRAN) -O3 \
+       -DSSHT_VERSION=\"1.0b1\" -DSSHT_BUILD=\"`svnversion -n .`\" 
 #-g3 -ggdb
 
 
@@ -66,7 +67,7 @@ ifeq ($(FC),nagfor)
 else ifeq ($(FC),g95)
   PPFLAGS = -cpp $(OPT)
 else ifeq ($(FC),gfortran)
-  PPFLAGS = -x f95-cpp-input $(OPT)
+  PPFLAGS = -cpp $(OPT)
 endif
 
 
