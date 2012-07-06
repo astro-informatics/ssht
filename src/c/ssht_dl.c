@@ -73,7 +73,7 @@ double* ssht_dl_calloc(int L, ssht_dl_size_t dl_size) {
       break;
 
     case SSHT_DL_QUARTER_EXTENDED:
-      dl = (double*)calloc((L+1)*(L+3), sizeof(double));
+      dl = (double*)calloc((L+2)*(L+2), sizeof(double));
       break;
 
     case SSHT_DL_HALF:
@@ -150,7 +150,7 @@ int ssht_dl_get_stride(int L, ssht_dl_size_t dl_size) {
       return L;
 
     case SSHT_DL_QUARTER_EXTENDED:
-      return L + 3;
+      return L + 2;
 
     case SSHT_DL_HALF:
       return 2*L - 1;
@@ -683,7 +683,7 @@ void ssht_dl_beta_risbo_eighth_table(double *dl, double beta, int L,
     for (m=-el; m<=0; m++)
       for (mm=m+1; mm<=m+2; mm++)
     	dl[(m+offset)*stride + mm + offset] =
-    	  signs[abs(m)] * signs[abs(mm)] 
+	  signs[abs(m)] * signs[abs(mm)] 
 	  * dl[(mm+offset)*stride + m + offset];
 
     // Extend right by one in m.
