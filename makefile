@@ -49,6 +49,9 @@ FFTWINC	     = $(FFTWDIR)/include
 FFTWLIB      = $(FFTWDIR)/lib
 FFTWLIBNM    = fftw3
 
+SHARPDIR     = $(PROGDIR)/libsharp
+SHARPLIB     = -L$(SHARPDIR)/auto/lib -lsharp -lfftpack -lc_utils
+
 SSHTSRCMAT	= $(SSHTDIR)/src/matlab
 SSHTOBJMAT  	= $(SSHTSRCMAT)
 SSHTOBJMEX  	= $(SSHTSRCMAT)
@@ -63,7 +66,7 @@ vpath %_mex.c $(SSHTSRCMAT)
 
 # ======== FFFLAGS ========
 
-FFLAGS  = -I$(FFTWINC) -I$(SSHTINC) 
+FFLAGS  = -I$(FFTWINC) -I$(SSHTINC) -I$(SHARPDIR)/libsharp -I$(SHARPDIR)/c_utils
 ifeq ($(UNAME), Linux)
   # Add -fPIC flag (required for mex build).
   # (Note that fftw must also be built with -fPIC.)
@@ -72,9 +75,9 @@ endif
 
 # ======== LDFLAGS ========
 
-LDFLAGS = -L$(SSHTLIB) -l$(SSHTLIBNM) -L$(FFTWLIB) -l$(FFTWLIBNM) -lm
+LDFLAGS = -L$(SSHTLIB) -l$(SSHTLIBNM) -L$(FFTWLIB) -l$(FFTWLIBNM) $(SHARPLIB) -lm
 
-LDFLAGSMEX = -L$(SSHTLIB) -l$(SSHTLIBNM) -L$(FFTWLIB) -l$(FFTWLIBNM)
+LDFLAGSMEX = -L$(SSHTLIB) -l$(SSHTLIBNM) -L$(FFTWLIB) -l$(FFTWLIBNM) $(SHARPLIB)
 
 
 # ======== OBJECT FILES TO MAKE ========
