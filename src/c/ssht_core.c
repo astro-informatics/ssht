@@ -22,10 +22,7 @@
 #include "ssht_dl.h"
 #include "ssht_sampling.h"
 #include "ssht_core.h"
-#include "c_utils.h"
-#include "sharp.h"
-#include "sharp_almhelpers.h"
-#include "sharp_geomhelpers.h"
+#include "ssht_sharp_utils.h"
 
 typedef double complex dcmplx;
 
@@ -66,21 +63,8 @@ if (ssht_use_libsharp && (spin==0))
   frp[1]=fr+1;
   // create temporary storage for a_lm
   sharp_alm_info *alms;
-  sharp_make_triangular_alm_info(L-1,L-1,1,&alms);
   dcmplx **alm;
-  ALLOC2D(alm,dcmplx,2,(L*(L+1))/2);
-  // rearrange a_lm into required format
-  int l,m;
-  for (m=0; m<L; ++m)
-    {
-    double mfac=(m&1) ? -1.:1.;
-    for (l=m; l<L; ++l)
-      {
-      complex double v1=flm[l*l+l+m], v2=mfac*flm[l*l+l-m];
-      alm[0][sharp_alm_index(alms,l,m)]=0.5*(v1+conj(v2));
-      alm[1][sharp_alm_index(alms,l,m)]=-0.5*_Complex_I*(v1-conj(v2));
-      }
-    }
+  ssht_flm2alm_c (flm, L, spin, &alm, &alms);
   // run the SHT proper
   sharp_execute(SHARP_ALM2MAP,spin,alm,&frp[0],tinfo,alms,(spin==0)?2:1,SHARP_DP,NULL,NULL);
   //cleanup
@@ -348,17 +332,12 @@ if (ssht_use_libsharp)
   sharp_make_mw_geom_info (L, 2*L-1, 0., 1, 2*L-1, &tinfo);
   // create temporary storage for a_lm
   sharp_alm_info *alms;
-  sharp_make_triangular_alm_info(L-1,L-1,1,&alms);
-  dcmplx *alm=RALLOC(dcmplx,(L*(L+1))/2);
-  // rearrange a_lm into required format
-  int l,m;
-  for (m=0; m<L; ++m)
-    for (l=m; l<L; ++l)
-      alm[sharp_alm_index(alms,l,m)]=flm[l*l + l + m];
+  dcmplx **alm;
+  ssht_flm2alm_r (flm, L, &alm, &alms);
   // run the SHT proper
-  sharp_execute(SHARP_ALM2MAP,0,&alm,&f,tinfo,alms,1,SHARP_DP,NULL,NULL);
+  sharp_execute(SHARP_ALM2MAP,0,alm,&f,tinfo,alms,1,SHARP_DP,NULL,NULL);
   // cleanup
-  DEALLOC(alm);
+  DEALLOC2D(alm);
   sharp_destroy_alm_info(alms);
   sharp_destroy_geom_info(tinfo);
   }
@@ -381,7 +360,7 @@ else
   int spinneg;
   complex double *Fmm, *Fmm_shift;
   double *fext_real;
-  int Fmm_offset, Fmm_stride, fext_stride;
+  int Fmm_offset, Fmm_stride;
   fftw_plan plan;
   int spin = 0;
 
@@ -548,7 +527,6 @@ else
   // Allocate space for function values.
   fext_real = (double*)calloc((2*L-1)*(2*L-1), sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(fext_real)
-  fext_stride = 2*L-1;
 
   // Perform 2D FFT.  
   plan = fftw_plan_dft_c2r_2d(2*L-1, 2*L-1, Fmm_shift, fext_real, 
@@ -1187,7 +1165,15 @@ void ssht_core_mw_forward_sov_conv_sym_real(complex double *flm, const double *f
 					    int L,
 					    ssht_dl_method_t dl_method, 
 					    int verbosity) {
-
+if (ssht_use_libsharp)
+  {
+  double *f_dh=RALLOC(double,(2*L)*(2*L-1));
+  mw2dw_real(f,L,0,f_dh);
+  ssht_core_dh_forward_sov_real (flm,f_dh,L,verbosity);
+  DEALLOC(f_dh);
+  }
+else
+  {
   int el, m, mm, ind, ind_nm, t, r;
   int eltmp;
   double *sqrt_tbl, *signs;
@@ -1200,7 +1186,7 @@ void ssht_core_mw_forward_sov_conv_sym_real(complex double *flm, const double *f
   complex double *Fmt, *Fmm, *Gmm;
   complex double *w, *wr;
   complex double *Fmm_pad, *tmp_pad;
-  int f_stride, Fmt_stride, Fmt_offset, Fmm_stride, Fmm_offset, Gmm_stride;
+  int f_stride, Fmt_stride, Fmm_stride, Fmm_offset, Gmm_stride;
   double *dl;
   double *dl8 = NULL;
   int dl_offset, dl_stride;
@@ -1253,7 +1239,6 @@ void ssht_core_mw_forward_sov_conv_sym_real(complex double *flm, const double *f
   Fmt = (complex double*)calloc(L*(2*L-1), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmt)
   Fmt_stride = 2*L-1;
-  Fmt_offset = L-1;
   f_stride = 2*L-1;
   in_real = (double*)calloc(2*L-1, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(in_real)
@@ -1523,7 +1508,7 @@ void ssht_core_mw_forward_sov_conv_sym_real(complex double *flm, const double *f
   // Print finished if verbosity set.
   if (verbosity > 0) 
     printf("%s%s", SSHT_PROMPT, "Forward transform computed!");  
-
+  }
 }
 
 
@@ -1756,20 +1741,8 @@ if (ssht_use_libsharp && (spin==0))
   frp[0]=fr;
   frp[1]=fr+1;
   sharp_alm_info *alms;
-  sharp_make_triangular_alm_info(L-1,L-1,1,&alms);
   dcmplx **alm;
-  ALLOC2D(alm,dcmplx,2,(L*(L+1))/2);
-  int l,m;
-  for (m=0; m<L; ++m)
-    {
-    double mfac=(m&1) ? -1.:1.;
-    for (l=m; l<L; ++l)
-      {
-      complex double v1=flm[l*l+l+m], v2=mfac*flm[l*l+l-m];
-      alm[0][sharp_alm_index(alms,l,m)]=0.5*(v1+conj(v2));
-      alm[1][sharp_alm_index(alms,l,m)]=-0.5*_Complex_I*(v1-conj(v2));
-      }
-    }
+  ssht_flm2alm_c (flm, L, spin, &alm, &alms);
   sharp_execute(SHARP_ALM2MAP,spin,alm,&frp[0],tinfo,alms,(spin==0)?2:1,SHARP_DP,NULL,NULL);
   DEALLOC2D(alm);
   sharp_destroy_alm_info(alms);
@@ -2027,14 +2000,10 @@ if (ssht_use_libsharp)
   sharp_geom_info *tinfo;
   sharp_make_hw_geom_info (L+1, 2*L, 0., 1, 2*L, &tinfo);
   sharp_alm_info *alms;
-  sharp_make_triangular_alm_info(L-1,L-1,1,&alms);
-  dcmplx *alm=RALLOC(dcmplx,(L*(L+1))/2);
-  int l,m;
-  for (m=0; m<L; ++m)
-    for (l=m; l<L; ++l)
-      alm[sharp_alm_index(alms,l,m)]=flm[l*l + l + m];
-  sharp_execute(SHARP_ALM2MAP,0,&alm,&f,tinfo,alms,1,SHARP_DP,NULL,NULL);
-  DEALLOC(alm);
+  dcmplx **alm;
+  ssht_flm2alm_r (flm, L, &alm, &alms);
+  sharp_execute(SHARP_ALM2MAP,0,alm,&f,tinfo,alms,1,SHARP_DP,NULL,NULL);
+  DEALLOC2D(alm);
   sharp_destroy_alm_info(alms);
   sharp_destroy_geom_info(tinfo);
   }
@@ -2056,7 +2025,7 @@ else
   int spinneg;
   complex double *Fmm, *Fmm_shift;
   double *fext_real;
-  int Fmm_offset, Fmm_stride, fext_stride;
+  int Fmm_offset, Fmm_stride;
   fftw_plan plan;
   int spin = 0;
 
@@ -2218,7 +2187,6 @@ else
   // one compared to usual sampling.
   fext_real = (double*)calloc((2*L)*(2*L), sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(fext_real)
-  fext_stride = 2*L;
 
   // Perform 2D FFT.  
   plan = fftw_plan_dft_c2r_2d(2*L, 2*L, Fmm_shift, fext_real, 
@@ -2740,7 +2708,17 @@ void ssht_core_mw_forward_sov_conv_sym_ss_real(complex double *flm, double *f,
 					       int L, 
 					       ssht_dl_method_t dl_method, 
 					       int verbosity) {
-
+#if 0
+if (ssht_use_libsharp)
+  {
+  double *f_dh=RALLOC(double,(2*L)*(2*L));
+  mws2dw_real(f,L,0,f_dh);
+  ssht_core_dh_forward_sov_real (flm,f_dh,L,verbosity);
+  DEALLOC(f_dh);
+  }
+else
+#endif
+  {
   int el, m, mm, ind, ind_nm, t, r;
   int eltmp;
   double *sqrt_tbl, *signs;
@@ -2753,13 +2731,12 @@ void ssht_core_mw_forward_sov_conv_sym_ss_real(complex double *flm, double *f,
   complex double *Fmt, *Fmm, *Gmm;
   complex double *w, *wr;
   complex double *Fmm_pad, *tmp_pad;
-  int f_stride, Fmt_stride, Fmt_offset, Fmm_stride, Fmm_offset, Gmm_stride;
+  int f_stride, Fmt_stride, Fmm_stride, Fmm_offset, Gmm_stride;
   double *dl;
   double *dl8 = NULL;
   int dl_offset, dl_stride;
   int w_offset;
   complex double *expsm;
-  int exps_offset;
   int elmmsign, elssign;
   int spinneg;
   int spin = 0;
@@ -2783,7 +2760,6 @@ void ssht_core_mw_forward_sov_conv_sym_ss_real(complex double *flm, double *f,
   }
   ssign = signs[abs(spin)];
   spinneg = spin <= 0 ? spin : -spin;
-  exps_offset = L-1;
   for (m=0; m<=L-1; m++)
     expsm[m] = cexp(I*SSHT_PION2*(m+spin));
 
@@ -2804,7 +2780,6 @@ void ssht_core_mw_forward_sov_conv_sym_ss_real(complex double *flm, double *f,
   Fmt = (complex double*)calloc((L+1)*(2*L), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmt)
   Fmt_stride = 2*L;
-  Fmt_offset = L-1;
   f_stride = 2*L;
   in_real = (double*)calloc(2*L, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(in_real)
@@ -3068,7 +3043,7 @@ void ssht_core_mw_forward_sov_conv_sym_ss_real(complex double *flm, double *f,
   // Print finished if verbosity set.
   if (verbosity > 0) 
     printf("%s%s", SSHT_PROMPT, "Forward transform computed!");  
-
+  }
 }
 
 
@@ -3323,20 +3298,8 @@ if (ssht_use_libsharp && (spin==0))
   frp[0]=fr;
   frp[1]=fr+1;
   sharp_alm_info *alms;
-  sharp_make_triangular_alm_info(L-1,L-1,1,&alms);
   dcmplx **alm;
-  ALLOC2D(alm,dcmplx,2,(L*(L+1))/2);
-  int l,m;
-  for (m=0; m<L; ++m)
-    {
-    double mfac=(m&1) ? -1.:1.;
-    for (l=m; l<L; ++l)
-      {
-      complex double v1=flm[l*l+l+m], v2=mfac*flm[l*l+l-m];
-      alm[0][sharp_alm_index(alms,l,m)]=0.5*(v1+conj(v2));
-      alm[1][sharp_alm_index(alms,l,m)]=-0.5*_Complex_I*(v1-conj(v2));
-      }
-    }
+  ssht_flm2alm_c (flm, L, spin, &alm, &alms);
   sharp_execute(SHARP_ALM2MAP,spin,alm,&frp[0],tinfo,alms,(spin==0)?2:1,SHARP_DP,NULL,NULL);
   DEALLOC2D(alm);
   sharp_destroy_alm_info(alms);
@@ -3480,14 +3443,10 @@ if (ssht_use_libsharp)
   sharp_geom_info *tinfo;
   sharp_make_gauss_geom_info (L, 2*L-1, 0., 1, 2*L-1, &tinfo);
   sharp_alm_info *alms;
-  sharp_make_triangular_alm_info(L-1,L-1,1,&alms);
-  dcmplx *alm=RALLOC(dcmplx,(L*(L+1))/2);
-  int l,m;
-  for (m=0; m<L; ++m)
-    for (l=m; l<L; ++l)
-      alm[sharp_alm_index(alms,l,m)]=flm[l*l + l + m];
-  sharp_execute(SHARP_ALM2MAP,0,&alm,&f,tinfo,alms,1,SHARP_DP,NULL,NULL);
-  DEALLOC(alm);
+  dcmplx **alm;
+  ssht_flm2alm_r (flm, L, &alm, &alms);
+  sharp_execute(SHARP_ALM2MAP,0,alm,&f,tinfo,alms,1,SHARP_DP,NULL,NULL);
+  DEALLOC2D(alm);
   sharp_destroy_alm_info(alms);
   sharp_destroy_geom_info(tinfo);
   }
@@ -3639,18 +3598,7 @@ if (ssht_use_libsharp&&(spin==0))
   dcmplx **alm;
   ALLOC2D(alm,dcmplx,2,(L*(L+1))/2);
   sharp_execute(SHARP_MAP2ALM,spin,alm,&frp[0],tinfo,alms,(spin==0)?2:1,SHARP_DP,NULL,NULL);
-  int l,m;
-  for (m=0; m<L; ++m)
-    {
-    double mfac=(m&1) ? -1:1;
-    for (l=m; l<L; ++l)
-      {
-      complex double v1=alm[0][sharp_alm_index(alms,l,m)],
-                     v2=alm[1][sharp_alm_index(alms,l,m)];
-      flm[l*l+l+m]=v1+_Complex_I*v2;
-      flm[l*l+l-m]=mfac*(conj(v1)+_Complex_I*conj(v2));
-      }
-    }
+  ssht_alm2flm_c (flm,L,spin,alm,alms);
   DEALLOC2D(alm);
   sharp_destroy_alm_info(alms);
   sharp_destroy_geom_info(tinfo);
@@ -3810,16 +3758,11 @@ if (ssht_use_libsharp)
   sharp_make_gauss_geom_info (L, 2*L-1, 0., 1, 2*L-1, &tinfo);
   sharp_alm_info *alms;
   sharp_make_triangular_alm_info(L-1,L-1,1,&alms);
-  dcmplx *alm=RALLOC(dcmplx,(L*(L+1))/2);
-  sharp_execute(SHARP_MAP2ALM,0,&alm,&f,tinfo,alms,1,SHARP_DP,NULL,NULL);
-  int l,m;
-  for (m=0; m<L; ++m)
-    for (l=m; l<L; ++l)
-      {
-      flm[l*l + l + m]=alm[sharp_alm_index(alms,l,m)];
-      flm[l*l + l - m]=conj(flm[l*l + l + m])*((m&1)? -1:1);
-      }
-  DEALLOC(alm);
+  dcmplx **alm;
+  ALLOC2D(alm,dcmplx,1,(L*(L+1))/2);
+  sharp_execute(SHARP_MAP2ALM,0,alm,&f,tinfo,alms,1,SHARP_DP,NULL,NULL);
+  ssht_alm2flm_r(flm,L,alm,alms);
+  DEALLOC2D(alm);
   sharp_destroy_alm_info(alms);
   sharp_destroy_geom_info(tinfo);
   }
@@ -3998,20 +3941,8 @@ if (ssht_use_libsharp && (spin==0))
   frp[0]=fr;
   frp[1]=fr+1;
   sharp_alm_info *alms;
-  sharp_make_triangular_alm_info(L-1,L-1,1,&alms);
   dcmplx **alm;
-  ALLOC2D(alm,dcmplx,2,(L*(L+1))/2);
-  int l,m;
-  for (m=0; m<L; ++m)
-    {
-    double mfac=(m&1) ? -1.:1.;
-    for (l=m; l<L; ++l)
-      {
-      complex double v1=flm[l*l+l+m], v2=mfac*flm[l*l+l-m];
-      alm[0][sharp_alm_index(alms,l,m)]=0.5*(v1+conj(v2));
-      alm[1][sharp_alm_index(alms,l,m)]=-0.5*_Complex_I*(v1-conj(v2));
-      }
-    }
+  ssht_flm2alm_c (flm, L, spin, &alm, &alms);
   sharp_execute(SHARP_ALM2MAP,spin,alm,&frp[0],tinfo,alms,(spin==0)?2:1,SHARP_DP,NULL,NULL);
   DEALLOC2D(alm);
   sharp_destroy_alm_info(alms);
@@ -4143,14 +4074,10 @@ if (ssht_use_libsharp)
   sharp_geom_info *tinfo;
   sharp_make_ecp_geom_info (2*L, 2*L-1, 0., 1, 2*L-1, &tinfo);
   sharp_alm_info *alms;
-  sharp_make_triangular_alm_info(L-1,L-1,1,&alms);
-  dcmplx *alm=RALLOC(dcmplx,(L*(L+1))/2);
-  int l,m;
-  for (m=0; m<L; ++m)
-    for (l=m; l<L; ++l)
-      alm[sharp_alm_index(alms,l,m)]=flm[l*l + l + m];
-  sharp_execute(SHARP_ALM2MAP,0,&alm,&f,tinfo,alms,1,SHARP_DP,NULL,NULL);
-  DEALLOC(alm);
+  dcmplx **alm;
+  ssht_flm2alm_r (flm, L, &alm, &alms);
+  sharp_execute(SHARP_ALM2MAP,0,alm,&f,tinfo,alms,1,SHARP_DP,NULL,NULL);
+  DEALLOC2D(alm);
   sharp_destroy_alm_info(alms);
   sharp_destroy_geom_info(tinfo);
   }
@@ -4290,18 +4217,7 @@ if (ssht_use_libsharp&&(spin==0))
   dcmplx **alm;
   ALLOC2D(alm,dcmplx,2,(L*(L+1))/2);
   sharp_execute(SHARP_MAP2ALM,spin,alm,&frp[0],tinfo,alms,(spin==0)?2:1,SHARP_DP,NULL,NULL);
-  int l,m;
-  for (m=0; m<L; ++m)
-    {
-    double mfac=(m&1) ? -1:1;
-    for (l=m; l<L; ++l)
-      {
-      complex double v1=alm[0][sharp_alm_index(alms,l,m)],
-                     v2=alm[1][sharp_alm_index(alms,l,m)];
-      flm[l*l+l+m]=v1+_Complex_I*v2;
-      flm[l*l+l-m]=mfac*(conj(v1)+_Complex_I*conj(v2));
-      }
-    }
+  ssht_alm2flm_c(flm,L,spin,alm,alms);
   DEALLOC2D(alm);
   sharp_destroy_alm_info(alms);
   sharp_destroy_geom_info(tinfo);
@@ -4451,16 +4367,11 @@ if (ssht_use_libsharp)
   sharp_make_ecp_geom_info (2*L, 2*L-1, 0., 1, 2*L-1, &tinfo);
   sharp_alm_info *alms;
   sharp_make_triangular_alm_info(L-1,L-1,1,&alms);
-  dcmplx *alm=RALLOC(dcmplx,(L*(L+1))/2);
-  sharp_execute(SHARP_MAP2ALM,0,&alm,&f,tinfo,alms,1,SHARP_DP,NULL,NULL);
-  int l,m;
-  for (m=0; m<L; ++m)
-    for (l=m; l<L; ++l)
-      {
-      flm[l*l + l + m]=alm[sharp_alm_index(alms,l,m)];
-      flm[l*l + l - m]=conj(flm[l*l + l + m])*((m&1)? -1:1);
-      }
-  DEALLOC(alm);
+  dcmplx **alm;
+  ALLOC2D(alm,dcmplx,1,(L*(L+1))/2);
+  sharp_execute(SHARP_MAP2ALM,0,alm,&f,tinfo,alms,1,SHARP_DP,NULL,NULL);
+  ssht_alm2flm_r(flm,L,alm,alms);
+  DEALLOC2D(alm);
   sharp_destroy_alm_info(alms);
   sharp_destroy_geom_info(tinfo);
   }

@@ -1,7 +1,7 @@
 # ======== COMPILER ========
 
 CC      = gcc
-OPT	= -Wall -O3 -DSSHT_VERSION=\"1.0b1\" -DSSHT_BUILD=\"`svnversion -n .`\"
+OPT	= -Wall -Wextra -Wall -Wno-unknown-pragmas -Wshadow -Wmissing-prototypes -Wfatal-errors -O3 -DSSHT_VERSION=\"1.0b1\" -DSSHT_BUILD=\"`svnversion -n .`\"
 #OPT	= -Wall -g -DSSHT_VERSION=\"1.0b1\" -DSSHT_BUILD=\"`svnversion -n .`\"
 
 
@@ -85,6 +85,7 @@ LDFLAGSMEX = -L$(SSHTLIB) -l$(SSHTLIBNM) -L$(FFTWLIB) -l$(FFTWLIBNM) $(SHARPLIB)
 SSHTOBJS = $(SSHTOBJ)/ssht_sampling.o    \
            $(SSHTOBJ)/ssht_dl.o          \
            $(SSHTOBJ)/ssht_core.o        \
+           $(SSHTOBJ)/ssht_sharp_utils.o \
            $(SSHTOBJ)/ssht_adjoint.o
 
 SSHTHEADERS = ssht_types.h     \
@@ -92,6 +93,7 @@ SSHTHEADERS = ssht_types.h     \
 	      ssht_sampling.h  \
 	      ssht_dl.h        \
 	      ssht_core.h      \
+	      ssht_sharp_utils.h      \
 	      ssht_adjoint.h
 
 SSHTOBJSMAT = $(SSHTOBJMAT)/ssht_sampling_mex.o        \
