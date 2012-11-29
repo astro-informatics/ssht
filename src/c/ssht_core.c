@@ -801,7 +801,12 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, const complex double
 				       int L, int spin, 
 				       ssht_dl_method_t dl_method,
 				       int verbosity) {
-
+if (ssht_use_libsharp)
+  {
+  ssht_sharp_mw_forward_complex(flm, f, L, spin);
+  }
+else
+  {
   int el, m, mm, ind, t, r;
   int eltmp;
   double *sqrt_tbl, *signs;
@@ -1141,7 +1146,7 @@ void ssht_core_mw_forward_sov_conv_sym(complex double *flm, const complex double
   // Print finished if verbosity set.
   if (verbosity > 0) 
     printf("%s%s", SSHT_PROMPT, "Forward transform computed!");  
-
+  }
 }
 
 
@@ -2337,6 +2342,12 @@ void ssht_core_mw_forward_sov_conv_sym_ss(complex double *flm, complex double *f
 					  ssht_dl_method_t dl_method,
 					  int verbosity) {
 
+if (ssht_use_libsharp)
+  {
+  ssht_sharp_mws_forward_complex(flm, f, L, spin);
+  }
+else
+  {
   int el, m, mm, ind, t, r;
   int eltmp;
   double *sqrt_tbl, *signs;
@@ -2681,7 +2692,7 @@ void ssht_core_mw_forward_sov_conv_sym_ss(complex double *flm, complex double *f
   // Print finished if verbosity set.
   if (verbosity > 0) 
     printf("%s%s", SSHT_PROMPT, "Forward transform computed!");  
-
+  }
 }
 
 

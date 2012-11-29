@@ -67,13 +67,106 @@ void ssht_alm2flm_r (complex double *flm, int L, double complex **alm,
       }
   }
 
+void ssht_sharp_mw_forward_complex(complex double *flm, const complex double *f, int L, int spin)
+  {
+  int m,ith;
+  int nphi=2*L-1;
+  int nth_hw=2*L-1;
+  complex double **tmp1;
+  ALLOC2D(tmp1,complex double,nth_hw,2*L-1);
+
+  // FFT in phi direction
+  {
+  complex double *ttt=RALLOC(complex double,nphi);
+  fftw_plan plan = fftw_plan_dft_1d(nphi,ttt,tmp1[0],
+    FFTW_FORWARD,FFTW_MEASURE|FFTW_UNALIGNED);
+  DEALLOC(ttt);
+  for (ith=0; ith<L; ++ith)
+    fftw_execute_dft(plan,f+ith*nphi,tmp1[ith]);
+  fftw_destroy_plan(plan);
+  }
+
+  {
+  double norm=1./((2.*L-1.)*nphi);
+  double dtheta=-SSHT_PI/(2.0*L-1.0);
+  complex double *tmp=RALLOC(complex double,4*L-4);
+  fftw_plan plan1 = fftw_plan_dft_1d(2*L-1,tmp,tmp,FFTW_FORWARD,FFTW_MEASURE);
+  fftw_plan plan2 = fftw_plan_dft_1d(4*L-4,tmp,tmp,FFTW_BACKWARD,FFTW_MEASURE);
+  // loop over all m
+  for (m=0; m<2*L-1; ++m)
+    {
+    for (ith=0; ith<L; ++ith)
+      tmp[ith]= tmp1[ith][m];
+
+    // theta extension
+int mreal= (m<L) ? m : m-(2*L-1);
+mreal+=spin;
+    int sign = (mreal&1) ? -1. : 1.;
+    for (ith=L; ith<2*L-1; ++ith)
+      tmp[ith]= sign*tmp[2*L-2-ith];
+
+    fftw_execute(plan1);
+
+    tmp[0]*=norm;
+    for (ith=1; ith<L; ++ith)
+      {
+      tmp[ith] *= norm*cexp(_Complex_I*ith*dtheta);
+      tmp[2*L-1-ith] *= norm*cexp(-_Complex_I*ith*dtheta);
+      }
+
+    // zero padding
+    for (ith=L; ith<2*L-1; ++ith)
+      tmp[ith+2*L-3]=tmp[ith];
+    for (ith=L; ith<3*L-3; ++ith)
+      tmp[ith]=0.;
+
+    fftw_execute(plan2);
+
+    for (ith=0; ith<2*L-1; ++ith)
+      tmp1[ith][m]=tmp[ith];
+    }
+  fftw_destroy_plan(plan1);
+  fftw_destroy_plan(plan2);
+  DEALLOC(tmp);
+  }
+
+  // FFT in phi direction
+  {
+  complex double *ttt=RALLOC(complex double,nphi);
+  fftw_plan plan = fftw_plan_dft_1d(nphi,ttt,ttt,
+    FFTW_BACKWARD,FFTW_MEASURE|FFTW_UNALIGNED);
+  DEALLOC(ttt);
+  for (ith=0; ith<nth_hw; ++ith)
+    fftw_execute_dft(plan,tmp1[ith],tmp1[ith]);
+  fftw_destroy_plan(plan);
+  }
+
+  sharp_geom_info *tinfo;
+  sharp_make_hw_geom_info (2*L-1, 2*L-1, 0., 2, 4*L-2, &tinfo);
+  sharp_alm_info *alms;
+  sharp_make_triangular_alm_info(L-1,L-1,1,&alms);
+  dcmplx **alm;
+  double * fr=(double *)(tmp1[0]);
+  double *frp[2];
+  frp[0]=fr;
+  frp[1]=fr+1;
+  ALLOC2D(alm,dcmplx,2,(L*(L+1))/2);
+  sharp_execute(SHARP_MAP2ALM,spin,alm,&frp[0],tinfo,alms,(spin==0)?2:1,SHARP_DP,NULL,NULL);
+  ssht_alm2flm_c(flm,L,spin,alm,alms);
+  DEALLOC2D(alm);
+  sharp_destroy_alm_info(alms);
+  sharp_destroy_geom_info(tinfo);
+
+  DEALLOC2D(tmp1);
+  }
+
 void ssht_sharp_mw_forward_real(complex double *flm, const double *f, int L)
   {
   int m,ith;
   int nphi=2*L-1;
-  int nth_dh=2*L;
+  int nth_hw=2*L-1;
   double **tmp1;
-  ALLOC2D(tmp1,double,nth_dh,2*L);
+  ALLOC2D(tmp1,double,nth_hw,2*L);
 
   // FFT in phi direction
   {
@@ -88,10 +181,10 @@ void ssht_sharp_mw_forward_real(complex double *flm, const double *f, int L)
 
   {
   double norm=1./((2.*L-1.)*nphi);
-  double dtheta=SSHT_PI*(-1./(2.0*L-1.0)+1./(4.*L));
-  complex double *tmp=RALLOC(complex double,4*L);
+  double dtheta=-SSHT_PI/(2.0*L-1.0);
+  complex double *tmp=RALLOC(complex double,4*L-4);
   fftw_plan plan1 = fftw_plan_dft_1d(2*L-1,tmp,tmp,FFTW_FORWARD,FFTW_MEASURE);
-  fftw_plan plan2 = fftw_plan_dft_1d(4*L,tmp,tmp,FFTW_BACKWARD,FFTW_MEASURE);
+  fftw_plan plan2 = fftw_plan_dft_1d(4*L-4,tmp,tmp,FFTW_BACKWARD,FFTW_MEASURE);
   // loop over all m
   for (m=0; m<L; ++m)
     {
@@ -114,13 +207,13 @@ void ssht_sharp_mw_forward_real(complex double *flm, const double *f, int L)
 
     // zero padding
     for (ith=L; ith<2*L-1; ++ith)
-      tmp[ith+2*L+1]=tmp[ith];
-    for (ith=L; ith<3*L+1; ++ith)
+      tmp[ith+2*L-3]=tmp[ith];
+    for (ith=L; ith<3*L-3; ++ith)
       tmp[ith]=0.;
 
     fftw_execute(plan2);
 
-    for (ith=0; ith<2*L; ++ith)
+    for (ith=0; ith<2*L-1; ++ith)
       {
       tmp1[ith][2*m]=creal(tmp[ith]);
       tmp1[ith][2*m+1]=cimag(tmp[ith]);
@@ -137,19 +230,107 @@ void ssht_sharp_mw_forward_real(complex double *flm, const double *f, int L)
   fftw_plan plan = fftw_plan_dft_c2r_1d(nphi,ttt,(double *)ttt,
     FFTW_MEASURE|FFTW_UNALIGNED);
   DEALLOC(ttt);
-  for (ith=0; ith<nth_dh; ++ith)
+  for (ith=0; ith<nth_hw; ++ith)
     fftw_execute_dft_c2r(plan,(complex double *)tmp1[ith],tmp1[ith]);
   fftw_destroy_plan(plan);
   }
 
   sharp_geom_info *tinfo;
-  sharp_make_ecp_geom_info (2*L, 2*L-1, 0., 1, 2*L, &tinfo);
+  sharp_make_hw_geom_info (2*L-1, 2*L-1, 0., 1, 2*L, &tinfo);
   sharp_alm_info *alms;
   sharp_make_triangular_alm_info(L-1,L-1,1,&alms);
   dcmplx **alm;
   ALLOC2D(alm,dcmplx,1,(L*(L+1))/2);
   sharp_execute(SHARP_MAP2ALM,0,alm,tmp1,tinfo,alms,1,SHARP_DP,NULL,NULL);
   ssht_alm2flm_r(flm,L,alm,alms);
+  DEALLOC2D(alm);
+  sharp_destroy_alm_info(alms);
+  sharp_destroy_geom_info(tinfo);
+
+  DEALLOC2D(tmp1);
+  }
+
+void ssht_sharp_mws_forward_complex(complex double *flm, const complex double *f, int L, int spin)
+  {
+  int m,ith;
+  int nphi=2*L;
+  int nth_hw=2*L-1;
+  complex double **tmp1;
+  ALLOC2D(tmp1,complex double,nth_hw,2*L);
+
+  // FFT in phi direction
+  {
+  complex double *ttt=RALLOC(complex double,nphi);
+  fftw_plan plan = fftw_plan_dft_1d(nphi,ttt,tmp1[0],
+    FFTW_FORWARD,FFTW_MEASURE|FFTW_UNALIGNED);
+  DEALLOC(ttt);
+  for (ith=0; ith<L+1; ++ith)
+    fftw_execute_dft(plan,f+ith*nphi,tmp1[ith]);
+  fftw_destroy_plan(plan);
+  }
+
+  {
+  double norm=1./(2.*L*nphi);
+  complex double *tmp=RALLOC(complex double,4*L-4);
+  fftw_plan plan1 = fftw_plan_dft_1d(2*L,tmp,tmp,FFTW_FORWARD,FFTW_MEASURE);
+  fftw_plan plan2 = fftw_plan_dft_1d(4*L-4,tmp,tmp,FFTW_BACKWARD,FFTW_MEASURE);
+  // loop over all m
+  for (m=0; m<nphi; ++m)
+    {
+    for (ith=0; ith<L+1; ++ith)
+      tmp[ith]= tmp1[ith][m];
+
+    // theta extension
+int mreal= (m<=L) ? m : m-(2*L);
+mreal+=spin;
+    int sign = (mreal&1) ? -1. : 1.;
+    for (ith=L+1; ith<2*L; ++ith)
+      tmp[ith]= sign*tmp[2*L-ith];
+
+    fftw_execute(plan1);
+
+    for (ith=0; ith<2*L; ++ith)
+      tmp[ith] *= norm;
+
+    // zero padding
+    for (ith=L+1; ith<2*L; ++ith)
+      tmp[ith+2*L-4]=tmp[ith];
+    for (ith=L+1; ith<3*L-3; ++ith)
+      tmp[ith]=0.;
+
+    fftw_execute(plan2);
+
+    for (ith=0; ith<2*L-1; ++ith)
+      tmp1[ith][m]=tmp[ith];
+    }
+  fftw_destroy_plan(plan1);
+  fftw_destroy_plan(plan2);
+  DEALLOC(tmp);
+  }
+
+  // FFT in phi direction
+  {
+  complex double *ttt=RALLOC(complex double,nphi);
+  fftw_plan plan = fftw_plan_dft_1d(nphi,ttt,ttt,
+    FFTW_BACKWARD,FFTW_MEASURE|FFTW_UNALIGNED);
+  DEALLOC(ttt);
+  for (ith=0; ith<nth_hw; ++ith)
+    fftw_execute_dft(plan,tmp1[ith],tmp1[ith]);
+  fftw_destroy_plan(plan);
+  }
+
+  sharp_geom_info *tinfo;
+  sharp_make_hw_geom_info (2*L-1, 2*L, 0., 2, 4*L, &tinfo);
+  sharp_alm_info *alms;
+  sharp_make_triangular_alm_info(L-1,L-1,1,&alms);
+  double * fr=(double *)(tmp1[0]);
+  double *frp[2];
+  frp[0]=fr;
+  frp[1]=fr+1;
+  dcmplx **alm;
+  ALLOC2D(alm,dcmplx,2,(L*(L+1))/2);
+  sharp_execute(SHARP_MAP2ALM,spin,alm,&frp[0],tinfo,alms,(spin==0)?2:1,SHARP_DP,NULL,NULL);
+  ssht_alm2flm_c(flm,L,spin,alm,alms);
   DEALLOC2D(alm);
   sharp_destroy_alm_info(alms);
   sharp_destroy_geom_info(tinfo);
