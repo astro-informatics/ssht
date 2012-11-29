@@ -52,7 +52,7 @@ void ssht_core_mw_inverse_sov_sym(complex double *f, const complex double *flm,
 				  int L, int spin, 
 				  ssht_dl_method_t dl_method, 
 				  int verbosity) {
-if (ssht_use_libsharp && (spin==0))
+if (ssht_use_libsharp)
   {
   // describe the grid to libsharp
   sharp_geom_info *tinfo;
@@ -1167,10 +1167,7 @@ void ssht_core_mw_forward_sov_conv_sym_real(complex double *flm, const double *f
 					    int verbosity) {
 if (ssht_use_libsharp)
   {
-  double *f_dh=RALLOC(double,(2*L)*(2*L-1));
-  mw2dw_real(f,L,0,f_dh);
-  ssht_core_dh_forward_sov_real (flm,f_dh,L,verbosity);
-  DEALLOC(f_dh);
+  ssht_sharp_mw_forward_real(flm, f, L);
   }
 else
   {
@@ -1732,7 +1729,7 @@ void ssht_core_mw_inverse_sov_sym_ss(complex double *f, complex double *flm,
 				     int L, int spin, 
 				     ssht_dl_method_t dl_method, 
 				     int verbosity) {
-if (ssht_use_libsharp && (spin==0))
+if (ssht_use_libsharp)
   {
   sharp_geom_info *tinfo;
   sharp_make_hw_geom_info (L+1, 2*L, 0., 2, 4*L, &tinfo);
@@ -2708,16 +2705,11 @@ void ssht_core_mw_forward_sov_conv_sym_ss_real(complex double *flm, double *f,
 					       int L, 
 					       ssht_dl_method_t dl_method, 
 					       int verbosity) {
-#if 0
 if (ssht_use_libsharp)
   {
-  double *f_dh=RALLOC(double,(2*L)*(2*L));
-  mws2dw_real(f,L,0,f_dh);
-  ssht_core_dh_forward_sov_real (flm,f_dh,L,verbosity);
-  DEALLOC(f_dh);
+  ssht_sharp_mws_forward_real(flm, f, L);
   }
 else
-#endif
   {
   int el, m, mm, ind, ind_nm, t, r;
   int eltmp;
@@ -3289,7 +3281,7 @@ void ssht_core_mw_forward_sov_conv_sym_ss_real_pole(complex double *flm,
  */
 void ssht_core_gl_inverse_sov(complex double *f, complex double *flm, 
 			      int L, int spin, int verbosity) {
-if (ssht_use_libsharp && (spin==0))
+if (ssht_use_libsharp)
   {
   sharp_geom_info *tinfo;
   sharp_make_gauss_geom_info (L, 2*L-1, 0., 2, 4*L-2, &tinfo);
@@ -3585,7 +3577,7 @@ else
  */
 void ssht_core_gl_forward_sov(complex double *flm, complex double *f, 
 			      int L, int spin, int verbosity) {
-if (ssht_use_libsharp&&(spin==0))
+if (ssht_use_libsharp)
   {
   sharp_geom_info *tinfo;
   sharp_make_gauss_geom_info (L, 2*L-1, 0., 2, 4*L-2, &tinfo);
@@ -3932,7 +3924,7 @@ else
 void ssht_core_dh_inverse_sov(complex double *f, complex double *flm, 
 			      int L, int spin, int verbosity) {
 
-if (ssht_use_libsharp && (spin==0))
+if (ssht_use_libsharp)
   {
   sharp_geom_info *tinfo;
   sharp_make_ecp_geom_info (2*L, 2*L-1, 0., 2, 4*L-2, &tinfo);
@@ -4204,7 +4196,7 @@ else
 void ssht_core_dh_forward_sov(complex double *flm, complex double *f, 
 			      int L, int spin, int verbosity) {
 
-if (ssht_use_libsharp&&(spin==0))
+if (ssht_use_libsharp)
   {
   sharp_geom_info *tinfo;
   sharp_make_ecp_geom_info (2*L, 2*L-1, 0., 2, 4*L-2, &tinfo);
