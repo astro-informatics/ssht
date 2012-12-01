@@ -1,5 +1,4 @@
 #include "ssht_types.h"
-#include "walltime_c.h"
 #include "ssht_sharp_utils.h"
 #include <fftw3.h>
 
@@ -71,7 +70,6 @@ void ssht_alm2flm_r (complex double *flm, int L, double complex **alm,
 void ssht_sharp_mw_forward_complex(complex double *flm, const complex double *f,
   int L, int spin)
   {
-double t0=wallTime();
   int m,ith;
   int nphi=2*L-1;
   int nm=nphi;
@@ -93,8 +91,6 @@ double t0=wallTime();
   fftw_destroy_plan(plan);
   }
 
-double t1=wallTime();
-double tnorm=0;
   {
   double norm=1./(nth_mwfull*nphi);
   double dtheta=-SSHT_PI/nth_mwfull;
@@ -111,13 +107,12 @@ double tnorm=0;
       tmp[ith]= tmp1[ith][m];
 
     // theta extension
-int mreal= (m<L) ? m : m-(2*L-1);
-mreal+=spin;
+    int mreal= (m<L) ? m : m-(2*L-1);
+    mreal+=spin;
     int sign = (mreal&1) ? -1. : 1.;
     for (ith=nth_mw; ith<nth_mwfull; ++ith)
       tmp[ith]= sign*tmp[nth_mwfull-1-ith];
 
-double tx=wallTime();
     fftw_execute(plan1);
     tmp[0]*=norm;
     for (ith=1; ith<nth_mw; ++ith)
@@ -132,7 +127,6 @@ double tx=wallTime();
     for (ith=nth_mw; ith<nth_hwfull-nth_mw+1; ++ith)
       tmp[ith]=0.;
     fftw_execute(plan2);
-tnorm+=wallTime()-tx;
 
     for (ith=0; ith<nth_hw; ++ith)
       tmp1[ith][m]=tmp[ith];
@@ -142,7 +136,6 @@ tnorm+=wallTime()-tx;
   DEALLOC(tmp);
   DEALLOC(fact);
   }
-double t2=wallTime();
 
   // FFT in phi direction
   {
@@ -154,8 +147,7 @@ double t2=wallTime();
     fftw_execute_dft(plan,tmp1[ith],tmp1[ith]);
   fftw_destroy_plan(plan);
   }
-double t3=wallTime();
-printf("time overhead: %e %e %e %e\n",t1-t0,t2-t1,t3-t2,tnorm);
+
   sharp_geom_info *tinfo;
   sharp_make_hw_geom_info (nth_hw, nphi, 0., 2, 2*nphi, &tinfo);
   sharp_alm_info *alms;
@@ -293,17 +285,14 @@ void ssht_sharp_mws_forward_complex(complex double *flm, const complex double *f
   for (m=0; m<nphi; ++m)
     {
     for (ith=0; ith<nth_mw; ++ith)
-      tmp[ith]= f[ith*nphi+m];
+      tmp[ith]= norm*f[ith*nphi+m];
 
-    int sign = (spin&1) ? -1. : 1.;
+    double nsign = norm *((spin&1) ? -1. : 1.);
     int m_opposite=(m+nphi/2)%nphi;
     for (ith=nth_mw; ith<nth_mwfull; ++ith)
-      tmp[ith]= sign*f[nphi*(nth_mwfull-ith)+m_opposite];
+      tmp[ith]= nsign*f[nphi*(nth_mwfull-ith)+m_opposite];
 
     fftw_execute(plan1);
-
-    for (ith=0; ith<nth_mwfull; ++ith)
-      tmp[ith] *= norm;
 
     // zero padding
     for (ith=nth_mw; ith<nth_mwfull; ++ith)
@@ -360,15 +349,12 @@ void ssht_sharp_mws_forward_real(complex double *flm, const double *f, int L)
   for (m=0; m<nphi; ++m)
     {
     for (ith=0; ith<nth_mw; ++ith)
-      tmp[ith]= f[nphi*ith+m];
+      tmp[ith]= norm*f[nphi*ith+m];
     int m_opposite=(m+nphi/2)%nphi;
     for (ith=nth_mw; ith<nth_mwfull; ++ith)
-      tmp[ith]= f[nphi*(nth_mwfull-ith)+m_opposite];
+      tmp[ith]= norm*f[nphi*(nth_mwfull-ith)+m_opposite];
 
     fftw_execute(plan1);
-
-    for (ith=0; ith<nth_mwfull; ++ith)
-      tmp[ith] *= norm;
 
     // zero padding
     for (ith=nth_mw; ith<nth_mwfull; ++ith)
