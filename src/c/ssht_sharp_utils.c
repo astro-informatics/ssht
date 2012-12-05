@@ -76,7 +76,6 @@ void ssht_sharp_mw_forward_complex(complex double *flm, const complex double *f,
   int nth_mw=L;
   int nth_mwfull=2*L-1;
   int nth_hw=2*L;
-  int nth_hwfull=2*nth_hw-2;
   complex double **tmp1;
   ALLOC2D(tmp1,complex double,nth_hw,nphi);
 
@@ -85,7 +84,7 @@ void ssht_sharp_mw_forward_complex(complex double *flm, const complex double *f,
   fftw_plan plan = fftw_plan_dft_1d(nphi,tmp1[0],tmp1[1],
     FFTW_FORWARD,FFTW_MEASURE|FFTW_UNALIGNED);
   for (ith=0; ith<nth_mw; ++ith)
-    fftw_execute_dft(plan,f+ith*nphi,tmp1[ith]);
+    fftw_execute_dft(plan,(complex double *)(f+ith*nphi),tmp1[ith]);
   fftw_destroy_plan(plan);
   }
 
@@ -112,6 +111,8 @@ void ssht_sharp_mw_forward_complex(complex double *flm, const complex double *f,
       tmp[ith]= sign*tmp[nth_mwfull-1-ith];
 
     fftw_execute(plan1);
+
+    // theta shift and normalisation
     tmp[0]*=norm;
     for (ith=1; ith<nth_mw; ++ith)
       {
@@ -134,7 +135,7 @@ void ssht_sharp_mw_forward_complex(complex double *flm, const complex double *f,
   {
   complex double *ttt=RALLOC(complex double,nphi);
   fftw_plan plan = fftw_plan_dft_1d(nphi,ttt,ttt,
-    FFTW_BACKWARD,FFTW_MEASURE|FFTW_UNALIGNED);
+    FFTW_BACKWARD,FFTW_MEASURE);
   DEALLOC(ttt);
   for (ith=0; ith<nth_mw; ++ith)
     fftw_execute_dft(plan,tmp1[2*ith],tmp1[2*ith]);
@@ -172,7 +173,6 @@ void ssht_sharp_mw_forward_real(complex double *flm, const double *f, int L)
   int nth_mw=L;
   int nth_mwfull=2*L-1;
   int nth_hw=2*L;
-  int nth_hwfull=2*nth_hw-2;
   double **tmp1;
   ALLOC2D(tmp1,double,nth_hw,2*nm);
 
@@ -181,7 +181,7 @@ void ssht_sharp_mw_forward_real(complex double *flm, const double *f, int L)
   fftw_plan plan = fftw_plan_dft_r2c_1d(nphi,tmp1[0],(complex double *)tmp1[1],
     FFTW_MEASURE|FFTW_UNALIGNED);
   for (ith=0; ith<nth_mw; ++ith)
-    fftw_execute_dft_r2c(plan,f+ith*nphi,(complex double *)tmp1[ith]);
+    fftw_execute_dft_r2c(plan,(double *)(f+ith*nphi),(complex double *)tmp1[ith]);
   fftw_destroy_plan(plan);
   }
 
@@ -207,6 +207,7 @@ void ssht_sharp_mw_forward_real(complex double *flm, const double *f, int L)
 
     fftw_execute(plan1);
 
+    // theta shift and normalisation
     tmp[0]*=norm;
     for (ith=1; ith<nth_mw; ++ith)
       {
@@ -231,7 +232,7 @@ void ssht_sharp_mw_forward_real(complex double *flm, const double *f, int L)
   {
   complex double *ttt=RALLOC(complex double,nm);
   fftw_plan plan = fftw_plan_dft_c2r_1d(nphi,ttt,(double *)ttt,
-    FFTW_MEASURE|FFTW_UNALIGNED);
+    FFTW_MEASURE);
   DEALLOC(ttt);
   for (ith=0; ith<nth_mw; ++ith)
     fftw_execute_dft_c2r(plan,(complex double *)tmp1[2*ith],tmp1[2*ith]);
@@ -289,6 +290,7 @@ void ssht_sharp_mws_forward_complex(complex double *flm, const complex double *f
 
     fftw_execute(plan1);
 
+    // theta shift and normalisation
     tmp[0]*=norm;
     for (ith=1; ith<nth_mw-1; ++ith)
       {
@@ -362,6 +364,7 @@ void ssht_sharp_mws_forward_real(complex double *flm, const double *f, int L)
 
     fftw_execute(plan1);
 
+    // theta shift and normalisation
     tmp[0]*=norm;
     for (ith=1; ith<nth_mw-1; ++ith)
       {
