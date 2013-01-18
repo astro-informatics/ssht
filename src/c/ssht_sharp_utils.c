@@ -147,7 +147,7 @@ void ssht_sharp_mw_forward_complex(complex double *flm, const complex double *f,
       tmp1[2*ith+1][m]=f[ith*nphi+m];
 
   sharp_geom_info *tinfo;
-  sharp_make_hw_geom_info (nth_hw, nphi, 0., 2, 2*nphi, &tinfo);
+  sharp_make_cc_geom_info (nth_hw, nphi, 0., 2, 2*nphi, &tinfo);
   sharp_alm_info *alms;
   sharp_make_triangular_alm_info(L-1,L-1,1,&alms);
   dcmplx **alm;
@@ -244,7 +244,7 @@ void ssht_sharp_mw_forward_real(complex double *flm, const double *f, int L)
       tmp1[2*ith+1][m]=f[ith*nphi+m];
 
   sharp_geom_info *tinfo;
-  sharp_make_hw_geom_info (nth_hw, nphi, 0., 1, 2*nm, &tinfo);
+  sharp_make_cc_geom_info (nth_hw, nphi, 0., 1, 2*nm, &tinfo);
   sharp_alm_info *alms;
   sharp_make_triangular_alm_info(L-1,L-1,1,&alms);
   dcmplx **alm;
@@ -316,7 +316,7 @@ void ssht_sharp_mws_forward_complex(complex double *flm, const complex double *f
       tmp1[2*ith][m]=f[ith*nphi+m];
 
   sharp_geom_info *tinfo;
-  sharp_make_hw_geom_info (nth_hw, nphi, 0., 2, 2*nphi, &tinfo);
+  sharp_make_cc_geom_info (nth_hw, nphi, 0., 2, 2*nphi, &tinfo);
   sharp_alm_info *alms;
   sharp_make_triangular_alm_info(L-1,L-1,1,&alms);
   double * fr=(double *)(tmp1[0]);
@@ -390,7 +390,7 @@ void ssht_sharp_mws_forward_real(complex double *flm, const double *f, int L)
       tmp1[2*ith][m]=f[ith*nphi+m];
 
   sharp_geom_info *tinfo;
-  sharp_make_hw_geom_info (nth_hw, nphi, 0., 1, nphi, &tinfo);
+  sharp_make_cc_geom_info (nth_hw, nphi, 0., 1, nphi, &tinfo);
   sharp_alm_info *alms;
   sharp_make_triangular_alm_info(L-1,L-1,1,&alms);
   dcmplx **alm;

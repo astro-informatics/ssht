@@ -1737,7 +1737,7 @@ void ssht_core_mw_inverse_sov_sym_ss(complex double *f, complex double *flm,
 if (ssht_use_libsharp)
   {
   sharp_geom_info *tinfo;
-  sharp_make_hw_geom_info (L+1, 2*L, 0., 2, 4*L, &tinfo);
+  sharp_make_cc_geom_info (L+1, 2*L, 0., 2, 4*L, &tinfo);
   double * fr=(double *)f;
   double *frp[2];
   frp[0]=fr;
@@ -2000,7 +2000,7 @@ void ssht_core_mw_inverse_sov_sym_ss_real(double *f, complex double *flm,
 if (ssht_use_libsharp)
   {
   sharp_geom_info *tinfo;
-  sharp_make_hw_geom_info (L+1, 2*L, 0., 1, 2*L, &tinfo);
+  sharp_make_cc_geom_info (L+1, 2*L, 0., 1, 2*L, &tinfo);
   sharp_alm_info *alms;
   dcmplx **alm;
   ssht_flm2alm_r (flm, L, &alm, &alms);
@@ -3938,7 +3938,7 @@ void ssht_core_dh_inverse_sov(complex double *f, complex double *flm,
 if (ssht_use_libsharp)
   {
   sharp_geom_info *tinfo;
-  sharp_make_ecp_geom_info (2*L, 2*L-1, 0., 2, 4*L-2, &tinfo);
+  sharp_make_fejer1_geom_info (2*L, 2*L-1, 0., 2, 4*L-2, &tinfo);
   double *fr=(double *)f;
   double *frp[2];
   frp[0]=fr;
@@ -4075,7 +4075,7 @@ void ssht_core_dh_inverse_sov_real(double *f, complex double *flm,
 if (ssht_use_libsharp)
   {
   sharp_geom_info *tinfo;
-  sharp_make_ecp_geom_info (2*L, 2*L-1, 0., 1, 2*L-1, &tinfo);
+  sharp_make_fejer1_geom_info (2*L, 2*L-1, 0., 1, 2*L-1, &tinfo);
   sharp_alm_info *alms;
   dcmplx **alm;
   ssht_flm2alm_r (flm, L, &alm, &alms);
@@ -4210,7 +4210,7 @@ void ssht_core_dh_forward_sov(complex double *flm, complex double *f,
 if (ssht_use_libsharp)
   {
   sharp_geom_info *tinfo;
-  sharp_make_ecp_geom_info (2*L, 2*L-1, 0., 2, 4*L-2, &tinfo);
+  sharp_make_fejer1_geom_info (2*L, 2*L-1, 0., 2, 4*L-2, &tinfo);
   double * fr=(double *)f;
   double *frp[2];
   frp[0]=fr;
@@ -4367,7 +4367,7 @@ void ssht_core_dh_forward_sov_real(complex double *flm, double *f,
 if (ssht_use_libsharp)
   {
   sharp_geom_info *tinfo;
-  sharp_make_ecp_geom_info (2*L, 2*L-1, 0., 1, 2*L-1, &tinfo);
+  sharp_make_fejer1_geom_info (2*L, 2*L-1, 0., 1, 2*L-1, &tinfo);
   sharp_alm_info *alms;
   sharp_make_triangular_alm_info(L-1,L-1,1,&alms);
   dcmplx **alm;
