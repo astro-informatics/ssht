@@ -128,7 +128,7 @@ $(SSHTBIN)/ssht_about: $(SSHTOBJ)/ssht_about.o
 
 .PHONY: runtest
 runtest: test
-	$(SSHTBIN)/ssht_test 64 0
+	$(SSHTBIN)/ssht_test 64 0 32
 
 .PHONY: all
 all: lib test about matlab
