@@ -1073,7 +1073,7 @@ void ssht_core_mw_lb_forward_sov_conv_sym(complex double *flm, const complex dou
 	break;
 
       case SSHT_DL_TRAPANI:
-	if (el!=0 && MAX(L0, abs(spin))) {
+	if (el!=0 && el==MAX(L0, abs(spin))) {
 	  for(eltmp=0; eltmp<=MAX(L0, abs(spin)); eltmp++)
 	    ssht_dl_halfpi_trapani_eighth_table(dl, L,
 						SSHT_DL_QUARTER,
