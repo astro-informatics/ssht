@@ -1,8 +1,8 @@
 # ======== COMPILER ========
 
 CC      = gcc
-OPT	= -Wall -O3 -DSSHT_VERSION=\"1.0b1\" -DSSHT_BUILD=\"`svnversion -n .`\"
-#OPT	= -Wall -g -DSSHT_VERSION=\"1.0b1\" -DSSHT_BUILD=\"`svnversion -n .`\"
+OPT		= -Wall -O3 -DSSHT_VERSION=\"1.0b1\" -DSSHT_BUILD=\"`git rev-parse HEAD`\"
+#OPT	= -Wall -g -DSSHT_VERSION=\"1.0b1\" -DSSHT_BUILD=\"`git rev-parse HEAD`\"
 
 
 # ======== LINKS ========
@@ -11,7 +11,7 @@ UNAME := $(shell uname)
 PROGDIR = ..
 
 ifeq ($(UNAME), Linux)
-  MLAB		= /usr/local/MATLAB/R2011b
+  MLAB		= /usr/local/MATLAB/R2013a
   MLABINC	= ${MLAB}/extern/include
   MLABLIB	= ${MLAB}/extern/lib
 
@@ -63,7 +63,7 @@ vpath %_mex.c $(SSHTSRCMAT)
 
 # ======== FFFLAGS ========
 
-FFLAGS  = -I$(FFTWINC) -I$(SSHTINC) 
+FFLAGS  = -I$(FFTWINC) -I$(SSHTINC)
 ifeq ($(UNAME), Linux)
   # Add -fPIC flag (required for mex build).
   # (Note that fftw must also be built with -fPIC.)
@@ -119,11 +119,11 @@ default: lib test about
 .PHONY: test
 test: $(SSHTBIN)/ssht_test about
 $(SSHTBIN)/ssht_test: $(SSHTOBJ)/ssht_test.o $(SSHTLIB)/lib$(SSHTLIBNM).a
-	$(CC) $(OPT) $< -o $(SSHTBIN)/ssht_test $(LDFLAGS) 
+	$(CC) $(OPT) $< -o $(SSHTBIN)/ssht_test $(LDFLAGS)
 
 .PHONY: about
 about: $(SSHTBIN)/ssht_about
-$(SSHTBIN)/ssht_about: $(SSHTOBJ)/ssht_about.o 
+$(SSHTBIN)/ssht_about: $(SSHTOBJ)/ssht_about.o
 	$(CC) $(OPT) $< -o $(SSHTBIN)/ssht_about
 
 .PHONY: runtest
@@ -145,7 +145,7 @@ $(SSHTLIB)/lib$(SSHTLIBNM).a: $(SSHTOBJS)
 # Matlab
 
 $(SSHTOBJMAT)/%_mex.o: %_mex.c $(SSHTLIB)/lib$(SSHTLIBNM).a
-	$(CC) $(OPT) $(FFLAGS) -c $< -o $@ -I${MLABINC} 
+	$(CC) $(OPT) $(FFLAGS) -c $< -o $@ -I${MLABINC}
 
 $(SSHTOBJMEX)/%_mex.$(MEXEXT): $(SSHTOBJMAT)/%_mex.o $(SSHTLIB)/lib$(SSHTLIBNM).a
 	$(MEX) $< -o $@ $(LDFLAGSMEX) $(MEXFLAGS) -L$(MLABLIB)
@@ -154,7 +154,7 @@ $(SSHTOBJMEX)/%_mex.$(MEXEXT): $(SSHTOBJMAT)/%_mex.o $(SSHTLIB)/lib$(SSHTLIBNM).
 matlab: $(SSHTOBJSMEX)
 
 
-# Documentation 
+# Documentation
 
 .PHONY: doc
 doc:
@@ -177,7 +177,7 @@ clean:	tidy
 
 .PHONY: tidy
 tidy:
-	rm -f *~ 
+	rm -f *~
 
 .PHONY: cleanall
 cleanall: clean cleandoc
