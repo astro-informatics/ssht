@@ -17,13 +17,19 @@ function [flm_rotated] = ssht_rotate_flm(flm, d, alpha, gamma, varargin)
 % flm_rotated are the harmonic coefficients of the resulting
 % function after rotation.
 % The band-limit L is implied by the size of the flm, which
-% should be L*L.
+% should be L*L or L for an axisymmetric signal.
 %
 % Options consist of parameter type and value pairs.
 % Valid options include:
 %
 %  'M' = Non-negative integer, not greater than L
 %        (defaults to L). Azimuthal band-limit.
+%  'Axisymmetric' = { true  [The signal f is axisymmetric and flm only
+%                            only contains L coefficients with m = 0],
+%                     false [(default) f is an arbitrary signal on the
+%                            sphere and flm contains L*L coefficients for
+%                            all -el <= m <= el] }
+%
 %
 % Authors: Martin Büttner (m.buettner.d@gmail.com)
 %          Jason McEwen (www.jasonmcewen.org)
@@ -40,12 +46,19 @@ p.addRequired('d', @isnumeric);
 p.addRequired('alpha', @isnumeric);
 p.addRequired('gamma', @isnumeric);
 p.addParamValue('M', -1, @isnumeric);
+p.addParamValue('Axisymmetric', false, @islogical);
 
 p.parse(flm, d, alpha, gamma, varargin{:});
 
 args = p.Results;
 
-L = sqrt(length(flm));
+axisym = args.Axisymmetric;
+
+if axisym
+    L = length(flm);
+else
+    L = sqrt(length(flm));
+end
 
 if args.M == -1
     args.M = L;
@@ -59,11 +72,21 @@ flm_rotated = zeros(L^2,1);
 
 for el = 0:L-1
     for m = -el:el
-        n_max = min(el, M-1);
+        if axisym
+            n_max = 0;
+        else
+            n_max = min(el, M-1);
+        end
+        
         for n = -n_max:n_max
-            Dlmn = exp(-i*m*alpha) * d(el+1,m+L,n+L) * exp(-i*n*gamma);
+            Dlmn = exp(-1i*m*alpha) * d(el+1,m+L,n+L) * exp(-1i*n*gamma);
+            if axisym
+                ind = el+1;
+            else
+                ind = ssht_elm2ind(el,n);
+            end
             flm_rotated(index) = flm_rotated(index) + ...
-                Dlmn * flm(ssht_elm2ind(el,n));
+                Dlmn * flm(ind);
         end
         index = index + 1;
     end
