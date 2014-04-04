@@ -35,7 +35,7 @@ int ssht_idl_dl(int argc, void* argv[])
   double *theta = (double *) argv[1];
   IDL_INT *L = (IDL_INT *) argv[2];
   IDL_INT *el = (IDL_INT *) argv[3];
-  double *sqrt_tble = (double *) argv[4];
+  double *sqrt_tbl = (double *) argv[4];
   double *signs = (double *) argv[5];
 
   ssht_dl_beta_risbo_half_table(dl, *theta, *L, SSHT_DL_FULL, 

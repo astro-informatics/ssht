@@ -39,9 +39,13 @@ SSHTINC  = $(SSHTDIR)/include/c
 SSHTDOC  = $(SSHTDIR)/doc/c
 
 ifeq ($(UNAME), Linux)
+  DYLIBEXT = so
+  DYLIBCMD = cc -flat_namespace -undefined suppress
   FFTWDIR      = $(PROGDIR)/fftw-3.2.2_fPIC
 endif
 ifeq ($(UNAME), Darwin)
+  DYLIBEXT = dylib
+  DYLIBCMD = g++ -flat_namespace -dynamiclib -undefined suppress
   FFTWDIR      = $(PROGDIR)/fftw
 endif
 
@@ -81,6 +85,7 @@ LDFLAGSMEX = -L$(SSHTLIB) -l$(SSHTLIBNM) -L$(FFTWLIB) -l$(FFTWLIBNM)
 
 SSHTOBJS = $(SSHTOBJ)/ssht_sampling.o    \
            $(SSHTOBJ)/ssht_dl.o          \
+           $(SSHTOBJ)/ssht_idl_dl.o          \
            $(SSHTOBJ)/ssht_core.o        \
            $(SSHTOBJ)/ssht_adjoint.o
 
@@ -140,6 +145,11 @@ all: lib test about matlab
 lib: $(SSHTLIB)/lib$(SSHTLIBNM).a
 $(SSHTLIB)/lib$(SSHTLIBNM).a: $(SSHTOBJS)
 	ar -r $(SSHTLIB)/lib$(SSHTLIBNM).a $(SSHTOBJS)
+
+.PHONY: dylib
+dylib: $(SSHTLIB)/lib$(SSHTLIBNM).$(DYLIBEXT)
+$(SSHTLIB)/lib$(SSHTLIBNM).$(DYLIBEXT): $(SSHTOBJS)
+	$(DYLIBCMD) $(FFLAGS) $(LDFLAGS) -o $(SSHTLIB)/lib$(SSHTLIBNM).$(DYLIBEXT) $(SSHTOBJS)
 
 
 # Matlab
