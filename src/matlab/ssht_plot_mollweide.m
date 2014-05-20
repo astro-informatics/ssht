@@ -18,6 +18,11 @@ function ssht_plot_mollweide(f, L, varargin)
 %                        'GL'         [Gauss-Legendre sampling] }
 %  'ColourBar'       = { false        [do not add colour bar (default)],
 %                        true         [add colour bar] }
+%  'Mode'            = { 0            Plot amplitude, or modulus is f complex (default),
+%                        1            Plot real part,
+%                        2            Plot imaginaty part,
+%                        3            Plot modulus and arrows for real/img angle }
+%  'Spin'            = { non-negative integers (default=0) }
 %
 % Author: Jason McEwen (www.jasonmcewen.org)
 
@@ -31,14 +36,17 @@ p.addRequired('f', @isnumeric);
 p.addRequired('L', @isnumeric);          
 p.addParamValue('Method', 'MW', @ischar);
 p.addParamValue('ColourBar', false, @islogical);
+p.addParamValue('Mode', 0, @isnumeric);
+p.addParamValue('SubL', 16, @isnumeric);
 p.parse(f, L, varargin{:});
 args = p.Results;
+
+SubL = min([args.SubL L]);
 
 % Compute grids.
 minf = min(f(:));
 maxf = max(f(:));
-[thetas, phis, n, ntheta, nphi] = ssht_sampling(L, 'Method', ...
-                                                args.Method, 'Grid', true);
+[thetas, phis, n, ntheta, nphi] = ssht_sampling(L, 'Method', args.Method, 'Grid', true);
 if (size(thetas) ~= size(f)) 
   error('Size of f does not match sampling of method %s.', args.Method);
 end
@@ -46,8 +54,28 @@ end
 % Compute Mollweide projection.
 [x, y] = ssht_mollweide(thetas, phis);
 
+switch args.Mode
+    case {1}
+        op = str2func('real');
+    case {2}
+        op = str2func('imag');
+    otherwise
+        op = str2func('abs');
+end
+
 % Plot.
-h = surf(x,y,zeros(size(x)),f);
+h = surf(x,y,zeros(size(x)),op(f));
+
+if args.Mode == 3
+    hold on
+    f_lm = ssht_forward(f, L, 'spin', 2, 'Method', args.Method);
+    subf_lm = f_lm(1:SubL^2.0,1);
+    subf = ssht_inverse(subf_lm, SubL, 'spin', 2, 'Method', 'GL');
+    [thetas, phis, n, ntheta, nphi] = ssht_sampling(SubL, 'Method', 'GL', 'Grid', true); 
+    [subx, suby] = ssht_mollweide(thetas, phis);  
+    quiver(subx,suby,real(subf),imag(subf),'black', 'AutoScaleFactor', 1.0, 'ShowArrowHead', 'off', 'LineWidth', 1);
+end    
+
 set(h, 'LineStyle', 'none')
 axis equal
 axis off

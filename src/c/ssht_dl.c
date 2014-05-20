@@ -451,7 +451,7 @@ void ssht_dl_beta_risbo_eighth_table(double *dl, double beta, int L,
 				      int el, double *sqrt_tbl,
 				      double *signs) {
 
-  int offset, stride;
+  int offset, stride, imax;
   double cosb, sinb, coshb, sinhb;
   int i, j, k;
   double rj, dlj, ddj;
@@ -501,7 +501,11 @@ void ssht_dl_beta_risbo_eighth_table(double *dl, double beta, int L,
     j = 2*el - 1;
     rj = (double) j;
     for (k=0; k<=el; k++) {
-      for (i=0; i<=k+2; i++) {
+      if (k==el)
+	imax = k+1;
+      else
+	imax = k+2;
+      for (i=0; i<=imax; i++) {
 	dlj = dl[(k-(el-1)+offset)*stride + i-(el-1) + offset] / rj;	
 	dd[k*(el+3) + i] +=
 	  sqrt_tbl[j-i] * sqrt_tbl[j-k] * dlj * coshb;
