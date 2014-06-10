@@ -589,7 +589,7 @@ void ssht_core_mw_lb_inverse_sov_sym_real(double *f, const complex double *flm,
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mwdirect_inverse(complex double *f, complex double *flm,
+void ssht_core_mwdirect_inverse(complex double *f, const complex double *flm,
 				 int L, int spin, int verbosity) {
 
   int t, p, m, el, ind, eltmp;
@@ -688,7 +688,7 @@ void ssht_core_mwdirect_inverse(complex double *f, complex double *flm,
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mwdirect_inverse_sov(complex double *f, complex double *flm,
+void ssht_core_mwdirect_inverse_sov(complex double *f, const complex double *flm,
 				     int L, int spin, int verbosity) {
 
   int t, p, m, el, ind;
@@ -1598,7 +1598,7 @@ void ssht_core_mw_lb_forward_sov_conv_sym_real(complex double *flm, const double
  */
 void ssht_core_mw_inverse_sov_sym_pole(complex double *f,
 				       complex double *f_sp, double *phi_sp,
-				       complex double *flm,
+				       const complex double *flm,
 				       int L, int spin,
 				       ssht_dl_method_t dl_method,
 				       int verbosity) {
@@ -1644,7 +1644,7 @@ void ssht_core_mw_inverse_sov_sym_pole(complex double *f,
  */
 void ssht_core_mw_inverse_sov_sym_real_pole(double *f,
 					    double *f_sp,
-					    complex double *flm,
+					    const complex double *flm,
 					    int L,
 					    ssht_dl_method_t dl_method,
 					    int verbosity) {
@@ -1690,7 +1690,7 @@ void ssht_core_mw_inverse_sov_sym_real_pole(double *f,
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mw_forward_sov_conv_sym_pole(complex double *flm, complex double *f,
+void ssht_core_mw_forward_sov_conv_sym_pole(complex double *flm, const complex double *f,
 					    complex double f_sp, double phi_sp,
 					    int L, int spin,
 					    ssht_dl_method_t dl_method,
@@ -1739,7 +1739,7 @@ void ssht_core_mw_forward_sov_conv_sym_pole(complex double *flm, complex double 
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_core_mw_forward_sov_conv_sym_real_pole(complex double *flm,
-						 double *f,
+						 const double *f,
 						 double f_sp,
 						 int L,
 						 ssht_dl_method_t dl_method,
@@ -1786,7 +1786,7 @@ void ssht_core_mw_forward_sov_conv_sym_real_pole(complex double *flm,
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mw_inverse_sov_sym_ss(complex double *f, complex double *flm,
+void ssht_core_mw_inverse_sov_sym_ss(complex double *f, const complex double *flm,
                      int L, int spin,
                      ssht_dl_method_t dl_method,
                      int verbosity) {
@@ -1812,7 +1812,7 @@ void ssht_core_mw_inverse_sov_sym_ss(complex double *f, complex double *flm,
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mw_lb_inverse_sov_sym_ss(complex double *f, complex double *flm,
+void ssht_core_mw_lb_inverse_sov_sym_ss(complex double *f, const complex double *flm,
 				     int L0, int L, int spin,
 				     ssht_dl_method_t dl_method,
 				     int verbosity) {
@@ -2056,7 +2056,7 @@ void ssht_core_mw_lb_inverse_sov_sym_ss(complex double *f, complex double *flm,
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mw_inverse_sov_sym_ss_real(double *f, complex double *flm,
+void ssht_core_mw_inverse_sov_sym_ss_real(double *f, const complex double *flm,
                       int L,
                       ssht_dl_method_t dl_method,
                       int verbosity) {
@@ -2083,7 +2083,7 @@ void ssht_core_mw_inverse_sov_sym_ss_real(double *f, complex double *flm,
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mw_lb_inverse_sov_sym_ss_real(double *f, complex double *flm,
+void ssht_core_mw_lb_inverse_sov_sym_ss_real(double *f, const complex double *flm,
 					  int L0, int L,
 					  ssht_dl_method_t dl_method,
 					  int verbosity) {
@@ -2315,7 +2315,7 @@ void ssht_core_mw_lb_inverse_sov_sym_ss_real(double *f, complex double *flm,
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mwdirect_inverse_ss(complex double *f, complex double *flm,
+void ssht_core_mwdirect_inverse_ss(complex double *f, const complex double *flm,
 				   int L, int spin, int verbosity) {
 
   int t, p, m, el, ind, eltmp;
@@ -2414,7 +2414,7 @@ void ssht_core_mwdirect_inverse_ss(complex double *f, complex double *flm,
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mw_forward_sov_conv_sym_ss(complex double *flm, complex double *f,
+void ssht_core_mw_forward_sov_conv_sym_ss(complex double *flm, const complex double *f,
                       int L, int spin,
                       ssht_dl_method_t dl_method,
                       int verbosity) {
@@ -2441,7 +2441,7 @@ void ssht_core_mw_forward_sov_conv_sym_ss(complex double *flm, complex double *f
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mw_lb_forward_sov_conv_sym_ss(complex double *flm, complex double *f,
+void ssht_core_mw_lb_forward_sov_conv_sym_ss(complex double *flm, const complex double *f,
 					  int L0, int L, int spin,
 					  ssht_dl_method_t dl_method,
 					  int verbosity) {
@@ -2809,7 +2809,7 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss(complex double *flm, complex double
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mw_forward_sov_conv_sym_ss_real(complex double *flm, double *f,
+void ssht_core_mw_forward_sov_conv_sym_ss_real(complex double *flm, const double *f,
                            int L,
                            ssht_dl_method_t dl_method,
                            int verbosity) {
@@ -2836,7 +2836,7 @@ void ssht_core_mw_forward_sov_conv_sym_ss_real(complex double *flm, double *f,
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mw_lb_forward_sov_conv_sym_ss_real(complex double *flm, double *f,
+void ssht_core_mw_lb_forward_sov_conv_sym_ss_real(complex double *flm, const double *f,
 					       int L0, int L,
 					       ssht_dl_method_t dl_method,
 					       int verbosity) {
@@ -3203,7 +3203,7 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss_real(complex double *flm, double *f
 void ssht_core_mw_inverse_sov_sym_ss_pole(complex double *f,
 					  complex double *f_np, double *phi_np,
 					  complex double *f_sp, double *phi_sp,
-					  complex double *flm,
+					  const complex double *flm,
 					  int L, int spin,
 					  ssht_dl_method_t dl_method,
 					  int verbosity) {
@@ -3255,7 +3255,7 @@ void ssht_core_mw_inverse_sov_sym_ss_pole(complex double *f,
 void ssht_core_mw_inverse_sov_sym_ss_real_pole(double *f,
 					       double *f_np,
 					       double *f_sp,
-					       complex double *flm,
+					       const complex double *flm,
 					       int L,
 					       ssht_dl_method_t dl_method,
 					       int verbosity) {
@@ -3307,7 +3307,7 @@ void ssht_core_mw_inverse_sov_sym_ss_real_pole(double *f,
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mw_forward_sov_conv_sym_ss_pole(complex double *flm, complex double *f,
+void ssht_core_mw_forward_sov_conv_sym_ss_pole(complex double *flm, const complex double *f,
 					       complex double f_np, double phi_np,
 					       complex double f_sp, double phi_sp,
 					       int L, int spin,
@@ -3361,7 +3361,7 @@ void ssht_core_mw_forward_sov_conv_sym_ss_pole(complex double *flm, complex doub
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 void ssht_core_mw_forward_sov_conv_sym_ss_real_pole(complex double *flm,
-						    double *f,
+						    const double *f,
 						    double f_np,
 						    double f_sp,
 						    int L,
@@ -3412,7 +3412,7 @@ void ssht_core_mw_forward_sov_conv_sym_ss_real_pole(complex double *flm,
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_gl_inverse_sov(complex double *f, complex double *flm,
+void ssht_core_gl_inverse_sov(complex double *f, const complex double *flm,
 			      int L, int spin, int verbosity) {
 
   int t, p, m, el, ind;
@@ -3543,7 +3543,7 @@ void ssht_core_gl_inverse_sov(complex double *f, complex double *flm,
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_gl_inverse_sov_real(double *f, complex double *flm,
+void ssht_core_gl_inverse_sov_real(double *f, const complex double *flm,
 				   int L, int verbosity) {
 
   int t, p, m, el, ind;
@@ -3676,7 +3676,7 @@ void ssht_core_gl_inverse_sov_real(double *f, complex double *flm,
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_gl_forward_sov(complex double *flm, complex double *f,
+void ssht_core_gl_forward_sov(complex double *flm, const complex double *f,
 			      int L, int spin, int verbosity) {
 
   int t, m, el, ind;
@@ -3823,7 +3823,7 @@ void ssht_core_gl_forward_sov(complex double *flm, complex double *f,
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_gl_forward_sov_real(complex double *flm, double *f,
+void ssht_core_gl_forward_sov_real(complex double *flm, const double *f,
 				   int L, int verbosity) {
 
   int t, m, el, ind, ind_nm;
@@ -3987,7 +3987,7 @@ void ssht_core_gl_forward_sov_real(complex double *flm, double *f,
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_dh_inverse_sov(complex double *f, complex double *flm,
+void ssht_core_dh_inverse_sov(complex double *f, const complex double *flm,
 			      int L, int spin, int verbosity) {
 
   int t, p, m, el, ind;
@@ -4106,7 +4106,7 @@ void ssht_core_dh_inverse_sov(complex double *f, complex double *flm,
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_dh_inverse_sov_real(double *f, complex double *flm,
+void ssht_core_dh_inverse_sov_real(double *f, const complex double *flm,
 				   int L, int verbosity) {
 
   int t, p, m, el, ind;
@@ -4227,7 +4227,7 @@ void ssht_core_dh_inverse_sov_real(double *f, complex double *flm,
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_dh_forward_sov(complex double *flm, complex double *f,
+void ssht_core_dh_forward_sov(complex double *flm, const complex double *f,
 			      int L, int spin, int verbosity) {
 
   int t, m, el, ind;
@@ -4364,7 +4364,7 @@ void ssht_core_dh_forward_sov(complex double *flm, complex double *f,
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_dh_forward_sov_real(complex double *flm, double *f,
+void ssht_core_dh_forward_sov_real(complex double *flm, const double *f,
 				   int L, int verbosity) {
 
   int t, m, el, ind, ind_nm;
