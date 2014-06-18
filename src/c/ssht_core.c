@@ -278,7 +278,7 @@ void ssht_core_mw_lb_inverse_sov_sym(complex double *f, const complex double *fl
 
   // Perform 2D FFT.
   plan = fftw_plan_dft_2d(2*L-1, 2*L-1, Fmm, Fmm,
-			  FFTW_BACKWARD, FFTW_ESTIMATE);
+			  FFTW_BACKWARD, FFTW_PATIENT);
   fftw_execute_dft(plan, fext, fext);
   fftw_destroy_plan(plan);
 
@@ -908,7 +908,7 @@ void ssht_core_mw_lb_forward_sov_conv_sym(complex double *flm, const complex dou
   f_stride = 2*L-1;
   inout = (complex double*)calloc(2*L-1, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
-  plan = fftw_plan_dft_1d(2*L-1, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
+  plan = fftw_plan_dft_1d(2*L-1, inout, inout, FFTW_FORWARD, FFTW_PATIENT);
   for (t=0; t<=L-1; t++) {
     memcpy(inout, &f[t*f_stride], f_stride*sizeof(double complex));
     fftw_execute_dft(plan, inout, inout);
