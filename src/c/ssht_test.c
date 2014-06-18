@@ -17,8 +17,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <complex.h>
-#include <fftw3.h>  // Must be before fftw3.h
+#include <complex.h> // Must be before fftw3.h
+#include <fftw3.h>
+#include <omp.h>
 #include <time.h>
 
 #include <ssht.h>
@@ -104,6 +105,11 @@ int main(int argc, char *argv[]) {
   double durations_inverse_gl_real[NREPEAT];
   double durations_forward_dh_real[NREPEAT];
   double durations_inverse_dh_real[NREPEAT];
+
+  fftw_init_threads();
+  int nthreads = omp_get_max_threads();
+  printf("Using %d threads.\n", nthreads);
+  fftw_plan_with_nthreads(nthreads);
 
   // Parse problem sizes.
   L = atoi(argv[1]);

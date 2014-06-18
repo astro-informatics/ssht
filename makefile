@@ -1,8 +1,8 @@
 # ======== COMPILER ========
 
 CC      = gcc
-OPT		= -Wall -O3 -DSSHT_VERSION=\"1.0b1\" -DSSHT_BUILD=\"`git rev-parse HEAD`\"
-#OPT	= -Wall -g -DSSHT_VERSION=\"1.0b1\" -DSSHT_BUILD=\"`git rev-parse HEAD`\"
+OPT		= -Wall -O3 -fopenmp -DSSHT_VERSION=\"1.0b1\" -DSSHT_BUILD=\"`git rev-parse HEAD`\"
+#OPT	= -Wall -g -fopenmp -DSSHT_VERSION=\"1.0b1\" -DSSHT_BUILD=\"`git rev-parse HEAD`\"
 
 
 # ======== LINKS ========
@@ -48,6 +48,7 @@ endif
 FFTWINC	     = $(FFTWDIR)/include
 FFTWLIB      = $(FFTWDIR)/lib
 FFTWLIBNM    = fftw3
+FFTWOMPLIBNM = fftw3_threads
 
 SSHTSRCMAT	= $(SSHTDIR)/src/matlab
 SSHTOBJMAT  	= $(SSHTSRCMAT)
@@ -72,9 +73,9 @@ endif
 
 # ======== LDFLAGS ========
 
-LDFLAGS = -L$(SSHTLIB) -l$(SSHTLIBNM) -L$(FFTWLIB) -l$(FFTWLIBNM) -lm
+LDFLAGS = -L$(SSHTLIB) -l$(SSHTLIBNM) -L$(FFTWLIB) -l$(FFTWOMPLIBNM) -l$(FFTWLIBNM) -lm
 
-LDFLAGSMEX = -L$(SSHTLIB) -l$(SSHTLIBNM) -L$(FFTWLIB) -l$(FFTWLIBNM)
+LDFLAGSMEX = -L$(SSHTLIB) -l$(SSHTLIBNM) -L$(FFTWLIB) -l$(FFTWOMPLIBNM) -l$(FFTWLIBNM)
 
 
 # ======== OBJECT FILES TO MAKE ========
