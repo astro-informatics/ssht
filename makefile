@@ -1,8 +1,8 @@
 # ======== COMPILER ========
 
 CC      = gcc
-#OPT		= -Wall -O3 -DSSHT_VERSION=\"1.0b1\" -DSSHT_BUILD=\"`git rev-parse HEAD`\"
-OPT	= -Wall -g -fopenmp -DSSHT_VERSION=\"1.0b1\" -DSSHT_BUILD=\"`git rev-parse HEAD`\"
+OPT		= -Wall -O3 -DSSHT_VERSION=\"1.0b1\" -DSSHT_BUILD=\"`git rev-parse HEAD`\"
+#OPT	= -Wall -g -DSSHT_VERSION=\"1.0b1\" -DSSHT_BUILD=\"`git rev-parse HEAD`\"
 
 
 # ======== LINKS ========

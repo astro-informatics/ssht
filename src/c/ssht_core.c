@@ -16,7 +16,6 @@
 #include <math.h>
 #include <complex.h>  // Must be before fftw3.h
 #include <fftw3.h>
-#include <omp.h>
 
 #include "ssht_types.h"
 #include "ssht_error.h"
@@ -145,7 +144,6 @@ void ssht_core_mw_lb_inverse_sov_sym(complex double *f, const complex double *fl
   dl_offset = ssht_dl_get_offset(L, SSHT_DL_QUARTER);
   dl_stride = ssht_dl_get_stride(L, SSHT_DL_QUARTER);
   inds_offset = L-1;
-
   for (el=MAX(L0, abs(spin)); el<=L-1; el++) {
 
     // Compute Wigner plane.
@@ -206,7 +204,6 @@ void ssht_core_mw_lb_inverse_sov_sym(complex double *f, const complex double *fl
     el2pel = el *el + el;
     for (m=-el; m<=el; m++)
       inds[m + inds_offset] = el2pel + m;
-
     for (mm=0; mm<=el; mm++) {
       elmmsign = signs[el] * signs[mm];
       elssign = spin <= 0 ? 1.0 : elmmsign;
@@ -280,16 +277,10 @@ void ssht_core_mw_lb_inverse_sov_sym(complex double *f, const complex double *fl
 	Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset];
 
   // Perform 2D FFT.
-  #pragma omp critical
-  {
-    plan = fftw_plan_dft_2d(2*L-1, 2*L-1, Fmm, Fmm,
-              FFTW_BACKWARD, FFTW_ESTIMATE);
-  }
+  plan = fftw_plan_dft_2d(2*L-1, 2*L-1, Fmm, Fmm,
+			  FFTW_BACKWARD, FFTW_ESTIMATE);
   fftw_execute_dft(plan, fext, fext);
-  #pragma omp critical
-  {
-    fftw_destroy_plan(plan);
-  }
+  fftw_destroy_plan(plan);
 
   // Free Fmm memory.
   free(Fmm);
@@ -550,16 +541,10 @@ void ssht_core_mw_lb_inverse_sov_sym_real(double *f, const complex double *flm,
   fext_stride = 2*L-1;
 
   // Perform 2D FFT.
-  #pragma omp critical
-  {
-    plan = fftw_plan_dft_c2r_2d(2*L-1, 2*L-1, Fmm_shift, fext_real,
+  plan = fftw_plan_dft_c2r_2d(2*L-1, 2*L-1, Fmm_shift, fext_real,
 			      FFTW_ESTIMATE);
-  }
   fftw_execute_dft_c2r(plan, Fmm_shift, fext_real);
-  #pragma omp critical
-  {
-    fftw_destroy_plan(plan);
-  }
+  fftw_destroy_plan(plan);
 
   // Free Fmm memory.
   free(Fmm);
@@ -783,8 +768,6 @@ void ssht_core_mwdirect_inverse_sov(complex double *f, const complex double *flm
   inout = (complex double*)calloc(2*L-1, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
   f_stride = 2*L-1;
-
-  #pragma omp critical
   plan = fftw_plan_dft_1d(2*L-1, inout, inout, FFTW_BACKWARD, FFTW_MEASURE);
   for (t=0; t<=L-1; t++) {
     for (m=0; m<=L-1; m++)
@@ -795,7 +778,6 @@ void ssht_core_mwdirect_inverse_sov(complex double *f, const complex double *flm
     for (p=0; p<=2*L-2; p++)
       f[t*f_stride + p] = inout[p];
   }
-  #pragma omp critical
   fftw_destroy_plan(plan);
 
   // Free memory.
@@ -926,7 +908,6 @@ void ssht_core_mw_lb_forward_sov_conv_sym(complex double *flm, const complex dou
   f_stride = 2*L-1;
   inout = (complex double*)calloc(2*L-1, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
-  #pragma omp critical
   plan = fftw_plan_dft_1d(2*L-1, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
   for (t=0; t<=L-1; t++) {
     memcpy(inout, &f[t*f_stride], f_stride*sizeof(double complex));
@@ -958,7 +939,6 @@ void ssht_core_mw_lb_forward_sov_conv_sym(complex double *flm, const complex dou
       Fmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset] =
 	inout[mm+2*L-1] / (2.0*L-1.0);
   }
-  #pragma omp critical
   fftw_destroy_plan(plan);
   free(inout);
 
@@ -980,11 +960,8 @@ void ssht_core_mw_lb_forward_sov_conv_sym(complex double *flm, const complex dou
   SSHT_ERROR_MEM_ALLOC_CHECK(wr)
   inout = (complex double*)calloc(4*L-3, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
-  #pragma omp critical
-  {
-    plan_bwd = fftw_plan_dft_1d(4*L-3, inout, inout, FFTW_BACKWARD, FFTW_MEASURE);
-    plan_fwd = fftw_plan_dft_1d(4*L-3, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
-  }
+  plan_bwd = fftw_plan_dft_1d(4*L-3, inout, inout, FFTW_BACKWARD, FFTW_MEASURE);
+  plan_fwd = fftw_plan_dft_1d(4*L-3, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
   for (mm=1; mm<=2*L-2; mm++)
     inout[mm + w_offset] = w[mm - 2*(L-1) - 1 + w_offset];
   for (mm=-2*(L-1); mm<=0; mm++)
@@ -1045,11 +1022,8 @@ void ssht_core_mw_lb_forward_sov_conv_sym(complex double *flm, const complex dou
 	Fmm_pad[mm + w_offset] * 2.0 * SSHT_PI / (4.0*L-3.0);
 
   }
-  #pragma omp critical
-  {
-    fftw_destroy_plan(plan_bwd);
-    fftw_destroy_plan(plan_fwd);
-  }
+  fftw_destroy_plan(plan_bwd);
+  fftw_destroy_plan(plan_fwd);
 
   // Compute flm.
   dl = ssht_dl_calloc(L, SSHT_DL_QUARTER);
@@ -1329,7 +1303,6 @@ void ssht_core_mw_lb_forward_sov_conv_sym_real(complex double *flm, const double
   SSHT_ERROR_MEM_ALLOC_CHECK(in_real)
   out = (complex double*)calloc(L, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(out)
-  #pragma omp critical
   plan = fftw_plan_dft_r2c_1d(2*L-1, in_real, out, FFTW_MEASURE);
   for (t=0; t<=L-1; t++) {
     memcpy(in_real, &f[t*f_stride], f_stride*sizeof(double));
@@ -1339,7 +1312,6 @@ void ssht_core_mw_lb_forward_sov_conv_sym_real(complex double *flm, const double
   }
   free(in_real);
   free(out);
-  #pragma omp critical
   fftw_destroy_plan(plan);
 
   // Extend Fmt periodically.
@@ -1355,7 +1327,6 @@ void ssht_core_mw_lb_forward_sov_conv_sym_real(complex double *flm, const double
   Fmm_offset = L-1;
   inout = (complex double*)calloc(2*L-1, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
-  #pragma omp critical
   plan = fftw_plan_dft_1d(2*L-1, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
   for (m=0; m<=L-1; m++) {
     memcpy(inout, &Fmt[m*Fmt_stride], Fmt_stride*sizeof(complex double));
@@ -1367,7 +1338,6 @@ void ssht_core_mw_lb_forward_sov_conv_sym_real(complex double *flm, const double
       Fmm[m*Fmm_stride + mm + Fmm_offset] =
 	inout[mm+2*L-1] / (2.0*L-1.0);
   }
-  #pragma omp critical
   fftw_destroy_plan(plan);
   free(inout);
 
@@ -1389,11 +1359,8 @@ void ssht_core_mw_lb_forward_sov_conv_sym_real(complex double *flm, const double
   SSHT_ERROR_MEM_ALLOC_CHECK(wr)
   inout = (complex double*)calloc(4*L-3, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
-  #pragma omp critical
-  {
-    plan_bwd = fftw_plan_dft_1d(4*L-3, inout, inout, FFTW_BACKWARD, FFTW_MEASURE);
-    plan_fwd = fftw_plan_dft_1d(4*L-3, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
-  }
+  plan_bwd = fftw_plan_dft_1d(4*L-3, inout, inout, FFTW_BACKWARD, FFTW_MEASURE);
+  plan_fwd = fftw_plan_dft_1d(4*L-3, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
   for (mm=1; mm<=2*L-2; mm++)
     inout[mm + w_offset] = w[mm - 2*(L-1) - 1 + w_offset];
   for (mm=-2*(L-1); mm<=0; mm++)
@@ -1455,11 +1422,8 @@ void ssht_core_mw_lb_forward_sov_conv_sym_real(complex double *flm, const double
 	Fmm_pad[mm + w_offset] * 2.0 * SSHT_PI / (4.0*L-3.0);
 
   }
-  #pragma omp critical
-  {
-    fftw_destroy_plan(plan_bwd);
-    fftw_destroy_plan(plan_fwd);
-  }
+  fftw_destroy_plan(plan_bwd);
+  fftw_destroy_plan(plan_fwd);
 
   // Compute flm.
   dl = ssht_dl_calloc(L, SSHT_DL_QUARTER);
@@ -2048,11 +2012,9 @@ void ssht_core_mw_lb_inverse_sov_sym_ss(complex double *f, const complex double 
   	Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset];
 
   // Perform 2D FFT.
-  #pragma omp critical
   plan = fftw_plan_dft_2d(2*L, 2*L, Fmm, Fmm,
 			  FFTW_BACKWARD, FFTW_ESTIMATE);
   fftw_execute_dft(plan, fext, fext);
-  #pragma omp critical
   fftw_destroy_plan(plan);
 
   // Free Fmm memory.
@@ -2307,11 +2269,9 @@ void ssht_core_mw_lb_inverse_sov_sym_ss_real(double *f, const complex double *fl
   fext_stride = 2*L;
 
   // Perform 2D FFT.
-  #pragma omp critical
   plan = fftw_plan_dft_c2r_2d(2*L, 2*L, Fmm_shift, fext_real,
 			      FFTW_ESTIMATE);
   fftw_execute_dft_c2r(plan, Fmm_shift, fext_real);
-  #pragma omp critical
   fftw_destroy_plan(plan);
 
   // Free Fmm memory.
@@ -2556,7 +2516,6 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss(complex double *flm, const complex 
   f_stride = 2*L;
   inout = (complex double*)calloc(2*L, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
-  #pragma omp critical
   plan = fftw_plan_dft_1d(2*L, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
   for (t=0; t<=L; t++) {
     memcpy(inout, &f[t*f_stride], f_stride*sizeof(double complex));
@@ -2566,7 +2525,6 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss(complex double *flm, const complex 
     for(m=-(L-1); m<=-1; m++)
       Fmt[(m+Fmt_offset)*Fmt_stride + t] = inout[m+2*L-1+1] / (2.0*L);
   }
-  #pragma omp critical
   fftw_destroy_plan(plan);
   free(inout);
 
@@ -2584,7 +2542,6 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss(complex double *flm, const complex 
   Fmm_offset = L-1;
   inout = (complex double*)calloc(2*L, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
-  #pragma omp critical
   plan = fftw_plan_dft_1d(2*L, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
   for (m=-(L-1); m<=L; m++) {
     memcpy(inout, &Fmt[(m+Fmt_offset)*Fmt_stride], Fmt_stride*sizeof(complex double));
@@ -2596,7 +2553,6 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss(complex double *flm, const complex 
       Fmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset] =
 	inout[mm+2*L-1+1] / (2.0*L);
   }
-  #pragma omp critical
   fftw_destroy_plan(plan);
   free(inout);
 
@@ -2612,11 +2568,8 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss(complex double *flm, const complex 
   SSHT_ERROR_MEM_ALLOC_CHECK(wr)
   inout = (complex double*)calloc(4*L-3, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
-  #pragma omp critical
-  {
-    plan_bwd = fftw_plan_dft_1d(4*L-3, inout, inout, FFTW_BACKWARD, FFTW_MEASURE);
-    plan_fwd = fftw_plan_dft_1d(4*L-3, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
-  }
+  plan_bwd = fftw_plan_dft_1d(4*L-3, inout, inout, FFTW_BACKWARD, FFTW_MEASURE);
+  plan_fwd = fftw_plan_dft_1d(4*L-3, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
   for (mm=1; mm<=2*L-2; mm++)
     inout[mm + w_offset] = w[mm - 2*(L-1) - 1 + w_offset];
   for (mm=-2*(L-1); mm<=0; mm++)
@@ -2679,11 +2632,8 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss(complex double *flm, const complex 
 	Fmm_pad[mm + w_offset] * 2.0 * SSHT_PI / (4.0*L-3.0);
 
   }
-  #pragma omp critical
-  {
-    fftw_destroy_plan(plan_bwd);
-    fftw_destroy_plan(plan_fwd);
-  }
+  fftw_destroy_plan(plan_bwd);
+  fftw_destroy_plan(plan_fwd);
 
   // Compute flm.
   dl = ssht_dl_calloc(L, SSHT_DL_QUARTER);
@@ -2960,7 +2910,6 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss_real(complex double *flm, const dou
   SSHT_ERROR_MEM_ALLOC_CHECK(in_real)
   out = (complex double*)calloc(L+1, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(out)
-  #pragma omp critical
   plan = fftw_plan_dft_r2c_1d(2*L, in_real, out, FFTW_MEASURE);
   for (t=0; t<=L; t++) {
     memcpy(in_real, &f[t*f_stride], f_stride*sizeof(double));
@@ -2971,7 +2920,6 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss_real(complex double *flm, const dou
   }
   free(in_real);
   free(out);
-  #pragma omp critical
   fftw_destroy_plan(plan);
 
   // Extend Fmt periodically.
@@ -2988,7 +2936,6 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss_real(complex double *flm, const dou
   Fmm_offset = L-1;
   inout = (complex double*)calloc(2*L, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
-  #pragma omp critical
   plan = fftw_plan_dft_1d(2*L, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
   for (m=0; m<=L; m++) {
     memcpy(inout, &Fmt[m*Fmt_stride], Fmt_stride*sizeof(complex double));
@@ -3000,7 +2947,6 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss_real(complex double *flm, const dou
       Fmm[m*Fmm_stride + mm + Fmm_offset] =
 	inout[mm+2*L-1+1] / (2.0*L);
   }
-  #pragma omp critical
   fftw_destroy_plan(plan);
   free(inout);
 
@@ -3016,11 +2962,8 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss_real(complex double *flm, const dou
   SSHT_ERROR_MEM_ALLOC_CHECK(wr)
   inout = (complex double*)calloc(4*L-3, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
-  #pragma omp critical
-  {
-    plan_bwd = fftw_plan_dft_1d(4*L-3, inout, inout, FFTW_BACKWARD, FFTW_MEASURE);
-    plan_fwd = fftw_plan_dft_1d(4*L-3, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
-  }
+  plan_bwd = fftw_plan_dft_1d(4*L-3, inout, inout, FFTW_BACKWARD, FFTW_MEASURE);
+  plan_fwd = fftw_plan_dft_1d(4*L-3, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
   for (mm=1; mm<=2*L-2; mm++)
     inout[mm + w_offset] = w[mm - 2*(L-1) - 1 + w_offset];
   for (mm=-2*(L-1); mm<=0; mm++)
@@ -3082,11 +3025,8 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss_real(complex double *flm, const dou
 	Fmm_pad[mm + w_offset] * 2.0 * SSHT_PI / (4.0*L-3.0);
 
   }
-  #pragma omp critical
-  {
-    fftw_destroy_plan(plan_bwd);
-    fftw_destroy_plan(plan_fwd);
-  }
+  fftw_destroy_plan(plan_bwd);
+  fftw_destroy_plan(plan_fwd);
 
   // Compute flm.
   dl = ssht_dl_calloc(L, SSHT_DL_QUARTER);
@@ -3564,7 +3504,6 @@ void ssht_core_gl_inverse_sov(complex double *f, const complex double *flm,
   inout = (complex double*)calloc(2*L-1, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
   f_stride = 2*L-1;
-  #pragma omp critical
   plan = fftw_plan_dft_1d(2*L-1, inout, inout, FFTW_BACKWARD, FFTW_MEASURE);
   for (t=0; t<=L-1; t++) {
     for (m=0; m<=L-1; m++)
@@ -3575,7 +3514,6 @@ void ssht_core_gl_inverse_sov(complex double *f, const complex double *flm,
     for (p=0; p<=2*L-2; p++)
       f[t*f_stride + p] = inout[p];
   }
-  #pragma omp critical
   fftw_destroy_plan(plan);
 
   // Free memory.
@@ -3701,7 +3639,6 @@ void ssht_core_gl_inverse_sov_real(double *f, const complex double *flm,
   SSHT_ERROR_MEM_ALLOC_CHECK(in)
   out = (double*)calloc(2*L-1, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(out)
-  #pragma omp critical
   plan = fftw_plan_dft_c2r_1d(2*L-1, in, out, FFTW_MEASURE);
   f_stride = 2*L-1;
   for (t=0; t<=L-1; t++) {
@@ -3710,7 +3647,6 @@ void ssht_core_gl_inverse_sov_real(double *f, const complex double *flm,
     for (p=0; p<=2*L-2; p++)
       f[t*f_stride + p] = out[p];
   }
-  #pragma omp critical
   fftw_destroy_plan(plan);
 
   // Free memory.
@@ -3800,7 +3736,6 @@ void ssht_core_gl_forward_sov(complex double *flm, const complex double *f,
   f_stride = 2*L-1;
   inout = (complex double*)calloc(2*L-1, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
-  #pragma omp critical
   plan = fftw_plan_dft_1d(2*L-1, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
   for (t=0; t<=L-1; t++) {
     memcpy(inout, &f[t*f_stride], f_stride*sizeof(double complex));
@@ -3812,7 +3747,6 @@ void ssht_core_gl_forward_sov(complex double *flm, const complex double *f,
       Ftm[t*Ftm_stride + m + Ftm_offset] =
 	inout[m+2*L-1] * 2.0 * SSHT_PI / (2.0*L-1.0);
   }
-  #pragma omp critical
   fftw_destroy_plan(plan);
 
   // Compute flm.
@@ -3954,7 +3888,6 @@ void ssht_core_gl_forward_sov_real(complex double *flm, const double *f,
   SSHT_ERROR_MEM_ALLOC_CHECK(in_real)
   out = (complex double*)calloc(L, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(out)
-  #pragma omp critical
   plan = fftw_plan_dft_r2c_1d(2*L-1, in_real, out, FFTW_MEASURE);
   for (t=0; t<=L-1; t++) {
     memcpy(in_real, &f[t*f_stride], f_stride*sizeof(double));
@@ -3965,7 +3898,6 @@ void ssht_core_gl_forward_sov_real(complex double *flm, const double *f,
   }
   free(in_real);
   free(out);
-  #pragma omp critical
   fftw_destroy_plan(plan);
 
   // Compute flm.
@@ -4135,7 +4067,6 @@ void ssht_core_dh_inverse_sov(complex double *f, const complex double *flm,
   inout = (complex double*)calloc(2*L-1, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
   f_stride = 2*L-1;
-  #pragma omp critical
   plan = fftw_plan_dft_1d(2*L-1, inout, inout, FFTW_BACKWARD, FFTW_MEASURE);
   for (t=0; t<=2*L-1; t++) {
     for (m=0; m<=L-1; m++)
@@ -4146,7 +4077,6 @@ void ssht_core_dh_inverse_sov(complex double *f, const complex double *flm,
     for (p=0; p<=2*L-2; p++)
       f[t*f_stride + p] = inout[p];
   }
-  #pragma omp critical
   fftw_destroy_plan(plan);
 
   // Free memory.
@@ -4260,7 +4190,6 @@ void ssht_core_dh_inverse_sov_real(double *f, const complex double *flm,
   SSHT_ERROR_MEM_ALLOC_CHECK(in)
   out = (double*)calloc(2*L-1, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(out)
-  #pragma omp critical
   plan = fftw_plan_dft_c2r_1d(2*L-1, in, out, FFTW_MEASURE);
   f_stride = 2*L-1;
   for (t=0; t<=2*L-1; t++) {
@@ -4269,7 +4198,6 @@ void ssht_core_dh_inverse_sov_real(double *f, const complex double *flm,
     for (p=0; p<=2*L-2; p++)
       f[t*f_stride + p] = out[p];
   }
-  #pragma omp critical
   fftw_destroy_plan(plan);
 
   // Free memory.
@@ -4351,7 +4279,6 @@ void ssht_core_dh_forward_sov(complex double *flm, const complex double *f,
   f_stride = 2*L-1;
   inout = (complex double*)calloc(2*L-1, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
-  #pragma omp critical
   plan = fftw_plan_dft_1d(2*L-1, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
   for (t=0; t<=2*L-1; t++) {
     memcpy(inout, &f[t*f_stride], f_stride*sizeof(double complex));
@@ -4363,7 +4290,6 @@ void ssht_core_dh_forward_sov(complex double *flm, const complex double *f,
       Ftm[t*Ftm_stride + m + Ftm_offset] =
 	inout[m+2*L-1] * 2.0 * SSHT_PI / (2.0*L-1.0);
   }
-  #pragma omp critical
   fftw_destroy_plan(plan);
 
   // Compute flm.
@@ -4495,7 +4421,6 @@ void ssht_core_dh_forward_sov_real(complex double *flm, const double *f,
   SSHT_ERROR_MEM_ALLOC_CHECK(in_real)
   out = (complex double*)calloc(L, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(out)
-  #pragma omp critical
   plan = fftw_plan_dft_r2c_1d(2*L-1, in_real, out, FFTW_MEASURE);
   for (t=0; t<=2*L-1; t++) {
     memcpy(in_real, &f[t*f_stride], f_stride*sizeof(double));
@@ -4506,7 +4431,6 @@ void ssht_core_dh_forward_sov_real(complex double *flm, const double *f,
   }
   free(in_real);
   free(out);
-  #pragma omp critical
   fftw_destroy_plan(plan);
 
   // Compute flm.
