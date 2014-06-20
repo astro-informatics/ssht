@@ -77,18 +77,17 @@ void ssht_core_mw_lb_inverse_sov_sym(complex double *f, const complex double *fl
           ssht_dl_method_t dl_method,
           int verbosity) {
 
-  int el, m, mm, ind;
+  int el, m, mm;
   //int t, p;
   int eltmp;
   double *sqrt_tbl, *signs;
-  int el2pel, inds_offset;
-  int *inds;
+  int el2pel, m_offset;
   double ssign, elfactor;
   complex double mmfactor;
   double *dl;
   double *dl8 = NULL;
   int dl_offset, dl_stride;
-  complex double *exps;
+  complex double *exps, *m_factors;
   int exps_offset;
   double elmmsign, elssign;
   int spinneg;
@@ -103,8 +102,8 @@ void ssht_core_mw_lb_inverse_sov_sym(complex double *f, const complex double *fl
   SSHT_ERROR_MEM_ALLOC_CHECK(signs)
   exps = (complex double*)calloc(2*L-1, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(exps)
-  inds = (int*)calloc(2*L-1, sizeof(int));
-  SSHT_ERROR_MEM_ALLOC_CHECK(inds)
+  m_factors = calloc(2*L-1, sizeof *m_factors);
+  SSHT_ERROR_MEM_ALLOC_CHECK(m_factors)
 
   // Perform precomputations.
   for (el=0; el<=2*(L-1)+1; el++)
@@ -143,7 +142,7 @@ void ssht_core_mw_lb_inverse_sov_sym(complex double *f, const complex double *fl
   }
   dl_offset = ssht_dl_get_offset(L, SSHT_DL_QUARTER);
   dl_stride = ssht_dl_get_stride(L, SSHT_DL_QUARTER);
-  inds_offset = L-1;
+  m_offset = L-1;
   for (el=MAX(L0, abs(spin)); el<=L-1; el++) {
 
     // Compute Wigner plane.
@@ -200,33 +199,28 @@ void ssht_core_mw_lb_inverse_sov_sym(complex double *f, const complex double *fl
     }
 
     // Compute Fmm.
-    elfactor = sqrt((double)(2.0*el+1.0)/(4.0*SSHT_PI));
-    el2pel = el *el + el;
+    elfactor = ssign * sqrt((double)(2.0*el+1.0)/(4.0*SSHT_PI));
+    el2pel = el*el + el;
     for (m=-el; m<=el; m++)
-      inds[m + inds_offset] = el2pel + m;
+      m_factors[m + m_offset] = flm[el2pel + m] * exps[m + exps_offset];
+
     for (mm=0; mm<=el; mm++) {
+      double mm_factor;
+      int mm_offset = mm*dl_stride;
       elmmsign = signs[el] * signs[mm];
       elssign = spin <= 0 ? 1.0 : elmmsign;
-
+      mm_factor = elfactor * elssign * dl[mm_offset - spinneg + dl_offset];
       for (m=-el; m<=-1; m++) {
-	ind = inds[m + inds_offset];
     	Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset] +=
-    	  ssign
-    	  * elfactor
-	  * exps[m + exps_offset]
-    	  * elmmsign * dl[mm*dl_stride - m + dl_offset]
-    	  * elssign * dl[mm*dl_stride - spinneg + dl_offset]
-    	  * flm[ind];
+          mm_factor
+          * m_factors[m + m_offset]
+    	  * elmmsign * dl[mm_offset - m + dl_offset];
       }
       for (m=0; m<=el; m++) {
-	ind = inds[m + inds_offset];
     	Fmm[(mm + Fmm_offset)*Fmm_stride + m + Fmm_offset] +=
-    	  ssign
-    	  * elfactor
-	  * exps[m + exps_offset]
-    	  * dl[mm*dl_stride + m + dl_offset]
-    	  * elssign * dl[mm*dl_stride - spinneg + dl_offset]
-    	  * flm[ind];
+    	  mm_factor
+          * m_factors[m + m_offset]
+    	  * dl[mm_offset + m + dl_offset];
       }
 
     }
@@ -278,7 +272,7 @@ void ssht_core_mw_lb_inverse_sov_sym(complex double *f, const complex double *fl
 
   // Perform 2D FFT.
   plan = fftw_plan_dft_2d(2*L-1, 2*L-1, Fmm, Fmm,
-			  FFTW_BACKWARD, FFTW_PATIENT);
+			  FFTW_BACKWARD, FFTW_ESTIMATE);
   fftw_execute_dft(plan, fext, fext);
   fftw_destroy_plan(plan);
 
@@ -304,7 +298,7 @@ void ssht_core_mw_lb_inverse_sov_sym(complex double *f, const complex double *fl
   free(sqrt_tbl);
   free(signs);
   free(exps);
-  free(inds);
+  free(m_factors);
 
 }
 
@@ -844,12 +838,11 @@ void ssht_core_mw_lb_forward_sov_conv_sym(complex double *flm, const complex dou
   int el, m, mm, ind, t, r;
   int eltmp;
   double *sqrt_tbl, *signs;
-  int el2pel, inds_offset;
-  int *inds;
+  int el2pel;
   double ssign, elfactor;
   fftw_plan plan, plan_bwd, plan_fwd;
   complex double *inout;
-  complex double *Fmt, *Fmm, *Gmm;
+  complex double *Fmt, *Fmm, *Gmm, *m_mm_factor;
   complex double *w, *wr;
   complex double *Fmm_pad, *tmp_pad;
   int f_stride, Fmt_stride, Fmt_offset, Fmm_stride, Fmm_offset;
@@ -871,8 +864,6 @@ void ssht_core_mw_lb_forward_sov_conv_sym(complex double *flm, const complex dou
   SSHT_ERROR_MEM_ALLOC_CHECK(expsm)
   expsmm = (complex double*)calloc(2*L-1, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(expsmm)
-  inds = (int*)calloc(2*L-1, sizeof(int));
-  SSHT_ERROR_MEM_ALLOC_CHECK(inds)
 
   // Perform precomputations.
   for (el=0; el<=2*(L-1)+1; el++)
@@ -908,7 +899,7 @@ void ssht_core_mw_lb_forward_sov_conv_sym(complex double *flm, const complex dou
   f_stride = 2*L-1;
   inout = (complex double*)calloc(2*L-1, sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
-  plan = fftw_plan_dft_1d(2*L-1, inout, inout, FFTW_FORWARD, FFTW_PATIENT);
+  plan = fftw_plan_dft_1d(2*L-1, inout, inout, FFTW_FORWARD, FFTW_ESTIMATE);
   for (t=0; t<=L-1; t++) {
     memcpy(inout, &f[t*f_stride], f_stride*sizeof(double complex));
     fftw_execute_dft(plan, inout, inout);
@@ -1025,6 +1016,21 @@ void ssht_core_mw_lb_forward_sov_conv_sym(complex double *flm, const complex dou
   fftw_destroy_plan(plan_bwd);
   fftw_destroy_plan(plan_fwd);
 
+  // Precompute factors depending on particular Gmm, to be used later
+  // in computing the flm.
+  m_mm_factor = calloc((2*L-1)*(2*L-1), sizeof *m_mm_factor);
+  SSHT_ERROR_MEM_ALLOC_CHECK(m_mm_factor)
+
+  for (mm = 1; mm < L; mm++) {
+    for (m = -L+1; m < L; m++) {
+      m_mm_factor[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset] =
+        expsm[m + exps_offset]
+        * ( Gmm[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset]
+            + signs[abs(m)] * ssign
+              * Gmm[(-mm+Fmm_offset)*Fmm_stride + m + Fmm_offset] );
+    }
+  }
+
   // Compute flm.
   dl = ssht_dl_calloc(L, SSHT_DL_QUARTER);
   SSHT_ERROR_MEM_ALLOC_CHECK(dl)
@@ -1034,7 +1040,6 @@ void ssht_core_mw_lb_forward_sov_conv_sym(complex double *flm, const complex dou
   }
   dl_offset = ssht_dl_get_offset(L, SSHT_DL_QUARTER);
   dl_stride = ssht_dl_get_stride(L, SSHT_DL_QUARTER);
-  inds_offset = L-1;
   for (el=0; el<=L-1; el++) {
     for (m=-el; m<=el; m++) {
       ssht_sampling_elm2ind(&ind, el, m);
@@ -1042,6 +1047,7 @@ void ssht_core_mw_lb_forward_sov_conv_sym(complex double *flm, const complex dou
     }
   }
   for (el=MAX(L0, abs(spin)); el<=L-1; el++) {
+    double mm_factor;
 
     // Compute Wigner plane.
     switch (dl_method) {
@@ -1099,60 +1105,50 @@ void ssht_core_mw_lb_forward_sov_conv_sym(complex double *flm, const complex dou
     // Compute flm.
     elfactor = sqrt((double)(2.0*el+1.0)/(4.0*SSHT_PI));
     el2pel = el *el + el;
-    for (m=-el; m<=el; m++)
-      inds[m + inds_offset] = el2pel + m;
     elssign = spin <= 0 ? 1.0 : signs[el];
+
+    mm_factor = ssign * elfactor * elssign * dl[- spinneg + dl_offset];
 
     for (m=-el; m<=-1; m++) {
       // mm = 0
-      ind = inds[m + inds_offset];
-      flm[ind] +=
-	ssign
-	* elfactor
-	* expsm[m + exps_offset]
-	* signs[el] * dl[0*dl_stride - m + dl_offset]
-	* elssign * dl[0*dl_stride - spinneg + dl_offset]
-	* Gmm[(0+Fmm_offset)*Fmm_stride + m + Fmm_offset];
+      flm[m + el2pel] +=
+        mm_factor
+        * signs[el]
+        * expsm[m + exps_offset]
+        * dl[0*dl_stride - m + dl_offset]
+        * Gmm[(0+Fmm_offset)*Fmm_stride + m + Fmm_offset];
     }
     for (m=0; m<=el; m++) {
       // mm = 0
-      ind = inds[m + inds_offset];
-      flm[ind] +=
-	ssign
-	* elfactor
-	* expsm[m + exps_offset]
-	* dl[0*dl_stride + m + dl_offset]
-	* elssign * dl[0*dl_stride - spinneg + dl_offset]
-	* Gmm[(0+Fmm_offset)*Fmm_stride + m + Fmm_offset];
+      flm[m + el2pel] +=
+        mm_factor
+        * expsm[m + exps_offset]
+        * dl[0*dl_stride + m + dl_offset]
+        * Gmm[(0+Fmm_offset)*Fmm_stride + m + Fmm_offset];
     }
 
     for (mm=1; mm<=el; mm++) {
+      int mm_offset = mm * dl_stride;
       elmmsign = signs[el] * signs[mm];
       elssign = spin <= 0 ? 1.0 : elmmsign;
 
+      mm_factor =
+          ssign
+          * elfactor
+          * elssign
+          * dl[mm_offset - spinneg + dl_offset];
+
       for (m=-el; m<=-1; m++) {
-      	ind = inds[m + inds_offset];
-      	flm[ind] +=
-      	  ssign
-      	  * elfactor
-      	  * expsm[m + exps_offset]
-      	  * elmmsign * dl[mm*dl_stride - m + dl_offset]
-      	  * elssign * dl[mm*dl_stride - spinneg + dl_offset]
-      	  * ( Gmm[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset]
-      	      + signs[-m] * ssign
-      	      * Gmm[(-mm+Fmm_offset)*Fmm_stride + m + Fmm_offset]);
+        flm[m + el2pel] +=
+          mm_factor
+          * elmmsign * dl[mm_offset - m + dl_offset]
+          * m_mm_factor[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset];
       }
       for (m=0; m<=el; m++) {
-	ind = inds[m + inds_offset];
-	flm[ind] +=
-	  ssign
-	  * elfactor
-	  * expsm[m + exps_offset]
-	  * dl[mm*dl_stride + m + dl_offset]
-	  * elssign * dl[mm*dl_stride - spinneg + dl_offset]
-	  * ( Gmm[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset]
-	      + signs[m] * ssign
-	      * Gmm[(-mm+Fmm_offset)*Fmm_stride + m + Fmm_offset]);
+        flm[m + el2pel] +=
+          mm_factor
+          * dl[mm_offset + m + dl_offset]
+          * m_mm_factor[(mm+Fmm_offset)*Fmm_stride + m + Fmm_offset];
       }
 
     }
@@ -1171,11 +1167,11 @@ void ssht_core_mw_lb_forward_sov_conv_sym(complex double *flm, const complex dou
   free(Fmm_pad);
   free(tmp_pad);
   free(Gmm);
+  free(m_mm_factor);
   free(sqrt_tbl);
   free(signs);
   free(expsm);
   free(expsmm);
-  free(inds);
 
   // Print finished if verbosity set.
   if (verbosity > 0)
