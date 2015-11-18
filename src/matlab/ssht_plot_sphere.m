@@ -22,6 +22,8 @@ function ssht_plot_sphere(f, L, varargin)
 %  'PlotSamples'     = { false        [do not plot sample positions (default)],
 %                        true         [plot sample positions] }
 %  'ParametricScale' = scale          [scaling for parametric plot (default=0.5)]
+%  'ParametricMin'   = { false        [do not clip min to zero for parametric plot (default)],
+%                        true         [clip min to zero for parametric plot] }
 %  'Lighting'        = { false        [do not light plot (default)],
 %                        true         [light plot] }
 %  'ColourBar'       = { false        [do not add colour bar (default)],
@@ -43,6 +45,7 @@ p.addParamValue('Method', 'MW', @ischar);
 p.addParamValue('Close', true, @islogical);
 p.addParamValue('PlotSamples', false, @islogical);
 p.addParamValue('ParametricScale', 0.5, @isnumeric);
+p.addParamValue('ParametricMin', false, @islogical);
 p.addParamValue('Lighting', false, @islogical);
 p.addParamValue('ColourBar', false, @islogical);
 p.parse(f, L, varargin{:});
@@ -55,6 +58,10 @@ PARAMETRIC_SCALE = args.ParametricScale;
 % Compute grids.
 minf = min(f(:));
 maxf = max(f(:));
+if args.ParametricMin
+   minf = 0;
+end
+   
 [thetas, phis, n, ntheta, nphi] = ssht_sampling(L, 'Method', ...
                                                 args.Method, 'Grid', true);
 if (size(thetas) ~= size(f)) 
@@ -63,10 +70,12 @@ end
 
 % Compute position scaling for parametric plot.
 if strcmpi(args.Type, 'parametric')
+
    if abs(maxf - minf) < TOL
       f_normalised = f;
    else
-      f_normalised = (f - minf)./(maxf - minf).*PARAMETRIC_SCALE + 0.1;
+      f_normalised = (f - minf)./(maxf - minf).*PARAMETRIC_SCALE; % + 0.1;
+      f_normalised(find(f_normalised < 0.0)) = 0.0;
    end
 else
    f_normalised = ones(size(f));

@@ -4,7 +4,7 @@
 % 
 % Default usage is given by
 %
-%   ssht_demo8
+%   ssht_demo0
 %
 % Author: Jason McEwen (www.jasonmcewen.org)
 

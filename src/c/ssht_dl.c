@@ -73,7 +73,7 @@ double* ssht_dl_calloc(int L, ssht_dl_size_t dl_size) {
       break;
 
     case SSHT_DL_QUARTER_EXTENDED:
-      dl = (double*)calloc((L+1)*(L+3), sizeof(double));
+      dl = (double*)calloc((L+2)*(L+2), sizeof(double));
       break;
 
     case SSHT_DL_HALF:
@@ -150,7 +150,7 @@ int ssht_dl_get_stride(int L, ssht_dl_size_t dl_size) {
       return L;
 
     case SSHT_DL_QUARTER_EXTENDED:
-      return L + 3;
+      return L + 2;
 
     case SSHT_DL_HALF:
       return 2*L - 1;
@@ -404,148 +404,9 @@ void ssht_dl_beta_risbo_half_table(double *dl, double beta, int L,
     // Fill top half of plane using symmetry.
     for (m=-el; m<=el; m++) 
       for (mm=1; mm<=el; mm++) 
-	dl[(m+offset)*stride + mm + offset] = 
-	  signs[el] * signs[abs(m)]
-	  * dl[(m+offset)*stride - mm + offset];
-
-    // Free temporary memory.
-    free(dd);
-  }
-
-}
-
-
-/*!  
- * Calculates (for m = -l:l and mm = -l:l) lth plane of a d-matrix for
- * argument beta using Risbo's recursion method.  Only quarter of the
- * plane is computed by recusion and symmetry is used to fill the
- * remaining plane.  For l>0, require the dl plane to be computed
- * already with values for l-1.  Also takes a table of precomputed
- * square roots of integers and signs to avoid recomputing them.
- *
- * \param[in,out] dl Wigner plane.  On input this should be initialised
- * to the plane computed for el-1.  On output this will be replaced
- * with the computed plane for el.
- * \param[in] beta Angle to compute Wigner line for.
- * \param[in] L Harmonic band-limit.
- * \param[in] dl_size Size type of the memory to allocate.
- * \param[in] el Harmonic index to compute Wigner plane for.
- * \param[in] sqrt_tbl Precomputed array of square roots.  The table
- * element at index i should contain the value sqrt(i).  Values from 0
- * to 2*el must be precomputed (i.e. sqrt_tbl should contian 2*el+1
- * elements).
- * \param[in] signs Precomputed array of signs. The array element at
- * index i should contain the value (-1)^i.  Values from 0
- * to el must be precomputed (i.e. signs should contian el+1
- * elements).
- * \retval none
- *
- * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
- */
-void ssht_dl_beta_risbo_quarter_table(double *dl, double beta, int L, 
-				      ssht_dl_size_t dl_size,
-				      int el, double *sqrt_tbl,
-				      double * signs) {
-
-  int offset, stride;
-  double cosb, sinb, coshb, sinhb;
-  int i, j, k;
-  double rj, dlj, ddj;
-  double *dd;
-  int m, mm;
-
-  // Get mm offset and stride for accessing dl data.
-  offset = ssht_dl_get_offset(L, dl_size);
-  stride = ssht_dl_get_stride(L, dl_size);
-
-  // Compute Wigner plane.
-  if (el == 0) {
-    
-    dl[(0+offset)*stride + 0 + offset] = 1.0;
-
-  }
-  else if (el == 1) {
-
-    cosb = cos(beta);
-    sinb = sin(beta);
-    coshb = cos(beta / 2.0);
-    sinhb = sin(beta / 2.0);
-   
-    dl[(-1 + offset)*stride - 1 + offset] = coshb * coshb;
-    dl[(-1 + offset)*stride + 0 + offset] = sinb / SSHT_SQRT2;
-    dl[(-1 + offset)*stride + 1 + offset] = sinhb * sinhb;
-
-    dl[(0 + offset)*stride - 1 + offset] = -sinb / SSHT_SQRT2;
-    dl[(0 + offset)*stride + 0 + offset] = cosb;
-    dl[(0 + offset)*stride + 1 + offset] = sinb / SSHT_SQRT2;
-
-    dl[(1 + offset)*stride - 1 + offset] = sinhb * sinhb;
-    dl[(1 + offset)*stride + 0 + offset] = -sinb / SSHT_SQRT2;
-    dl[(1 + offset)*stride + 1 + offset] = coshb * coshb;
-
-  }
-  else {
-
-    coshb = -cos(beta / 2.0);
-    sinhb = sin(beta / 2.0);
-
-    // Initialise the plane of the dl-matrix to 0.0 for the recursion
-    // from l - 1 to l - 1/2.
-    dd = (double*)calloc((2*el+2)*(2*el+2), sizeof(double));
-    SSHT_ERROR_MEM_ALLOC_CHECK(dd)
-
-    j = 2*el - 1;
-    rj = (double) j;
-    for (k=0; k<=el; k++) {
-      for (i=0; i<=el; i++) {
-	dlj = dl[(k-(el-1)+offset)*stride + i-(el-1) + offset] / rj;
-	dd[k*(2*el+2) + i] +=
-	  sqrt_tbl[j-i] * sqrt_tbl[j-k] * dlj * coshb;
-	dd[k*(2*el+2) + i+1] -=
-	  sqrt_tbl[i+1] * sqrt_tbl[j-k] * dlj * sinhb;
-	dd[(k+1)*(2*el+2) + i] +=
-	  sqrt_tbl[j-i] * sqrt_tbl[k+1] * dlj * sinhb;
-	dd[(k+1)*(2*el+2) + i+1] +=
-	  sqrt_tbl[i+1] * sqrt_tbl[k+1] * dlj * coshb;
-      }
-    }
-
-    // Having constructed the d^(l+1/2) matrix in dd, do the second
-    // half-step recursion from dd to dl. Start by initilalising  
-    // the plane of the dl-matrix to 0.0.
-    for (k=-el; k<=el; k++) 
-      for (i=-el; i<=el; i++)
-	dl[(k+offset)*stride + i + offset] = 0.0;
-
-    j = 2*el;
-    rj = (double) j;
-    for (k=0; k<=el; k++) {
-      for (i=0; i<=el; i++) {
-	ddj = dd[k*(2*el+2) + i] / rj;
-	dl[(k-el+offset)*stride + i-el + offset] +=
-	  sqrt_tbl[j-i] * sqrt_tbl[j-k] * ddj * coshb;
-	dl[(k-el+offset)*stride + i+1-el + offset] -=
-	  sqrt_tbl[i+1] * sqrt_tbl[j-k] * ddj * sinhb;
-	dl[(k+1-el+offset)*stride + i-el + offset] +=
-	  sqrt_tbl[j-i] * sqrt_tbl[k+1] * ddj * sinhb;
-	dl[(k+1-el+offset)*stride + i+1-el + offset] +=
-	  sqrt_tbl[i+1] * sqrt_tbl[k+1] * ddj * coshb;
-      }
-    }
-
-    // Symmetry in m to fill half plane.
-    for (m=1; m<=el; m++) 
-      for (mm=-el; mm<=0; mm++) 
-	dl[(m+offset)*stride + mm + offset] = 
-	  pow(-1., el) * pow(-1.,mm) 
-	  * dl[(-m+offset)*stride + mm + offset];
-
-    // Symmetry in mm to fill entire plane.
-    for (m=-el; m<=el; m++) 
-      for (mm=1; mm<=el; mm++) 
-	dl[(m+offset)*stride + mm + offset] = 
-	  pow(-1., el) * pow(-1.,m) 
-	  * dl[(m+offset)*stride - mm + offset];
+        dl[(m+offset)*stride + mm + offset] = 
+          signs[abs(m)] * signs[abs(mm)]
+          * dl[(-m+offset)*stride - mm + offset];
 
     // Free temporary memory.
     free(dd);
@@ -590,7 +451,7 @@ void ssht_dl_beta_risbo_eighth_table(double *dl, double beta, int L,
 				      int el, double *sqrt_tbl,
 				      double *signs) {
 
-  int offset, stride;
+  int offset, stride, imax;
   double cosb, sinb, coshb, sinhb;
   int i, j, k;
   double rj, dlj, ddj;
@@ -640,7 +501,11 @@ void ssht_dl_beta_risbo_eighth_table(double *dl, double beta, int L,
     j = 2*el - 1;
     rj = (double) j;
     for (k=0; k<=el; k++) {
-      for (i=0; i<=k+2; i++) {
+      if (k==el)
+	imax = k+1;
+      else
+	imax = k+2;
+      for (i=0; i<=imax; i++) {
 	dlj = dl[(k-(el-1)+offset)*stride + i-(el-1) + offset] / rj;	
 	dd[k*(el+3) + i] +=
 	  sqrt_tbl[j-i] * sqrt_tbl[j-k] * dlj * coshb;
@@ -683,7 +548,7 @@ void ssht_dl_beta_risbo_eighth_table(double *dl, double beta, int L,
     for (m=-el; m<=0; m++)
       for (mm=m+1; mm<=m+2; mm++)
     	dl[(m+offset)*stride + mm + offset] =
-    	  signs[abs(m)] * signs[abs(mm)] 
+	  signs[abs(m)] * signs[abs(mm)] 
 	  * dl[(mm+offset)*stride + m + offset];
 
     // Extend right by one in m.
