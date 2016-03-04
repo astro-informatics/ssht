@@ -20,7 +20,7 @@ ifeq ($(UNAME), Linux)
   MEXFLAGS	= -cxx
 endif
 ifeq ($(UNAME), Darwin)
-  MLAB		= /Applications/MATLAB_R2013a.app
+  MLAB		= ${MATLAB}
   MLABINC	= ${MLAB}/extern/include
   MLABLIB	= ${MLAB}/extern/lib
 
@@ -151,7 +151,7 @@ $(SSHTOBJMAT)/%_mex.o: %_mex.c $(SSHTLIB)/lib$(SSHTLIBNM).a
 	$(CC) $(OPT) $(FFLAGS) -c $< -o $@ -I${MLABINC}
 
 $(SSHTOBJMEX)/%_mex.$(MEXEXT): $(SSHTOBJMAT)/%_mex.o $(SSHTLIB)/lib$(SSHTLIBNM).a
-	$(MEX) $< -o $@ $(LDFLAGSMEX) $(MEXFLAGS) -L$(MLABLIB)
+	$(MEX) $< -output $@ $(LDFLAGSMEX) $(MEXFLAGS) -L$(MLABLIB)
 
 .PHONY: matlab
 matlab: $(SSHTOBJSMEX)
