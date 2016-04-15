@@ -514,7 +514,7 @@ int ssht_sampling_gl_n(int L) {
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-inline void ssht_sampling_elm2ind(int *ind, int el, int m) {
+void ssht_sampling_elm2ind(int *ind, int el, int m) {
 
   *ind = el * el + el + m;
 
@@ -537,7 +537,7 @@ inline void ssht_sampling_elm2ind(int *ind, int el, int m) {
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-inline void ssht_sampling_ind2elm(int *el, int *m, int ind) {
+void ssht_sampling_ind2elm(int *el, int *m, int ind) {
 
   *el = sqrt(ind);
   *m = ind - (*el)*(*el) - (*el);
