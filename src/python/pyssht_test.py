@@ -63,11 +63,81 @@ Spin = 0
 
 flm = np.random.randn(L*L) + 1j*np.random.randn(L*L)
 
-f, f_sp, phi_sp = ssht_inverse(flm,L, Method="MWSS")
+f, f_sp, phi_sp = ssht_inverse(flm,L, Method="MW_pole")
 
-flm_rec = ssht_forward((f, f_sp, phi_sp), L, Method="MWSS")
+flm_rec = ssht_forward((f, f_sp, phi_sp), L, Method="MW_pole")
 
-f_rec, f_sp_rec, phi_sp_rec  = ssht_inverse(flm,L, Method="MWSS")
+f_rec, f_sp_rec, phi_sp_rec  = ssht_inverse(flm,L, Method="MW_pole")
+
+
+if (np.mean(np.abs(flm_rec-flm))<1E-14):
+    print "MW_pole complex transform test passed, max error: ", np.max(np.abs(flm_rec-flm))
+else:
+    print "MW_pole complex transform ***NOT*** test passed, max error: ", np.max(np.abs(flm_rec-flm))
+
+
+    
+L = 128
+Spin = 2
+
+
+flm = np.random.randn(L*L) + 1j*np.random.randn(L*L)
+flm[0:4] = 0.0 + 0.0j
+
+f, f_sp, phi_sp = ssht_inverse(flm,L, Spin=Spin, Method="MW_pole")
+
+flm_rec = ssht_forward((f, f_sp, phi_sp), L, Spin=Spin, Method="MW_pole")
+
+f_rec, f_sp_rec, phi_sp_rec  = ssht_inverse(flm,L, Spin-Spin, Method="MW_pole")
+
+if (np.mean(np.abs(flm_rec-flm))<1E-14):
+    print "MW_pole spin complex transform test passed, max error: ", np.max(np.abs(flm_rec-flm))
+else:
+    print "MW_pole spin complex transform ***NOT*** test passed, max error: ", np.max(np.abs(flm_rec-flm))
+
+    
+    
+L = 128
+Spin = 0
+
+f = np.random.randn(L-1,2*L)
+
+f_sp = np.random.randn()
+
+flm = ssht_forward((f, f_sp), L, Method="MW_pole", Reality=True)
+
+f, f_sp = ssht_inverse(flm,L, Method="MW_pole", Reality=True)
+
+flm = ssht_forward((f, f_sp), L, Method="MW_pole", Reality=True)
+
+f_rec, f_sp_rec  = ssht_inverse(flm,L, Method="MW_pole", Reality=True)
+
+f_dif = f-f_rec
+
+#print f_sp, f_sp_rec, np.abs(f_sp_rec-f_sp)
+#print f_rec[L-1,0:10]
+#print f[L-1,0:10]
+#print f_rec[0,0:10]
+#print f[0,0:10]
+#print np.abs(f_dif[L-1,:])
+
+if (np.mean(np.abs(f_rec-f))<1E-14 and np.abs(f_sp_rec-f_sp)<1E-12):
+    print "MW_pole real transform test passed, max error: ", np.max(np.abs(f_rec-f))
+else:
+    print "MW_pole real transform ***NOT*** test passed, max error: ", np.max(np.abs(f_rec-f))
+
+    
+L = 128
+Spin = 0
+
+
+flm = np.random.randn(L*L) + 1j*np.random.randn(L*L)
+
+f = ssht_inverse(flm,L, Method="MWSS")
+
+flm_rec = ssht_forward(f, L, Method="MWSS")
+
+f_rec  = ssht_inverse(flm,L, Method="MWSS")
 
 
 if (np.mean(np.abs(flm_rec-flm))<1E-14):
@@ -84,11 +154,11 @@ Spin = 2
 flm = np.random.randn(L*L) + 1j*np.random.randn(L*L)
 flm[0:4] = 0.0 + 0.0j
 
-f, f_sp, phi_sp = ssht_inverse_mw_complex_pole(flm,L, Spin)
+f  = ssht_inverse(flm,L, Spin=Spin, Method="MWSS")
 
-flm_rec = ssht_forward_mw_complex_pole(f, f_sp, phi_sp, L, Spin)
+flm_rec = ssht_forward(f, L, Spin=Spin, Method="MWSS")
 
-f_rec, f_sp_rec, phi_sp_rec  = ssht_inverse_mw_complex_pole(flm,L, Spin)
+f_rec  = ssht_inverse(flm,L, Spin=Spin, Method="MWSS")
 
 if (np.mean(np.abs(flm_rec-flm))<1E-14 and np.abs(f_sp_rec-f_sp)<1E-12 and np.abs(phi_sp_rec-phi_sp)<1E-12):
     print "MWSS spin complex transform test passed, max error: ", np.max(np.abs(flm_rec-flm))
@@ -100,17 +170,15 @@ else:
 L = 128
 Spin = 0
 
-f = np.random.randn(L-1,2*L)
+f = np.random.randn(L+1,2*L)
 
-f_sp = np.random.randn()
+flm = ssht_forward(f, L, Method="MWSS", Reality=True)
 
-flm = ssht_forward_mw_real_pole(f, f_sp, L)
+f = ssht_inverse(flm,L, Method="MWSS", Reality=True)
 
-f, f_sp = ssht_inverse_mw_real_pole(flm,L)
+flm_rec = ssht_forward(f, L, Method="MWSS", Reality=True)
 
-flm = ssht_forward_mw_real_pole(f, f_sp, L)
-
-f_rec, f_sp_rec  = ssht_inverse_mw_real_pole(flm,L)
+f_rec  = ssht_inverse(flm_rec,L, Method="MWSS", Reality=True)
 
 f_dif = f-f_rec
 
@@ -121,7 +189,7 @@ f_dif = f-f_rec
 #print f[0,0:10]
 #print np.abs(f_dif[L-1,:])
 
-if (np.mean(np.abs(f_rec-f))<1E-14 and np.abs(f_sp_rec-f_sp)<1E-12):
+if (np.mean(np.abs(f_rec-f))<1E-14):
     print "MWSS real transform test passed, max error: ", np.max(np.abs(f_rec-f))
 else:
     print "MWSS real transform ***NOT*** test passed, max error: ", np.max(np.abs(f_rec-f))
@@ -263,14 +331,14 @@ class MyTestCase(unittest.TestCase):
     def test_forward_method_type(self):
         with self.assertRaises(ssht_input_error) as context:
             ssht_forward(f,L,Method="DJ")
-
-        self.assertTrue('Method is not recognised, Methods are: MW, MWSS, DH and GL' in context.exception)
+ 
+        self.assertTrue('Method is not recognised, Methods are: MW, MW_pole, MWSS, DH and GL' in context.exception)
 
     def test_forward_spin_reality(self):
         with self.assertRaises(ssht_spin_error) as context:
             ssht_forward(f,L,Reality=True,Spin=2)
 
-        self.assertTrue('Reality set to True and Spin is not 0. However spin signals must be complex.'
+        self.assertTrue('Reality set to True and Spin is not 0. However, spin signals must be complex.'
                         in context.exception)
         
         
@@ -284,13 +352,13 @@ class MyTestCase(unittest.TestCase):
         with self.assertRaises(ssht_input_error) as context:
             ssht_inverse(flm,L,Method="DJ")
 
-        self.assertTrue('Method is not recognised, Methods are: MW, MWSS, DH and GL' in context.exception)
+        self.assertTrue('Method is not recognised, Methods are: MW, MW_pole, MWSS, DH and GL' in context.exception)
         
     def test_inverse_spin_reality(self):
         with self.assertRaises(ssht_spin_error) as context:
             ssht_forward(f,L,Reality=True,Spin=2)
 
-        self.assertTrue('Reality set to True and Spin is not 0. However spin signals must be complex.'
+        self.assertTrue('Reality set to True and Spin is not 0. However, spin signals must be complex.'
                         in context.exception)
         
 
