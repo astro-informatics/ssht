@@ -2,10 +2,10 @@
 
 This guide is intended to explanin the python interface of SSHT. For a description of the workings of SSHT see [here](http://astro-informatics.github.io/ssht/ "SSHT documentation")
 
-## ssht_forward
+## pyssht.forward
 
 ~~~~{.python}
-flm = ssht_forward(f, int L, Spin=0, Method='MW', Reality=False)
+flm = pyssht.forward(f, int L, Spin=0, Method='MW', Reality=False)
 ~~~~
 
 Performs the forward spherical harmonic transform.
@@ -35,10 +35,10 @@ This is the same as the `'MW'` sampling however the south pole is expessed as a 
 
 
 
-## ssht_inverse
+## pyssht.inverse
 
 ~~~~
-f = ssht_inverse(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, L, Spin=0, Method='MW', Reality=False)
+f = pyssht.inverse(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, L, Spin=0, Method='MW', Reality=False)
 ~~~~
 
 Performs the inverse spherical harmonic transform.
@@ -68,10 +68,10 @@ This is the same as the `'MW'` sampling however the south pole is expessed as a 
 
 
 
-## ssht_forward_adjoint
+## pyssht.forward_adjoint
 
 ~~~~
-f = ssht_forward_adjoint(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, L, Spin=0, Method='MW', Reality=False)
+f = pyssht.forward_adjoint(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, L, Spin=0, Method='MW', Reality=False)
 ~~~~
 
 Performs the adjoint of the forward spherical harmonic transform.
@@ -91,10 +91,10 @@ Performs the adjoint of the forward spherical harmonic transform.
 `f` the signal on the sphere, 2D `numpy.ndarray` type `complex` or `real`.
 
 
-## ssht_inverse_adjoint
+## pyssht.inverse_adjoint
 
 ~~~~{.python}
-flm = ssht_inverse_adjoint(f, int L, Spin=0, Method='MW', Reality=False)
+flm = pyssht.inverse_adjoint(f, int L, Spin=0, Method='MW', Reality=False)
 ~~~~
 
 Performs the adjoint of the inverse spherical harmonic transform.
@@ -114,10 +114,10 @@ Performs the adjoint of the inverse spherical harmonic transform.
 `flm` the spherical harmonic transform of `f`, 1D `numpy.ndarray` type `complex`
 
 
-## ssht_elm2ind
+## pyssht.elm2ind
 
 ~~~~
-index = ssht_elm2ind( int el, int m)
+index = pyssht.elm2ind( int el, int m)
 ~~~~
 
 Computes the index in the `flm` array of a particular harmonic coeeficient \(\ell \) and \(m\).
@@ -131,10 +131,10 @@ Computes the index in the `flm` array of a particular harmonic coeeficient \(\el
 
 Index of the coficiant in `flm` array, integer
 
-## ssht_ind2elm
+## pyssht.ind2elm
 
 ~~~~
-(el, em) = ssht_ind2elm(int ind)
+(el, em) = pyssht.ind2elm(int ind)
 ~~~~
 
 Computes harmonic coeeficient \(\ell \) and \(m\) from the index in the `flm` array.
@@ -150,10 +150,10 @@ Tuple containing `(el, em)`
 * `em` the azimuthal parameter, integer from -el to el.
 
 
-## ssht_sample_shape
+## pyssht.sample_shape
 
 ~~~~
-(n_theta, n_phi) = ssht_sample_shape(int L, Method='MW')
+(n_theta, n_phi) = pyssht.sample_shape(int L, Method='MW')
 ~~~~
 
 Outputs a tuple with the shape of the array used for storing the data on the sphere for different sampling schemes.
@@ -175,10 +175,10 @@ Tuple containing `(n_theta, n_phi)`
 * `n_phi` the number of samples in the \(\phi\) direction, integer
 
 
-## ssht_sample_positions
+## pyssht.sample_positions
 
 ~~~~
-(thetas, phis) = ssht_sample_positions(int L, Method = 'MW', Grid=False)
+(thetas, phis) = pyssht.sample_positions(int L, Method = 'MW', Grid=False)
 ~~~~
 
 Computes the positions on the sphere of the samples.
@@ -200,10 +200,10 @@ Tuple containing `(thetas, phis)`
 * `thetas` positions of the samples in the \(\theta\) direction
 * `phis` positions of the samples in the \(\theta\) direction
 
-## ssht_s2_to_cart
+## pyssht.s2_to_cart
 
 ~~~~
-(x, y, z) = ssht_s2_to_cart(theta, phi)
+(x, y, z) = pyssht.s2_to_cart(theta, phi)
 ~~~~
 
 Computes the \(x\), \(y\), and \(z\) coordinates from \(\theta\) and \(\phi\) on the sphere.
@@ -220,10 +220,10 @@ Tuple containing `(x, y, z)`
 * `y` the \(y\) coordinate of each point, type `numpy.ndarray`
 * `z` the \(z\) coordinate of each point, type `numpy.ndarray`
 
-## ssht_spherical_to_cart
+## pyssht.spherical_to_cart
 
 ~~~~
-(x, y, z) = ssht_spherical_to_cart(r, theta, phi)
+(x, y, z) = pyssht.spherical_to_cart(r, theta, phi)
 ~~~~
 
 Computes the \(x\), \(y\), and \(z\) coordinates from the sphrical coordinates \(r\), \(\theta\) and \(\phi\).
@@ -241,10 +241,10 @@ Tuple containing `(x, y, z)`
 * `y` the \(y\) coordinate of each point, type `numpy.ndarray`
 * `z` the \(z\) coordinate of each point, type `numpy.ndarray`
 
-## ssht_theta_phi_to_ra_dec
+## pyssht.theta_phi_to_ra_dec
 
 ~~~~
-(dec, ra) = ssht_theta_phi_to_ra_dec(theta, phi, Degrees=False)
+(dec, ra) = pyssht.theta_phi_to_ra_dec(theta, phi, Degrees=False)
 ~~~~
 
 Computes the Right Assension and declination from an array of \(\theta\) and \(\phi\) values.
@@ -262,10 +262,10 @@ Tuple contaning `(dec, ra)`
 * `ra` the Right Assension, `numpy.ndarray`
 
 
-## ssht_plot_sphere
+## pyssht.plot_sphere
 
 ~~~~
-ssht_plot_sphere(f, L, Method='MW', Close=True, Parametric=False,\
+pyssht.plot_sphere(f, L, Method='MW', Close=True, Parametric=False,\
                     Parametric_Saling=[0.0,0.5], Output_File=None,\
                     Show=True, Color_Bar=True, Units=None, Color_Range=None,\ Axis=True)
 ~~~~
@@ -296,10 +296,10 @@ Plots data on to a sphere. It is really slow and not very good!
 
 None
 
-## ssht_plot_mollweide
+## pyssht.plot_mollweide
 
 ~~~~
-m = ssht_plot_mollweide(f, L, Method="MW", Close=True)
+m = pyssht.plot_mollweide(f, L, Method="MW", Close=True)
 ~~~~
 
 Plots the data in a mollweide projection. Better but not super fast.
@@ -321,10 +321,10 @@ Plots the data in a mollweide projection. Better but not super fast.
 
 Python axes object. This means the user can call any of the other python ploting functions to costermise the plot.
 
-## ssht_dl_beta_recurse
+## pyssht.dl_beta_recurse
 
 ~~~~
-dl = ssht_dl_beta_recurse(np.ndarray[ double, ndim=2, mode="c"] dl not None,\
+dl = pyssht.dl_beta_recurse(np.ndarray[ double, ndim=2, mode="c"] dl not None,\
             double beta, int L, int el, \
             np.ndarray[ double, ndim=1, mode="c"] sqrt_tbl not None,\
             np.ndarray[ double, ndim=1, mode="c"] signs not None)
@@ -334,10 +334,10 @@ Function to recursively calculate the small Wigner D matricies.
 
 Documentation to be added.
 
-## ssht_generate_dl
+## pyssht.generate_dl
 
 ~~~~
-dl_array = ssht_generate_dl(double beta, int L)
+dl_array = pyssht.generate_dl(double beta, int L)
 ~~~~
 
 Generates the small Wigner D matricies up to a given band limit for a given \(\beta\)
@@ -351,10 +351,10 @@ Generates the small Wigner D matricies up to a given band limit for a given \(\b
 
 Numpy ndarray `dl_array`, type `float_` of the small Wigner D matricies
 
-## ssht_rotate_flms
+## pyssht.rotate_flms
 
 ~~~~
-flm_rotated = ssht_rotate_flms(
+flm_rotated = pyssht.rotate_flms(
                 np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None,\
                 double alpha, double beta, double gamma, int L, dl_array=None,\
                 M=None, Axisymmetric=False, Keep_dl=False)

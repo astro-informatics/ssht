@@ -445,7 +445,7 @@ class ssht_spin_error(ValueError):
 
 # easy to use functions to perform forward and backward transfroms
 
-def ssht_forward(f, int L, Spin=0, Method='MW', Reality=False):
+def forward(f, int L, Spin=0, Method='MW', Reality=False):
     # Checks
 
     if Method == 'MW_pole':
@@ -465,8 +465,8 @@ def ssht_forward(f, int L, Spin=0, Method='MW', Reality=False):
 
     if f.dtype == np.float_ and Reality == False:
         print 'Real signal given but Reality flag is False. Set Reality = True to improve performance'
-        f_new = np.empty(ssht_sample_shape(L,Method=Method), dtype=np.complex_)
-        f_new = f + 1j*np.zeros(ssht_sample_shape(L,Method=Method), dtype=np.float_)
+        f_new = np.empty(sample_shape(L,Method=Method), dtype=np.complex_)
+        f_new = f + 1j*np.zeros(sample_shape(L,Method=Method), dtype=np.float_)
         f = f_new
 
     if f.dtype == np.complex_ and Reality == True:
@@ -509,7 +509,7 @@ def ssht_forward(f, int L, Spin=0, Method='MW', Reality=False):
     return flm
 
 
-def ssht_inverse(flm, L, Spin=0, Method='MW', Reality=False):
+def inverse(flm, L, Spin=0, Method='MW', Reality=False):
     if flm.ndim != 1:
       raise ssht_input_error('flm must be 1D numpy array')
 
@@ -555,7 +555,7 @@ def ssht_inverse(flm, L, Spin=0, Method='MW', Reality=False):
             
     return f
 
-def ssht_inverse_adjoint(f, int L, Spin=0, Method='MW', Reality=False):
+def inverse_adjoint(f, int L, Spin=0, Method='MW', Reality=False):
     # Checks
 
     if Method == 'MW_pole':
@@ -575,8 +575,8 @@ def ssht_inverse_adjoint(f, int L, Spin=0, Method='MW', Reality=False):
 
     if f.dtype == np.float_ and Reality == False:
         print 'Real signal given but Reality flag is False. Set Reality = True to improve performance'
-        f_new = np.empty(ssht_sample_shape(L,Method=Method), dtype=np.complex_)
-        f_new = f + 1j*np.zeros(ssht_sample_shape(L,Method=Method), dtype=np.float_)
+        f_new = np.empty(sample_shape(L,Method=Method), dtype=np.complex_)
+        f_new = f + 1j*np.zeros(sample_shape(L,Method=Method), dtype=np.float_)
         f = f_new
 
     if f.dtype == np.complex_ and Reality == True:
@@ -607,7 +607,7 @@ def ssht_inverse_adjoint(f, int L, Spin=0, Method='MW', Reality=False):
     return flm
 
 
-def ssht_forward_adjoint(flm, L, Spin=0, Method='MW', Reality=False):
+def forward_adjoint(flm, L, Spin=0, Method='MW', Reality=False):
     if flm.ndim != 1:
       raise ssht_input_error('flm must be 1D numpy array')
 
@@ -649,12 +649,12 @@ def isqrt(int n):
         delta  += 2
     return (delta/2 -1)
 
-def ssht_elm2ind( int el, int m):
+def elm2ind( int el, int m):
 
   return el * el + el + m
 
 
-def ssht_ind2elm(int ind):
+def ind2elm(int ind):
 
   cdef int ell, em
   el = isqrt(ind)
@@ -664,7 +664,7 @@ def ssht_ind2elm(int ind):
 
 # get the shape of the signal on the sphere for different sampling theorems
 
-def ssht_sample_shape(int L, Method = 'MW'):
+def sample_shape(int L, Method = 'MW'):
   if not(Method == 'MW' or Method == 'MW_pole' or Method == 'MWSS' or Method == 'DH' or Method == "GL"):
       raise ssht_input_error('Method is not recognised, Methods are: MW, MW_pole, MWSS, DH and GL')
 
@@ -693,11 +693,11 @@ def ssht_sample_shape(int L, Method = 'MW'):
 
   return (n_theta, n_phi)
 
-def ssht_sample_positions(int L, Method = 'MW', Grid=False):
+def sample_positions(int L, Method = 'MW', Grid=False):
   if not(Method == 'MW' or Method == 'MW_pole' or Method == 'MWSS' or Method == 'DH' or Method == "GL"):
     raise ssht_input_error('Method is not recognised, Methods are: MW, MW_pole, MWSS, DH and GL')
 
-  n_theta, n_phi = ssht_sample_shape(L, Method=Method)
+  n_theta, n_phi = sample_shape(L, Method=Method)
   thetas = np.empty(n_theta, dtype=np.float_)
   phis   = np.empty(n_phi,   dtype=np.float_)
 
@@ -733,7 +733,7 @@ def ssht_sample_positions(int L, Method = 'MW', Grid=False):
   return thetas, phis
 
 
-def ssht_s2_to_cart(theta, phi):
+def s2_to_cart(theta, phi):
   if theta.shape != phi.shape:
     raise ssht_input_error('theta and phi must be the same shape')
 
@@ -742,7 +742,7 @@ def ssht_s2_to_cart(theta, phi):
   z = np.cos(theta)
   return (x, y, z)
 
-def ssht_spherical_to_cart(r, theta, phi):
+def spherical_to_cart(r, theta, phi):
   if theta.shape != r.shape or theta.shape != phi.shape:
     raise ssht_input_error('r, theta and phi must be the same shape.')
   
@@ -753,7 +753,7 @@ def ssht_spherical_to_cart(r, theta, phi):
   return (x, y, z)
 
 
-def ssht_theta_phi_to_ra_dec(theta, phi, Degrees=False):
+def theta_phi_to_ra_dec(theta, phi, Degrees=False):
   dec = (theta - np.pi/2)*(-1)
   ra  = phi - np.pi
 
@@ -766,8 +766,8 @@ def ssht_theta_phi_to_ra_dec(theta, phi, Degrees=False):
 
 # Plotting functions
 
-def ssht_plot_sphere(f, L, Method='MW', Close=True, Parametric=False, Parametric_Saling=[0.0,0.5], \
-                     Output_File=None, Show=True, Show_Axis=True, Color_Bar=True, Units=None, Color_Range=None, \
+def plot_sphere(f, L, Method='MW', Close=True, Parametric=False, Parametric_Saling=[0.0,0.5], \
+                     Output_File=None, Show=True,  Color_Bar=True, Units=None, Color_Range=None, \
                      Axis=True): # add int L
 
     # add ability to choose color bar min max
@@ -779,7 +779,7 @@ def ssht_plot_sphere(f, L, Method='MW', Close=True, Parametric=False, Parametric
         else:
             f, f_sp, phi_sp = f
 
-    (thetas, phis) = ssht_sample_positions(L, Method=Method, Grid=True);
+    (thetas, phis) = sample_positions(L, Method=Method, Grid=True);
 
     if (thetas.size != f.size):
         ssht_input_error('Band limit L deos not match that of f')
@@ -819,9 +819,9 @@ def ssht_plot_sphere(f, L, Method='MW', Close=True, Parametric=False, Parametric
     
     # % Compute location of vertices.
     if Parametric:
-        (x, y, z) = ssht_spherical_to_cart(f_normalised, thetas, phis)
+        (x, y, z) = spherical_to_cart(f_normalised, thetas, phis)
     else:
-        (x, y, z) = ssht_s2_to_cart(thetas, phis)
+        (x, y, z) = s2_to_cart(thetas, phis)
         
 
     # % Plot.
@@ -833,9 +833,7 @@ def ssht_plot_sphere(f, L, Method='MW', Close=True, Parametric=False, Parametric
     surf = ax.plot_surface(x, y, z,  rstride=1, cstride=1, facecolors=cm.jet(norm(f_plot)))
     if not Axis:
         ax.set_axis_off()
-    # Turn off the axis planes
-    if not Show_Axis:
-        ax.set_axis_off()
+
 
     if Color_Bar:
         cmap = cm.jet
@@ -855,10 +853,10 @@ def ssht_plot_sphere(f, L, Method='MW', Close=True, Parametric=False, Parametric
         
     return
 
-def ssht_plot_mollweide(f, L, Method="MW", Close=True, Color_Bar=True, Units=None):
+def plot_mollweide(f, L, Method="MW", Close=True):
 
-  theta, phi = ssht_sample_positions(L, Method=Method, Grid=True)
-  dec, ra = ssht_theta_phi_to_ra_dec(theta, phi, Degrees=True)
+  theta, phi = sample_positions(L, Method=Method, Grid=True)
+  dec, ra = theta_phi_to_ra_dec(theta, phi, Degrees=True)
 
   if Close:
         f = np.insert(f,2*L-1,f[:,0],axis=1)
@@ -875,7 +873,7 @@ def ssht_plot_mollweide(f, L, Method="MW", Close=True, Color_Bar=True, Units=Non
 
 # dl functions
 
-def ssht_dl_beta_recurse(np.ndarray[ double, ndim=2, mode="c"] dl not None, double beta, int L,\
+def dl_beta_recurse(np.ndarray[ double, ndim=2, mode="c"] dl not None, double beta, int L,\
             int el, np.ndarray[ double, ndim=1, mode="c"] sqrt_tbl not None,\
             np.ndarray[ double, ndim=1, mode="c"] signs not None):
 
@@ -886,7 +884,7 @@ def ssht_dl_beta_recurse(np.ndarray[ double, ndim=2, mode="c"] dl not None, doub
 
   return dl
 
-def ssht_generate_dl(double beta, int L):
+def generate_dl(double beta, int L):
 
   dl_array = np.empty((L, 2*L-1, 2*L-1), dtype=np.float_)
   dl_dummy = np.zeros((2*L-1, 2*L-1), dtype=np.float_)
@@ -917,7 +915,7 @@ def ssht_generate_dl(double beta, int L):
   return dl_array
 
 
-def ssht_generate_exp_array(double x, L):
+def generate_exp_array(double x, L):
 
   exp_array = np.empty((2*L-1), dtype=np.complex_)
 
@@ -933,15 +931,15 @@ def ssht_generate_exp_array(double x, L):
 # rotation functions
 
 
-def ssht_rotate_flms(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None,\
+def rotate_flms(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None,\
                       double alpha, double beta, double gamma, int L, dl_array=None,\
                       M=None, Axisymmetric=False, Keep_dl=False):
 
   if dl_array == None:
-    dl_array = ssht_generate_dl(beta, L)
+    dl_array = generate_dl(beta, L)
 
-  alpha_array = ssht_generate_exp_array(alpha, L)
-  gamma_array = ssht_generate_exp_array(gamma, L)
+  alpha_array = generate_exp_array(alpha, L)
+  gamma_array = generate_exp_array(gamma, L)
 
   if M==None:
     M = L
@@ -962,9 +960,9 @@ def ssht_rotate_flms(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None
             Dlmn =  <double complex> alpha_array[m+L-1] * <double complex> dl_array[el,m+L-1,n+L-1]\
                    * <double complex> gamma_array[n+L-1] # not sure about
             if Axisymmetric:
-                ind = el+1;
+                ind = el;
             else:
-                ind = ssht_elm2ind(el,n);
+                ind = elm2ind(el,n);
 
             f_lm_rotated[index] = <double complex> f_lm_rotated[index] + \
                 <double complex> Dlmn * <double complex> f_lm[ind];
