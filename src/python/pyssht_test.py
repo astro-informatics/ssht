@@ -4,7 +4,7 @@ from pyssht import *
 
 # s2c test
 
-L=32
+L=128
 thetas, phis = ssht_sample_positions(L, Grid=True)
 
 f = np.zeros((L,2*L-1), dtype=np.float_) + np.random.randn(L,2*L-1)
@@ -22,15 +22,14 @@ f = ssht_inverse(flm,L, Reality=True)
 flm_prime = ssht_rotate_flms(flm, np.pi/4, np.pi/4, np.pi/4, L)
 f_prime = ssht_inverse(flm_prime, L, Reality=True)
 
-#ssht_plot_sphere(f, L,Parametric=True, Output_File='test_phi_sphere.pdf',Show=False, Color_Bar=True, Units='Radians')
-#ssht_plot_sphere(f_prime, L,Parametric=True, Output_File='test_phi_rot_sphere.pdf',Show=False, Color_Bar=True, Units='Radians')
+#ssht_plot_sphere(f, L,Parametric=False, Output_File='test_phi_sphere.pdf',Show=False, Color_Bar=True, Units='Radians')
+#ssht_plot_sphere(f_prime, L,Parametric=False, Output_File='test_phi_rot_sphere.pdf',Show=False, Color_Bar=True, Units='Radians')
 
 
 plot = ssht_plot_mollweide(f, L, Color_Bar=True, Units="Radians")
-plot.save_fig("test_phi_mollweide.pdf")
+plt.show()
 plot2 = ssht_plot_mollweide(f_prime, L, Color_Bar=True, Units="Radians")
-plot.save_fig("test_phi_rot_mollweide.pdf")
-
+plt.show()
 
 # transform tests
 

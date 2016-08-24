@@ -374,4 +374,6 @@ Function to rotate a set of spherical harmonic coefficients by the set of Eular 
 * `Axisymmetric` set if the function is axisymetic and axisytric harmonic coefficients are parsed.
 * `Keep_dl` if set the output is changed to allow one to keep the computed `dl_array`
 
+#### Output
 
+If `Keep_dl` is not set the output is the rotated set of spherical harmonic coeficiants. If it is the output is a tuple `(flm_rotated, dl_array)`, ie the rotated harmonic coefficients and the small Wigner D matirix computed for that band limit and \(\alpha\) value.
