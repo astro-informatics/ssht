@@ -2,6 +2,39 @@ import numpy as np
 from pyssht import *
 
 
+# s2c test
+
+L=32
+thetas, phis = ssht_sample_positions(L, Grid=True)
+
+f = np.zeros((L,2*L-1), dtype=np.float_) + np.random.randn(L,2*L-1)
+#ssht_plot_sphere(phis, L,Parametric=False, Output_File='test.pdf',Show=False, Color_Bar=True, Units='Radians')
+
+(x, y, z) = ssht_s2_to_cart(thetas, phis)
+(x, y, z) = ssht_spherical_to_cart( np.ones(thetas.shape), thetas, phis)
+
+
+#test rotations
+flm = ssht_forward(phis, L, Reality=True)
+f = ssht_inverse(flm,L, Reality=True)
+
+
+flm_prime = ssht_rotate_flms(flm, np.pi/4, np.pi/4, np.pi/4, L)
+f_prime = ssht_inverse(flm_prime, L, Reality=True)
+
+#ssht_plot_sphere(f, L,Parametric=True, Output_File='test_phi_sphere.pdf',Show=False, Color_Bar=True, Units='Radians')
+#ssht_plot_sphere(f_prime, L,Parametric=True, Output_File='test_phi_rot_sphere.pdf',Show=False, Color_Bar=True, Units='Radians')
+
+
+plot = ssht_plot_mollweide(f, L, Color_Bar=True, Units="Radians")
+plot.save_fig("test_phi_mollweide.pdf")
+plot2 = ssht_plot_mollweide(f_prime, L, Color_Bar=True, Units="Radians")
+plot.save_fig("test_phi_rot_mollweide.pdf")
+
+
+# transform tests
+
+
 L = 128
 Spin = 0
 
@@ -17,7 +50,25 @@ if (np.mean(np.abs(flm_rec-flm))<1E-14):
     print "MW complex transform test passed, max error: ", np.max(np.abs(flm_rec-flm))
 else:
     print "MW complex transform ***NOT*** test passed, max error: ", np.max(np.abs(flm_rec-flm))
-    
+
+
+f_prime = np.zeros((L,2*L-1), dtype=np.complex_) + np.random.randn(L,2*L-1)\
+    + 1j*np.random.randn(L,2*L-1)
+flm_prime = ssht_inverse_adjoint(f_prime,L)
+
+error =  np.abs(np.vdot(flm_prime,flm) - np.vdot(f_prime,f))
+
+flm_prime = np.random.randn(L*L) + 1j*np.random.randn(L*L)
+f_prime = ssht_forward_adjoint(flm_prime,L)
+
+error += np.abs(np.vdot(flm_prime,flm) - np.vdot(f_prime,f))
+
+if (error<1E-5):
+    print "         and the adjoints, error: ", error
+else:
+    print "         ****the adjoints failed****", error
+
+
 L = 128
 Spin = 2
 
@@ -38,6 +89,24 @@ else:
     print "MW spin complex transform ***NOT*** test passed, max error: ", np.max(np.abs(f_rec-f))
 
 
+f_prime = np.zeros((L,2*L-1), dtype=np.complex_) + np.random.randn(L,2*L-1)\
+    + 1j*np.random.randn(L,2*L-1)
+flm_prime = ssht_inverse_adjoint(f_prime,L,Spin=Spin)
+
+error =  np.abs(np.vdot(flm_prime,flm) - np.vdot(f_prime,f))
+
+flm_prime = np.random.randn(L*L) + 1j*np.random.randn(L*L)
+flm_prime[0:Spin*Spin] = 0.0
+f_prime = ssht_forward_adjoint(flm_prime,L,Spin=Spin)
+
+error += np.abs(np.vdot(flm_prime,flm) - np.vdot(f_prime,f))
+
+if (error<1E-5):
+    print "         and the adjoints, error: ", error
+else:
+    print "         ****the adjoints failed****", error
+
+    
 L = 128
 spin = 0
 
@@ -57,6 +126,27 @@ else:
     print "MW real transform ***NOT*** test passed, max error: ", np.max(np.abs(f_rec-f))
 
 
+f_prime = np.zeros((L,2*L-1), dtype=np.float_) + np.random.randn(L,2*L-1)
+
+flm_prime = ssht_inverse_adjoint(f_prime,L,Reality=True)
+
+error =  np.abs(np.vdot(flm_prime,flm) - np.vdot(f_prime,f))
+
+
+f_prime = np.zeros((L,2*L-1), dtype=np.float_) + np.random.randn(L,2*L-1)
+flm_prime = ssht_forward(f_prime,L,Reality=True)
+
+f_prime = ssht_forward_adjoint(flm_prime,L,Reality=True)
+
+error += np.abs(np.vdot(flm_prime,flm) - np.vdot(f_prime,f))
+
+if (error<1E-5):
+    print "         and the adjoints, error: ", error
+else:
+    print "         ****the adjoints failed****", error
+
+
+    
 L = 128
 Spin = 0
 
@@ -74,8 +164,7 @@ if (np.mean(np.abs(flm_rec-flm))<1E-14):
     print "MW_pole complex transform test passed, max error: ", np.max(np.abs(flm_rec-flm))
 else:
     print "MW_pole complex transform ***NOT*** test passed, max error: ", np.max(np.abs(flm_rec-flm))
-
-
+ 
     
 L = 128
 Spin = 2
@@ -95,7 +184,8 @@ if (np.mean(np.abs(flm_rec-flm))<1E-14):
 else:
     print "MW_pole spin complex transform ***NOT*** test passed, max error: ", np.max(np.abs(flm_rec-flm))
 
-    
+
+
     
 L = 128
 Spin = 0
@@ -112,14 +202,6 @@ flm = ssht_forward((f, f_sp), L, Method="MW_pole", Reality=True)
 
 f_rec, f_sp_rec  = ssht_inverse(flm,L, Method="MW_pole", Reality=True)
 
-f_dif = f-f_rec
-
-#print f_sp, f_sp_rec, np.abs(f_sp_rec-f_sp)
-#print f_rec[L-1,0:10]
-#print f[L-1,0:10]
-#print f_rec[0,0:10]
-#print f[0,0:10]
-#print np.abs(f_dif[L-1,:])
 
 if (np.mean(np.abs(f_rec-f))<1E-14 and np.abs(f_sp_rec-f_sp)<1E-12):
     print "MW_pole real transform test passed, max error: ", np.max(np.abs(f_rec-f))
@@ -145,6 +227,26 @@ if (np.mean(np.abs(flm_rec-flm))<1E-14):
 else:
     print "MWSS complex transform ***NOT*** test passed, max error: ", np.max(np.abs(flm_rec-flm))
 
+    
+n_theta, n_phi = ssht_sample_shape(L,Method="MWSS") 
+
+f_prime = np.zeros(ssht_sample_shape(L,Method="MWSS"), dtype=np.complex_) + np.random.randn(n_theta,n_phi)\
+    + 1j*np.random.randn(n_theta,n_phi)
+
+flm_prime = ssht_inverse_adjoint(f_prime,L, Method="MWSS")
+
+error =  np.abs(np.vdot(flm_prime,flm) - np.vdot(f_prime,f))
+
+
+flm_prime = np.random.randn(L*L) + 1j*np.random.randn(L*L)
+f_prime = ssht_forward_adjoint(flm_prime,L, Method="MWSS")
+
+error += np.abs(np.vdot(flm_prime,flm) - np.vdot(f_prime,f))
+
+if (error<1E-5):
+    print "         and the adjoints, error: ", error
+else:
+    print "         ****the adjoints failed****", error
 
     
 L = 128
@@ -165,6 +267,24 @@ if (np.mean(np.abs(flm_rec-flm))<1E-14 and np.abs(f_sp_rec-f_sp)<1E-12 and np.ab
 else:
     print "MWSS spin complex transform ***NOT*** test passed, max error: ", np.max(np.abs(flm_rec-flm))
 
+
+f_prime = np.zeros((n_theta, n_phi), dtype=np.complex_) + np.random.randn(n_theta, n_phi)\
+    + 1j*np.random.randn(n_theta, n_phi)
+flm_prime = ssht_inverse_adjoint(f_prime,L,Spin=Spin, Method="MWSS")
+
+error =  np.abs(np.vdot(flm_prime,flm) - np.vdot(f_prime,f))
+
+flm_prime = np.random.randn(L*L) + 1j*np.random.randn(L*L)
+flm_prime[0:Spin*Spin] = 0.0
+f_prime = ssht_forward_adjoint(flm_prime,L,Spin=Spin, Method="MWSS")
+
+error += np.abs(np.vdot(flm_prime,flm) - np.vdot(f_prime,f))
+
+if (error<1E-5):
+    print "         and the adjoints, error: ", error
+else:
+    print "         ****the adjoints failed****", error
+
     
     
 L = 128
@@ -180,19 +300,31 @@ flm_rec = ssht_forward(f, L, Method="MWSS", Reality=True)
 
 f_rec  = ssht_inverse(flm_rec,L, Method="MWSS", Reality=True)
 
-f_dif = f-f_rec
-
-#print f_sp, f_sp_rec, np.abs(f_sp_rec-f_sp)
-#print f_rec[L-1,0:10]
-#print f[L-1,0:10]
-#print f_rec[0,0:10]
-#print f[0,0:10]
-#print np.abs(f_dif[L-1,:])
-
 if (np.mean(np.abs(f_rec-f))<1E-14):
     print "MWSS real transform test passed, max error: ", np.max(np.abs(f_rec-f))
 else:
     print "MWSS real transform ***NOT*** test passed, max error: ", np.max(np.abs(f_rec-f))
+
+
+
+f_prime = np.zeros((n_theta, n_phi), dtype=np.float_) + np.random.randn(n_theta, n_phi)
+
+flm_prime = ssht_inverse_adjoint(f_prime,L,Reality=True, Method="MWSS")
+
+error =  np.abs(np.vdot(flm_prime,flm) - np.vdot(f_prime,f))
+
+
+f_prime =  np.random.randn(n_theta, n_phi)
+flm_prime = ssht_forward(f_prime,L,Reality=True)
+
+f_prime = ssht_forward_adjoint(flm_prime,L,Reality=True, Method="MWSS")
+
+error += np.abs(np.vdot(flm_prime,flm) - np.vdot(f_prime,f))
+
+if (error<1E-5):
+    print "         and the adjoints, error: ", error
+else:
+    print "         ****the adjoints failed****", error
 
     
     
