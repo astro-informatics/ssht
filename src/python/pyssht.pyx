@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 from matplotlib import cm, colors, colorbar, gridspec
 from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from mpl_toolkits.basemap import Basemap
 
 #----------------------------------------------------------------------------------------------------#
 
@@ -662,6 +661,13 @@ def ind2elm(int ind):
 
   return el, em
 
+def sample_length(int L, Method = 'MW'):
+  if not(Method == 'MW' or Method == 'MW_pole' or Method == 'MWSS' or Method == 'DH' or Method == "GL"):
+      raise ssht_input_error('Method is not recognised, Methods are: MW, MW_pole, MWSS, DH and GL')
+
+  n_theta, n_phi = sample_shape(L, Method=Method)
+
+  return n_theta*n_phi
 # get the shape of the signal on the sphere for different sampling theorems
 
 def sample_shape(int L, Method = 'MW'):
@@ -856,19 +862,59 @@ def plot_sphere(f, L, Method='MW', Close=True, Parametric=False, Parametric_Sali
 def plot_mollweide(f, L, Method="MW", Close=True):
 
   theta, phi = sample_positions(L, Method=Method, Grid=True)
-  dec, ra = theta_phi_to_ra_dec(theta, phi, Degrees=True)
+  x, y = mollweide_coords(theta, phi)
 
   if Close:
         f = np.insert(f,2*L-1,f[:,0],axis=1)
-        dec = np.insert(dec,2*L-1,dec[:,0],axis=1)
-        ra = np.insert(ra,2*L-1, np.ones(L, dtype=np.float_)*180,axis=1)
+        x = np.insert(x,2*L-1,x[:,0],axis=1)
+        y = np.insert(y,2*L-1,y[:,0],axis=1)
 
-  m = Basemap(projection='moll',lon_0=0,resolution='c')
-  m.contourf(ra, dec, f, 100, cmap=cm.jet,latlon=True)
+  f_plot = f.copy()
 
+  x = x.flatten()
+  y = y.flatten()
+  f_plot = f_plot.flatten()
+
+
+  m =  plt.tricontourf(x, y, f_plot, 500, cmap=cm.jet)
 
   return m
 
+def mollweide_coords(thetas, phis):
+  # % ssht_mollweide - Compute Mollweide projection
+  # %
+  # % Compute Mollweide projection of spherical coordinates.
+  # %
+  # % Usage is given by
+  # %
+  # %   (x,y) = mollweide_coords(thetas, phis)
+  # %
+  # % where thetas and phis are spherical coordinates and x and y are the
+  # % projected Mollweide coordinates.
+
+  MAX_ITERATIONS = 1e5;
+  TOL = 1e-10;
+
+  #% Convert theta to longitude.
+  thetas, phis = theta_phi_to_ra_dec(thetas,phis)
+
+  t = thetas
+  cdef bint inaccurate = True
+  cdef int count = 0
+
+  while(inaccurate):
+    count += 1
+    dt = (t + np.sin(t) - np.pi*np.sin(thetas)) / (1 + np.cos(t));
+    t = t - dt;
+
+    if(np.max(np.abs(dt)) < TOL ):
+      inaccurate = False
+
+  t = t/2;
+  x = 2 * np.sqrt(2) / np.pi * phis * np.cos(t);
+  y = np.sqrt(2) * np.sin(t);
+
+  return (x, y)
 #----------------------------------------------------------------------------------------------------#
 
 # dl functions
