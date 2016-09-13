@@ -814,11 +814,12 @@ def plot_sphere(f, L, Method='MW', Close=True, Parametric=False, Parametric_Sali
 
     # % Close plot.
     if Close:
-        f_plot = np.insert(f_plot,2*L-1,f[:,0],axis=1)
+        (n_theta,n_phi) = sample_shape(L,Method=Method)
+        f_plot = np.insert(f_plot,n_phi,f[:,0],axis=1)
         if Parametric:
-          f_normalised = np.insert(f_normalised,2*L-1,f_normalised[:,0],axis=1)
-        thetas = np.insert(thetas,2*L-1,thetas[:,0],axis=1)
-        phis = np.insert(phis,2*L-1,phis[:,0],axis=1)
+          f_normalised = np.insert(f_normalised,n_phi,f_normalised[:,0],axis=1)
+        thetas = np.insert(thetas,n_phi,thetas[:,0],axis=1)
+        phis = np.insert(phis,n_phi,phis[:,0],axis=1)
 
 
 
@@ -862,25 +863,47 @@ def plot_sphere(f, L, Method='MW', Close=True, Parametric=False, Parametric_Sali
 def plot_mollweide(f, L, Method="MW", Close=True):
 
   theta, phi = sample_positions(L, Method=Method, Grid=True)
-  x, y = mollweide_coords(theta, phi)
-
-  if Close:
-        f = np.insert(f,2*L-1,f[:,0],axis=1)
-        x = np.insert(x,2*L-1,x[:,0],axis=1)
-        y = np.insert(y,2*L-1,y[:,0],axis=1)
+  x, y = mollweide_coords_s2_to_xy(theta, phi)
 
   f_plot = f.copy()
+  (n_theta,n_phi) = sample_shape(L,Method=Method)
+
+
+  if Close:
+        f_plot = np.insert(f_plot, n_phi, f_plot[:,0], axis=1)
+        x      = np.insert(x,      n_phi, x[:,0],      axis=1)
+        y      = np.insert(y,      n_phi, y[:,0],      axis=1)
+
+
+
+  N_max = 2*128*128
+  if f_plot.size > N_max:
+    step = f_plot.size/N_max
+    
+    x_av = x[range(0,x.size,step),range(0,n_phi,step)]
+    y_av = y[range(0,n_theta,step),range(0,n_phi,step)]
+    f_plot_av = f_plot[range(0,n_theta,step),range(0,n_phi,step)]
+    for i in range(1,step):
+      x_av += x[range(i,n_theta,step),range(i,n_phi,step)]
+      y_av += y[range(i,n_theta,step),range(i,n_phi,step)]
+      f_plot_av += f_plot[range(i,n_theta,step),range(i,n_phi,step)]
+    x = x_av/step
+    y = y_av/step
+    f_plot = f_plot_av/step
+
 
   x = x.flatten()
   y = y.flatten()
   f_plot = f_plot.flatten()
 
 
-  m =  plt.tricontourf(x, y, f_plot, 500, cmap=cm.jet)
+  levels = np.arange(f_plot.min(), f_plot.max(), (f_plot.max()-f_plot.min())/50)
+
+  m =  plt.tricontourf(x, y, f_plot, levels, cmap=cm.jet)
 
   return m
 
-def mollweide_coords(thetas, phis):
+def mollweide_coords_s2_to_xy(thetas, phis):
   # % ssht_mollweide - Compute Mollweide projection
   # %
   # % Compute Mollweide projection of spherical coordinates.
@@ -906,8 +929,7 @@ def mollweide_coords(thetas, phis):
     count += 1
     dt = (t + np.sin(t) - np.pi*np.sin(thetas)) / (1 + np.cos(t));
     t = t - dt;
-
-    if(np.max(np.abs(dt)) < TOL ):
+    if(np.max(np.abs(dt)) < TOL or count > MAX_ITERATIONS):
       inaccurate = False
 
   t = t/2;
@@ -915,6 +937,7 @@ def mollweide_coords(thetas, phis):
   y = np.sqrt(2) * np.sin(t);
 
   return (x, y)
+
 #----------------------------------------------------------------------------------------------------#
 
 # dl functions
