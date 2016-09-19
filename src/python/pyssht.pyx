@@ -9,6 +9,11 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 
 #----------------------------------------------------------------------------------------------------#
 
+cdef enum METHOD_TYPE:
+  MW, MWSS, DH, GL
+
+#----------------------------------------------------------------------------------------------------#
+
 cdef extern from "ssht.h":
 
         double ssht_sampling_mw_t2theta(int t, int L); #  ; adjoints
@@ -444,7 +449,7 @@ class ssht_spin_error(ValueError):
 
 # easy to use functions to perform forward and backward transfroms
 
-def forward(f, int L, Spin=0, Method='MW', Reality=False):
+def forward(f, int L, int Spin=0, str Method='MW', bint Reality=False):
     # Checks
 
     if Method == 'MW_pole':
@@ -508,7 +513,7 @@ def forward(f, int L, Spin=0, Method='MW', Reality=False):
     return flm
 
 
-def inverse(flm, L, Spin=0, Method='MW', Reality=False):
+def inverse(flm, int L, int Spin=0, str Method='MW', bint Reality=False):
     if flm.ndim != 1:
       raise ssht_input_error('flm must be 1D numpy array')
 
@@ -554,7 +559,7 @@ def inverse(flm, L, Spin=0, Method='MW', Reality=False):
             
     return f
 
-def inverse_adjoint(f, int L, Spin=0, Method='MW', Reality=False):
+def inverse_adjoint(f, int L, int Spin=0, str Method='MW', bint Reality=False):
     # Checks
 
     if Method == 'MW_pole':
@@ -606,7 +611,7 @@ def inverse_adjoint(f, int L, Spin=0, Method='MW', Reality=False):
     return flm
 
 
-def forward_adjoint(flm, L, Spin=0, Method='MW', Reality=False):
+def forward_adjoint(flm, int L, int Spin=0, str Method='MW', bint Reality=False):
     if flm.ndim != 1:
       raise ssht_input_error('flm must be 1D numpy array')
 
@@ -665,12 +670,13 @@ def sample_length(int L, Method = 'MW'):
   if not(Method == 'MW' or Method == 'MW_pole' or Method == 'MWSS' or Method == 'DH' or Method == "GL"):
       raise ssht_input_error('Method is not recognised, Methods are: MW, MW_pole, MWSS, DH and GL')
 
+  cdef int n_theta, n_phi
   n_theta, n_phi = sample_shape(L, Method=Method)
 
   return n_theta*n_phi
 # get the shape of the signal on the sphere for different sampling theorems
 
-def sample_shape(int L, Method = 'MW'):
+def sample_shape(int L, str Method = 'MW'):
   if not(Method == 'MW' or Method == 'MW_pole' or Method == 'MWSS' or Method == 'DH' or Method == "GL"):
       raise ssht_input_error('Method is not recognised, Methods are: MW, MW_pole, MWSS, DH and GL')
 
@@ -699,9 +705,12 @@ def sample_shape(int L, Method = 'MW'):
 
   return (n_theta, n_phi)
 
-def sample_positions(int L, Method = 'MW', Grid=False):
+def sample_positions(int L, str Method = 'MW', bint Grid=False):
   if not(Method == 'MW' or Method == 'MW_pole' or Method == 'MWSS' or Method == 'DH' or Method == "GL"):
     raise ssht_input_error('Method is not recognised, Methods are: MW, MW_pole, MWSS, DH and GL')
+
+  cdef int n_theta, n_phi, i
+  cdef np.ndarray[np.float_t, ndim=1] thetas, phis
 
   n_theta, n_phi = sample_shape(L, Method=Method)
   thetas = np.empty(n_theta, dtype=np.float_)
@@ -734,9 +743,10 @@ def sample_positions(int L, Method = 'MW', Grid=False):
 
 
   if Grid:
-    phis, thetas = np.meshgrid(phis, thetas)
-
-  return thetas, phis
+    phis_grid, thetas_grid = np.meshgrid(phis, thetas)
+    return thetas_grid, phis_grid
+  else:
+    return thetas, phis
 
 
 def s2_to_cart(theta, phi):
@@ -746,7 +756,20 @@ def s2_to_cart(theta, phi):
   x = np.sin(theta) * np.cos(phi)
   y = np.sin(theta) * np.sin(phi)
   z = np.cos(theta)
+  
   return (x, y, z)
+
+def cart_to_s2(x, y, z):
+  if x.shape != y.shape or y.shape != z.shape:
+    raise ssht_input_error('x, y and z must be the same shape')
+
+  phi = np.arctan2(y,x)
+  theta = np.arctan2(np.sqrt(x*x + y*y),z)
+
+  with np.errstate(invalid='ignore'):
+    phi[phi<0] += 2*np.pi 
+
+  return (theta, phi)
 
 def spherical_to_cart(r, theta, phi):
   if theta.shape != r.shape or theta.shape != phi.shape:
@@ -758,8 +781,20 @@ def spherical_to_cart(r, theta, phi):
   
   return (x, y, z)
 
+def cart_to_spherical(x, y, z):
+  if x.shape != y.shape or y.shape != z.shape:
+    raise ssht_input_error('x, y and z must be the same shape')
 
-def theta_phi_to_ra_dec(theta, phi, Degrees=False):
+  phi = np.arctan2(y,x)
+  theta = np.arctan2(np.sqrt(x*x + y*y),z)
+  r = np.sqrt(x*x + y*y + z*z)
+
+  with np.errstate(invalid='ignore'):
+    phi[phi<0] += 2*np.pi 
+
+  return (r, theta, phi)
+
+def theta_phi_to_ra_dec(theta, phi, bint Degrees=False):
   dec = (theta - np.pi/2)*(-1)
   ra  = phi - np.pi
 
@@ -768,13 +803,116 @@ def theta_phi_to_ra_dec(theta, phi, Degrees=False):
     ra  = ra*180/np.pi
 
   return dec, ra
+
+
+def ra_dec_to_theta_phi(ra, dec, bint Degrees=False):
+  if Degrees:
+    dec = dec*np.pi/180
+    ra  = ra*np.pi/180
+
+  theta = np.pi/2 - dec
+  phi  = ra + np.pi
+
+
+  return theta, phi
+
+def make_rotation_matrix(list rot):
+  cdef np.ndarray[np.float_t, ndim=2] rot_matix = np.empty((3,3), dtype=np.float_)
+
+  cdef double c1 = np.cos(rot[0])
+  cdef double s1 = np.sin(rot[0])
+  cdef double c2 = np.cos(rot[1])
+  cdef double s2 = np.sin(rot[1])
+  cdef double c3 = np.cos(rot[2])
+  cdef double s3 = np.sin(rot[2])
+
+  rot_matix[0,0] = c3*c1 - c2*s1*s3
+  rot_matix[0,1] = c3*s1 + c2*c1*s3
+  rot_matix[0,2] = s3*s2
+  rot_matix[1,0] = -s3*c1 - c2*s1*c3
+  rot_matix[1,1] = -s3*s1 + c2*c1*c3
+  rot_matix[1,2] = c3*s2
+  rot_matix[2,0] = s2*s1
+  rot_matix[2,1] = -s2*c1
+  rot_matix[2,2] = c2
+
+  return rot_matix
+
+
+def rot_cart(x, y, z, list rot):
+  if x.shape != y.shape or y.shape != z.shape:
+    raise ssht_input_error('x, y and z must be the same shape')
+
+  cdef np.ndarray[np.float_t, ndim=2] rot_matix
+  rot_matix = make_rotation_matrix(rot)
+
+  cdef unsigned long i
+
+  x_p = np.empty(x.shape, dtype=np.float_)
+  y_p = np.empty(x.shape, dtype=np.float_)
+  z_p = np.empty(x.shape, dtype=np.float_)
+
+
+  for i in range(x.size):
+    x_p.flat[i] = x.flat[i]*rot_matix[0,0] + y.flat[i]*rot_matix[0,1] + z.flat[i]*rot_matix[0,2]
+    y_p.flat[i] = x.flat[i]*rot_matix[1,0] + y.flat[i]*rot_matix[1,1] + z.flat[i]*rot_matix[1,2]
+    z_p.flat[i] = x.flat[i]*rot_matix[2,0] + y.flat[i]*rot_matix[2,1] + z.flat[i]*rot_matix[2,2]
+
+  return x_p, y_p, z_p
+
+
+def rot_cart_1d(np.ndarray[np.float_t, ndim=1] x, np.ndarray[np.float_t, ndim=1] y, np.ndarray[np.float_t, ndim=1] z, list rot):
+  if x.shape[0] != y.shape[0] or y.shape[0] != z.shape[0]:
+    raise ssht_input_error('x, y and z must be the same shape')
+
+  cdef np.ndarray[np.float_t, ndim=1] x_p, y_p, z_p
+  cdef np.ndarray[np.float_t, ndim=2] rot_matix
+  cdef int i, j
+
+  rot_matix = make_rotation_matrix(rot)
+
+  x_p = np.empty((x.shape[0]), dtype=np.float_)
+  y_p = np.empty((x.shape[0]), dtype=np.float_)
+  z_p = np.empty((x.shape[0]), dtype=np.float_)
+
+
+  for i in range(x.shape[0]):
+      x_p[i] = x[i]*rot_matix[0,0] + y[i]*rot_matix[0,1] + z[i]*rot_matix[0,2]
+      y_p[i] = x[i]*rot_matix[1,0] + y[i]*rot_matix[1,1] + z[i]*rot_matix[1,2]
+      z_p[i] = x[i]*rot_matix[2,0] + y[i]*rot_matix[2,1] + z[i]*rot_matix[2,2]
+
+  return x_p, y_p, z_p
+
+def rot_cart_2d(np.ndarray[np.float_t, ndim=2] x, np.ndarray[np.float_t, ndim=2] y, np.ndarray[np.float_t, ndim=2] z, list rot):
+  if x.shape[0] != y.shape[0] or y.shape[0] != z.shape[0] or x.shape[1] != y.shape[1] or y.shape[1] != z.shape[1]:
+    raise ssht_input_error('x, y and z must be the same shape')
+
+  cdef np.ndarray[np.float_t, ndim=2] x_p, y_p, z_p, rot_matix
+  cdef int i, j
+
+  rot_matix = make_rotation_matrix(rot)
+
+  x_p = np.empty((x.shape[0], x.shape[1]), dtype=np.float_)
+  y_p = np.empty((x.shape[0], x.shape[1]), dtype=np.float_)
+  z_p = np.empty((x.shape[0], x.shape[1]), dtype=np.float_)
+
+
+  for i in range(x.shape[0]):
+    for j in range(x.shape[1]):
+      x_p[i,j] = x[i,j]*rot_matix[0,0] + y[i,j]*rot_matix[0,1] + z[i,j]*rot_matix[0,2]
+      y_p[i,j] = x[i,j]*rot_matix[1,0] + y[i,j]*rot_matix[1,1] + z[i,j]*rot_matix[1,2]
+      z_p[i,j] = x[i,j]*rot_matix[2,0] + y[i,j]*rot_matix[2,1] + z[i,j]*rot_matix[2,2]
+
+  return x_p, y_p, z_p
+
+
 #----------------------------------------------------------------------------------------------------#
 
 # Plotting functions
 
-def plot_sphere(f, L, Method='MW', Close=True, Parametric=False, Parametric_Saling=[0.0,0.5], \
-                     Output_File=None, Show=True,  Color_Bar=True, Units=None, Color_Range=None, \
-                     Axis=True): # add int L
+def plot_sphere(f, int L, str Method='MW', bint Close=True, bint Parametric=False, list Parametric_Saling=[0.0,0.5], \
+                     Output_File=None, bint Show=True, bint Color_Bar=True, Units=None, Color_Range=None, \
+                     int Axis=True): 
 
     # add ability to choose color bar min max
     # and sort out shapes of the plots
@@ -860,48 +998,122 @@ def plot_sphere(f, L, Method='MW', Close=True, Parametric=False, Parametric_Sali
         
     return
 
-def plot_mollweide(f, L, Method="MW", Close=True):
-
-  theta, phi = sample_positions(L, Method=Method, Grid=True)
-  x, y = mollweide_coords_s2_to_xy(theta, phi)
-
-  f_plot = f.copy()
-  (n_theta,n_phi) = sample_shape(L,Method=Method)
 
 
-  if Close:
-        f_plot = np.insert(f_plot, n_phi, f_plot[:,0], axis=1)
-        x      = np.insert(x,      n_phi, x[:,0],      axis=1)
-        y      = np.insert(y,      n_phi, y[:,0],      axis=1)
+def plot_mollweide_prep(np.ndarray[ double, ndim=2, mode="c"] f, int L, int resolution=500, rot=None,\
+                        box_region=None, zoom_region=[np.sqrt(2.0)*2,np.sqrt(2.0)], str Method="MW"):
+
+  if not(len(zoom_region)==2 or len(zoom_region)==4):
+    raise ssht_input_error('zoom_region must be a python list of length 2 or 4')
+
+  if rot is None or len(rot) > 1:
+    dummy = 0.0
+  else:
+    dummy = <double> rot[0]
+
+  cdef double rot_angle = dummy
+
+  cdef int  Nx, Ny 
+  cdef int p, q, i, j
+
+  cdef np.ndarray[np.float_t, ndim=1] x1, y1
+  cdef np.ndarray[np.float_t, ndim=2] x, y, aux_angle, dec, ra, theta, phi
+  cdef np.ndarray[np.float_t, ndim=2] xx, yy, zz, xx_p, yy_p, zz_p, f_plot, mask
+
+  cdef METHOD_TYPE Method_enum
+
+  if Method=="MW":
+    Method_enum=MW
+  elif Method=="MWSS":
+    Method_enum = MWSS
+  elif Method=="DH":
+    Method_enum = DH
+  elif Method=="GL":
+    Method_enum = GL
+  else:
+    raise ssht_input_error('Method is not recognised, Methods are: MW, MWSS, DH and GL')
+
+  if len(zoom_region) == 2:
+    Nx = resolution*zoom_region[0]/zoom_region[1]
+    Ny = resolution
+    x1 = np.linspace(-zoom_region[0],zoom_region[0],num=Nx,dtype=np.float_)
+    y1 = np.linspace(-zoom_region[1],zoom_region[1],num=Ny,dtype=np.float_)
+  if len(zoom_region) == 4:
+    Nx = resolution*(zoom_region[1]-zoom_region[0])/(zoom_region[3]-zoom_region[2])
+    Ny = resolution
+    x1 = np.linspace(zoom_region[0],zoom_region[1],num=Nx,dtype=np.float_)
+    y1 = np.linspace(zoom_region[2],zoom_region[3],num=Ny,dtype=np.float_)
+
+  x, y = np.meshgrid(x1,y1)
 
 
+  aux_angle = np.arcsin(y/np.sqrt(2.0))
+  dec = np.arcsin((2*aux_angle + np.sin(2*aux_angle))/np.pi)
+  ra = np.pi*x/(2*np.sqrt(2.0)*np.cos(aux_angle))
 
-  N_max = 2*128*128
-  if f_plot.size > N_max:
-    step = f_plot.size/N_max
-    
-    x_av = x[range(0,x.size,step),range(0,n_phi,step)]
-    y_av = y[range(0,n_theta,step),range(0,n_phi,step)]
-    f_plot_av = f_plot[range(0,n_theta,step),range(0,n_phi,step)]
-    for i in range(1,step):
-      x_av += x[range(i,n_theta,step),range(i,n_phi,step)]
-      y_av += y[range(i,n_theta,step),range(i,n_phi,step)]
-      f_plot_av += f_plot[range(i,n_theta,step),range(i,n_phi,step)]
-    x = x_av/step
-    y = y_av/step
-    f_plot = f_plot_av/step
+  theta, phi = ra_dec_to_theta_phi(ra, dec)
+
+  for i from 0 <= i < Ny:
+    for j from 0 <= j < Nx:
+      if phi[i,j]<0 or phi[i,j]>2*np.pi:
+        phi[i,j] = np.nan
+
+  if not(rot is None):
+    if len(rot) == 1:
+      for i from 0 <= i < Ny:
+        for j from 0 <= j < Nx:
+          if not(np.isnan(phi[i,j])):
+            phi[i,j] += rot_angle
+            if phi[i,j] > 2*np.pi:
+              phi[i,j] -= 2*np.pi
+            if phi[i,j] < 0:
+              phi[i,j] += 2*np.pi
+
+    elif len(rot) == 3:
+      xx, yy, zz = s2_to_cart(theta, phi)
+      xx_p, yy_p, zz_p = rot_cart_2d(xx, yy, zz, rot)
+      theta, phi = cart_to_s2(xx_p, yy_p, zz_p)
+
+  f_plot = np.empty([Ny,Nx],dtype=np.float_)
+  mask   = np.empty([Ny,Nx],dtype=np.float_)
+
+  mask.fill(np.nan)
+
+  if Method_enum == GL:
+    theta_gl_grid, phi_gl_grid = sample_positions(L,Method="GL")
+  # bin the values
+  for i from 0 <= i < Ny:
+    for j from 0 <= j < Nx:
+      if np.isnan(theta[i,j]) or np.isnan(phi[i,j]):
+        f_plot[i,j] = np.nan
+      else:
+        if Method_enum == MW:
+          p = int((theta[i,j]*(2*L-1)/np.pi-1)/2)  # (2.0*t + 1.0) * SSHT_PI / (2.0*L - 1.0)
+          q = int(phi[i,j]*(2*L-1)/(2*np.pi))      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
+        if Method_enum == MWSS:
+          p = int((theta[i,j]*(2*L)/np.pi)/2)  # 2.0 * t * SSHT_PI / (2.0 * L)
+          q = int(phi[i,j]*(2*L)/(2*np.pi))      # 2.0 * p * SSHT_PI / (2.0*L)
+        if Method_enum == DH:
+          p = int((theta[i,j]*(4*L)/np.pi-1)/2)  # (2.0*t + 1.0) * SSHT_PI / (4.0*L)
+          q = int(phi[i,j]*(2*L-1)/(2*np.pi))      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
+        if Method_enum == GL:
+          if theta[i,j] > theta_gl_grid[L-1]:
+            p = L-1
+          for k in range(theta_gl_grid.size):
+            if theta[i,j] < theta_gl_grid[k]:
+              p = k-1
+              break
+          q = int(phi[i,j]*(2*L-1)/(2*np.pi))      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
 
 
-  x = x.flatten()
-  y = y.flatten()
-  f_plot = f_plot.flatten()
+        if np.isnan(f[p,q]):
+          f_plot[i,j] = np.nan
+          mask[i,j] = 0x.0
+        else:
+          f_plot[i,j] = f[p,q]
 
+  return f_plot, mask
 
-  levels = np.arange(f_plot.min(), f_plot.max(), (f_plot.max()-f_plot.min())/50)
-
-  m =  plt.tricontourf(x, y, f_plot, levels, cmap=cm.jet)
-
-  return m
 
 def mollweide_coords_s2_to_xy(thetas, phis):
   # % ssht_mollweide - Compute Mollweide projection
@@ -955,17 +1167,16 @@ def dl_beta_recurse(np.ndarray[ double, ndim=2, mode="c"] dl not None, double be
 
 def generate_dl(double beta, int L):
 
-  dl_array = np.empty((L, 2*L-1, 2*L-1), dtype=np.float_)
-  dl_dummy = np.zeros((2*L-1, 2*L-1), dtype=np.float_)
+  cdef np.ndarray[np.float_t, ndim=3] dl_array = np.empty((L, 2*L-1, 2*L-1), dtype=np.float_)
+  cdef np.ndarray[np.float_t, ndim=2] dl_dummy = np.zeros((2*L-1, 2*L-1), dtype=np.float_)
 
-  sqrt_tbl = np.sqrt(np.arange(0,2*(L-1)+1, dtype=np.float_))
-  signs = np.ones((L+1,1), dtype=np.float_)
+  cdef np.ndarray[np.float_t, ndim=1] sqrt_tbl = np.sqrt(np.arange(0,2*(L-1)+1, dtype=np.float_))
+  cdef np.ndarray[np.float_t, ndim=2] signs = np.ones((L+1,1), dtype=np.float_)
+
+  cdef int i, el
+
   for i in range(1,L+1,2):
     signs[i] = -1 
-
-
-  cdef int stride = np.PyArray_STRIDE(dl_array, 2)  
-  strides = np.PyArray_STRIDES(dl_array)  
 
   
   cdef ssht_dl_size_t dl_size=SSHT_DL_HALF
@@ -984,13 +1195,14 @@ def generate_dl(double beta, int L):
   return dl_array
 
 
-def generate_exp_array(double x, L):
+def generate_exp_array(double x, int L):
 
-  exp_array = np.empty((2*L-1), dtype=np.complex_)
+  cdef np.ndarray[complex, ndim=1] exp_array = np.empty((2*L-1), dtype=np.complex_)
 
-  cdef int i = 0
+  cdef int i = 0, m
+
   for m in range(-L+1,L):
-    exp_array[i] = np.exp(-1j*m*x)
+    exp_array[i] = np.exp(-1j*<double>m*x)
     i += 1
 
   return exp_array
@@ -1001,22 +1213,33 @@ def generate_exp_array(double x, L):
 
 
 def rotate_flms(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None,\
-                      double alpha, double beta, double gamma, int L, dl_array=None,\
-                      M=None, Axisymmetric=False, Keep_dl=False):
+                      double alpha, double beta, double gamma, int L, dl_array_in=None,\
+                      M_in=None, bint Axisymmetric=False, bint Keep_dl=False):
 
-  if dl_array == None:
+  cdef np.ndarray[np.float_t, ndim=3] dl_array
+  cdef np.ndarray[complex, ndim=1] alpha_array, gamma_array 
+  cdef np.ndarray[complex, ndim=1] f_lm_rotated
+  cdef int M, el, m
+
+  cdef int index = 0, ind, n_max, n
+  cdef complex Dlmn=0
+
+  if dl_array_in == None:
     dl_array = generate_dl(beta, L)
+  else:
+    dl_array = dl_array_in
 
   alpha_array = generate_exp_array(alpha, L)
   gamma_array = generate_exp_array(gamma, L)
 
-  if M==None:
+  if M_in==None:
     M = L
+  else:
+    M = M_in
 
-  cdef int index = 0, ind;
-  cdef double complex Dlmn=0
 
-  f_lm_rotated = np.zeros((L*L), dtype=np.complex_)
+
+  f_lm_rotated = np.zeros((L*L), dtype=complex)
 
   for el in range(L):
     for m in range(-el,el+1):
@@ -1026,15 +1249,15 @@ def rotate_flms(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None,\
             n_max = min(el, M-1)
 
         for n in range(-n_max,n_max+1):
-            Dlmn =  <double complex> alpha_array[m+L-1] * <double complex> dl_array[el,m+L-1,n+L-1]\
-                   * <double complex> gamma_array[n+L-1] # not sure about
+            Dlmn =  <complex> alpha_array[m+L-1] * <complex> dl_array[el,m+L-1,n+L-1]\
+                   * <complex> gamma_array[n+L-1] # not sure about
             if Axisymmetric:
                 ind = el;
             else:
                 ind = elm2ind(el,n);
 
             f_lm_rotated[index] = <double complex> f_lm_rotated[index] + \
-                <double complex> Dlmn * <double complex> f_lm[ind];
+                <complex> Dlmn * <complex> f_lm[ind];
 
         index = index + 1;
 
@@ -1043,3 +1266,38 @@ def rotate_flms(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None,\
   else:
     return f_lm_rotated
 
+
+#----------------------------------------------------------------------------------------------------#
+
+# other usefull functions
+
+def guassian_smoothing(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, int L, sigma_in=None, bl_in = None):
+
+  cdef double sigma
+  cdef np.ndarray[ double, ndim=1, mode="c"] bl
+  cdef np.ndarray[ complex, ndim=1, mode="c"] fs_lm = np.empty([L*L], dtype=complex)
+  cdef int index, el, m
+
+
+  if sigma_in is None and bl_in is None:
+    raise ssht_input_error('One of sigma or bl must be set')
+
+  if sigma_in is not None and bl_in is not None:
+    raise ssht_input_error('Only one of sigma or bl can be set')
+
+
+  if sigma_in is not None:
+    sigma = sigma_in
+    bl = np.empty([L,], dtype=float)
+    for el in range(L):
+      bl[el] = np.exp(-<float>el*<float>el*sigma*sigma)
+
+  if bl_in is not None:
+    bl = bl_in
+
+  for el in range(L):
+    for m in range(-el,el+1):
+      index = elm2ind(el, m)
+      fs_lm[index] = f_lm[index]*bl[el]
+
+  return fs_lm

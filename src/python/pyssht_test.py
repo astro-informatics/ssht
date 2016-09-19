@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 
 # s2c test
 
-L=128
+L=256
 thetas, phis = ssht.sample_positions(L, Grid=True)
 
 f = np.zeros((L,2*L-1), dtype=np.float_) + np.random.randn(L,2*L-1)

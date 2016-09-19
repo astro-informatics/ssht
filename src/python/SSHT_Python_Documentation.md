@@ -262,6 +262,27 @@ Tuple contaning `(dec, ra)`
 * `ra` the Right Assension, `numpy.ndarray`
 
 
+## pyssht.ra_dec_to_theta_phi
+
+~~~~
+(theta, phi) = pyssht.ra_dec_to_theta_phi(ra, dec, Degrees=False)
+~~~~
+
+Computes the \(\theta\) and \(\phi\) values from an array of Right Assension and declination values.
+
+#### Inputs
+
+* `dec` the declination angle, `numpy.ndarray`
+* `ra` the Right Assension, `numpy.ndarray`
+* `Degrees` defines if the input is in degrees or radians, if degrees they are converted
+
+#### Output
+
+Tuple contaning `(theta, phi])`
+* `theta` \(\theta\) values, type `numpy.ndarray`
+* `phi` \(\phi\) values, type `numpy.ndarray`
+
+
 ## pyssht.plot_sphere
 
 ~~~~
