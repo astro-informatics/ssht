@@ -1237,8 +1237,7 @@ def orthographic_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L,
   cdef double rot_angle = dummy
 
   cdef np.ndarray[np.float_t, ndim=2] theta, phi
-  cdef np.ndarray[np.float_t, ndim=2] theta_north, phi_north, theta_south, phi_south
-  cdef np.ndarray[np.float_t, ndim=2] x_north, y_north, x_south, y_south
+  cdef np.ndarray[np.float_t, ndim=2] x_project, y_project
   cdef np.ndarray[np.float_t, ndim=2] xx, yy, zz, xx_p, yy_p, zz_p
   cdef np.ndarray[np.float_t, ndim=2] ortho_proj_north, mask_north, ortho_proj_south, mask_south
   cdef np.ndarray[np.float_t, ndim=2] rot_matix
@@ -1274,33 +1273,9 @@ def orthographic_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L,
       xx_p, yy_p, zz_p = rot_cart_2d(xx, yy, zz, rot)
       theta, phi = cart_to_s2(xx_p, yy_p, zz_p)
 
-  # seperate out north and south
-
-  theta_north = np.empty((n_theta_north, n_phi), dtype=float)
-  phi_north = np.empty((n_theta_north, n_phi), dtype=float)
-
-  theta_south = np.empty((n_theta_south, n_phi), dtype=float)
-  phi_south = np.empty((n_theta_south, n_phi), dtype=float)
-
-  for i in range(n_theta_north):
-    for j in range(n_phi):
-      theta_north[i,j] = theta[i,j]
-      phi_north[i,j]   = phi[i,j]
-
-  for i in range(n_theta_south):
-#    print theta[n_theta_north+i], np.pi-theta[n_theta_north+i]
-    for j in range(n_phi):
-      theta_south[i,j] = np.pi-theta[n_theta_north+i,j]
-      phi_south[i,j]   = phi[i,j]
-
-
-
   # do projection
-  x_north = -np.sin(theta_north)*np.sin(phi_north)
-  y_north = -np.sin(theta_north)*np.cos(phi_north)
-
-  x_south = -np.sin(theta_south)*np.sin(phi_south)
-  y_south =  np.sin(theta_south)*np.cos(phi_south)
+  x_project = -np.sin(theta)*np.cos(phi)
+  y_project = -np.sin(theta)*np.sin(phi)
 
   ortho_proj_north = np.zeros((resolution, resolution), dtype=float)
   ortho_proj_south = np.zeros((resolution, resolution), dtype=float)
@@ -1314,51 +1289,44 @@ def orthographic_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L,
   mask_north.fill(np.nan)
   mask_south.fill(np.nan)
 
-  for i in range(n_theta_north):
+  for i in range(n_theta):
     for j in range(n_phi):
 
-      if x_north[i,j] < half_box_len and x_north[i,j] > -half_box_len and y_north[i,j] < half_box_len and y_north[i,j] > -half_box_len:
-        p = int(resolution*(x_north[i,j]+half_box_len)/(2.0*half_box_len))
-        q = int(resolution*(y_north[i,j]+half_box_len)/(2.0*half_box_len))
+      if x_project[i,j] < half_box_len and x_project[i,j] > -half_box_len and y_project[i,j] < half_box_len and y_project[i,j] > -half_box_len:
+        p = int(resolution*(x_project[i,j]+half_box_len)/(2.0*half_box_len))
+        q = int(resolution*(y_project[i,j]+half_box_len)/(2.0*half_box_len))
 
-        if np.isnan(f[i,j]):
-          ortho_proj_north[p,q] = np.nan
-          mask_north[p,q] = 0.0
+        if theta[i,j] < np.pi/2:        
+          if np.isnan(f[i,j]):
+            ortho_proj_north[p,q] = np.nan
+            mask_north[p,q] = 0.0
+          else:
+            ortho_proj_north[p,q] += f[i,j]
+            n_points_north[p,q]   += 1
         else:
-          ortho_proj_north[p,q] += f[i,j]
-          n_points_north[p,q]   += 1
-
-  for i in range(n_theta_south):
-    for j in range(n_phi):
-
-      if x_south[i,j] < half_box_len and x_south[i,j] > -half_box_len and y_south[i,j] < half_box_len and y_south[i,j] > -half_box_len:
-        p = int(resolution*(x_south[i,j]+half_box_len)/(2.0*half_box_len))
-        q = int(resolution*(y_south[i,j]+half_box_len)/(2.0*half_box_len))
-
-        if np.isnan(f[n_theta_north+i,j]):
-          ortho_proj_south[p,q] = np.nan
-          mask_south[p,q] = 0.0
-        else:
-          ortho_proj_south[p,q] += f[n_theta_north+i,j]
-          n_points_south[p,q]   += 1
-
+          if np.isnan(f[i,j]):
+            ortho_proj_south[p,q] = np.nan
+            mask_south[p,q] = 0.0
+          else:
+            ortho_proj_south[p,q] += f[i,j]
+            n_points_south[p,q]   += 1
 
   if not(rot is None):
     if len(rot) == 1:
       rot_list = [rot[0],0.0,0.0]
     elif len(rot) == 3:
-      rot_list = rot
+      rot_list = [-rot[2],-rot[1],-rot[0]]
     rot_matix = make_rotation_matrix(rot_list)
 
   for i in range(resolution):
     for j in range(resolution):
       if n_points_north[i,j] == 0:
         if orthographic_projection_index_to_length(i,j,resolution, half_box_len) < 1.0:
-          x_pos     = (2.*half_box_len*(<float>i)/<float>resolution -half_box_len)
-          y_pos     = (2.*half_box_len*(<float>j)/<float>resolution -half_box_len)
+          x_pos     = -(2.*half_box_len*(<float>i)/<float>resolution -half_box_len)
+          y_pos     = -(2.*half_box_len*(<float>j)/<float>resolution -half_box_len)
           rho       = np.sqrt(x_pos*x_pos + y_pos*y_pos) 
           theta_pos = np.arcsin(rho)
-          phi_pos   = np.arctan2(x_pos,y_pos)+np.pi
+          phi_pos   = np.arctan2(y_pos,x_pos)
 
           # perform rotation
           if rot is not None:
@@ -1390,17 +1358,28 @@ def orthographic_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L,
 
       if n_points_south[i,j] == 0:
         if orthographic_projection_index_to_length(i,j,resolution, half_box_len) < 1.0:
-          x_pos     = (2.*half_box_len*(<float>i)/<float>resolution -half_box_len)
-          y_pos     = (2.*half_box_len*(<float>j)/<float>resolution -half_box_len)
+          x_pos     = -(2.*half_box_len*(<float>i)/<float>resolution -half_box_len)
+          y_pos     = -(2.*half_box_len*(<float>j)/<float>resolution -half_box_len)
           rho       = np.sqrt(x_pos*x_pos + y_pos*y_pos) 
-          theta_pos = np.arcsin(rho)
-          phi_pos   = np.arctan2(y_pos,x_pos)-np.pi/2
+          theta_pos = np.pi-np.arcsin(rho)
+          phi_pos   = np.arctan2(y_pos,x_pos)
+
+          # perform rotation
+          if rot is not None:
+            z_pos   = np.cos(theta_pos)
+            x_p_pos = x_pos*rot_matix[0,0] + y_pos*rot_matix[0,1] + z_pos*rot_matix[0,2]
+            y_p_pos = x_pos*rot_matix[1,0] + y_pos*rot_matix[1,1] + z_pos*rot_matix[1,2]
+            z_p_pos = x_pos*rot_matix[2,0] + y_pos*rot_matix[2,1] + z_pos*rot_matix[2,2]
+
+            theta_pos = np.arctan2(np.sqrt(x_p_pos*x_p_pos + y_p_pos*y_p_pos),z_p_pos)
+            phi_pos   = np.arctan2(y_p_pos,x_p_pos)
+
           if phi_pos < 0:
             phi_pos += 2*np.pi
           if phi_pos > 2*np.pi:
             phi_pos -= 2*np.pi
           
-          p = cy_phi_to_index(np.pi-theta_pos, L, Method_enum)
+          p = cy_phi_to_index(theta_pos, L, Method_enum)
           q = cy_phi_to_index(phi_pos, L, Method_enum)
           if np.isnan(f[p,q]):
             ortho_proj_south[i,j] = np.nan
