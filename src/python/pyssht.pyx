@@ -661,10 +661,95 @@ def elm2ind( int el, int m):
 def ind2elm(int ind):
 
   cdef int ell, em
-  el = isqrt(ind)
+  el = cy_isqrt(ind)
   em = ind - (el)*(el) - (el);
 
   return el, em
+
+# index to ell em and back function
+
+cdef int cy_isqrt(int n):
+    cdef int square = 1, delta = 3
+    while square < n:
+        square += delta
+        delta  += 2
+    return (delta/2 -1)
+
+cdef int cy_elm2ind( int el, int m):
+
+  return el * el + el + m
+
+
+def theta_to_index(double theta, int L, str Method="MW"):
+  cdef int p
+  cdef np.ndarray[np.float_t, ndim=1] theta_gl_grid, phi_gl_grid
+
+  if Method == 'GL':
+    theta_gl_grid, phi_gl_grid = sample_positions(L,Method="GL")
+
+  if Method == 'MW':
+    p = int((theta*(2*L-1)/np.pi-1)/2)  # (2.0*t + 1.0) * SSHT_PI / (2.0*L - 1.0)
+  if Method == 'MWSS':
+    p = int((theta*(2*L)/np.pi)/2)  # 2.0 * t * SSHT_PI / (2.0 * L)
+  if Method == 'DH':
+    p = int((theta*(4*L)/np.pi-1)/2)  # (2.0*t + 1.0) * SSHT_PI / (4.0*L)
+  if Method == 'GL':
+    if theta > theta_gl_grid[L-1]:
+      p = L-1
+      for k in range(theta_gl_grid.size):
+        if theta < theta_gl_grid[k]:
+          p = k-1
+          break
+  return p
+
+def phi_to_index(double phi, int L, str Method="MW"):
+  cdef int q
+  
+  if Method == 'MW':
+    q = int(phi*(2*L-1)/(2*np.pi))      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
+  if Method == 'MWSS':
+    q = int(phi*(2*L)/(2*np.pi))      # 2.0 * p * SSHT_PI / (2.0*L)
+  if Method == 'DH':
+    q = int(phi*(2*L-1)/(2*np.pi))      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
+  if Method == 'GL':
+    q = int(phi*(2*L-1)/(2*np.pi))      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
+  return q
+
+cdef int cy_theta_to_index(double theta, int L, METHOD_TYPE Method_enum):
+  cdef int p
+  cdef np.ndarray[np.float_t, ndim=1] theta_gl_grid, phi_gl_grid
+
+  if Method_enum == GL:
+    theta_gl_grid, phi_gl_grid = sample_positions(L,Method="GL")
+
+  if Method_enum == MW:
+    p = int((theta*(2*L-1)/np.pi-1)/2)  # (2.0*t + 1.0) * SSHT_PI / (2.0*L - 1.0)
+  if Method_enum == MWSS:
+    p = int((theta*(2*L)/np.pi)/2)  # 2.0 * t * SSHT_PI / (2.0 * L)
+  if Method_enum == DH:
+    p = int((theta*(4*L)/np.pi-1)/2)  # (2.0*t + 1.0) * SSHT_PI / (4.0*L)
+  if Method_enum == GL:
+    if theta > theta_gl_grid[L-1]:
+      p = L-1
+      for k in range(theta_gl_grid.size):
+        if theta < theta_gl_grid[k]:
+          p = k-1
+          break
+  return p
+
+cdef int cy_phi_to_index(double phi, int L, METHOD_TYPE Method_enum):
+  cdef int q
+  
+  if Method_enum == MW:
+    q = int(phi*(2*L-1)/(2*np.pi))      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
+  if Method_enum == MWSS:
+    q = int(phi*(2*L)/(2*np.pi))      # 2.0 * p * SSHT_PI / (2.0*L)
+  if Method_enum == DH:
+    q = int(phi*(2*L-1)/(2*np.pi))      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
+  if Method_enum == GL:
+    q = int(phi*(2*L-1)/(2*np.pi))      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
+  return q
+
 
 def sample_length(int L, Method = 'MW'):
   if not(Method == 'MW' or Method == 'MW_pole' or Method == 'MWSS' or Method == 'DH' or Method == "GL"):
@@ -1000,8 +1085,8 @@ def plot_sphere(f, int L, str Method='MW', bint Close=True, bint Parametric=Fals
 
 
 
-def plot_mollweide_prep(np.ndarray[ double, ndim=2, mode="c"] f, int L, int resolution=500, rot=None,\
-                        box_region=None, zoom_region=[np.sqrt(2.0)*2,np.sqrt(2.0)], str Method="MW"):
+def mollweide_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L, int resolution=500, rot=None,\
+                        zoom_region=[np.sqrt(2.0)*2,np.sqrt(2.0)], METHOD_TYPE Method_enum=MW):
 
   if not(len(zoom_region)==2 or len(zoom_region)==4):
     raise ssht_input_error('zoom_region must be a python list of length 2 or 4')
@@ -1020,18 +1105,7 @@ def plot_mollweide_prep(np.ndarray[ double, ndim=2, mode="c"] f, int L, int reso
   cdef np.ndarray[np.float_t, ndim=2] x, y, aux_angle, dec, ra, theta, phi
   cdef np.ndarray[np.float_t, ndim=2] xx, yy, zz, xx_p, yy_p, zz_p, f_plot, mask
 
-  cdef METHOD_TYPE Method_enum
 
-  if Method=="MW":
-    Method_enum=MW
-  elif Method=="MWSS":
-    Method_enum = MWSS
-  elif Method=="DH":
-    Method_enum = DH
-  elif Method=="GL":
-    Method_enum = GL
-  else:
-    raise ssht_input_error('Method is not recognised, Methods are: MW, MWSS, DH and GL')
 
   if len(zoom_region) == 2:
     Nx = resolution*zoom_region[0]/zoom_region[1]
@@ -1079,40 +1153,321 @@ def plot_mollweide_prep(np.ndarray[ double, ndim=2, mode="c"] f, int L, int reso
 
   mask.fill(np.nan)
 
-  if Method_enum == GL:
-    theta_gl_grid, phi_gl_grid = sample_positions(L,Method="GL")
   # bin the values
   for i from 0 <= i < Ny:
     for j from 0 <= j < Nx:
       if np.isnan(theta[i,j]) or np.isnan(phi[i,j]):
         f_plot[i,j] = np.nan
       else:
-        if Method_enum == MW:
-          p = int((theta[i,j]*(2*L-1)/np.pi-1)/2)  # (2.0*t + 1.0) * SSHT_PI / (2.0*L - 1.0)
-          q = int(phi[i,j]*(2*L-1)/(2*np.pi))      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
-        if Method_enum == MWSS:
-          p = int((theta[i,j]*(2*L)/np.pi)/2)  # 2.0 * t * SSHT_PI / (2.0 * L)
-          q = int(phi[i,j]*(2*L)/(2*np.pi))      # 2.0 * p * SSHT_PI / (2.0*L)
-        if Method_enum == DH:
-          p = int((theta[i,j]*(4*L)/np.pi-1)/2)  # (2.0*t + 1.0) * SSHT_PI / (4.0*L)
-          q = int(phi[i,j]*(2*L-1)/(2*np.pi))      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
-        if Method_enum == GL:
-          if theta[i,j] > theta_gl_grid[L-1]:
-            p = L-1
-          for k in range(theta_gl_grid.size):
-            if theta[i,j] < theta_gl_grid[k]:
-              p = k-1
-              break
-          q = int(phi[i,j]*(2*L-1)/(2*np.pi))      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
+        p = cy_phi_to_index(theta[i,j], L, Method_enum)
+        q = cy_phi_to_index(phi[i,j], L, Method_enum)
 
 
         if np.isnan(f[p,q]):
           f_plot[i,j] = np.nan
-          mask[i,j] = 0x.0
+          mask[i,j] = 0.0
         else:
           f_plot[i,j] = f[p,q]
 
   return f_plot, mask
+
+
+def mollweide_projection(f, int L, int resolution=500, rot=None,\
+                        zoom_region=[np.sqrt(2.0)*2,np.sqrt(2.0)], str Method="MW"):
+
+  cdef int i, j, n_phi, n_theta
+  cdef np.ndarray[np.float_t, ndim=2] f_real, f_imag
+  cdef METHOD_TYPE Method_enum
+
+  if Method=="MW":
+    Method_enum=MW
+  elif Method=="MWSS":
+    Method_enum = MWSS
+  elif Method=="DH":
+    Method_enum = DH
+  elif Method=="GL":
+    Method_enum = GL
+  else:
+    raise ssht_input_error('Method is not recognised, Methods are: MW, MWSS, DH and GL')
+
+  if not isinstance(f, np.ndarray):
+    raise TypeError("Input not a ndarray")
+
+  if f.ndim != 2:
+    raise ssht_input_error("f must have ndim = 2")
+
+
+  if f.dtype == np.float64:
+    return mollweide_projection_work(f, L, resolution=resolution, rot=rot,\
+                        zoom_region=zoom_region, Method_enum=Method_enum)
+  elif f.dtype == complex:
+    n_theta, n_phi = sample_shape(L,Method=Method)
+    f_real = np.empty((n_theta,n_phi), dtype=np.float_)
+    f_imag = np.empty((n_theta,n_phi), dtype=np.float_)
+    for i in range(n_theta):
+      for j in range(n_phi):
+        f_real[i,j] = f[i,j].real
+        f_imag[i,j] = f[i,j].imag
+
+    f_real_plot, mask_real = mollweide_projection_work(f_real, L, resolution=resolution, rot=rot,\
+                        zoom_region=zoom_region, Method_enum=Method_enum)
+    f_imag_plot, mask_imag = mollweide_projection_work(f_imag, L, resolution=resolution, rot=rot,\
+                        zoom_region=zoom_region, Method_enum=Method_enum)
+    return f_real_plot, mask_real, f_imag_plot, mask_imag
+  else:
+    raise ssht_input_error("f dtype must be float or complex")
+
+def orthographic_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L, int resolution=500, rot=None,\
+                        float zoom_region=np.pi/2,  METHOD_TYPE Method_enum=MW):
+
+  if rot is None or len(rot) > 1:
+    dummy = 0.0
+  else:
+    dummy = <double> rot[0]
+
+  if Method_enum==MW:
+    Method="MW"
+  elif Method_enum==MWSS:
+    Method_enum = "MWSS"
+  elif Method_enum==DH:
+    Method = "DH"
+  elif Method_enum==GL:
+    Method = "GL"
+
+  cdef double rot_angle = dummy
+
+  cdef np.ndarray[np.float_t, ndim=2] theta, phi
+  cdef np.ndarray[np.float_t, ndim=2] theta_north, phi_north, theta_south, phi_south
+  cdef np.ndarray[np.float_t, ndim=2] x_north, y_north, x_south, y_south
+  cdef np.ndarray[np.float_t, ndim=2] xx, yy, zz, xx_p, yy_p, zz_p
+  cdef np.ndarray[np.float_t, ndim=2] ortho_proj_north, mask_north, ortho_proj_south, mask_south
+  cdef np.ndarray[np.float_t, ndim=2] rot_matix
+
+  cdef list rot_list
+
+  cdef np.ndarray[np.int_t,   ndim=2] n_points_north, n_points_south
+
+  cdef float x_pos, y_pos, z_pos, x_p_pos, y_p_pos, z_p_pos, rho, theta_pos, phi_pos, half_box_len
+  
+  cdef int n_theta, n_phi, n_theta_north, n_theta_south, i, j, p, q, i_rot, j_rot
+
+  half_box_len = np.sin(zoom_region)
+
+  n_theta, n_phi = sample_shape(L, Method=Method)
+  n_theta_north = n_theta/2
+  n_theta_south = n_theta-n_theta_north
+
+  theta, phi = sample_positions(L, Grid=True, Method=Method)
+
+  if not(rot is None):
+    if len(rot) == 1:
+      for i from 0 <= i < n_theta:
+        for j from 0 <= j < n_phi:
+          phi[i,j] += rot_angle
+          if phi[i,j] > 2*np.pi:
+            phi[i,j] -= 2*np.pi
+          if phi[i,j] < 0:
+            phi[i,j] += 2*np.pi
+
+    elif len(rot) == 3:
+      xx, yy, zz = s2_to_cart(theta, phi)
+      xx_p, yy_p, zz_p = rot_cart_2d(xx, yy, zz, rot)
+      theta, phi = cart_to_s2(xx_p, yy_p, zz_p)
+
+  # seperate out north and south
+
+  theta_north = np.empty((n_theta_north, n_phi), dtype=float)
+  phi_north = np.empty((n_theta_north, n_phi), dtype=float)
+
+  theta_south = np.empty((n_theta_south, n_phi), dtype=float)
+  phi_south = np.empty((n_theta_south, n_phi), dtype=float)
+
+  for i in range(n_theta_north):
+    for j in range(n_phi):
+      theta_north[i,j] = theta[i,j]
+      phi_north[i,j]   = phi[i,j]
+
+  for i in range(n_theta_south):
+#    print theta[n_theta_north+i], np.pi-theta[n_theta_north+i]
+    for j in range(n_phi):
+      theta_south[i,j] = np.pi-theta[n_theta_north+i,j]
+      phi_south[i,j]   = phi[i,j]
+
+
+
+  # do projection
+  x_north = -np.sin(theta_north)*np.sin(phi_north)
+  y_north = -np.sin(theta_north)*np.cos(phi_north)
+
+  x_south = -np.sin(theta_south)*np.sin(phi_south)
+  y_south =  np.sin(theta_south)*np.cos(phi_south)
+
+  ortho_proj_north = np.zeros((resolution, resolution), dtype=float)
+  ortho_proj_south = np.zeros((resolution, resolution), dtype=float)
+
+  n_points_north = np.zeros((resolution, resolution), dtype=int)
+  n_points_south = np.zeros((resolution, resolution), dtype=int)
+
+  mask_north   = np.empty([resolution,resolution],dtype=np.float_)
+  mask_south   = np.empty([resolution,resolution],dtype=np.float_)
+
+  mask_north.fill(np.nan)
+  mask_south.fill(np.nan)
+
+  for i in range(n_theta_north):
+    for j in range(n_phi):
+
+      if x_north[i,j] < half_box_len and x_north[i,j] > -half_box_len and y_north[i,j] < half_box_len and y_north[i,j] > -half_box_len:
+        p = int(resolution*(x_north[i,j]+half_box_len)/(2.0*half_box_len))
+        q = int(resolution*(y_north[i,j]+half_box_len)/(2.0*half_box_len))
+
+        if np.isnan(f[i,j]):
+          ortho_proj_north[p,q] = np.nan
+          mask_north[p,q] = 0.0
+        else:
+          ortho_proj_north[p,q] += f[i,j]
+          n_points_north[p,q]   += 1
+
+  for i in range(n_theta_south):
+    for j in range(n_phi):
+
+      if x_south[i,j] < half_box_len and x_south[i,j] > -half_box_len and y_south[i,j] < half_box_len and y_south[i,j] > -half_box_len:
+        p = int(resolution*(x_south[i,j]+half_box_len)/(2.0*half_box_len))
+        q = int(resolution*(y_south[i,j]+half_box_len)/(2.0*half_box_len))
+
+        if np.isnan(f[n_theta_north+i,j]):
+          ortho_proj_south[p,q] = np.nan
+          mask_south[p,q] = 0.0
+        else:
+          ortho_proj_south[p,q] += f[n_theta_north+i,j]
+          n_points_south[p,q]   += 1
+
+
+  if not(rot is None):
+    if len(rot) == 1:
+      rot_list = [rot[0],0.0,0.0]
+    elif len(rot) == 3:
+      rot_list = rot
+    rot_matix = make_rotation_matrix(rot_list)
+
+  for i in range(resolution):
+    for j in range(resolution):
+      if n_points_north[i,j] == 0:
+        if orthographic_projection_index_to_length(i,j,resolution, half_box_len) < 1.0:
+          x_pos     = (2.*half_box_len*(<float>i)/<float>resolution -half_box_len)
+          y_pos     = (2.*half_box_len*(<float>j)/<float>resolution -half_box_len)
+          rho       = np.sqrt(x_pos*x_pos + y_pos*y_pos) 
+          theta_pos = np.arcsin(rho)
+          phi_pos   = np.arctan2(x_pos,y_pos)+np.pi
+
+          # perform rotation
+          if rot is not None:
+            z_pos   = np.cos(theta_pos)
+            x_p_pos = x_pos*rot_matix[0,0] + y_pos*rot_matix[0,1] + z_pos*rot_matix[0,2]
+            y_p_pos = x_pos*rot_matix[1,0] + y_pos*rot_matix[1,1] + z_pos*rot_matix[1,2]
+            z_p_pos = x_pos*rot_matix[2,0] + y_pos*rot_matix[2,1] + z_pos*rot_matix[2,2]
+
+            theta_pos = np.arctan2(np.sqrt(x_p_pos*x_p_pos + y_p_pos*y_p_pos),z_p_pos)
+            phi_pos   = np.arctan2(y_p_pos,x_p_pos)
+
+          if phi_pos < 0:
+            phi_pos += 2*np.pi
+          if phi_pos > 2*np.pi:
+            phi_pos -= 2*np.pi
+          
+          p = cy_phi_to_index(theta_pos, L, Method_enum)
+          q = cy_phi_to_index(phi_pos, L, Method_enum)
+          if np.isnan(f[p,q]):
+            ortho_proj_north[i,j] = np.nan
+            mask_north[i,j] = 0.0
+          else:
+            ortho_proj_north[i,j] = f[p,q]
+            n_points_north[i,j]   += 1
+        else:
+          ortho_proj_north[i,j] = np.nan
+      else:
+        ortho_proj_north[i,j] = ortho_proj_north[i,j]/<float>n_points_north[i,j]
+
+      if n_points_south[i,j] == 0:
+        if orthographic_projection_index_to_length(i,j,resolution, half_box_len) < 1.0:
+          x_pos     = (2.*half_box_len*(<float>i)/<float>resolution -half_box_len)
+          y_pos     = (2.*half_box_len*(<float>j)/<float>resolution -half_box_len)
+          rho       = np.sqrt(x_pos*x_pos + y_pos*y_pos) 
+          theta_pos = np.arcsin(rho)
+          phi_pos   = np.arctan2(y_pos,x_pos)-np.pi/2
+          if phi_pos < 0:
+            phi_pos += 2*np.pi
+          if phi_pos > 2*np.pi:
+            phi_pos -= 2*np.pi
+          
+          p = cy_phi_to_index(np.pi-theta_pos, L, Method_enum)
+          q = cy_phi_to_index(phi_pos, L, Method_enum)
+          if np.isnan(f[p,q]):
+            ortho_proj_south[i,j] = np.nan
+            mask_south[i,j] = 0.0
+          else:
+            ortho_proj_south[i,j] = f[p,q]
+            n_points_south[i,j]   += 1
+        else:
+          ortho_proj_south[i,j] = np.nan
+      else:
+        ortho_proj_south[i,j] = ortho_proj_south[i,j]/<float>n_points_south[i,j]
+
+  return ortho_proj_north, mask_north, ortho_proj_south, mask_south
+
+
+cdef float orthographic_projection_index_to_length(int i, int j, int N, float half_box_len):
+  return (2.*half_box_len*<float>i/<float>N -half_box_len)*(2.*half_box_len*<float>i/<float>N -half_box_len) \
+          + (2.*half_box_len*<float>j/<float>N -half_box_len)*(2.*half_box_len*<float>j/<float>N -half_box_len)
+
+def orthographic_projection(f, int L, int resolution=500, rot=None,\
+                        float zoom_region=np.pi/2, str Method="MW"):
+
+  cdef int i, j, n_phi, n_theta
+  cdef np.ndarray[np.float_t, ndim=2] f_real, f_imag
+  cdef METHOD_TYPE Method_enum
+
+  if Method=="MW":
+    Method_enum=MW
+  elif Method=="MWSS":
+    Method_enum = MWSS
+  elif Method=="DH":
+    Method_enum = DH
+  elif Method=="GL":
+    Method_enum = GL
+  else:
+    raise ssht_input_error('Method is not recognised, Methods are: MW, MWSS, DH and GL')
+
+  if not isinstance(f, np.ndarray):
+    raise TypeError("Input not a ndarray")
+
+  if f.ndim != 2:
+    raise ssht_input_error("f must have ndim = 2")
+
+
+  if f.dtype == np.float64:
+    return orthographic_projection_work(f, L, resolution=resolution, rot=rot,\
+                        zoom_region=zoom_region, Method_enum=Method_enum)
+  elif f.dtype == complex:
+    n_theta, n_phi = sample_shape(L,Method=Method)
+    f_real = np.empty((n_theta,n_phi), dtype=np.float_)
+    f_imag = np.empty((n_theta,n_phi), dtype=np.float_)
+    for i in range(n_theta):
+      for j in range(n_phi):
+        f_real[i,j] = f[i,j].real
+        f_imag[i,j] = f[i,j].imag
+
+    north_plot_real, mask_north_real, south_plot_real, mask_south_real\
+                         = orthographic_projection_work(f_real, L, resolution=resolution, rot=rot,\
+                        zoom_region=zoom_region, Method_enum=Method_enum)
+    north_plot_imag, mask_north_imag, south_plot_imag, mask_south_imag\
+                        = orthographic_projection_work(f_imag, L, resolution=resolution, rot=rot,\
+                        zoom_region=zoom_region, Method_enum=Method_enum)
+    return north_plot_real, mask_north_real, south_plot_real, mask_south_real,\
+           north_plot_imag, mask_north_imag, south_plot_imag, mask_south_imag
+  else:
+    raise ssht_input_error("f dtype must be float or complex")
+
 
 
 def mollweide_coords_s2_to_xy(thetas, phis):
@@ -1254,7 +1609,7 @@ def rotate_flms(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None,\
             if Axisymmetric:
                 ind = el;
             else:
-                ind = elm2ind(el,n);
+                ind = cy_elm2ind(el,n);
 
             f_lm_rotated[index] = <double complex> f_lm_rotated[index] + \
                 <complex> Dlmn * <complex> f_lm[ind];
@@ -1297,7 +1652,7 @@ def guassian_smoothing(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not No
 
   for el in range(L):
     for m in range(-el,el+1):
-      index = elm2ind(el, m)
+      index = cy_elm2ind(el, m)
       fs_lm[index] = f_lm[index]*bl[el]
 
   return fs_lm
