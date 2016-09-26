@@ -149,6 +149,73 @@ Tuple containing `(el, em)`
 * `el` the scale parameter of the spherical harmonic coefficients, integer from \(0\) to \(L-1\), where \(L\) is the band limit.
 * `em` the azimuthal parameter, integer from -el to el.
 
+## pyssht.theta_to_index
+
+~~~~
+p = pyssht.theta_to_index(double theta, int L, str Method="MW")
+~~~~
+
+Outputs the \(\theta\) index (the first) in the 2 demensional array used to store spherical images. The index returned is that of the closest \(\theta\) sample smaller then the angle given on input.
+
+#### Inputs
+
+* `theta` the angle \(\theta\)
+* `L` the band limit of the signal, non-zero positive integer
+* `Method` the sampling scheme used, string:
+    1. `'MW'`         [McEwen & Wiaux sampling (default)]
+    2. `'MW_pole'`    [McEwen & Wiaux sampling with the south pole as a seperate double.]
+    3. `'MWSS'`       [McEwen & Wiaux symmetric sampling]
+    4. `'DH'`         [Driscoll & Healy sampling]
+    5. `'GL'`         [Gauss-Legendre sampling]
+
+#### Output
+
+Int `p` of corresponding to the angle \(\theta\).
+
+## pyssht.phi_to_index
+
+~~~~
+q = pyssht.phi_to_index(double phi, int L, str Method="MW")
+~~~~
+
+Outputs the \(\phi\) index (the second) in the 2 demensional array used to store spherical images. The index returned is that of the closest \(\phi\) sample smaller then the angle given on input.
+
+#### Inputs
+
+* `phi` the angle \(\phi\)
+* `L` the band limit of the signal, non-zero positive integer
+* `Method` the sampling scheme used, string:
+    1. `'MW'`         [McEwen & Wiaux sampling (default)]
+    2. `'MW_pole'`    [McEwen & Wiaux sampling with the south pole as a seperate double.]
+    3. `'MWSS'`       [McEwen & Wiaux symmetric sampling]
+    4. `'DH'`         [Driscoll & Healy sampling]
+    5. `'GL'`         [Gauss-Legendre sampling]
+
+#### Output
+
+Int `q` of corresponding to the angle \(\phi\).
+
+## pyssht.sample_length
+
+~~~~
+n = pyssht.sample_length(int L, Method = 'MW')
+~~~~
+
+Outputs a size of the array used for storing the data on the sphere for different sampling schemes.
+
+#### Inputs
+
+* `L` the band limit of the signal, non-zero positive integer
+* `Method` the sampling scheme used, string:
+    1. `'MW'`         [McEwen & Wiaux sampling (default)]
+    2. `'MW_pole'`    [McEwen & Wiaux sampling with the south pole as a seperate double.]
+    3. `'MWSS'`       [McEwen & Wiaux symmetric sampling]
+    4. `'DH'`         [Driscoll & Healy sampling]
+    5. `'GL'`         [Gauss-Legendre sampling]
+
+#### Output
+
+Int `n` equal to the collapsed 1 dimensional size of the 2 demensional array used to store data on the sphere.
 
 ## pyssht.sample_shape
 
@@ -220,6 +287,27 @@ Tuple containing `(x, y, z)`
 * `y` the \(y\) coordinate of each point, type `numpy.ndarray`
 * `z` the \(z\) coordinate of each point, type `numpy.ndarray`
 
+## pyssht.cart_to_s2
+
+~~~~
+thetas, phis = cart_to_s2(x, y, z)
+~~~~
+
+Computes the \(\theta\) and \(\phi\) on the coordinates on the sphere from \(x\), \(y\), and \(z\) coordinates.
+
+#### Inputs
+
+* `x` \(x\) values, type `numpy.ndarray`
+* `y` \(y\) values, type `numpy.ndarray`
+* `z` \(z\) values, type `numpy.ndarray`
+
+#### Output
+
+Tuple containing `(theta, phi)`
+* `theta` the \(\theta\) coordinate of each point, type `numpy.ndarray`
+* `phi` the \(\phi\) coordinate of each point, type `numpy.ndarray`
+
+
 ## pyssht.spherical_to_cart
 
 ~~~~
@@ -240,6 +328,29 @@ Tuple containing `(x, y, z)`
 * `x` the \(x\) coordinate of each point, type `numpy.ndarray`
 * `y` the \(y\) coordinate of each point, type `numpy.ndarray`
 * `z` the \(z\) coordinate of each point, type `numpy.ndarray`
+
+## pyssht.cart_to_spherical
+
+~~~~
+r, theta, phi = pyssht.cart_to_spherical(x, y, z)
+~~~~
+
+
+Computes the \(\r\), \(\theta\) and \(\phi\) on the sperical coordinates from \(x\), \(y\), and \(z\) coordinates.
+
+#### Inputs
+
+* `x` \(x\) values, type `numpy.ndarray`
+* `y` \(y\) values, type `numpy.ndarray`
+* `z` \(z\) values, type `numpy.ndarray`
+
+#### Output
+
+Tuple containing `(r, theta, phi)`
+* `r` the \(r\) coordinate of each point, type `numpy.ndarray`
+* `theta` the \(\theta\) coordinate of each point, type `numpy.ndarray`
+* `phi` the \(\phi\) coordinate of each point, type `numpy.ndarray`
+
 
 ## pyssht.theta_phi_to_ra_dec
 
@@ -282,6 +393,65 @@ Tuple contaning `(theta, phi])`
 * `theta` \(\theta\) values, type `numpy.ndarray`
 * `phi` \(\phi\) values, type `numpy.ndarray`
 
+## pyssht.make_rotation_matrix
+
+~~~~
+rot_much = pyssht.make_rotation_matrix(list rot)
+~~~~
+
+Computes the 3 by 3 rotation matrix from the Eular angles given on input
+
+#### Inputs
+
+* `rot` List of length 3. Each element are the Eular angles `[alpha, beta, gamma]`
+
+#### Output
+
+3 by 3 `rot_matrix` the rotation matrix type `ndarray` dtype `float`
+
+## pyssht.rot_cart
+
+~~~~
+x_p, y_p, z_p = pyssht.rot_cart(x, y, z, list rot)
+~~~~
+
+Computes the rotations of the cartisian coordinates given a set of Eular angles. The inputs can be any shape `ndarray`s. For speed if the arrays are 1 or 2 demensional it is recommended to use `pyssht.rot_cart_1D` or `pyssht.rot_cart_2D`.
+
+#### Inputs
+
+* `x` \(x\) values, type `numpy.ndarray`
+* `y` \(y\) values, type `numpy.ndarray`
+* `z` \(z\) values, type `numpy.ndarray`
+* `rot` List of length 3. Each element are the Eular angles `[alpha, beta, gamma]`
+
+#### Output
+
+Tuple containing `(x_p, y_p, z_p)` the rotated coordinates the same shape and type as the inputs.
+
+## pyssht.rot_cart_1d and pyssht.rot_cart_1d
+
+~~~~
+(x_p, y_p, z_p) = pyssht.rot_cart_1d(np.ndarray[np.float_t, ndim=1] x, np.ndarray[np.float_t, ndim=1] y, np.ndarray[np.float_t, ndim=1] z, list rot)
+~~~~
+
+~~~~
+(x_p, y_p, z_p) = pyssht.rot_cart_1d(np.ndarray[np.float_t, ndim=2] x, np.ndarray[np.float_t, ndim=2] y, np.ndarray[np.float_t, ndim=2] z, list rot)
+~~~~
+
+Computes the rotations of the cartisian coordinates given a set of Eular angles. The inputs can be any shape `ndarray`s. Same as `pyssht.rot_cart` except optimised for arrays that are 1 or 2 demensional.
+
+#### Inputs
+
+* `x` \(x\) values, type `numpy.ndarray`, dtype `float`, ndim 1 or 2
+* `y` \(y\) values, type `numpy.ndarray`, dtype `float`, ndim 1 or 2
+* `z` \(z\) values, type `numpy.ndarray`, dtype `float`, ndim 1 or 2
+* `rot` List of length 3. Each element are the Eular angles `[alpha, beta, gamma]`
+
+#### Output
+
+Tuple containing `(x_p, y_p, z_p)` the rotated coordinates the same shape and type as the inputs.
+
+
 
 ## pyssht.plot_sphere
 
@@ -317,30 +487,126 @@ Plots data on to a sphere. It is really slow and not very good!
 
 None
 
-## pyssht.plot_mollweide
+## pyssht.mollweide_projection
 
 ~~~~
-m = pyssht.plot_mollweide(f, L, Method="MW", Close=True)
+f_plot, mask(, f_plot_imag, mask_imag) = pyssht.mollweide_projection(f, int L,\
+                        int resolution=500, rot=None,\
+                        zoom_region=[np.sqrt(2.0)*2,np.sqrt(2.0)], str Method="MW")
 ~~~~
 
-Plots the data in a mollweide projection. Better but not super fast.
+Creates an `ndarray` of the mollweide projection of a spherical image and a mask array. This is usefull for plotting results. Elements in the signal `f` that are `NaN`s are marked in the mask. This allows one to plot these regions the color of their choice.
+
+Here is an example of using the function to plot real spherical data.
+
+~~~~
+f_plot, mask = pyssht.mollweide_projection(f, L, Method="MW") # make projection
+plt.figure() # start figure
+imgplot = plt.imshow(f_real_plot,interpolation='nearest') # plot the projected image
+plt.colorbar(imgplot,fraction=0.025, pad=0.04) # plot color bar (these extra keywords make the bar a reasonable size)
+plt.imshow(mask_real, interpolation='nearest', cmap=cm.gray, vmin=-1., vmax=1.) # plot the NaN regions in grey
+plt.gca().set_aspect("equal") # ensures the region is the correct proportions
+plt.axis('off') # removes axis (looks better)
+plt.show()
+~~~~
 
 #### Inputs
 
-* `f` the signal on the sphere, `numpy.ndarray` type `complex` or `real`, ndim 2. NB different for `'MW_pole'` sampling.
+* `f` the signal on the sphere, `numpy.ndarray` type `complex` or `real`, ndim 2.
 * `L` the band limit of the signal, non-zero positive integer
+* `resolution` size of the projected image, default 500
+* `rot` If the image should be rotated before projecting, None. `rot` should be a list of length 1 or 3. If 1 then the image is roated around the \(z\) axis by that amount. If 3 then the image is rotated by the Eular angles given in the list. 
+* `zoom_region` the region of the sphere to be ploted, default `[np.sqrt(2.0)*2,np.sqrt(2.0)]` is the full sphere.
 * `Method` the sampling scheme used, string:
     1. `'MW'`         [McEwen & Wiaux sampling (default)]
-    2. `'MW_pole'`    [McEwen & Wiaux sampling with the south pole as a seperate double.]
     3. `'MWSS'`       [McEwen & Wiaux symmetric sampling]
     4. `'DH'`         [Driscoll & Healy sampling]
     5. `'GL'`         [Gauss-Legendre sampling]
-* `Close` if true the full sphere is plotted (without a gap after the last \(\phi\) position), default `True`
 
 
 #### Outputs
 
-Python axes object. This means the user can call any of the other python ploting functions to costermise the plot.
+If the input is real:
+
+Tuple containing:
+* `f_plot` the projection of the image as a 2 dimensional `ndarray` of type `float`. Masked regions and regions not in the sphere are `NaN`s to make the clear when plotted
+* `mask` the projection of the masked regions (`NaN`s in input `f`) as a 2 dimensional `ndarray` of type `float`. Masked regions have a value `0.0` and regions not in the sphere are `NaN`s to make the clear when plotted.
+
+If the input is complex:
+
+Tuple containing:
+* `f_plot_real` the projection of the real part of the image as a 2 dimensional `ndarray` of type `float`. Masked regions and regions not in the sphere are `NaN`s to make the clear when plotted
+* `mask_real` the projection of the masked regions (`NaN`s in input `f.real`) as a 2 dimensional `ndarray` of type `float`. Masked regions have a value `0.0` and regions not in the sphere are `NaN`s to make the clear when plotted.
+* `f_plot_imag` the projection of the imaginary part of the image as a 2 dimensional `ndarray` of type `float`. Masked regions and regions not in the sphere are `NaN`s to make the clear when plotted
+* `mask_imag` the projection of the masked regions (`NaN`s in input `f.imag`) as a 2 dimensional `ndarray` of type `float`. Masked regions have a value `0.0` and regions not in the sphere are `NaN`s to make the clear when plotted.
+
+## pyssht.orthographic_projection
+
+~~~~
+orth_proj_north_real, mask_north_real, orth_proj_south_real, mask_south_real,\
+(orth_proj_north_imag, mask_north_imag, orth_proj_south_imag, mask_south_imag\ )
+            = pyssht.orthographic_projection(f, int L, int resolution=500,\
+             rot=None, float zoom_region=np.pi/2, str Method="MW")
+~~~~
+
+Creates an two `ndarray`s of the orthagraphic projection of a spherical image and a mask array. This is usefull for plotting results. Elements in the signal `f` that are `NaN`s are marked in the mask. This allows one to plot these regions the color of their choice.
+
+Here is an example of using the function to plot real spherical data.
+
+~~~~
+orth_proj_north, mask_north, orth_proj_south, mask_south \
+        = pyssht.orthographic_projection(k_mw, L, resolution=500, Method="MW")
+plt.figure() # start figure
+imgplot = plt.imshow(orth_proj_north,interpolation='nearest')# plot the projected image (north part)
+plt.colorbar(imgplot) # plot color bar
+plt.imshow(mask_north, interpolation='nearest', cmap=cm.gray, vmin=-1., vmax=1.) # plot the NaN regions in grey
+plt.axis('off') # removes axis (looks better)
+
+plt.figure()
+imgplot = plt.imshow(orth_proj_south,interpolation='nearest')# plot the projected image (south part)
+plt.colorbar(imgplot)
+plt.imshow(mask_south, interpolation='nearest', cmap=cm.gray, vmin=-1., vmax=1.)
+plt.title("orthographic projection south")
+plt.axis('off')
+plt.show()
+~~~~
+
+#### Inputs
+
+* `f` the signal on the sphere, `numpy.ndarray` type `complex` or `real`, ndim 2.
+* `L` the band limit of the signal, non-zero positive integer
+* `resolution` size of the projected image, default 500
+* `rot` If the image should be rotated before projecting, None. `rot` should be a list of length 1 or 3. If 1 then the image is roated around the \(z\) axis by that amount. If 3 then the image is rotated by the Eular angles given in the list. 
+* `zoom_region` the region of the sphere to be ploted in radians, default `np.pi/2` is the full half sphere.
+* `Method` the sampling scheme used, string:
+    1. `'MW'`         [McEwen & Wiaux sampling (default)]
+    3. `'MWSS'`       [McEwen & Wiaux symmetric sampling]
+    4. `'DH'`         [Driscoll & Healy sampling]
+    5. `'GL'`         [Gauss-Legendre sampling]
+
+
+#### Outputs
+
+If the input is real:
+
+Tuple containing:
+* `f_plot_north` the projection of the north part of the image as a 2 dimensional `ndarray` of type `float`. Masked regions and regions not in the sphere are `NaN`s to make the clear when plotted
+* `mask_north` the projection of the north part of the masked regions (`NaN`s in input `f`) as a 2 dimensional `ndarray` of type `float`. Masked regions have a value `0.0` and regions not in the sphere are `NaN`s to make the clear when plotted.
+* `f_plot_south` the projection of the south part of the image as a 2 dimensional `ndarray` of type `float`. Masked regions and regions not in the sphere are `NaN`s to make the clear when plotted
+* `mask_south` the projection of the south part of the masked regions (`NaN`s in input `f`) as a 2 dimensional `ndarray` of type `float`. Masked regions have a value `0.0` and regions not in the sphere are `NaN`s to make the clear when plotted.
+
+If the input is complex:
+
+Tuple containing:
+* `f_plot_north_real` the projection of the north part of the real part of the image as a 2 dimensional `ndarray` of type `float`. Masked regions and regions not in the sphere are `NaN`s to make the clear when plotted
+* `mask_north_real` the projection of the north part of the real part of the masked regions (`NaN`s in input `f`) as a 2 dimensional `ndarray` of type `float`. Masked regions have a value `0.0` and regions not in the sphere are `NaN`s to make the clear when plotted.
+* `f_plot_south_real` the projection of the south part of the real part of the image as a 2 dimensional `ndarray` of type `float`. Masked regions and regions not in the sphere are `NaN`s to make the clear when plotted
+* `mask_south_real` the projection of the south part of the real part of the masked regions (`NaN`s in input `f`) as a 2 dimensional `ndarray` of type `float`. Masked regions have a value `0.0` and regions not in the sphere are `NaN`s to make the clear when plotted.
+* `f_plot_north_imag` the projection of the north part of the imaginary part of the image as a 2 dimensional `ndarray` of type `float`. Masked regions and regions not in the sphere are `NaN`s to make the clear when plotted
+* `mask_north_imag` the projection of the north part of the imaginary part of the masked regions (`NaN`s in input `f`) as a 2 dimensional `ndarray` of type `float`. Masked regions have a value `0.0` and regions not in the sphere are `NaN`s to make the clear when plotted.
+* `f_plot_south_imag` the projection of the south part of the imaginary part of the image as a 2 dimensional `ndarray` of type `float`. Masked regions and regions not in the sphere are `NaN`s to make the clear when plotted
+* `mask_south_imag` the projection of the south part of the imaginary part of the masked regions (`NaN`s in input `f`) as a 2 dimensional `ndarray` of type `float`. Masked regions have a value `0.0` and regions not in the sphere are `NaN`s to make the clear when plotted.
+
 
 ## pyssht.dl_beta_recurse
 
@@ -398,3 +664,22 @@ Function to rotate a set of spherical harmonic coefficients by the set of Eular 
 #### Output
 
 If `Keep_dl` is not set the output is the rotated set of spherical harmonic coeficiants. If it is the output is a tuple `(flm_rotated, dl_array)`, ie the rotated harmonic coefficients and the small Wigner D matirix computed for that band limit and \(\alpha\) value.
+
+## pyssht.guassian_smoothing
+
+~~~~
+fs_lm = pyssht.guassian_smoothing(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, int L, sigma_in=None, bl_in = None)
+~~~~
+
+Smooths a set of harmonic coefficients either with a precomputed smoothing kernal `bl` or with a Gaussian given on input.
+
+#### Inputs
+
+* `f_lm` the spherical harmonic transform of `f`, `numpy.ndarray` type `complex`, ndim 1
+* `L` the band limit of the signal, non-zero positive integer
+* `sigma_in` the input sigma of the Gaussian to smooth the signal with, default `None`
+* `bl_in` the smoothing kernal to smooth the signal with, default `None` 
+
+#### Output
+
+* `fs_lm` the smoothed harmonic coefficients.

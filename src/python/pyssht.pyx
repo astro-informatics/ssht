@@ -856,6 +856,7 @@ def cart_to_s2(x, y, z):
 
   return (theta, phi)
 
+
 def spherical_to_cart(r, theta, phi):
   if theta.shape != r.shape or theta.shape != phi.shape:
     raise ssht_input_error('r, theta and phi must be the same shape.')
