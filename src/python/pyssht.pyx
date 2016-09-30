@@ -12,6 +12,9 @@ from mpl_toolkits.axes_grid1 import make_axes_locatable
 cdef enum METHOD_TYPE:
   MW, MWSS, DH, GL
 
+cdef enum PROJECTION_TYPE:
+  GP, OP, SP
+
 #----------------------------------------------------------------------------------------------------#
 
 cdef extern from "ssht.h":
@@ -1218,8 +1221,8 @@ def mollweide_projection(f, int L, int resolution=500, rot=None,\
   else:
     raise ssht_input_error("f dtype must be float or complex")
 
-def orthographic_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L, int resolution=500, rot=None,\
-                        float zoom_region=np.pi/2,  METHOD_TYPE Method_enum=MW):
+def two_side_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L, int resolution=500, rot=None,\
+                        float zoom_region=-1,  METHOD_TYPE Method_enum=MW, PROJECTION_TYPE Projection_enum=OP):
 
   if rot is None or len(rot) > 1:
     dummy = 0.0
@@ -1235,6 +1238,13 @@ def orthographic_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L,
   elif Method_enum==GL:
     Method = "GL"
 
+  if zoom_region < 0:
+    if Projection_enum == GP:
+      zoom_region = np.pi/4
+    else:
+      zoom_region = np.pi/2
+
+
   cdef double rot_angle = dummy
 
   cdef np.ndarray[np.float_t, ndim=2] theta, phi
@@ -1247,12 +1257,12 @@ def orthographic_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L,
 
   cdef np.ndarray[np.int_t,   ndim=2] n_points_north, n_points_south
 
-  cdef float x_pos, y_pos, z_pos, x_p_pos, y_p_pos, z_p_pos, rho, theta_pos, phi_pos, half_box_len
+  cdef float x_pos, y_pos, z_pos, x_p_pos, y_p_pos, z_p_pos, rho, theta_pos, phi_pos, half_box_len, max_len
   
   cdef int n_theta, n_phi, n_theta_north, n_theta_south, i, j, p, q, i_rot, j_rot
 
-  half_box_len = np.sin(zoom_region)
-
+  half_box_len = forward_projection_function_float(zoom_region, Projection_enum)
+ 
   n_theta, n_phi = sample_shape(L, Method=Method)
   n_theta_north = n_theta/2
   n_theta_south = n_theta-n_theta_north
@@ -1275,8 +1285,14 @@ def orthographic_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L,
       theta, phi = cart_to_s2(xx_p, yy_p, zz_p)
 
   # do projection
-  x_project = -np.sin(theta)*np.cos(phi)
-  y_project = -np.sin(theta)*np.sin(phi)
+  x_project = np.empty((theta.shape[0],theta.shape[1]), dtype=float)
+  y_project = np.empty((theta.shape[0],theta.shape[1]), dtype=float)
+
+  x_project[theta<np.pi/2] = forward_projection_function_array(theta[theta<np.pi/2], Projection_enum)*np.cos(phi[theta<np.pi/2])
+  y_project[theta<np.pi/2] = forward_projection_function_array(theta[theta<np.pi/2], Projection_enum)*np.sin(phi[theta<np.pi/2])
+
+  x_project[theta>=np.pi/2] = forward_projection_function_array((np.pi-theta[theta>=np.pi/2]), Projection_enum)*np.cos(phi[theta>=np.pi/2])
+  y_project[theta>=np.pi/2] = forward_projection_function_array((np.pi-theta[theta>=np.pi/2]), Projection_enum)*np.sin(phi[theta>=np.pi/2])
 
   ortho_proj_north = np.zeros((resolution, resolution), dtype=float)
   ortho_proj_south = np.zeros((resolution, resolution), dtype=float)
@@ -1284,8 +1300,8 @@ def orthographic_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L,
   n_points_north = np.zeros((resolution, resolution), dtype=int)
   n_points_south = np.zeros((resolution, resolution), dtype=int)
 
-  mask_north   = np.empty([resolution,resolution],dtype=np.float_)
-  mask_south   = np.empty([resolution,resolution],dtype=np.float_)
+  mask_north   = np.empty([resolution,resolution],dtype=float)
+  mask_south   = np.empty([resolution,resolution],dtype=float)
 
   mask_north.fill(np.nan)
   mask_south.fill(np.nan)
@@ -1319,18 +1335,24 @@ def orthographic_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L,
       rot_list = [-rot[2],-rot[1],-rot[0]]
     rot_matix = make_rotation_matrix(rot_list)
 
+  max_len = projection_max_len(Projection_enum)
+
   for i in range(resolution):
     for j in range(resolution):
       if n_points_north[i,j] == 0:
-        if orthographic_projection_index_to_length(i,j,resolution, half_box_len) < 1.0:
-          x_pos     = -(2.*half_box_len*(<float>i)/<float>resolution -half_box_len)
-          y_pos     = -(2.*half_box_len*(<float>j)/<float>resolution -half_box_len)
+        if projection_index_to_length(i,j,resolution, half_box_len) < max_len:
+          x_pos     = (2.*half_box_len*(<float>i)/<float>resolution -half_box_len)
+          y_pos     = (2.*half_box_len*(<float>j)/<float>resolution -half_box_len)
           rho       = np.sqrt(x_pos*x_pos + y_pos*y_pos) 
-          theta_pos = np.arcsin(rho)
+          theta_pos = inverse_projection_function_float(rho, Projection_enum)
           phi_pos   = np.arctan2(y_pos,x_pos)
+          #print i, j, x_pos, y_pos, rho, theta_pos
 
           # perform rotation
           if rot is not None:
+            if Projection_enum != OP:
+              x_pos   = np.sin(theta_pos)*np.cos(phi_pos)
+              y_pos   = np.sin(theta_pos)*np.sin(phi_pos)
             z_pos   = np.cos(theta_pos)
             x_p_pos = x_pos*rot_matix[0,0] + y_pos*rot_matix[0,1] + z_pos*rot_matix[0,2]
             y_p_pos = x_pos*rot_matix[1,0] + y_pos*rot_matix[1,1] + z_pos*rot_matix[1,2]
@@ -1358,15 +1380,18 @@ def orthographic_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L,
         ortho_proj_north[i,j] = ortho_proj_north[i,j]/<float>n_points_north[i,j]
 
       if n_points_south[i,j] == 0:
-        if orthographic_projection_index_to_length(i,j,resolution, half_box_len) < 1.0:
-          x_pos     = -(2.*half_box_len*(<float>i)/<float>resolution -half_box_len)
-          y_pos     = -(2.*half_box_len*(<float>j)/<float>resolution -half_box_len)
+        if projection_index_to_length(i,j,resolution, half_box_len) < max_len:
+          x_pos     = (2.*half_box_len*(<float>i)/<float>resolution -half_box_len)
+          y_pos     = (2.*half_box_len*(<float>j)/<float>resolution -half_box_len)
           rho       = np.sqrt(x_pos*x_pos + y_pos*y_pos) 
-          theta_pos = np.pi-np.arcsin(rho)
+          theta_pos = np.pi-inverse_projection_function_float(rho, Projection_enum)
           phi_pos   = np.arctan2(y_pos,x_pos)
 
           # perform rotation
           if rot is not None:
+            if Projection_enum != OP:
+              x_pos   = np.sin(theta_pos)*np.cos(phi_pos)
+              y_pos   = np.sin(theta_pos)*np.sin(phi_pos)
             z_pos   = np.cos(theta_pos)
             x_p_pos = x_pos*rot_matix[0,0] + y_pos*rot_matix[0,1] + z_pos*rot_matix[0,2]
             y_p_pos = x_pos*rot_matix[1,0] + y_pos*rot_matix[1,1] + z_pos*rot_matix[1,2]
@@ -1395,17 +1420,50 @@ def orthographic_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L,
 
   return ortho_proj_north, mask_north, ortho_proj_south, mask_south
 
+def forward_projection_function_array(np.ndarray theta, PROJECTION_TYPE Projection_enum):
+  if Projection_enum==OP:
+    return np.sin(theta)
+  elif Projection_enum==GP:
+    return np.tan(theta)
+  elif Projection_enum==SP:
+    return 2.0*np.tan(theta/2.0)
 
-cdef float orthographic_projection_index_to_length(int i, int j, int N, float half_box_len):
-  return (2.*half_box_len*<float>i/<float>N -half_box_len)*(2.*half_box_len*<float>i/<float>N -half_box_len) \
-          + (2.*half_box_len*<float>j/<float>N -half_box_len)*(2.*half_box_len*<float>j/<float>N -half_box_len)
+cdef inline float forward_projection_function_float(float theta, PROJECTION_TYPE Projection_enum):
+  if Projection_enum==OP:
+    return np.sin(theta)
+  elif Projection_enum==GP:
+    return np.tan(theta)
+  elif Projection_enum==SP:
+    return 2.0*np.tan(theta/2.0)
 
-def orthographic_projection(f, int L, int resolution=500, rot=None,\
-                        float zoom_region=np.pi/2, str Method="MW"):
+cdef inline float inverse_projection_function_float(float rho, PROJECTION_TYPE Projection_enum):
+  if Projection_enum==OP:
+    return np.arcsin(rho)
+  elif Projection_enum==GP:
+    return np.arctan(rho)
+  elif Projection_enum==SP:
+    return 2.0*np.arctan(rho/2.0)
+
+cdef inline float projection_index_to_length(int i, int j, int N, float half_box_len):
+  return np.sqrt((2.*half_box_len*<float>i/<float>N -half_box_len)*(2.*half_box_len*<float>i/<float>N -half_box_len) \
+          + (2.*half_box_len*<float>j/<float>N -half_box_len)*(2.*half_box_len*<float>j/<float>N -half_box_len))
+
+cdef inline float projection_max_len(PROJECTION_TYPE Projection_enum):
+  if Projection_enum==OP:
+    return 1.0
+  elif Projection_enum==GP:
+    return 1E9
+  elif Projection_enum==SP:
+    return 2.0
+
+
+def two_side_projection(f, int L, int resolution=500, rot=None,\
+                        float zoom_region=-1, str Method="MW", str Projection="OP"):
 
   cdef int i, j, n_phi, n_theta
   cdef np.ndarray[np.float_t, ndim=2] f_real, f_imag
   cdef METHOD_TYPE Method_enum
+  cdef PROJECTION_TYPE Projection_enum
 
   if Method=="MW":
     Method_enum=MW
@@ -1418,6 +1476,16 @@ def orthographic_projection(f, int L, int resolution=500, rot=None,\
   else:
     raise ssht_input_error('Method is not recognised, Methods are: MW, MWSS, DH and GL')
 
+  if Projection=="OP":
+    Projection_enum=OP
+  elif Projection=="GP":
+    Projection_enum=GP
+  elif Projection=="SP":
+    Projection_enum=SP
+  else:
+    raise ssht_input_error('Projection is not recognised, Methods are: OP, GP and SP')
+
+
   if not isinstance(f, np.ndarray):
     raise TypeError("Input not a ndarray")
 
@@ -1426,8 +1494,8 @@ def orthographic_projection(f, int L, int resolution=500, rot=None,\
 
 
   if f.dtype == np.float64:
-    return orthographic_projection_work(f, L, resolution=resolution, rot=rot,\
-                        zoom_region=zoom_region, Method_enum=Method_enum)
+    return two_side_projection_work(f, L, resolution=resolution, rot=rot,\
+                        zoom_region=zoom_region, Method_enum=Method_enum, Projection_enum=Projection_enum)
   elif f.dtype == complex:
     n_theta, n_phi = sample_shape(L,Method=Method)
     f_real = np.empty((n_theta,n_phi), dtype=np.float_)
@@ -1438,16 +1506,15 @@ def orthographic_projection(f, int L, int resolution=500, rot=None,\
         f_imag[i,j] = f[i,j].imag
 
     north_plot_real, mask_north_real, south_plot_real, mask_south_real\
-                         = orthographic_projection_work(f_real, L, resolution=resolution, rot=rot,\
-                        zoom_region=zoom_region, Method_enum=Method_enum)
+                         = two_side_projection_work(f_real, L, resolution=resolution, rot=rot,\
+                        zoom_region=zoom_region, Method_enum=Method_enum, Projection_enum=Projection_enum)
     north_plot_imag, mask_north_imag, south_plot_imag, mask_south_imag\
-                        = orthographic_projection_work(f_imag, L, resolution=resolution, rot=rot,\
-                        zoom_region=zoom_region, Method_enum=Method_enum)
+                        = two_side_projection_work(f_imag, L, resolution=resolution, rot=rot,\
+                        zoom_region=zoom_region, Method_enum=Method_enum, Projection_enum=Projection_enum)
     return north_plot_real, mask_north_real, south_plot_real, mask_south_real,\
            north_plot_imag, mask_north_imag, south_plot_imag, mask_south_imag
   else:
     raise ssht_input_error("f dtype must be float or complex")
-
 
 
 def mollweide_coords_s2_to_xy(thetas, phis):
