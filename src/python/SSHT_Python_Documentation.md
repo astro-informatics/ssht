@@ -495,7 +495,7 @@ f_plot, mask(, f_plot_imag, mask_imag) = pyssht.mollweide_projection(f, int L,\
                         zoom_region=[np.sqrt(2.0)*2,np.sqrt(2.0)], str Method="MW")
 ~~~~
 
-Creates an `ndarray` of the mollweide projection of a spherical image and a mask array. This is usefull for plotting results. Elements in the signal `f` that are `NaN`s are marked in the mask. This allows one to plot these regions the color of their choice.
+Creates an `ndarray` of the mollweide projection of a spherical image and a mask array. This is usefull for plotting results, not to be used for analysis on the plane. Elements in the signal `f` that are `NaN`s are marked in the mask. This allows one to plot these regions the color of their choice.
 
 Here is an example of using the function to plot real spherical data.
 
@@ -529,41 +529,109 @@ plt.show()
 If the input is real:
 
 Tuple containing:
-* `f_plot` the projection of the image as a 2 dimensional `ndarray` of type `float`. Masked regions and regions not in the sphere are `NaN`s to make the clear when plotted
-* `mask` the projection of the masked regions (`NaN`s in input `f`) as a 2 dimensional `ndarray` of type `float`. Masked regions have a value `0.0` and regions not in the sphere are `NaN`s to make the clear when plotted.
+* `f_plot` the projection of the image as a 2 dimensional `ndarray` of type `float`. Masked regions and regions not in the sphere are `NaN`s to make them clear when plotted
+* `mask` the projection of the masked regions (`NaN`s in input `f`) as a 2 dimensional `ndarray` of type `float`. Masked regions have a value `0.0` and regions not in the sphere are `NaN`s to make them clear when plotted.
 
 If the input is complex:
 
 Tuple containing:
-* `f_plot_real` the projection of the real part of the image as a 2 dimensional `ndarray` of type `float`. Masked regions and regions not in the sphere are `NaN`s to make the clear when plotted
-* `mask_real` the projection of the masked regions (`NaN`s in input `f.real`) as a 2 dimensional `ndarray` of type `float`. Masked regions have a value `0.0` and regions not in the sphere are `NaN`s to make the clear when plotted.
-* `f_plot_imag` the projection of the imaginary part of the image as a 2 dimensional `ndarray` of type `float`. Masked regions and regions not in the sphere are `NaN`s to make the clear when plotted
-* `mask_imag` the projection of the masked regions (`NaN`s in input `f.imag`) as a 2 dimensional `ndarray` of type `float`. Masked regions have a value `0.0` and regions not in the sphere are `NaN`s to make the clear when plotted.
+* `f_plot_real` the projection of the real part of the image as a 2 dimensional `ndarray` of type `float`. Masked regions and regions not in the sphere are `NaN`s to make them clear when plotted
+* `mask_real` the projection of the masked regions (`NaN`s in input `f.real`) as a 2 dimensional `ndarray` of type `float`. Masked regions have a value `0.0` and regions not in the sphere are `NaN`s to make them clear when plotted.
+* `f_plot_imag` the projection of the imaginary part of the image as a 2 dimensional `ndarray` of type `float`. Masked regions and regions not in the sphere are `NaN`s to make them clear when plotted
+* `mask_imag` the projection of the masked regions (`NaN`s in input `f.imag`) as a 2 dimensional `ndarray` of type `float`. Masked regions have a value `0.0` and regions not in the sphere are `NaN`s to make them clear when plotted.
 
-## pyssht.orthographic_projection
+## pyssht.equatorial_projection
 
 ~~~~
-orth_proj_north_real, mask_north_real, orth_proj_south_real, mask_south_real,\
-(orth_proj_north_imag, mask_north_imag, orth_proj_south_imag, mask_south_imag\ )
-            = pyssht.orthographic_projection(f, int L, int resolution=500,\
-             rot=None, float zoom_region=np.pi/2, str Method="MW")
+f_proj_real, mask_real, (f_proj_imag, mask_imag)\ 
+            = pyssht.equatorial_projection(f, int L, int resolution=500,\
+             rot=None, list zoom_region=[-1,-1], str Method="MW", \
+             str Projection="MERCATOR", int Spin=0)
 ~~~~
 
-Creates an two `ndarray`s of the orthagraphic projection of a spherical image and a mask array. This is usefull for plotting results. Elements in the signal `f` that are `NaN`s are marked in the mask. This allows one to plot these regions the color of their choice.
+Creates `ndarray`s of the projections of a spherical image and a mask array. This is usefull for plotting results and performing analysis on the plane. All the spherical samples that fall in one planar pixel is averaged, if no samples fall in a pixel then the pixel is assigned the value of the closest spherical sample. Elements in the signal `f` that are `NaN`s are marked in the mask. This allows one to plot these regions the color of their choice.
+
+There are two projections supported. 
+1. The Mercator projection often used in maps. 
+2. The Sinusudal projection a simple equal area projection.
+
+Here is an example of using the function to plot real spherical data using the Mercator projection.
+
+~~~~
+f_proj, mask \
+        = pyssht.equatorial_projection(f, L, resolution=500, Method="MW", \
+        Projection="MERCATOR")
+plt.figure() # start figure
+imgplot = plt.imshow(f_proj,interpolation='nearest')# plot the projected image (north part)
+plt.colorbar(imgplot) # plot color bar
+plt.imshow(mask, interpolation='nearest', cmap=cm.gray, vmin=-1., vmax=1.) # plot the NaN regions in grey
+plt.axis('off') # removes axis 
+
+plt.show()
+~~~~
+
+#### Inputs
+
+* `f` the signal on the sphere, `numpy.ndarray` type `complex` or `real`, ndim 2.
+* `L` the band limit of the signal, non-zero positive integer
+* `resolution` size of the projected image, default 500
+* `rot` If the image should be rotated before projecting, None. `rot` should be a list of length 1 or 3. If 1 then the image is roated around the \(z\) axis by that amount. If 3 then the image is rotated by the Eular angles given in the list. 
+* `zoom_region` the region of the sphere to be ploted in radians. The first element is the angle left and right of the centre, default is `np.pi` for both projections. The second element is up and down of the equator, default is `np.pi/2` for the Sinusodial projection and `7*np.pi/16` for the Mercator projection.
+* `Method` the sampling scheme used, string:
+    1. `'MW'`         [McEwen & Wiaux sampling (default)]
+    3. `'MWSS'`       [McEwen & Wiaux symmetric sampling]
+    4. `'DH'`         [Driscoll & Healy sampling]
+    5. `'GL'`         [Gauss-Legendre sampling]
+* `Projection` string describing which of the projections to use. Use `"MERCATOR"` for the Mercator projection and `"SINE"` for the Sinusodial projection, default is `"MERCATOR"`
+* `Spin` the spin of the signal. If the signal has non-zero spin then on projection the signal must be rotated to account for the changing direction of the definition of the signal. By setting this to a non-zero integer will ensure this roation is performed.
+
+#### Outputs
+
+If the input is real:
+
+Tuple containing:
+* `f_plot` the projection of the image as a 2 dimensional `ndarray` of type `float`. Masked regions and regions not in the sphere are `NaN`s to make them clear when plotted
+* `mask` the projection of the masked regions (`NaN`s in input `f`) as a 2 dimensional `ndarray` of type `float`. Masked regions have a value `0.0` and regions not in the sphere are `NaN`s to make them clear when plotted.
+
+If the input is complex:
+
+Tuple containing:
+* `f_plot_real` the projection of the real part of the image as a 2 dimensional `ndarray` of type `float`. Masked regions and regions not in the sphere are `NaN`s to make them clear when plotted
+* `mask_real` the projection of the real part of the masked regions (`NaN`s in input `f`) as a 2 dimensional `ndarray` of type `float`. Masked regions have a value `0.0` and regions not in the sphere are `NaN`s to make them clear when plotted.
+* `f_plot_imag` the projection of the imaginary part of the image as a 2 dimensional `ndarray` of type `float`. Masked regions and regions not in the sphere are `NaN`s to make them clear when plotted
+* `mask_imag` the projection of the imaginary part of the masked regions (`NaN`s in input `f`) as a 2 dimensional `ndarray` of type `float`. Masked regions have a value `0.0` and regions not in the sphere are `NaN`s to make them clear when plotted.
+
+
+## pyssht.polar_projection
+
+~~~~
+f_proj_north_real, mask_north_real, f_proj_south_real, mask_south_real,\
+(f_proj_north_imag, mask_north_imag, f_proj_south_imag, mask_south_imag\ )
+        = pyssht.polar_projection(f, int L, int resolution=500, rot=None,\
+        float zoom_region=-1, str Method="MW", str Projection="OP",int Spin=0):
+~~~~
+
+Creates an two `ndarray`s of the polar projection of a spherical image and a mask array. This is usefull for plotting results and performing analysis on the plane. All the spherical samples that fall in one planar pixel is averaged, if no samples fall in a pixel then the pixel is assigned the value of the closest spherical sample. Elements in the signal `f` that are `NaN`s are marked in the mask. This allows one to plot these regions the color of their choice.
+
+All the projections are centred around a pole. There are three projections supported. 
+1. The Gnomic projection, defined by drawing a line from the centre of the circle trough the sphere on to the plane.
+2. The Steriographic projection, definifined by drawing a line starting at the oposite pole through the sphere to the plane.
+3. The Orthographic, defined by a verticle projection on the plane.
 
 Here is an example of using the function to plot real spherical data.
 
 ~~~~
-orth_proj_north, mask_north, orth_proj_south, mask_south \
-        = pyssht.orthographic_projection(k_mw, L, resolution=500, Method="MW")
+f_proj_north, mask_north, f_proj_south, mask_south \
+        = pyssht.polar_projection(f, L, resolution=500, Method="MW", \
+        Projection="OP")
 plt.figure() # start figure
-imgplot = plt.imshow(orth_proj_north,interpolation='nearest')# plot the projected image (north part)
+imgplot = plt.imshow(f_proj_north,interpolation='nearest')# plot the projected image (north part)
 plt.colorbar(imgplot) # plot color bar
 plt.imshow(mask_north, interpolation='nearest', cmap=cm.gray, vmin=-1., vmax=1.) # plot the NaN regions in grey
 plt.axis('off') # removes axis (looks better)
 
 plt.figure()
-imgplot = plt.imshow(orth_proj_south,interpolation='nearest')# plot the projected image (south part)
+imgplot = plt.imshow(f_proj_south,interpolation='nearest')# plot the projected image (south part)
 plt.colorbar(imgplot)
 plt.imshow(mask_south, interpolation='nearest', cmap=cm.gray, vmin=-1., vmax=1.)
 plt.title("orthographic projection south")
@@ -577,12 +645,14 @@ plt.show()
 * `L` the band limit of the signal, non-zero positive integer
 * `resolution` size of the projected image, default 500
 * `rot` If the image should be rotated before projecting, None. `rot` should be a list of length 1 or 3. If 1 then the image is roated around the \(z\) axis by that amount. If 3 then the image is rotated by the Eular angles given in the list. 
-* `zoom_region` the region of the sphere to be ploted in radians, default `np.pi/2` is the full half sphere.
+* `zoom_region` the region of the sphere to be ploted in radians, default `np.pi/2` is the full half sphere for the othographic and steriographic projections and `np.pi/2` for the gnomic projection as the equator is at infinity in this projection.
 * `Method` the sampling scheme used, string:
     1. `'MW'`         [McEwen & Wiaux sampling (default)]
     3. `'MWSS'`       [McEwen & Wiaux symmetric sampling]
     4. `'DH'`         [Driscoll & Healy sampling]
     5. `'GL'`         [Gauss-Legendre sampling]
+* `Projection` string describing which of the projections to use. Use `"GP"` for the Gnomic projection, `"SP"` for the Steriogrphic projection and `"OP"` for the Orthographic projection, default is `"OP"`
+* `Spin` the spin of the signal. If the signal has non-zero spin then on projection the signal must be rotated to account for the changing direction of the definition of the signal. By setting this to a non-zero integer will ensure this roation is performed.
 
 
 #### Outputs
@@ -590,22 +660,22 @@ plt.show()
 If the input is real:
 
 Tuple containing:
-* `f_plot_north` the projection of the north part of the image as a 2 dimensional `ndarray` of type `float`. Masked regions and regions not in the sphere are `NaN`s to make the clear when plotted
-* `mask_north` the projection of the north part of the masked regions (`NaN`s in input `f`) as a 2 dimensional `ndarray` of type `float`. Masked regions have a value `0.0` and regions not in the sphere are `NaN`s to make the clear when plotted.
-* `f_plot_south` the projection of the south part of the image as a 2 dimensional `ndarray` of type `float`. Masked regions and regions not in the sphere are `NaN`s to make the clear when plotted
-* `mask_south` the projection of the south part of the masked regions (`NaN`s in input `f`) as a 2 dimensional `ndarray` of type `float`. Masked regions have a value `0.0` and regions not in the sphere are `NaN`s to make the clear when plotted.
+* `f_plot_north` the projection of the north part of the image as a 2 dimensional `ndarray` of type `float`. Masked regions and regions not in the sphere are `NaN`s to make them clear when plotted
+* `mask_north` the projection of the north part of the masked regions (`NaN`s in input `f`) as a 2 dimensional `ndarray` of type `float`. Masked regions have a value `0.0` and regions not in the sphere are `NaN`s to make them clear when plotted.
+* `f_plot_south` the projection of the south part of the image as a 2 dimensional `ndarray` of type `float`. Masked regions and regions not in the sphere are `NaN`s to make them clear when plotted
+* `mask_south` the projection of the south part of the masked regions (`NaN`s in input `f`) as a 2 dimensional `ndarray` of type `float`. Masked regions have a value `0.0` and regions not in the sphere are `NaN`s to make them clear when plotted.
 
 If the input is complex:
 
 Tuple containing:
-* `f_plot_north_real` the projection of the north part of the real part of the image as a 2 dimensional `ndarray` of type `float`. Masked regions and regions not in the sphere are `NaN`s to make the clear when plotted
-* `mask_north_real` the projection of the north part of the real part of the masked regions (`NaN`s in input `f`) as a 2 dimensional `ndarray` of type `float`. Masked regions have a value `0.0` and regions not in the sphere are `NaN`s to make the clear when plotted.
-* `f_plot_south_real` the projection of the south part of the real part of the image as a 2 dimensional `ndarray` of type `float`. Masked regions and regions not in the sphere are `NaN`s to make the clear when plotted
-* `mask_south_real` the projection of the south part of the real part of the masked regions (`NaN`s in input `f`) as a 2 dimensional `ndarray` of type `float`. Masked regions have a value `0.0` and regions not in the sphere are `NaN`s to make the clear when plotted.
-* `f_plot_north_imag` the projection of the north part of the imaginary part of the image as a 2 dimensional `ndarray` of type `float`. Masked regions and regions not in the sphere are `NaN`s to make the clear when plotted
-* `mask_north_imag` the projection of the north part of the imaginary part of the masked regions (`NaN`s in input `f`) as a 2 dimensional `ndarray` of type `float`. Masked regions have a value `0.0` and regions not in the sphere are `NaN`s to make the clear when plotted.
-* `f_plot_south_imag` the projection of the south part of the imaginary part of the image as a 2 dimensional `ndarray` of type `float`. Masked regions and regions not in the sphere are `NaN`s to make the clear when plotted
-* `mask_south_imag` the projection of the south part of the imaginary part of the masked regions (`NaN`s in input `f`) as a 2 dimensional `ndarray` of type `float`. Masked regions have a value `0.0` and regions not in the sphere are `NaN`s to make the clear when plotted.
+* `f_plot_north_real` the projection of the north part of the real part of the image as a 2 dimensional `ndarray` of type `float`. Masked regions and regions not in the sphere are `NaN`s to make them clear when plotted
+* `mask_north_real` the projection of the north part of the real part of the masked regions (`NaN`s in input `f`) as a 2 dimensional `ndarray` of type `float`. Masked regions have a value `0.0` and regions not in the sphere are `NaN`s to make them clear when plotted.
+* `f_plot_south_real` the projection of the south part of the real part of the image as a 2 dimensional `ndarray` of type `float`. Masked regions and regions not in the sphere are `NaN`s to make them clear when plotted
+* `mask_south_real` the projection of the south part of the real part of the masked regions (`NaN`s in input `f`) as a 2 dimensional `ndarray` of type `float`. Masked regions have a value `0.0` and regions not in the sphere are `NaN`s to make them clear when plotted.
+* `f_plot_north_imag` the projection of the north part of the imaginary part of the image as a 2 dimensional `ndarray` of type `float`. Masked regions and regions not in the sphere are `NaN`s to make them clear when plotted
+* `mask_north_imag` the projection of the north part of the imaginary part of the masked regions (`NaN`s in input `f`) as a 2 dimensional `ndarray` of type `float`. Masked regions have a value `0.0` and regions not in the sphere are `NaN`s to make them clear when plotted.
+* `f_plot_south_imag` the projection of the south part of the imaginary part of the image as a 2 dimensional `ndarray` of type `float`. Masked regions and regions not in the sphere are `NaN`s to make them clear when plotted
+* `mask_south_imag` the projection of the south part of the imaginary part of the masked regions (`NaN`s in input `f`) as a 2 dimensional `ndarray` of type `float`. Masked regions have a value `0.0` and regions not in the sphere are `NaN`s to make them clear when plotted.
 
 
 ## pyssht.dl_beta_recurse
