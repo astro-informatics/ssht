@@ -28,21 +28,21 @@
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
 double ran2_dp(int idum);
-void ssht_test_gen_flm_complex(complex double *flm, int L, int spin, int seed);
-void ssht_test_gen_flm_real(complex double *flm, int L, int seed);
-void ssht_test_gen_lb_flm_complex(complex double *flm, int L0, int L, int spin, int seed);
-void ssht_test_gen_lb_flm_real(complex double *flm, int L0, int L, int seed);
+void ssht_test_gen_flm_complex(SSHT_COMPLEX(double) *flm, int L, int spin, int seed);
+void ssht_test_gen_flm_real(SSHT_COMPLEX(double) *flm, int L, int seed);
+void ssht_test_gen_lb_flm_complex(SSHT_COMPLEX(double) *flm, int L0, int L, int spin, int seed);
+void ssht_test_gen_lb_flm_real(SSHT_COMPLEX(double) *flm, int L0, int L, int seed);
 
 int main(int argc, char *argv[]) {
 
-  complex double *flm_orig, *flm_syn;
-  complex double *f_mw, *f_mw_ss, *f_gl, *f_dh;
+  SSHT_COMPLEX(double) *flm_orig, *flm_syn;
+  SSHT_COMPLEX(double) *f_mw, *f_mw_ss, *f_gl, *f_dh;
   double *f_mw_real, *f_mw_ss_real, *f_gl_real, *f_dh_real;
-  complex double *f_mw_lb, *f_mw_lb_ss;
+  SSHT_COMPLEX(double) *f_mw_lb, *f_mw_lb_ss;
   double *f_mw_lb_real, *f_mw_lb_ss_real;
 
-  complex double *f_mw_pole, *f_mw_ss_pole;
-  complex double f_mw_sp, f_mw_ss_np, f_mw_ss_sp;
+  SSHT_COMPLEX(double) *f_mw_pole, *f_mw_ss_pole;
+  SSHT_COMPLEX(double) f_mw_sp, f_mw_ss_np, f_mw_ss_sp;
   double *f_mw_real_pole, *f_mw_ss_real_pole;
   double f_mw_real_sp, f_mw_ss_real_sp, f_mw_ss_real_np, phi_sp, phi_np;
 
@@ -118,25 +118,25 @@ int main(int argc, char *argv[]) {
     L0 = atoi(argv[3]);
 
   // Allocate memory.
-  flm_orig = (complex double*)calloc(L*L, sizeof(complex double));
+  flm_orig = (SSHT_COMPLEX(double)*)calloc(L*L, sizeof(SSHT_COMPLEX(double)));
   SSHT_ERROR_MEM_ALLOC_CHECK(flm_orig)
-  flm_syn = (complex double*)calloc(L*L, sizeof(complex double));
+  flm_syn = (SSHT_COMPLEX(double)*)calloc(L*L, sizeof(SSHT_COMPLEX(double)));
   SSHT_ERROR_MEM_ALLOC_CHECK(flm_syn)
-  f_mw = (complex double*)calloc(L*(2*L-1), sizeof(complex double));
+  f_mw = (SSHT_COMPLEX(double)*)calloc(L*(2*L-1), sizeof(SSHT_COMPLEX(double)));
   SSHT_ERROR_MEM_ALLOC_CHECK(f_mw)
-  f_mw_lb = (complex double*)calloc(L*(2*L-1), sizeof(complex double));
+  f_mw_lb = (SSHT_COMPLEX(double)*)calloc(L*(2*L-1), sizeof(SSHT_COMPLEX(double)));
   SSHT_ERROR_MEM_ALLOC_CHECK(f_mw)
-  f_mw_ss = (complex double*)calloc((L+1)*(2*L), sizeof(complex double));
+  f_mw_ss = (SSHT_COMPLEX(double)*)calloc((L+1)*(2*L), sizeof(SSHT_COMPLEX(double)));
   SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_ss)
-  f_mw_lb_ss = (complex double*)calloc((L+1)*(2*L), sizeof(complex double));
+  f_mw_lb_ss = (SSHT_COMPLEX(double)*)calloc((L+1)*(2*L), sizeof(SSHT_COMPLEX(double)));
   SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_ss)
-  f_mw_pole = (complex double*)calloc((L-1)*(2*L-1), sizeof(complex double));
+  f_mw_pole = (SSHT_COMPLEX(double)*)calloc((L-1)*(2*L-1), sizeof(SSHT_COMPLEX(double)));
   SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_pole)
-  f_mw_ss_pole = (complex double*)calloc((L-1)*(2*L), sizeof(complex double));
+  f_mw_ss_pole = (SSHT_COMPLEX(double)*)calloc((L-1)*(2*L), sizeof(SSHT_COMPLEX(double)));
   SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_ss_pole)
-  f_gl = (complex double*)calloc(L*(2*L-1), sizeof(complex double));
+  f_gl = (SSHT_COMPLEX(double)*)calloc(L*(2*L-1), sizeof(SSHT_COMPLEX(double)));
   SSHT_ERROR_MEM_ALLOC_CHECK(f_gl)
-  f_dh = (complex double*)calloc((2*L)*(2*L-1), sizeof(complex double));
+  f_dh = (SSHT_COMPLEX(double)*)calloc((2*L)*(2*L-1), sizeof(SSHT_COMPLEX(double)));
   SSHT_ERROR_MEM_ALLOC_CHECK(f_dh)
   f_mw_real = (double*)calloc(L*(2*L-1), sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(f_mw_real)
@@ -840,7 +840,7 @@ int main(int argc, char *argv[]) {
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_test_gen_flm_real(complex double *flm, int L, int seed) {
+void ssht_test_gen_flm_real(SSHT_COMPLEX(double) *flm, int L, int seed) {
 
   int el, m, msign, i, i_op;
 
@@ -872,7 +872,7 @@ void ssht_test_gen_flm_real(complex double *flm, int L, int seed) {
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_test_gen_lb_flm_real(complex double *flm, int L0, int L, int seed) {
+void ssht_test_gen_lb_flm_real(SSHT_COMPLEX(double) *flm, int L0, int L, int seed) {
 
   int el, m, msign, i, i_op;
 
@@ -917,7 +917,7 @@ void ssht_test_gen_lb_flm_real(complex double *flm, int L0, int L, int seed) {
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_test_gen_flm_complex(complex double *flm, int L, int spin, int seed) {
+void ssht_test_gen_flm_complex(SSHT_COMPLEX(double) *flm, int L, int spin, int seed) {
 
   int i, i_lo;
 
@@ -940,7 +940,7 @@ void ssht_test_gen_flm_complex(complex double *flm, int L, int spin, int seed) {
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_test_gen_lb_flm_complex(complex double *flm, int L0, int L, int spin, int seed) {
+void ssht_test_gen_lb_flm_complex(SSHT_COMPLEX(double) *flm, int L0, int L, int spin, int seed) {
 
   int i, i_lo;
 

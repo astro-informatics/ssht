@@ -8,7 +8,8 @@
 
 #include <complex.h>
 
-complex double ssht_sampling_weight_mw(int p);
+
+SSHT_COMPLEX(double) ssht_sampling_weight_mw(int p);
 double ssht_sampling_weight_dh(double theta_t, int L);
 void ssht_sampling_gl_thetas_weights(double *thetas, double *weights, int L);
 
