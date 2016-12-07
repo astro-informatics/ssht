@@ -8,6 +8,9 @@
 
 #include <complex.h>
 
+#ifdef __cplusplus
+extern "C"{
+#endif
 
 void ssht_adjoint_mw_inverse_sov_sym(SSHT_COMPLEX(double) *flm, 
 				     SSHT_COMPLEX(double) *f, 
@@ -101,5 +104,8 @@ void ssht_adjoint_mw_forward_sov_sym_ss_real_pole(double *f,
 						  ssht_dl_method_t dl_method,
 						  int verbosity);
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif

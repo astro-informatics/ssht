@@ -9,6 +9,9 @@
 #include <complex.h>
 
 
+#ifdef __cplusplus
+extern "C"{
+#endif
 
 void ssht_core_mw_inverse_sov_sym(SSHT_COMPLEX(double) *f, const SSHT_COMPLEX(double) *flm,
 				  int L, int spin,
@@ -155,5 +158,8 @@ void ssht_core_dh_forward_sov(SSHT_COMPLEX(double) *flm, const SSHT_COMPLEX(doub
 void ssht_core_dh_forward_sov_real(SSHT_COMPLEX(double) *flm, const double *f,
 				   int L, int verbosity);
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif
