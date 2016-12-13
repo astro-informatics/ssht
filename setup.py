@@ -27,6 +27,7 @@ extra_link_args=[
 ]
 
 setup(
+    classifiers=['Programming Language :: Python :: 2.7'],
     name = "pyssht",
     version = "2.0",
     prefix='.',
