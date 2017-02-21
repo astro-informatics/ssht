@@ -644,8 +644,8 @@ plt.show()
 * `f` the signal on the sphere, `numpy.ndarray` type `complex` or `real`, ndim 2.
 * `L` the band limit of the signal, non-zero positive integer
 * `resolution` size of the projected image, default 500
-* `rot` If the image should be rotated before projecting, None. `rot` should be a list of length 1 or 3. If 1 then the image is roated around the \(z\) axis by that amount. If 3 then the image is rotated by the Eular angles given in the list. 
-* `zoom_region` the region of the sphere to be ploted in radians, default `np.pi/2` is the full half sphere for the othographic and steriographic projections and `np.pi/2` for the gnomic projection as the equator is at infinity in this projection.
+* `rot` If the image should be rotated before projecting, default None. `rot` should be a list of length 1 or 3. If 1 then the image is roated around the \(z\) axis by that amount. If 3 then the image is rotated by the Eular angles given in the list. 
+* `zoom_region` the region of the sphere to be ploted in radians, default `np.pi/2` is the full half sphere for the othographic and steriographic projections and `np.pi/4` for the gnomic projection as the equator is at infinity in this projection.
 * `Method` the sampling scheme used, string:
     1. `'MW'`         [McEwen & Wiaux sampling (default)]
     3. `'MWSS'`       [McEwen & Wiaux symmetric sampling]

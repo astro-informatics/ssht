@@ -1447,7 +1447,8 @@ def equatorial_projection_angle_array(int resolution, list zoom_region=[-1.,-1.]
   return theta_angle, phi_angle
 
 def equatorial_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L, int resolution=500, rot=None,\
-                        list zoom_region=[-1,-1], METHOD_TYPE Method_enum=MW, EQUATORIAL_PROJECTION_TYPE Equatorial_Projection_enum=MERCATOR):
+                        list zoom_region=[-1,-1], METHOD_TYPE Method_enum=MW, \
+                        EQUATORIAL_PROJECTION_TYPE Equatorial_Projection_enum=MERCATOR):
 
 
   if rot is None or len(rot) > 1:
@@ -2179,13 +2180,15 @@ def dl_beta_recurse(np.ndarray[ double, ndim=2, mode="c"] dl not None, double be
 
 def generate_dl(double beta, int L):
 
-  cdef np.ndarray[np.float_t, ndim=3] dl_array = np.empty((L, 2*L-1, 2*L-1), dtype=np.float_)
+  cdef np.ndarray[np.float_t, ndim=3] dl_array = np.zeros((L, 2*L-1, 2*L-1), dtype=np.float_)
   cdef np.ndarray[np.float_t, ndim=2] dl_dummy = np.zeros((2*L-1, 2*L-1), dtype=np.float_)
 
   cdef np.ndarray[np.float_t, ndim=1] sqrt_tbl = np.sqrt(np.arange(0,2*(L-1)+1, dtype=np.float_))
   cdef np.ndarray[np.float_t, ndim=2] signs = np.ones((L+1,1), dtype=np.float_)
 
-  cdef int i, el
+  cdef int i, j, el, offset_m=L-1
+
+  print "here"
 
   for i in range(1,L+1,2):
     signs[i] = -1 
@@ -2197,12 +2200,50 @@ def generate_dl(double beta, int L):
   #el = 0 first
   ssht_dl_beta_risbo_half_table(<double*> np.PyArray_DATA(dl_dummy), beta, L, dl_size,\
                                            0, <double*> np.PyArray_DATA(sqrt_tbl), <double*> np.PyArray_DATA(signs));
-  dl_array[0,:,:] = dl_dummy
+
+  dl_array[0,offset_m,offset_m] = dl_dummy[offset_m,offset_m]
 
   for el in range(1,L):
     ssht_dl_beta_risbo_half_table(<double*> np.PyArray_DATA(dl_dummy), beta, L, dl_size,\
                                            el, <double*> np.PyArray_DATA(sqrt_tbl), <double*> np.PyArray_DATA(signs));
-    dl_array[el,:,:] = dl_dummy
+    for i in range(-el,el+1):
+#      print i
+      for j in range(-el,el+1):
+        dl_array[el,offset_m+i,offset_m+j] = dl_dummy[offset_m+i,offset_m+j]
+
+  return dl_array
+
+def generate_dl(double beta, int L, int M):
+
+  cdef np.ndarray[np.float_t, ndim=3] dl_array = np.zeros((L, 2*M-1, 2*M-1), dtype=np.float_)
+  cdef np.ndarray[np.float_t, ndim=2] dl_dummy = np.zeros((2*L-1, 2*L-1), dtype=np.float_)
+
+  cdef np.ndarray[np.float_t, ndim=1] sqrt_tbl = np.sqrt(np.arange(0,2*(L-1)+1, dtype=np.float_))
+  cdef np.ndarray[np.float_t, ndim=2] signs = np.ones((L+1,1), dtype=np.float_)
+
+  cdef int i, j, el, offset_m=M-1, offset_m_dummy=L-1
+
+  for i in range(1,L+1,2):
+    signs[i] = -1 
+
+  
+  cdef ssht_dl_size_t dl_size=SSHT_DL_HALF
+  
+  # do recursion
+  #el = 0 first
+  ssht_dl_beta_risbo_half_table(<double*> np.PyArray_DATA(dl_dummy), beta, L, dl_size,\
+                                           0, <double*> np.PyArray_DATA(sqrt_tbl), <double*> np.PyArray_DATA(signs));
+
+  dl_array[0,offset_m,offset_m] = dl_dummy[offset_m_dummy,offset_m_dummy]
+
+  for el in range(1,L):
+#    print el
+    ssht_dl_beta_risbo_half_table(<double*> np.PyArray_DATA(dl_dummy), beta, L, dl_size,\
+                                           el, <double*> np.PyArray_DATA(sqrt_tbl), <double*> np.PyArray_DATA(signs));
+    for i in range(-M+1,M):
+#      print i
+      for j in range(-M+1,M):
+        dl_array[el,offset_m+i,offset_m+j] = dl_dummy[offset_m_dummy+i,offset_m_dummy+j]
 
   return dl_array
 
