@@ -1985,6 +1985,14 @@ def polar_projection(f, int L, int resolution=500, rot=None,\
   else:
     raise ssht_input_error('Projection is not recognised, Methods are: OP, GP and SP')
 
+  if Polar_Projection_enum==GP and zoom_region=>np.pi/2:
+    raise ssht_input_error('zoom_region cannot be >= pi/2 for GP')
+  if Polar_Projection_enum==OP and zoom_region>np.pi/2:
+    raise ssht_input_error('zoom_region cannot be > pi/2 for OP')
+  if Polar_Projection_enum==SP and zoom_region=>np.pi:
+    raise ssht_input_error('zoom_region cannot be >= pi for OP')
+
+
 
   if not isinstance(f, np.ndarray):
     raise TypeError("Input not a ndarray")
