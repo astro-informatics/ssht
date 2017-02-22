@@ -1745,12 +1745,13 @@ def polar_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L, int re
 
   cdef np.ndarray[np.int_t,   ndim=2] n_points_north, n_points_south
 
-  cdef float x_pos, y_pos, z_pos, x_p_pos, y_p_pos, z_p_pos, rho, theta_pos, phi_pos, half_box_len, max_len
+  cdef float x_pos, y_pos, z_pos, x_p_pos, y_p_pos, z_p_pos, rho, theta_pos, phi_pos, half_box_len, max_len, tol_error
   
   cdef int n_theta, n_phi, n_theta_north, n_theta_south, i, j, p, q, i_rot, j_rot
 
   half_box_len = forward_projection_function_float(zoom_region, Polar_Projection_enum)
- 
+  tol_error = 1E-10
+
   n_theta, n_phi = sample_shape(L, Method=Method)
   n_theta_north = n_theta/2
   n_theta_south = n_theta-n_theta_north
@@ -1797,7 +1798,7 @@ def polar_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L, int re
   for i in range(n_theta):
     for j in range(n_phi):
 
-      if x_project[i,j] < half_box_len and x_project[i,j] > -half_box_len and y_project[i,j] < half_box_len and y_project[i,j] > -half_box_len:
+      if x_project[i,j] < half_box_len*(1-tol_error) and x_project[i,j] > -half_box_len*(1-tol_error) and y_project[i,j] < half_box_len*(1-tol_error) and y_project[i,j] > -half_box_len*(1-tol_error):
         p = int(resolution*(x_project[i,j]+half_box_len)/(2.0*half_box_len))
         q = int(resolution*(y_project[i,j]+half_box_len)/(2.0*half_box_len))
 
@@ -1985,11 +1986,11 @@ def polar_projection(f, int L, int resolution=500, rot=None,\
   else:
     raise ssht_input_error('Projection is not recognised, Methods are: OP, GP and SP')
 
-  if Polar_Projection_enum==GP and zoom_region=>np.pi/2:
+  if (Polar_Projection_enum==GP and zoom_region>=np.pi/2):
     raise ssht_input_error('zoom_region cannot be >= pi/2 for GP')
   if Polar_Projection_enum==OP and zoom_region>np.pi/2:
     raise ssht_input_error('zoom_region cannot be > pi/2 for OP')
-  if Polar_Projection_enum==SP and zoom_region=>np.pi:
+  if Polar_Projection_enum==SP and zoom_region>=np.pi:
     raise ssht_input_error('zoom_region cannot be >= pi for OP')
 
 
