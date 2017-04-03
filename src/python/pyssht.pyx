@@ -1991,7 +1991,7 @@ def polar_projection(f, int L, int resolution=500, rot=None,\
   if Polar_Projection_enum==OP and zoom_region>np.pi/2:
     raise ssht_input_error('zoom_region cannot be > pi/2 for OP')
   if Polar_Projection_enum==SP and zoom_region>=np.pi:
-    raise ssht_input_error('zoom_region cannot be >= pi for OP')
+    raise ssht_input_error('zoom_region cannot be >= pi for SP')
 
 
 
