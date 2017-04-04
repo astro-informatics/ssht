@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib import cm, colors, colorbar, gridspec
 from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.axes_grid1 import make_axes_locatable
+from libc.math cimport log, exp
 
 #----------------------------------------------------------------------------------------------------#
 
@@ -1683,7 +1684,7 @@ cdef float inverse_equatorial_projection_function_float_theta(float x, float y, 
   cdef float theta
 
   if Equatorial_Projection_enum == MERCATOR:
-    theta = np.pi-np.arctan(np.exp(y))*2.0
+    theta = np.pi-np.arctan(exp(y))*2.0
     return theta
   if Equatorial_Projection_enum == SINE:
     theta = np.pi/2-y
@@ -2352,7 +2353,7 @@ def guassian_smoothing(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not No
     sigma = sigma_in
     bl = np.empty([L,], dtype=float)
     for el in range(L):
-      bl[el] = np.exp(-<float>el*<float>el*sigma*sigma)
+      bl[el] = exp(-<float>el*<float>el*sigma*sigma)
 
   if bl_in is not None:
     bl = bl_in
