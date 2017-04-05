@@ -2198,8 +2198,6 @@ def generate_dl(double beta, int L):
 
   cdef int i, j, el, offset_m=L-1
 
-  print "here"
-
   for i in range(1,L+1,2):
     signs[i] = -1 
 
@@ -2223,7 +2221,7 @@ def generate_dl(double beta, int L):
 
   return dl_array
 
-def generate_dl(double beta, int L, int M):
+def generate_dl_Mmax(double beta, int L, int M):
 
   cdef np.ndarray[np.float_t, ndim=3] dl_array = np.zeros((L, 2*M-1, 2*M-1), dtype=np.float_)
   cdef np.ndarray[np.float_t, ndim=2] dl_dummy = np.zeros((2*L-1, 2*L-1), dtype=np.float_)
