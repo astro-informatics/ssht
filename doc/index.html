@@ -52,16 +52,16 @@ harmonics, sphere, transforms, fourier, fast, algorithms, mcewen, wiaux" />
 <h2>News</h2>
 
 <ul>
-<li><strong>01 January 2016</strong><br />
-Public release of SSHT 1.1b1 (python implementation).
+<li><strong>April 2017</strong><br />
+Release of SSHT 1.1b1 (python support).
 </li>
-<li><strong>31 October 2011</strong><br />
+<li><strong>October 2011</strong><br />
 Public release of SSHT 1.0b1 (first beta).
 </li>
-<li><strong>20 May 2011</strong><br />
+<li><strong>May 2011</strong><br />
 Private release of SSHT 0.2, including fast adjoint algorithms.
 </li>
-<li><strong>5 March 2011</strong><br />
+<li><strong>March 2011</strong><br />
 Private release of SSHT 0.1.
 </li>
 </ul>
@@ -79,7 +79,7 @@ Private release of SSHT 0.1.
   The <strong>SSHT</strong> code provides functionality to perform fast and exact
   spin spherical harmonic transforms based on the sampling theorem on the
   sphere derived in our paper:
-  <i><a href="http://www.mrao.cam.ac.uk/~jdm57/publications.html#mcewen:fssht">A
+  <i><a href="http://www.jasonmcewen.org/publications.html#mcewen:fssht">A
   novel sampling theorem on the sphere</a> </i>
   (<a href="http://arxiv.org/abs/1110.6298">ArXiv</a>
   | <a href="http://dx.doi.org/10.1109/TSP.2011.2166394">DOI</a>).
@@ -89,16 +89,17 @@ Private release of SSHT 0.1.
   optimisation problems).  We provide functionality to perform
   fast and exact adjoint transforms, based on the fast algorithms
   derived in our paper: 
-  <i><a href="http://www.mrao.cam.ac.uk/~jdm57/publications.html#mcewen:css2">Efficient
-  and compressive sampling on the sphere</a></i>.
+  <i><a href="http://www.jasonmcewen.org/publications.html#mcewen:css2">Sparse image reconstruction on the sphere: implications of a new sampling theorem</a></i>
+  (<a href="http://arxiv.org/abs/1205.1013">ArXiv</a>
+  | <a href="http://dx.doi.org/10.1109/TIP.2013.2249079">DOI</a>).
 
   <p>
   This documentation outlines the various harmonic transforms
-  supported in SSHT, before describing installation details and
+  supported in <strong>SSHT</strong>, before describing installation details and
   documenting the C, Fortran and Matlab source code.  Reference,
   version, and license information then follows.
   
-  For an overview see the <a href="../README.txt">README.txt</a>
+  For an overview see the <a href="../README.md">README.txt</a>
   file.
 
 <!--------------------------------------------------------------->  
@@ -151,7 +152,8 @@ Private release of SSHT 0.1.
  href="http://www.fftw.org/">FFTW</a> package.  Obviously suitable C and
  Fortran 90 compilers will be required to build the respective
  implementations.  Both C and Matlab mex compilers will be required
- to build the Matlab interface to the C implementation.
+ to build the Matlab interface to the C implementation.  The python interface requires <a href="http://www.numpy.org/">numpy</a> and, in addition, the demos require <a href="http://matplotlib.org/">matplotlib</a>.
+
 
   <h4>Compiling</h4>
 
@@ -361,16 +363,12 @@ and <a href="f90/html/index.html">Fortran 90</a> implementations.  The
   <p> where <code>&ltdemo&gt</code> is the demo name.
 
   <!--------------------------------------------------------------->
-<a name="python"><h2>python interface</h2></a>
+<a name="python"><h2>Python interface</h2></a>
 
   <p> Once the python interface is built, you must have
   <code>ssht/src/python</code> in your python path in order to run the python functions.
   A number of python functions and demos illustrating their use are
   provided.
-
-  <h4>Dependencies</h4>
-  The python interface requires numpy, in addition the demos require matplotlib.
-
 
   <h4>Functions</h4>
 
@@ -443,18 +441,18 @@ and <a href="f90/html/index.html">Fortran 90</a> implementations.  The
   and our related academic paper:
 
 <blockquote> J. D. McEwen and
- Y. Wiaux, <a href="http://www.mrao.cam.ac.uk/~jdm57/publications.html#mcewen:fssht">A
- novel sampling theorem on the sphere</a>, IEEE Trans. Sig. Proc., in
- press, 2011 (<a href="http://arxiv.org/abs/1110.6298">ArXiv</a>
+ Y. Wiaux, <a href="http://www.jasonmcewen.org/publications.html#mcewen:fssht">A
+ novel sampling theorem on the sphere</a>, IEEE Trans. Sig. Proc., 59(12):5876-5887, 2011 (<a href="http://arxiv.org/abs/1110.6298">ArXiv</a>
  | <a href="http://dx.doi.org/10.1109/TSP.2011.2166394">DOI</a>). </blockquote>
 
   <p> If you make use of our fast adjoint algorithms, then please also cite:
 
 <blockquote> J. D. McEwen, G. Puy, J.-Ph. Thiran, P. Vandergheynst,
 D. Van De Ville and Y. Wiaux, <a
- href="http://www.mrao.cam.ac.uk/~jdm57/publications.html#mcewen:css2">Efficient
-and compressive sampling on the sphere</a>, IEEE Trans. Sig. Proc.,
-submitted, 2011.
+ href="http://www.jasonmcewen.org/publications.html#mcewen:css2">Sparse image reconstruction on the sphere: implications of a new sampling theorem</a>, IEEE Trans. Image Proc.,
+22(6):2275-2285, 2013 (<a href="http://arxiv.org/abs/1205.1013">ArXiv</a>
+| <a href="http://dx.doi.org/10.1109/TIP.2013.2249079">DOI</a>).
+
 </blockquote>
 
 
@@ -462,12 +460,13 @@ submitted, 2011.
 <a name="version"><h2>Version</h2></a>
 
   <p>
-  Version: 1.0b1<br>
-  Release date: 31 October 2011
+  Version: 1.1b1<br>
+  Release date: April 2017
 
   <h4>Version history</h4>
   <p>
  <ul>
+   <li>1.1b1 (April 2017): Python interface added and support for C99 standard.</li>
    <li>1.0b1 (31 October 2011): Public release of first beta.</li>
    <li>0.2 (20 May 2011): Fast adjoint algorithms added.</li>
    <li>0.1 (5 March 2011): First private release.</li>
@@ -503,34 +502,9 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
 <!--------------------------------------------------------------->
 <a name="authors"><h2>About the authors</h2></a>
 
-  <p> <strong>SSHT</strong> has been developed by Jason McEwen and
- Yves Wiaux at the Ecole Polytechnique Federale de Lausanne (<a
-  href="http://www.epfl.ch/" target="_top">EPFL</a>).  Both Jason and
- Yves are interested in fundamental signal processing on the sphere and
- applications of their techniques to problems in astrophysics and
- biomedical imaging.  See their web pages for more information.</p>
+  <p> <strong>SSHT</strong> was initially written by <a href="http://www.jasonmcewen.org/">Jason McEwen</a>, based on collaborative work with <a href="http://www.google.co.uk/search?q=yves wiaux">Yves Wiaux</a>, but significant contributions have since been made by <a href="https://www.christophergrwallis.org/">Christopher Wallis</a>, Martin B&uuml;ttner, and <a href="http://ixkael.com/blog/">Boris Leistedt</a>.
 
-  <p>
-  <img src="images/photo_jason.jpg" width="100"
-  alt="Example frontpage image" class="left photobox" />
-
-  Dr Jason McEwen<br>
-  <a href="http://www.jasonmcewen.org/">Academic web page</a>
-  &raquo;</p>
-  </p>
-  
-  <br><br><br><br><br>
-
-  <p>
-  <img src="images/photo_yves.jpg" width="100"
-  alt="Example frontpage image" class="left photobox" />
-
-  Dr Yves Wiaux<br>
-  <a href="http://www.google.co.uk/search?q=yves wiaux">Academic web page</a>
-  &raquo;</p>
- 
-
-<br><br><br><br><br><br><br>
+<br><br><br><br>
 
 </div>
 

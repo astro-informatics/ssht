@@ -18,7 +18,8 @@ int main(void) {
 
   printf("%s\n", "==========================================================");
   printf("%s\n", "SSHT package to perform spin spherical harmonic transforms");
-  printf("%s\n", "By Jason McEwen and Yves Wiaux");
+  printf("%s\n", "By Jason McEwen, Chris Wallis, Martin Buttner, ");
+  printf("%s\n", "Boris Leistedt, and Yves Wiaux");
 
   printf("%s\n", "See www.jasonmcewen.org for more information.");
   printf("%s\n", "See LICENSE.txt for license details.");
