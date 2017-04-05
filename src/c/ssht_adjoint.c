@@ -338,7 +338,7 @@ void ssht_adjoint_mw_inverse_sov_sym_real(complex double *flm,
   double *in_real;
   complex double *inout, *out;
   complex double *Fmt, *Fmm;
-  int f_stride, Fmt_stride, Fmt_offset, Fmm_stride, Fmm_offset;
+  int f_stride, Fmt_stride, Fmm_stride, Fmm_offset;
   double *dl;
   double *dl8 = NULL;
   int dl_offset, dl_stride;
@@ -389,8 +389,7 @@ void ssht_adjoint_mw_inverse_sov_sym_real(complex double *flm,
   // Compute Fourier transform over phi, i.e. compute Fmt.
   Fmt = (complex double*)calloc(L*(2*L-1), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmt)
-  Fmt_stride = 2*L-1;
-  Fmt_offset = L-1;
+  Fmt_stride = 2*L-1;  
   f_stride = 2*L-1;
   in_real = (double*)calloc(2*L-1, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(in_real)
@@ -1786,12 +1785,11 @@ void ssht_adjoint_mw_inverse_sov_sym_ss_real(complex double *flm, double *f,
   double *in_real;
   complex double *inout, *out;
   complex double *Fmt, *Fmm;
-  int f_stride, Fmt_stride, Fmt_offset, Fmm_stride, Fmm_offset;
+  int f_stride, Fmt_stride, Fmm_stride, Fmm_offset;
   double *dl;
   double *dl8 = NULL;
   int dl_offset, dl_stride;
   complex double *expsm;
-  int exps_offset;
   int elmmsign, elssign;
   int spinneg;
   int spin = 0;
@@ -1815,7 +1813,6 @@ void ssht_adjoint_mw_inverse_sov_sym_ss_real(complex double *flm, double *f,
   }
   ssign = signs[abs(spin)];
   spinneg = spin <= 0 ? spin : -spin;
-  exps_offset = L-1;
   for (m=0; m<=L-1; m++)
     expsm[m] = cexp(I*SSHT_PION2*(m+spin));
 
@@ -1836,7 +1833,6 @@ void ssht_adjoint_mw_inverse_sov_sym_ss_real(complex double *flm, double *f,
   Fmt = (complex double*)calloc((L+1)*(2*L), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmt)
   Fmt_stride = 2*L;
-  Fmt_offset = L-1;
   f_stride = 2*L;
   in_real = (double*)calloc(2*L, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(in_real)

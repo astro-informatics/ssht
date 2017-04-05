@@ -1,8 +1,8 @@
 # ======== COMPILER ========
 
 CC      = gcc
-OPT		= -Wall -O3 -fopenmp -DSSHT_VERSION=\"1.1b1\" -DSSHT_BUILD=\"`git rev-parse HEAD`\"
-#OPT	= -Wall -g -fopenmp -DSSHT_VERSION=\"1.1b1\" -DSSHT_BUILD=\"`git rev-parse HEAD`\"
+OPT		= -std=c99 -pedantic -Wall -O3 -fopenmp -DSSHT_VERSION=\"1.0b1\" -DSSHT_BUILD=\"`git rev-parse HEAD`\"
+#OPT	= -Wall -g -fopenmp -DSSHT_VERSION=\"1.0b1\" -DSSHT_BUILD=\"`git rev-parse HEAD`\"
 
 
 # ======== LINKS ========
@@ -39,7 +39,7 @@ SSHTINC  = $(SSHTDIR)/include/c
 SSHTDOC  = $(SSHTDIR)/doc/c
 
 ifeq ($(UNAME), Linux)
-  FFTWDIR      = $(PROGDIR)/fftw-3.2.2_fPIC
+  FFTWDIR      = $(PROGDIR)/fftw
 endif
 ifeq ($(UNAME), Darwin)
   FFTWDIR      = $(FFTW)

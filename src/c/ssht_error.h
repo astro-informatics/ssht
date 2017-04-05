@@ -20,7 +20,7 @@
   printf("ERROR: %s.\n", comment);					\
   printf("ERROR: %s <%s> %s %s %s %d.\n",				\
 	 "Occurred in function",					\
-	   __PRETTY_FUNCTION__,						\
+	   __func__,						\
 	   "of file", __FILE__,						\
 	   "on line", __LINE__);					\
   exit(1);

@@ -25,6 +25,10 @@ int ssht_dl_get_stride(int L, ssht_dl_size_t dl_size);
 void ssht_dl_beta_risbo_full_table(double *dl, double beta, int L, 
 				   ssht_dl_size_t dl_size,
 				   int el, double *sqrt_tbl);
+void ssht_dl_beta_risbo_half_table(double *dl, double beta, int L, 
+					 				   ssht_dl_size_t dl_size,
+					 				   int el, double *sqrt_tbl,
+					 				   double *signs);
 void ssht_dl_beta_risbo_eighth_table(double *dl, double beta, int L, 
 				     ssht_dl_size_t dl_size,
 				      int el, double *sqrt_tbl,

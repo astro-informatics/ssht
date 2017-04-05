@@ -365,7 +365,8 @@ void ssht_core_mw_lb_inverse_sov_sym_real(double *f, const complex double *flm,
   int spinneg;
   complex double *Fmm, *Fmm_shift;
   double *fext_real;
-  int Fmm_offset, Fmm_stride, fext_stride;
+  int Fmm_offset, Fmm_stride;
+	// int fext_stride;
   fftw_plan plan;
   int spin = 0;
 
@@ -533,7 +534,7 @@ void ssht_core_mw_lb_inverse_sov_sym_real(double *f, const complex double *flm,
   // Allocate space for function values.
   fext_real = (double*)calloc((2*L-1)*(2*L-1), sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(fext_real)
-  fext_stride = 2*L-1;
+  // fext_stride = 2*L-1;
 
   // Perform 2D FFT.
   plan = fftw_plan_dft_c2r_2d(2*L-1, 2*L-1, Fmm_shift, fext_real,
@@ -1240,7 +1241,7 @@ void ssht_core_mw_lb_forward_sov_conv_sym_real(complex double *flm, const double
   complex double *Fmt, *Fmm, *Gmm, *m_mm_factor;
   complex double *w, *wr;
   complex double *Fmm_pad, *tmp_pad;
-  int f_stride, Fmt_stride, Fmt_offset, Fmm_stride, Fmm_offset, Gmm_stride;
+  int f_stride, Fmt_stride, Fmm_stride, Fmm_offset, Gmm_stride;
   double *dl;
   double *dl8 = NULL;
   int dl_offset, dl_stride;
@@ -1291,7 +1292,6 @@ void ssht_core_mw_lb_forward_sov_conv_sym_real(complex double *flm, const double
   Fmt = (complex double*)calloc(L*(2*L-1), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmt)
   Fmt_stride = 2*L-1;
-  Fmt_offset = L-1;
   f_stride = 2*L-1;
   in_real = (double*)calloc(2*L-1, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(in_real)
@@ -2111,7 +2111,7 @@ void ssht_core_mw_lb_inverse_sov_sym_ss_real(double *f, const complex double *fl
   int spinneg;
   complex double *Fmm, *Fmm_shift;
   double *fext_real;
-  int Fmm_offset, Fmm_stride, fext_stride;
+  int Fmm_offset, Fmm_stride;
   fftw_plan plan;
   int spin = 0;
 
@@ -2272,8 +2272,7 @@ void ssht_core_mw_lb_inverse_sov_sym_ss_real(double *f, const complex double *fl
   // Note that t and p indices of fext are increased in size by
   // one compared to usual sampling.
   fext_real = (double*)calloc((2*L)*(2*L), sizeof(double));
-  SSHT_ERROR_MEM_ALLOC_CHECK(fext_real)
-  fext_stride = 2*L;
+  SSHT_ERROR_MEM_ALLOC_CHECK(fext_real)  
 
   // Perform 2D FFT.
   plan = fftw_plan_dft_c2r_2d(2*L, 2*L, Fmm_shift, fext_real,
@@ -2860,13 +2859,12 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss_real(complex double *flm, const dou
   complex double *Fmt, *Fmm, *Gmm;
   complex double *w, *wr;
   complex double *Fmm_pad, *tmp_pad;
-  int f_stride, Fmt_stride, Fmt_offset, Fmm_stride, Fmm_offset, Gmm_stride;
+  int f_stride, Fmt_stride, Fmm_stride, Fmm_offset, Gmm_stride;
   double *dl;
   double *dl8 = NULL;
   int dl_offset, dl_stride;
   int w_offset;
   complex double *expsm;
-  int exps_offset;
   int elmmsign, elssign;
   int spinneg;
   int spin = 0;
@@ -2890,7 +2888,6 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss_real(complex double *flm, const dou
   }
   ssign = signs[abs(spin)];
   spinneg = spin <= 0 ? spin : -spin;
-  exps_offset = L-1;
   for (m=0; m<=L-1; m++)
     expsm[m] = cexp(I*SSHT_PION2*(m+spin));
 
@@ -2911,7 +2908,6 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss_real(complex double *flm, const dou
   Fmt = (complex double*)calloc((L+1)*(2*L), sizeof(complex double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmt)
   Fmt_stride = 2*L;
-  Fmt_offset = L-1;
   f_stride = 2*L;
   in_real = (double*)calloc(2*L, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(in_real)
