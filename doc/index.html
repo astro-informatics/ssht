@@ -23,6 +23,7 @@ harmonics, sphere, transforms, fourier, fast, algorithms, mcewen, wiaux" />
   <a href="#installation">Installation</a> |
   <a href="#documentation">Source</a> |
   <a href="#matlab">Matlab</a> |
+  <a href="#python">python</a> |
   <a href="#download">Download</a> |
   <a href="#referencing">Referencing</a> |  
   <a href="#version">Version</a> |
@@ -51,6 +52,9 @@ harmonics, sphere, transforms, fourier, fast, algorithms, mcewen, wiaux" />
 <h2>News</h2>
 
 <ul>
+<li><strong>01 January 2016</strong><br />
+Public release of SSHT 1.1b1 (python implementation).
+</li>
 <li><strong>31 October 2011</strong><br />
 Public release of SSHT 1.0b1 (first beta).
 </li>
@@ -182,6 +186,8 @@ Private release of SSHT 0.1.
   <p> To build the Matlab interface run (which will also build the
   library if it has not already been built):
   <pre> >> make matlab</pre>
+  <p> To build the python interface run:
+  <pre> >> python setup.py build_ext --inplace</pre>
 
 
   <h4>Testing</h4>
@@ -353,6 +359,67 @@ and <a href="f90/html/index.html">Fortran 90</a> implementations.  The
   run:
   <pre> >> help &ltdemo&gt</pre>
   <p> where <code>&ltdemo&gt</code> is the demo name.
+
+  <!--------------------------------------------------------------->
+<a name="python"><h2>python interface</h2></a>
+
+  <p> Once the python interface is built, you must have
+  <code>ssht/src/python</code> in your python path in order to run the python functions.
+  A number of python functions and demos illustrating their use are
+  provided.
+
+  <h4>Dependencies</h4>
+  The python interface requires numpy, in addition the demos require matplotlib.
+
+
+  <h4>Functions</h4>
+
+  <p>Usage of the <strong>SSHT</strong> python interface will most
+  frequently require only the functions to perform forward and inverse
+  spherical harmonic transforms (<code>pyssht.forward</code> and
+  <code>pyssht.inverse</code> respectively).  However, a number of
+  additional functions are also provided.  A full list of python
+  functions are given <a href="../src/python/SSHT_Python_Documentation.md">here</a>.
+
+
+  <h4>Demos</h4>
+
+  <p> A number of demos are provided to illustrate the use of the
+  python interface.  The demos start extremely simple and
+  progressively become more complicated/flexible.
+
+  <pre>
+  <a href="../src/python/pyssht_demo_0.py">pyssht_demo_0</a>
+  Plot spherical harmonic functions on the sphere.
+
+  <a href="../src/python/pyssht_demo_1.py">pyssht_demo_1</a>
+  Simple demo to compute inverse and forward transform of complex
+  scalar function, using simplest interface with default options.
+
+  <a href="../src/python/pyssht_demo_2.py">pyssht_demo_2</a>
+  Simple demo to compute inverse and forward transform of real scalar
+  function, using simplest interface with default options.
+
+  <a href="../src/python/pyssht_demo_3.py">pyssht_demo_3</a>
+  Demo to compute inverse and forward transform of spin function,
+  using standard interface with various options.
+
+  <a href="../src/python/pyssht_demo_4.py">pyssht_demo_4</a>
+  Demo to compute inverse and forward transform of spin function,
+  using polar interface with various options.
+
+  <a href="../src/python/pyssht_demo_5.py">pyssht_demo_5</a>
+  Smooth Earth topography map by applying a Gaussian filter in
+  harmonic space.
+
+  <a href="../src/python/pyssht_demo_6.py">pyssht_demo_6</a>
+  Integrate a band-limited function on the sphere using the
+  symmetrised quadrature weights.
+
+  <a href="../src/python/pyssht_demo_7.m">pyssht_demo_7</a>
+  Rotating an image on the sphere in harmonic space using the 
+  Wigner matricies.
+  </pre>
 
 <!--------------------------------------------------------------->
 <a name="download"><h2>Download</h2></a>
