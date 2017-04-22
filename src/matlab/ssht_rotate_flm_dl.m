@@ -1,9 +1,10 @@
 function [flm_rotated] = ssht_rotate_flm_dl(flm, d, alpha, gamma, varargin)
-% ssht_rotate_flm_dl - Rotate a function in harmonic space
+% ssht_rotate_flm_dl - Rotate a function in harmonic space with precomputed
+% dls
 %
 % Rotates a function on the sphere in harmonic space, where
 % the rotation is specified by a point (alpha, beta, gamma)
-% in SO(3).
+% in SO(3), where the Wigner dls are precomputed.
 %
 % Default usage is given by
 %
