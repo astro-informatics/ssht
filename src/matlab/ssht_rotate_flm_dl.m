@@ -1,5 +1,5 @@
-function [flm_rotated] = ssht_rotate_flm(flm, d, alpha, gamma, varargin)
-% ssht_rotate_flm - Rotate a function in harmonic space
+function [flm_rotated] = ssht_rotate_flm_dl(flm, d, alpha, gamma, varargin)
+% ssht_rotate_flm_dl - Rotate a function in harmonic space
 %
 % Rotates a function on the sphere in harmonic space, where
 % the rotation is specified by a point (alpha, beta, gamma)
@@ -7,7 +7,7 @@ function [flm_rotated] = ssht_rotate_flm(flm, d, alpha, gamma, varargin)
 %
 % Default usage is given by
 %
-%   [flm_rotated] = ssht_rotate_flm(flm, d, alpha, gamma, <option>)
+%   [flm_rotated] = ssht_rotate_flm_dl(flm, d, alpha, gamma, <option>)
 %
 % where flm are the harmonic coefficients of the function to be
 % rotated, d are the Wigner small-d functions d_lmn for all el,
