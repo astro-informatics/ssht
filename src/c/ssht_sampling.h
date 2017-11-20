@@ -6,8 +6,8 @@
 #ifndef SSHT_SAMPLING
 #define SSHT_SAMPLING
 
-#include <complex.h>
 
+#include "ssht_types.h"
 
 #ifdef __cplusplus
 extern "C"{

@@ -17,12 +17,16 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <complex.h> // Must be before fftw3.h
 #include <fftw3.h>
 #include <omp.h>
 #include <time.h>
 
-#include <ssht.h>
+#include "ssht_types.h"
+#include "ssht_sampling.h"
+#include "ssht_dl.h"
+#include "ssht_core.h"
+#include "ssht_adjoint.h"
+#include "ssht_error.h"
 
 #define NREPEAT 5
 #define MAX(a,b) ((a) > (b) ? (a) : (b))

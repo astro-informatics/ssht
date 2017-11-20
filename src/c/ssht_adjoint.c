@@ -15,7 +15,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <complex.h>  // Must be before fftw3.h
 #include <fftw3.h>
 
 #include "ssht_types.h"
@@ -117,7 +116,7 @@ void ssht_adjoint_mw_inverse_sov_sym(SSHT_COMPLEX(double) *flm,
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
   plan = fftw_plan_dft_1d(2*L-1, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
   for (t=0; t<=L-1; t++) {
-    memcpy(inout, &f[t*f_stride], f_stride*sizeof(double complex));
+    memcpy(inout, &f[t*f_stride], f_stride*sizeof(SSHT_COMPLEX(double)));
     fftw_execute_dft(plan, inout, inout);
     for(m=0; m<=L-1; m++) 
       Fmt[(m+Fmt_offset)*Fmt_stride + t] = inout[m];
@@ -776,14 +775,14 @@ void ssht_adjoint_mw_forward_sov_sym(SSHT_COMPLEX(double) *f, const SSHT_COMPLEX
 	* Fmm[(m + Fmm_offset)*Fmm_stride - mm + Fmm_offset];
 
   // Compute weights.
-  w = (double complex*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
+  w = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
   SSHT_ERROR_MEM_ALLOC_CHECK(w)
   w_offset = 2*(L-1);
   for (mm=-2*(L-1); mm<=2*(L-1); mm++)
     w[mm+w_offset] = ssht_sampling_weight_mw(mm);
 
   // Compute IFFT of w to give wr.
-  wr = (double complex*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
+  wr = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
   SSHT_ERROR_MEM_ALLOC_CHECK(wr)
   inout = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
@@ -1120,14 +1119,14 @@ void ssht_adjoint_mw_forward_sov_sym_real(double *f,
 	* Fmm[m*Fmm_stride - mm + Fmm_offset];
 
   // Compute weights.
-  w = (double complex*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
+  w = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
   SSHT_ERROR_MEM_ALLOC_CHECK(w)
   w_offset = 2*(L-1);
   for (mm=-2*(L-1); mm<=2*(L-1); mm++)
     w[mm+w_offset] = ssht_sampling_weight_mw(mm);
 
   // Compute IFFT of w to give wr.
-  wr = (double complex*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
+  wr = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
   SSHT_ERROR_MEM_ALLOC_CHECK(wr)
   inout = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
@@ -1566,7 +1565,7 @@ void ssht_adjoint_mw_inverse_sov_sym_ss(SSHT_COMPLEX(double) *flm, SSHT_COMPLEX(
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
   plan = fftw_plan_dft_1d(2*L, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
   for (t=0; t<=L; t++) {
-    memcpy(inout, &f[t*f_stride], f_stride*sizeof(double complex));
+    memcpy(inout, &f[t*f_stride], f_stride*sizeof(SSHT_COMPLEX(double)));
     fftw_execute_dft(plan, inout, inout);
     for(m=0; m<=L; m++) 
       Fmt[(m+Fmt_offset)*Fmt_stride + t] = inout[m]; 
@@ -2216,14 +2215,14 @@ void ssht_adjoint_mw_forward_sov_sym_ss(SSHT_COMPLEX(double) *f, SSHT_COMPLEX(do
 	* Fmm[(m + Fmm_offset)*Fmm_stride - mm + Fmm_offset];
 
   // Compute weights.
-  w = (double complex*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
+  w = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
   SSHT_ERROR_MEM_ALLOC_CHECK(w)
   w_offset = 2*(L-1);
   for (mm=-2*(L-1); mm<=2*(L-1); mm++)
     w[mm+w_offset] = ssht_sampling_weight_mw(mm);
 
   // Compute IFFT of w to give wr.
-  wr = (double complex*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
+  wr = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
   SSHT_ERROR_MEM_ALLOC_CHECK(wr)
   inout = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
@@ -2553,14 +2552,14 @@ void ssht_adjoint_mw_forward_sov_sym_ss_real(double *f,
 	* Fmm[m*Fmm_stride - mm + Fmm_offset];
 
   // Compute weights.
-  w = (double complex*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
+  w = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
   SSHT_ERROR_MEM_ALLOC_CHECK(w)
   w_offset = 2*(L-1);
   for (mm=-2*(L-1); mm<=2*(L-1); mm++)
     w[mm+w_offset] = ssht_sampling_weight_mw(mm);
 
   // Compute IFFT of w to give wr.
-  wr = (double complex*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
+  wr = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
   SSHT_ERROR_MEM_ALLOC_CHECK(wr)
   inout = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)

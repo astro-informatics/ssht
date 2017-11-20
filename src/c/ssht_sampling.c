@@ -11,9 +11,9 @@
  */
 
 
-#include <complex.h>
 #include <math.h>
-#include "ssht_types.h"
+#include "ssht_error.h"
+#include "ssht_sampling.h"
 
 #define ABS(x) ((x) >= 0 ? (x) : -(x))
 

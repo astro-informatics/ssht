@@ -6,8 +6,9 @@
 #ifndef SSHT_ADJOINT
 #define SSHT_ADJOINT
 
-#include <complex.h>
 
+#include "ssht_fftw.h"
+#include "ssht_sampling.h"
 #ifdef __cplusplus
 extern "C"{
 #endif

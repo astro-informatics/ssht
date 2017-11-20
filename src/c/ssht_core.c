@@ -15,15 +15,14 @@
 #include <string.h>
 #include <math.h>
 
-#include <complex.h>
-
-#include <fftw3.h>
-
-#include "ssht_types.h"
 #include "ssht_error.h"
 #include "ssht_dl.h"
 #include "ssht_sampling.h"
 #include "ssht_core.h"
+#include "ssht_fftw.h"
+
+#include <fftw3.h>
+
 
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 
@@ -104,7 +103,7 @@ void ssht_core_mw_lb_inverse_sov_sym(SSHT_COMPLEX(double) *f, const SSHT_COMPLEX
   SSHT_ERROR_MEM_ALLOC_CHECK(signs)
   exps = (SSHT_COMPLEX(double)*)calloc(2*L-1, sizeof(SSHT_COMPLEX(double)));
   SSHT_ERROR_MEM_ALLOC_CHECK(exps)
-  m_factors = calloc(2*L-1, sizeof *m_factors);
+  m_factors = (SSHT_COMPLEX(double)*)calloc(2*L-1, sizeof *m_factors);
   SSHT_ERROR_MEM_ALLOC_CHECK(m_factors)
 
   // Perform precomputations.
@@ -378,7 +377,7 @@ void ssht_core_mw_lb_inverse_sov_sym_real(double *f, const SSHT_COMPLEX(double) 
   SSHT_ERROR_MEM_ALLOC_CHECK(signs)
   exps = (SSHT_COMPLEX(double)*)calloc(2*L-1, sizeof(SSHT_COMPLEX(double)));
   SSHT_ERROR_MEM_ALLOC_CHECK(exps)
-  m_factors = calloc(2*L-1, sizeof *m_factors);
+  m_factors = (SSHT_COMPLEX(double)*)calloc(2*L-1, sizeof *m_factors);
   SSHT_ERROR_MEM_ALLOC_CHECK(m_factors)
 
   // Perform precomputations.
@@ -904,7 +903,7 @@ void ssht_core_mw_lb_forward_sov_conv_sym(SSHT_COMPLEX(double) *flm, const SSHT_
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
   plan = fftw_plan_dft_1d(2*L-1, inout, inout, FFTW_FORWARD, FFTW_ESTIMATE);
   for (t=0; t<=L-1; t++) {
-    memcpy(inout, &f[t*f_stride], f_stride*sizeof(double complex));
+    memcpy(inout, &f[t*f_stride], f_stride*sizeof(SSHT_COMPLEX(double)));
     fftw_execute_dft(plan, inout, inout);
     for(m=0; m<=L-1; m++)
       Fmt[(m+Fmt_offset)*Fmt_stride + t] = inout[m] / (2.0*L-1.0);
@@ -943,14 +942,14 @@ void ssht_core_mw_lb_forward_sov_conv_sym(SSHT_COMPLEX(double) *flm, const SSHT_
   	expsmm[mm + exps_offset];
 
   // Compute weights.
-  w = (double complex*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
+  w = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
   SSHT_ERROR_MEM_ALLOC_CHECK(w)
   w_offset = 2*(L-1);
   for (mm=-2*(L-1); mm<=2*(L-1); mm++)
     w[mm+w_offset] = ssht_sampling_weight_mw(mm);
 
   // Compute IFFT of w to give wr.
-  wr = (double complex*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
+  wr = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
   SSHT_ERROR_MEM_ALLOC_CHECK(wr)
   inout = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
@@ -1021,7 +1020,7 @@ void ssht_core_mw_lb_forward_sov_conv_sym(SSHT_COMPLEX(double) *flm, const SSHT_
 
   // Precompute factors depending on particular Gmm, to be used later
   // in computing the flm.
-  m_mm_factor = calloc(L*(2*L-1), sizeof *m_mm_factor);
+  m_mm_factor = (SSHT_COMPLEX(double) *)calloc(L*(2*L-1), sizeof *m_mm_factor);
   SSHT_ERROR_MEM_ALLOC_CHECK(m_mm_factor)
 
   for (mm = 1; mm < L; mm++) {
@@ -1344,14 +1343,14 @@ void ssht_core_mw_lb_forward_sov_conv_sym_real(SSHT_COMPLEX(double) *flm, const 
 	expsmm[mm + exps_offset];
 
   // Compute weights.
-  w = (double complex*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
+  w = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
   SSHT_ERROR_MEM_ALLOC_CHECK(w)
   w_offset = 2*(L-1);
   for (mm=-2*(L-1); mm<=2*(L-1); mm++)
     w[mm+w_offset] = ssht_sampling_weight_mw(mm);
 
   // Compute IFFT of w to give wr.
-  wr = (double complex*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
+  wr = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
   SSHT_ERROR_MEM_ALLOC_CHECK(wr)
   inout = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
@@ -1423,7 +1422,7 @@ void ssht_core_mw_lb_forward_sov_conv_sym_real(SSHT_COMPLEX(double) *flm, const 
 
   // Precompute factors depending on particular Gmm, to be used later
   // in computing the flm.
-  m_mm_factor = calloc(L*L, sizeof *m_mm_factor);
+  m_mm_factor =(SSHT_COMPLEX(double) *) calloc(L*L, sizeof *m_mm_factor);
   SSHT_ERROR_MEM_ALLOC_CHECK(m_mm_factor)
 
   for (mm = 1; mm < L; mm++) {
@@ -2527,7 +2526,7 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss(SSHT_COMPLEX(double) *flm, const SS
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
   plan = fftw_plan_dft_1d(2*L, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
   for (t=0; t<=L; t++) {
-    memcpy(inout, &f[t*f_stride], f_stride*sizeof(double complex));
+    memcpy(inout, &f[t*f_stride], f_stride*sizeof(SSHT_COMPLEX(double)));
     fftw_execute_dft(plan, inout, inout);
     for(m=0; m<=L; m++)
       Fmt[(m+Fmt_offset)*Fmt_stride + t] = inout[m] / (2.0*L);
@@ -2566,14 +2565,14 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss(SSHT_COMPLEX(double) *flm, const SS
   free(inout);
 
   // Compute weights.
-  w = (double complex*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
+  w = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
   SSHT_ERROR_MEM_ALLOC_CHECK(w)
   w_offset = 2*(L-1);
   for (mm=-2*(L-1); mm<=2*(L-1); mm++)
     w[mm+w_offset] = ssht_sampling_weight_mw(mm);
 
   // Compute IFFT of w to give wr.
-  wr = (double complex*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
+  wr = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
   SSHT_ERROR_MEM_ALLOC_CHECK(wr)
   inout = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
@@ -2960,14 +2959,14 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss_real(SSHT_COMPLEX(double) *flm, con
   free(inout);
 
   // Compute weights.
-  w = (double complex*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
+  w = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
   SSHT_ERROR_MEM_ALLOC_CHECK(w)
   w_offset = 2*(L-1);
   for (mm=-2*(L-1); mm<=2*(L-1); mm++)
     w[mm+w_offset] = ssht_sampling_weight_mw(mm);
 
   // Compute IFFT of w to give wr.
-  wr = (double complex*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
+  wr = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
   SSHT_ERROR_MEM_ALLOC_CHECK(wr)
   inout = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
@@ -3747,7 +3746,7 @@ void ssht_core_gl_forward_sov(SSHT_COMPLEX(double) *flm, const SSHT_COMPLEX(doub
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
   plan = fftw_plan_dft_1d(2*L-1, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
   for (t=0; t<=L-1; t++) {
-    memcpy(inout, &f[t*f_stride], f_stride*sizeof(double complex));
+    memcpy(inout, &f[t*f_stride], f_stride*sizeof(SSHT_COMPLEX(double)));
     fftw_execute_dft(plan, inout, inout);
     for(m=0; m<=L-1; m++)
       Ftm[t*Ftm_stride + m + Ftm_offset] =
@@ -4290,7 +4289,7 @@ void ssht_core_dh_forward_sov(SSHT_COMPLEX(double) *flm, const SSHT_COMPLEX(doub
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
   plan = fftw_plan_dft_1d(2*L-1, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
   for (t=0; t<=2*L-1; t++) {
-    memcpy(inout, &f[t*f_stride], f_stride*sizeof(double complex));
+    memcpy(inout, &f[t*f_stride], f_stride*sizeof(SSHT_COMPLEX(double)));
     fftw_execute_dft(plan, inout, inout);
     for(m=0; m<=L-1; m++)
       Ftm[t*Ftm_stride + m + Ftm_offset] =
