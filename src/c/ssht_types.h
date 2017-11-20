@@ -46,9 +46,32 @@
 
 #ifdef __cplusplus
 #include <complex>
+#include <cmath>
 #define SSHT_COMPLEX(TYPE) std::complex<TYPE>
+#define I std::complex<double>(0, 1)
+namespace std {
+template <typename T, typename U>
+inline std::complex<T> operator*(std::complex<T> lhs, const U& rhs)
+{
+    return lhs *= rhs;
+};
+template <typename T, typename U>
+inline std::complex<T> operator*(const U& lhs,std::complex<T> rhs)
+{
+    return rhs *= lhs;
+};
+}
+template <class U>
+std::complex<double> cexp(U x){
+return std::exp(x);
+};
+template <class T>
+double cabs(T x){
+return std::abs(x);
+};
 extern "C" {
 #else
+#include <complex.h>
 #define SSHT_COMPLEX(TYPE) TYPE complex
 #endif
 
