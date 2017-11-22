@@ -7,6 +7,10 @@
 #define SSHT_DL
 
 
+#ifdef __cplusplus
+extern "C"{
+#endif
+
 /*! Size of dl plane required (for memory access). */
 typedef enum {SSHT_DL_QUARTER = 0, 
 	      SSHT_DL_QUARTER_EXTENDED, 
@@ -65,5 +69,9 @@ void ssht_dl_halfpi_trapani_fill_eighth2righthalf_table(double *dl, int L,
 void ssht_dl_halfpi_trapani_fill_eighth2quarter_table(double *dl, int L,
 						     ssht_dl_size_t dl_size,
 						     int el, double *signs);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif

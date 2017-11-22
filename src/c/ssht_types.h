@@ -44,5 +44,18 @@
 
 #define SSHT_PROMPT "[ssht] "
 
+#ifdef __cplusplus
+#include <complex>
+#define SSHT_COMPLEX(TYPE) std::complex<TYPE>
+extern "C" {
+#else
+#define SSHT_COMPLEX(TYPE) TYPE complex
+#endif
+
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif
