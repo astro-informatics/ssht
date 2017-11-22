@@ -113,8 +113,20 @@ int main(int argc, char* argv[])
   // fftw_plan_with_nthreads(nthreads);
 
   // Parse problem sizes.
-  L = atoi(argv[1]);
-  spin = atoi(argv[2]);
+  L = 64;
+  spin = 0;
+  if (argc > 1) {
+    L = atoi(argv[1]);
+  } else {
+    printf("\n");
+    printf("Choosing default L = 64\n");
+  }
+  if (argc > 2) {
+    spin = atoi(argv[2]);
+  } else {
+    printf("\n");
+    printf("Choosing default s = 0\n");
+  }
   if (argc > 3)
     L0 = atoi(argv[3]);
 
