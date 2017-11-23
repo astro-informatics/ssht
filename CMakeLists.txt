@@ -19,6 +19,7 @@ find_package(OpenMP QUIET)
 add_library(ssht STATIC
   src/c/ssht_adjoint.c src/c/ssht_core.c src/c/ssht_dl.c src/c/ssht_sampling.c)
 target_link_libraries(ssht ${FFTW3_DOUBLE_SERIAL_LIBRARY})
+target_link_libraries(ssht m)
 if(OpenMP_C_FOUND AND openmp)
   target_link_libraries(ssht OpenMP::OpenMP_C)
 endif()
