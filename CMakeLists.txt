@@ -5,7 +5,6 @@ option(tests          "Enable testing"                                  on)
 
 project(ssht C)
 
-set (CMAKE_POSITION_INDEPENDENT_CODE fPIC)
 
 set(Ssht_VERSION "1.1.2")
 set(Ssht_BUILD "CMake")
@@ -18,6 +17,9 @@ find_package(OpenMP QUIET)
 
 add_library(ssht STATIC
   src/c/ssht_adjoint.c src/c/ssht_core.c src/c/ssht_dl.c src/c/ssht_sampling.c)
+if(fPIC)
+  SET_TARGET_PROPERTIES(ssht PROPERTIES COMPILE_FLAGS "-fPIC")
+endif()
 target_link_libraries(ssht ${FFTW3_DOUBLE_SERIAL_LIBRARY})
 target_link_libraries(ssht m)
 if(OpenMP_C_FOUND AND openmp)
