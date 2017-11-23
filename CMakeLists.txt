@@ -17,9 +17,6 @@ find_package(OpenMP QUIET)
 
 add_library(ssht STATIC
   src/c/ssht_adjoint.c src/c/ssht_core.c src/c/ssht_dl.c src/c/ssht_sampling.c)
-if(fPIC)
-  SET_TARGET_PROPERTIES(ssht PROPERTIES COMPILE_FLAGS "-fPIC")
-endif()
 target_link_libraries(ssht ${FFTW3_DOUBLE_SERIAL_LIBRARY})
 target_link_libraries(ssht m)
 if(OpenMP_C_FOUND AND openmp)
@@ -27,7 +24,11 @@ if(OpenMP_C_FOUND AND openmp)
 endif()
 
 target_include_directories(ssht PUBLIC ${FFTW3_INCLUDE_DIRS})
-set_target_properties(ssht PROPERTIES COMPILE_FLAGS "${FFTW3_DEFINITIONS}")
+if(fPIC)
+  set_target_properties(ssht PROPERTIES COMPILE_FLAGS "${FFTW3_DEFINITIONS} -fPIC")
+else()
+  set_target_properties(ssht PROPERTIES COMPILE_FLAGS "${FFTW3_DEFINITIONS}")
+endif()
 
 install(TARGETS ssht EXPORT SshtTargets ARCHIVE DESTINATION lib PUBLIC_HEADER)
 install(FILES
