@@ -48,6 +48,7 @@ p.addParamValue('ParametricScale', 0.5, @isnumeric);
 p.addParamValue('ParametricMin', false, @islogical);
 p.addParamValue('Lighting', false, @islogical);
 p.addParamValue('ColourBar', false, @islogical);
+p.addParamValue('RBG', false, @islogical);
 p.parse(f, L, varargin{:});
 args = p.Results;
 
@@ -64,7 +65,7 @@ end
    
 [thetas, phis, n, ntheta, nphi] = ssht_sampling(L, 'Method', ...
                                                 args.Method, 'Grid', true);
-if (size(thetas) ~= size(f)) 
+if (size(thetas,1) ~= size(f,1) && size(thetas,2) ~= size(f,2)) 
   error('Size of f does not match sampling of method %s.', args.Method);
 end
 
@@ -76,14 +77,24 @@ if strcmpi(args.Type, 'parametric')
    else
       f_normalised = (f - minf)./(maxf - minf).*PARAMETRIC_SCALE; % + 0.1;
       f_normalised(find(f_normalised < 0.0)) = 0.0;
+      if (length(size(f)) == 3)
+        % RGB image.
+        f_normalised = mean(f_normalised, 3);
+      end
    end
 else
-   f_normalised = ones(size(f));
+   f_normalised = ones(size(f,1),size(f,2));
 end
 
 % Close plot.
 if args.Close
-   close = @(x) [x, x(:,1)];
+   if (length(size(f)) == 3)
+     % RGB image.
+     close = @(x) [x, x(:,1,:)];
+   else
+     % Single intensity image.
+     close = @(x) [x, x(:,1)];
+   end
    f = close(f);
    f_normalised = close(f_normalised);
    thetas = close(thetas);

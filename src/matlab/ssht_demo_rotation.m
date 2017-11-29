@@ -45,8 +45,7 @@ for el = 1:L-1
 end
 
 % Rotate spherical harmonic
-flm_rot = ssht_rotate_flm(flm, d, alpha, gamma);
-
+flm_rot = ssht_rotate_flm_dl(flm, d, alpha, gamma);
 
 % Compute rotated function on the sphere.
 f_rot = ssht_inverse(complex(real(flm_rot), imag(flm_rot)), L);

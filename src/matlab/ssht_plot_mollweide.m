@@ -47,7 +47,7 @@ SubL = min([args.SubL L]);
 minf = min(f(:));
 maxf = max(f(:));
 [thetas, phis, n, ntheta, nphi] = ssht_sampling(L, 'Method', args.Method, 'Grid', true);
-if (size(thetas) ~= size(f)) 
+if (size(thetas,1) ~= size(f,1) && size(thetas,2) ~= size(f,2)) 
   error('Size of f does not match sampling of method %s.', args.Method);
 end
 
