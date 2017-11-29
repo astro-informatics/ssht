@@ -1,3 +1,7 @@
 *~
 SSHT.sublime-project
 SSHT.sublime-workspace
+build/
+*.DS_Store
+src/python/*.c
+src/python/*.so

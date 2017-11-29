@@ -47,6 +47,26 @@ end
 % Compute real space version of CMB.
 cmb = ssht_inverse(cmb_lm, L, 'Method', method, 'Reality', true);
 
+cmb_loop = zeros(L,2*L);
+cmb_loop(1:L,1:2*L-1) = cmb;
+cmb_loop(1:L,2*L) = cmb_loop(1:L,1);
+
+range_cmb = max(max(cmb_loop)) - min(min(cmb_loop));
+
+green_color = 2*(cmb_loop-min(min(cmb_loop)))/range_cmb;
+green_color(green_color>1.0) = 2.0-green_color(green_color>1.0);
+
+rgb_cmb = zeros(L,2*L,3);
+rgb_cmb(:,:,1) = 1.0-(cmb_loop-min(min(cmb_loop)))/range_cmb;
+rgb_cmb(:,:,2) = green_color*0.75;
+rgb_cmb(:,:,3) = (cmb_loop-min(min(cmb_loop)))/range_cmb;
+
+imwrite(rgb_cmb,'test.jpeg')
+
+figure;
+imshow(rgb_cmb)
+% imwrite(cmb,'test.jpeg');
+
 % Plot function on sphere.
 figure;
 ssht_plot_sphere(cmb, L, 'Method', method, 'Close', close_plot, ...
