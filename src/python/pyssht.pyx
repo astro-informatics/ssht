@@ -655,7 +655,7 @@ def forward_adjoint(flm, int L, int Spin=0, str Method='MW', bint Reality=False)
 
 def isqrt(int n):
     cdef int square = 1, delta = 3
-    while square < n:
+    while square <= n:
         square += delta
         delta  += 2
     return (delta/2 -1)
@@ -677,7 +677,7 @@ def ind2elm(int ind):
 
 cdef inline int cy_isqrt(int n):
     cdef int square = 1, delta = 3
-    while square < n:
+    while square <= n:
         square += delta
         delta  += 2
     return (delta/2 -1)
