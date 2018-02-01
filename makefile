@@ -29,7 +29,7 @@ ifeq ($(UNAME), Darwin)
   MEXFLAGS	= -cxx
 endif
 
-SSHTDIR  = $(PROGDIR)/src_ssht
+SSHTDIR  = $(PROGDIR)/ssht
 SSHTLIB  = $(SSHTDIR)/lib/c
 SSHTLIBNM= ssht
 SSHTSRC  = $(SSHTDIR)/src/c
