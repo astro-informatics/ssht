@@ -3,6 +3,7 @@ import pyssht as ssht
 import matplotlib.pyplot as plt
 from pylab import cm
 import scipy.io as sio
+import os
 
 # % pyssht_demo_5 - Run demo5
 # %
@@ -23,7 +24,8 @@ L = 128
 sigma = np.pi/L;
 
 #% Load harmonic coefficients of Earth.
-mat_contents = sio.loadmat('src/matlab/data/EGM2008_Topography_flms_L0128')
+matfile = os.path.join(os.path.dirname(__file__),os.pardir,'matlab','data','EGM2008_Topography_flms_L0128')
+mat_contents = sio.loadmat(matfile)
 
 flm     = np.ascontiguousarray(mat_contents['flm'][:,0])
 
