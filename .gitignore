@@ -4,5 +4,6 @@ SSHT.sublime-workspace
 
 build/
 *.DS_Store
+*.idea/
 src/python/*.c
 src/python/*.so
