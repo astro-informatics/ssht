@@ -1035,8 +1035,6 @@ def plot_sphere(f, int L, str Method='MW', bint Close=True, bint Parametric=Fals
     f_min = f_plot.min()
 
     if Color_Range is None:
-        f_max = f_plot.max()
-        f_min = f_plot.min()
         vmin = f_min
         vmax = f_max
     else:
