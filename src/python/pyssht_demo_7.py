@@ -23,9 +23,9 @@ beta = np.pi/4
 alpha = -np.pi/2
 
 # Generate spherical harmonics.
-flm = np.zeros((L*L),dtype=complex);
-ind = ssht.elm2ind(el, m);
-flm[ind] = 1.0 + 1j*0.0;
+flm = np.zeros((L*L),dtype=complex)
+ind = ssht.elm2ind(el, m)
+flm[ind] = 1.0
 
 # Compute function on the sphere.
 f = ssht.inverse(flm, L)
