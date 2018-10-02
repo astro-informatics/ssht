@@ -7,3 +7,6 @@ build/
 *.idea/
 src/python/*.c
 src/python/*.so
+
+CMakeCache.txt
+CMakeFiles/
