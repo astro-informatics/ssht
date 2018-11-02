@@ -39,7 +39,7 @@ SSHTINC  = $(SSHTDIR)/include/c
 SSHTDOC  = $(SSHTDIR)/doc/c
 
 ifeq ($(UNAME), Linux)
-  FFTWDIR      = $(PROGDIR)/fftw
+  FFTWDIR      = $(FFTW)
 endif
 ifeq ($(UNAME), Darwin)
   FFTWDIR      = $(FFTW)
