@@ -30,8 +30,40 @@
 double ran2_dp(int idum);
 void ssht_test_gen_flm_complex(complex double* flm, int L, int spin, int seed);
 void ssht_test_gen_flm_real(complex double* flm, int L, int seed);
-void ssht_test_gen_lb_flm_complex(complex double* flm, int L0, int L, int spin, int seed);
+void ssht_test_gen_lb_flm_complex(complex double* flm, int L_zero, int L, int spin, int seed);
 void ssht_test_gen_lb_flm_real(complex double* flm, int L0, int L, int seed);
+
+/*!
+ * Test for null vector
+ *
+ * \param[in]  X vector of complex double
+ * \param[in]  n length of X.
+ * \retval     Y returns int 0 if all zeros, 1 if non-zero
+ *             i.e. 0 = fail, 1 = pass.
+ */
+
+int null_test(const complex double *X, int n)
+{
+  int Y = 0;
+  for(int i = 0; i < n; ++i){ if(cabs(X[i]) != 0.0){ Y = 1; i = n; } }
+  return Y;
+}
+
+/*!
+ * Test for nan vector
+ *
+ * \param[in]  X vector of complex double
+ * \param[in]  n length of X.
+ * \retval     Y returns int 1 if no nans, 0 if nan entires exist.
+ *             i.e. 0 = fail, 1 = pass.
+ */
+
+int nan_test(const complex double *X, int n)
+{
+  int Y = 1;
+  for(int i = 0; i < n; ++i){ if(X[i] != X[i]){ Y = 0; i = n; } }
+  return Y;
+}
 
 int main(int argc, char* argv[])
 {
@@ -49,7 +81,7 @@ int main(int argc, char* argv[])
 
   ssht_dl_method_t dl_method = SSHT_DL_RISBO;
   int L = 128;
-  int L0 = 64;
+  int L0 = 32;
   int spin = 0;
   int irepeat;
   int seed = 1;
@@ -119,7 +151,7 @@ int main(int argc, char* argv[])
     L = atoi(argv[1]);
   } else {
     printf("\n");
-    printf("Choosing default L = 64\n");
+    printf("Choosing default L = 128\n");
   }
   if (argc > 2) {
     spin = atoi(argv[2]);
@@ -205,6 +237,10 @@ int main(int argc, char* argv[])
       printf(" error                = %40.5e\n\n",
           errors_dh_real[irepeat]);
 
+      //! Null and Nan Tests!
+      printf("  - Null, Nan test result (Input Harmonic Coefficients) : %d, %d\n", null_test(flm_orig, L*L), nan_test(flm_orig, L*L)); //! Harmonic Coefficients
+      printf("  - Null, Nan test result (Output Harmonic Coefficients) : %d, %d\n", null_test(flm_syn, L*L), nan_test(flm_syn, L*L)); //! Harmonic Coefficients
+
       // =========================================================================
       // GL real spin=0
       printf("GL real test no. %d\n", irepeat);
@@ -230,6 +266,10 @@ int main(int argc, char* argv[])
           durations_forward_gl_real[irepeat]);
       printf(" error                = %40.5e\n\n",
           errors_gl_real[irepeat]);
+
+      //! Null and Nan Tests!
+      printf("  - Null, Nan test result (Input Harmonic Coefficients) : %d, %d\n", null_test(flm_orig, L*L), nan_test(flm_orig, L*L)); //! Harmonic Coefficients
+      printf("  - Null, Nan test result (Output Harmonic Coefficients) : %d, %d\n", null_test(flm_syn, L*L), nan_test(flm_syn, L*L)); //! Harmonic Coefficients
 
       // =========================================================================
       // MW real spin=0
@@ -259,6 +299,10 @@ int main(int argc, char* argv[])
       printf(" error                = %40.5e\n\n",
           errors_mw_real[irepeat]);
 
+      //! Null and Nan Tests!
+      printf("  - Null, Nan test result (Input Harmonic Coefficients) : %d, %d\n", null_test(flm_orig, L*L), nan_test(flm_orig, L*L)); //! Harmonic Coefficients
+      printf("  - Null, Nan test result (Output Harmonic Coefficients) : %d, %d\n", null_test(flm_syn, L*L), nan_test(flm_syn, L*L)); //! Harmonic Coefficients
+
       // =========================================================================
       // MW real spin=0 with lower band-limit
       printf("MW real (lower band-limit) test no. %d\n", irepeat);
@@ -286,6 +330,10 @@ int main(int argc, char* argv[])
           durations_forward_mw_lb_real[irepeat]);
       printf(" error                = %40.5e\n\n",
           errors_mw_lb_real[irepeat]);
+
+      //! Null and Nan Tests!
+      printf("  - Null, Nan test result (Input Harmonic Coefficients) : %d, %d\n", null_test(flm_orig, L*L), nan_test(flm_orig, L*L)); //! Harmonic Coefficients
+      printf("  - Null, Nan test result (Output Harmonic Coefficients) : %d, %d\n", null_test(flm_syn, L*L), nan_test(flm_syn, L*L)); //! Harmonic Coefficients
 
       // =========================================================================
       // MW real spin=0 pole
@@ -319,6 +367,10 @@ int main(int argc, char* argv[])
       printf(" error                = %40.5e\n\n",
           errors_mw_real_pole[irepeat]);
 
+      //! Null and Nan Tests!
+      printf("  - Null, Nan test result (Input Harmonic Coefficients) : %d, %d\n", null_test(flm_orig, L*L), nan_test(flm_orig, L*L)); //! Harmonic Coefficients
+      printf("  - Null, Nan test result (Output Harmonic Coefficients) : %d, %d\n", null_test(flm_syn, L*L), nan_test(flm_syn, L*L)); //! Harmonic Coefficients
+
       // =========================================================================
       // MW SS real spin=0
       printf("MW SS real test no. %d\n", irepeat);
@@ -347,6 +399,10 @@ int main(int argc, char* argv[])
       printf(" error                = %40.5e\n\n",
           errors_mw_ss_real[irepeat]);
 
+      //! Null and Nan Tests!
+      printf("  - Null, Nan test result (Input Harmonic Coefficients) : %d, %d\n", null_test(flm_orig, L*L), nan_test(flm_orig, L*L)); //! Harmonic Coefficients
+      printf("  - Null, Nan test result (Output Harmonic Coefficients) : %d, %d\n", null_test(flm_syn, L*L), nan_test(flm_syn, L*L)); //! Harmonic Coefficients
+
       // =========================================================================
       // MW SS real spin=0 with lower band-limit
       printf("MW SS real (lower band-limit) test no. %d\n", irepeat);
@@ -374,6 +430,10 @@ int main(int argc, char* argv[])
           durations_forward_mw_lb_ss_real[irepeat]);
       printf(" error                = %40.5e\n\n",
           errors_mw_lb_ss_real[irepeat]);
+
+      //! Null and Nan Tests!
+      printf("  - Null, Nan test result (Input Harmonic Coefficients) : %d, %d\n", null_test(flm_orig, L*L), nan_test(flm_orig, L*L)); //! Harmonic Coefficients
+      printf("  - Null, Nan test result (Output Harmonic Coefficients) : %d, %d\n", null_test(flm_syn, L*L), nan_test(flm_syn, L*L)); //! Harmonic Coefficients
 
       // =========================================================================
       // MW SS real spin=0 pole
@@ -409,6 +469,10 @@ int main(int argc, char* argv[])
           durations_forward_mw_ss_real_pole[irepeat]);
       printf(" error                = %40.5e\n\n",
           errors_mw_ss_real_pole[irepeat]);
+
+      //! Null and Nan Tests!
+      printf("  - Null, Nan test result (Input Harmonic Coefficients) : %d, %d\n", null_test(flm_orig, L*L), nan_test(flm_orig, L*L)); //! Harmonic Coefficients
+      printf("  - Null, Nan test result (Output Harmonic Coefficients) : %d, %d\n", null_test(flm_syn, L*L), nan_test(flm_syn, L*L)); //! Harmonic Coefficients
     }
 
     // =========================================================================
@@ -437,6 +501,10 @@ int main(int argc, char* argv[])
     printf(" error                = %40.5e\n\n",
         errors_dh[irepeat]);
 
+    //! Null and Nan Tests!
+    printf("  - Null, Nan test result (Input Harmonic Coefficients) : %d, %d\n", null_test(flm_orig, L*L), nan_test(flm_orig, L*L)); //! Harmonic Coefficients
+    printf("  - Null, Nan test result (Output Harmonic Coefficients) : %d, %d\n", null_test(flm_syn, L*L), nan_test(flm_syn, L*L)); //! Harmonic Coefficients
+
     // =========================================================================
     // GL
     printf("GL test no. %d\n", irepeat);
@@ -463,6 +531,10 @@ int main(int argc, char* argv[])
     printf(" error                = %40.5e\n\n",
         errors_gl[irepeat]);
 
+    //! Null and Nan Tests!
+    printf("  - Null, Nan test result (Input Harmonic Coefficients) : %d, %d\n", null_test(flm_orig, L*L), nan_test(flm_orig, L*L)); //! Harmonic Coefficients
+    printf("  - Null, Nan test result (Output Harmonic Coefficients) : %d, %d\n", null_test(flm_syn, L*L), nan_test(flm_syn, L*L)); //! Harmonic Coefficients
+
     // =========================================================================
     // MW
     printf("MW test no. %d\n", irepeat);
@@ -488,6 +560,9 @@ int main(int argc, char* argv[])
         durations_forward_mw[irepeat]);
     printf(" error                = %40.5e\n\n",
         errors_mw[irepeat]);
+    //! Null and Nan Tests!
+    printf("  - Null, Nan test result (Input Harmonic Coefficients) : %d, %d\n", null_test(flm_orig, L*L), nan_test(flm_orig, L*L)); //! Harmonic Coefficients
+    printf("  - Null, Nan test result (Output Harmonic Coefficients) : %d, %d\n", null_test(flm_syn, L*L), nan_test(flm_syn, L*L)); //! Harmonic Coefficients
 
     // =========================================================================
     // MW with lower band-limit
@@ -515,6 +590,10 @@ int main(int argc, char* argv[])
         durations_forward_mw_lb[irepeat]);
     printf(" error                = %40.5e\n\n",
         errors_mw_lb[irepeat]);
+
+        //! Null and Nan Tests!
+    printf("  - Null, Nan test result (Input Harmonic Coefficients) : %d, %d\n", null_test(flm_orig, L*L), nan_test(flm_orig, L*L)); //! Harmonic Coefficients
+    printf("  - Null, Nan test result (Output Harmonic Coefficients) : %d, %d\n", null_test(flm_syn, L*L), nan_test(flm_syn, L*L)); //! Harmonic Coefficients
 
     // =========================================================================
     // MW pole
@@ -546,6 +625,10 @@ int main(int argc, char* argv[])
     printf(" error                = %40.5e\n\n",
         errors_mw_pole[irepeat]);
 
+    //! Null and Nan Tests!
+    printf("  - Null, Nan test result (Input Harmonic Coefficients) : %d, %d\n", null_test(flm_orig, L*L), nan_test(flm_orig, L*L)); //! Harmonic Coefficients
+    printf("  - Null, Nan test result (Output Harmonic Coefficients) : %d, %d\n", null_test(flm_syn, L*L), nan_test(flm_syn, L*L)); //! Harmonic Coefficients
+
     // =========================================================================
     // MW SS
     printf("MW SS test no. %d\n", irepeat);
@@ -575,6 +658,10 @@ int main(int argc, char* argv[])
     printf(" error                = %40.5e\n\n",
         errors_mw_ss[irepeat]);
 
+    //! Null and Nan Tests!
+    printf("  - Null, Nan test result (Input Harmonic Coefficients) : %d, %d\n", null_test(flm_orig, L*L), nan_test(flm_orig, L*L)); //! Harmonic Coefficients
+    printf("  - Null, Nan test result (Output Harmonic Coefficients) : %d, %d\n", null_test(flm_syn, L*L), nan_test(flm_syn, L*L)); //! Harmonic Coefficients
+
     // =========================================================================
     // MW SS with lower band-limit
     printf("MW SS (lower band-limit) test no. %d\n", irepeat);
@@ -603,6 +690,10 @@ int main(int argc, char* argv[])
         durations_forward_mw_lb_ss[irepeat]);
     printf(" error                = %40.5e\n\n",
         errors_mw_lb_ss[irepeat]);
+
+    //! Null and Nan Tests!
+    printf("  - Null, Nan test result (Input Harmonic Coefficients) : %d, %d\n", null_test(flm_orig, L*L), nan_test(flm_orig, L*L)); //! Harmonic Coefficients
+    printf("  - Null, Nan test result (Output Harmonic Coefficients) : %d, %d\n", null_test(flm_syn, L*L), nan_test(flm_syn, L*L)); //! Harmonic Coefficients
 
     // =========================================================================
     // MW SS pole
@@ -637,6 +728,9 @@ int main(int argc, char* argv[])
         durations_forward_mw_ss_pole[irepeat]);
     printf(" error                = %40.5e\n\n",
         errors_mw_ss_pole[irepeat]);
+    //! Null and Nan Tests!
+    printf("  - Null, Nan test result (Input Harmonic Coefficients) : %d, %d\n", null_test(flm_orig, L*L), nan_test(flm_orig, L*L)); //! Harmonic Coefficients
+    printf("  - Null, Nan test result (Output Harmonic Coefficients) : %d, %d\n", null_test(flm_syn, L*L), nan_test(flm_syn, L*L)); //! Harmonic Coefficients
   }
 
   // =========================================================================
@@ -1014,10 +1108,9 @@ void ssht_test_gen_lb_flm_complex(complex double* flm, int L0, int L, int spin, 
   int i, i_lo;
 
   ssht_sampling_elm2ind(&i_lo, abs(spin), 0);
-  for (i = 0; i < MAX(i_lo, L0 * L0); i++)
-    flm[i] = 0.0;
-  for (i = MAX(i_lo, L0 * L0); i < L * L; i++)
-    flm[i] = (2.0 * ran2_dp(seed) - 1.0) + I * (2.0 * ran2_dp(seed) - 1.0);
+  for (i = 0; i < MAX(i_lo, L0 * L0); i++){ flm[i] = 0.0; }
+  for (i = MAX(i_lo, L0 * L0); i < L * L; i++){ flm[i] = (2.0 * ran2_dp(seed) - 1.0) + I * (2.0 * ran2_dp(seed) - 1.0);}
+
 }
 
 /*!
