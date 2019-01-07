@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 # import both numpy and the Cython declarations for numpy
 import numpy as np
 cimport numpy as np
@@ -23,22 +25,22 @@ cdef enum EQUATORIAL_PROJECTION_TYPE:
 
 cdef extern from "ssht.h":
 
-        double ssht_sampling_mw_t2theta(int t, int L); #  ; adjoints
-        double ssht_sampling_mw_p2phi(int p, int L);
-        int ssht_sampling_mw_n(int L);
-        int ssht_sampling_mw_ntheta(int L);
-        int ssht_sampling_mw_nphi(int L);
-        double* ssht_dl_calloc(int L, ssht_dl_size_t dl_size);
+        double ssht_sampling_mw_t2theta(int t, int L) #  adjoints
+        double ssht_sampling_mw_p2phi(int p, int L)
+        int ssht_sampling_mw_n(int L)
+        int ssht_sampling_mw_ntheta(int L)
+        int ssht_sampling_mw_nphi(int L)
+        double* ssht_dl_calloc(int L, ssht_dl_size_t dl_size)
         ctypedef enum ssht_dl_size_t:
                 SSHT_DL_QUARTER_EXTENDED, SSHT_DL_HALF, SSHT_DL_FULL
 
         void ssht_dl_beta_risbo_full_table(double *dl, double beta, int L,
                                            ssht_dl_size_t dl_size,
-                                           int el, double *sqrt_tbl);
+                                           int el, double *sqrt_tbl)
 
         void ssht_dl_beta_risbo_half_table(double *dl, double beta, int L,
                                            ssht_dl_size_t dl_size,
-                                           int el, double *sqrt_tbl, double *signs);
+                                           int el, double *sqrt_tbl, double *signs)
 
 # I included
         ctypedef enum  ssht_dl_method_t:
@@ -46,82 +48,82 @@ cdef extern from "ssht.h":
         void ssht_core_mw_forward_sov_conv_sym(double complex *flm, const double complex *f,
 				       int L, int spin,
 				       ssht_dl_method_t dl_method,
-				       int verbosity);
+				       int verbosity)
         void ssht_core_mw_inverse_sov_sym(double complex *f, const double complex *flm,
                                   int L, int spin,
                                   ssht_dl_method_t dl_method,
-                                  int verbosity);
+                                  int verbosity)
         void ssht_core_mw_inverse_sov_sym_real(double *f, const double complex *flm,
                                   int L,
                                   ssht_dl_method_t dl_method,
-                                  int verbosity);
+                                  int verbosity)
         void ssht_core_mw_forward_sov_conv_sym_real(double complex *flm, const double *f,
                                   int L,
                                   ssht_dl_method_t dl_method,
-                                  int verbosity);
+                                  int verbosity)
         void ssht_core_mw_inverse_sov_sym_pole(double complex *f,
                                   double complex *f_sp, double *phi_sp,
                                   const double complex *flm,
                                   int L, int spin,
                                   ssht_dl_method_t dl_method,
-                                  int verbosity);
+                                  int verbosity)
         void ssht_core_mw_inverse_sov_sym_real_pole(double *f,
                                   double *f_sp,
                                   const double complex *flm,
                                   int L,
                                   ssht_dl_method_t dl_method,
-                                  int verbosity);
+                                  int verbosity)
         void ssht_core_mw_forward_sov_conv_sym_pole(double complex *flm, const double complex *f, # change to ss 
                                   double complex f_sp, double phi_sp,
                                   int L, int spin,
                                   ssht_dl_method_t dl_method,
-                                  int verbosity);
+                                  int verbosity)
         void ssht_core_mw_forward_sov_conv_sym_real_pole(double complex *flm,
                                   const double *f,
                                   double f_sp,
                                   int L,
                                   ssht_dl_method_t dl_method,
-                                  int verbosity);
+                                  int verbosity)
         void ssht_core_mw_inverse_sov_sym_ss(double complex *f, const double complex *flm,
               int L, int spin,
               ssht_dl_method_t dl_method,
-              int verbosity);
+              int verbosity)
         void ssht_core_mw_inverse_sov_sym_ss_real(double *f, const double complex *flm,
               int L,
               ssht_dl_method_t dl_method,
-              int verbosity);
+              int verbosity)
         void ssht_core_mw_forward_sov_conv_sym_ss(double complex *flm, const double complex *f,
               int L, int spin,
               ssht_dl_method_t dl_method,
-              int verbosity);
+              int verbosity)
         void ssht_core_mw_forward_sov_conv_sym_ss_real(double complex *flm, const double *f,
               int L,
               ssht_dl_method_t dl_method,
-              int verbosity);
+              int verbosity)
         void ssht_core_dh_inverse_sov(double complex *f, const double complex *flm,
-                                  int L, int spin, int verbosity);
+                                  int L, int spin, int verbosity)
         void ssht_core_dh_inverse_sov_real(double *f, const double complex *flm,
-                                  int L, int verbosity);
+                                  int L, int verbosity)
         void ssht_core_dh_forward_sov(double complex *flm, const double complex *f,
-                                  int L, int spin, int verbosity);
+                                  int L, int spin, int verbosity)
         void ssht_core_dh_forward_sov_real(double complex *flm, const double *f,
-                                  int L, int verbosity);
+                                  int L, int verbosity)
         void ssht_core_gl_inverse_sov(double complex *f, const double complex *flm,
-                                  int L, int spin, int verbosity);
+                                  int L, int spin, int verbosity)
         void ssht_core_gl_inverse_sov_real(double *f, const double complex *flm,
-                                  int L, int verbosity);
+                                  int L, int verbosity)
         void ssht_core_gl_forward_sov(double complex *flm, const double complex *f,
-                                  int L, int spin, int verbosity);
+                                  int L, int spin, int verbosity)
         void ssht_core_gl_forward_sov_real(double complex *flm, const double *f,
-                                  int L, int verbosity);
-        double ssht_sampling_mw_t2theta(int t, int L);
-        double ssht_sampling_mw_p2phi(int p, int L);
-        double ssht_sampling_mw_ss_t2theta(int t, int L);
-        double ssht_sampling_mw_ss_p2phi(int p, int L);
-        double ssht_sampling_dh_t2theta(int t, int L);
-        double ssht_sampling_dh_p2phi(int p, int L);
-        void ssht_sampling_gl_thetas_weights(double *thetas, double *weights, int L);
-        double ssht_sampling_gl_p2phi(int p, int L);
+                                  int L, int verbosity)
+        double ssht_sampling_mw_t2theta(int t, int L)
+        double ssht_sampling_mw_p2phi(int p, int L)
+        double ssht_sampling_mw_ss_t2theta(int t, int L)
+        double ssht_sampling_mw_ss_p2phi(int p, int L)
+        double ssht_sampling_dh_t2theta(int t, int L)
+        double ssht_sampling_dh_p2phi(int p, int L)
+        void ssht_sampling_gl_thetas_weights(double *thetas, double *weights, int L)
+        double ssht_sampling_gl_p2phi(int p, int L)
 
 # adjoints
 
@@ -129,63 +131,63 @@ cdef extern from "ssht.h":
              double complex *f, 
              int L, int spin, 
              ssht_dl_method_t dl_method,
-             int verbosity);
+             int verbosity)
         void ssht_adjoint_mw_inverse_sov_sym_real(double complex *flm, 
             double *f, 
             int L,
             ssht_dl_method_t dl_method, 
-            int verbosity);
+            int verbosity)
         void ssht_adjoint_mw_forward_sov_sym(double complex *f, 
              double complex *flm,
              int L, int spin,
              ssht_dl_method_t dl_method,
-             int verbosity);
+             int verbosity)
         void ssht_adjoint_mw_forward_sov_sym_real(double *f, 
             double complex *flm,
             int L,
             ssht_dl_method_t dl_method,
-            int verbosity);
+            int verbosity)
 
         void ssht_adjoint_mw_inverse_sov_sym_pole(double complex *flm, double complex *f,
             double complex f_sp, double phi_sp,
             int L, int spin, 
             ssht_dl_method_t dl_method,
-            int verbosity);
+            int verbosity)
         void ssht_adjoint_mw_inverse_sov_sym_real_pole(double complex *flm, 
                  double *f, 
                  double f_sp,
                  int L, 
                  ssht_dl_method_t dl_method,
-                 int verbosity);
+                 int verbosity)
         void ssht_adjoint_mw_forward_sov_sym_pole(double complex *f, 
             double complex *f_sp, double *phi_sp,
             double complex *flm, 
             int L, int spin, 
             ssht_dl_method_t dl_method,
-            int verbosity);
+            int verbosity)
         void ssht_adjoint_mw_forward_sov_sym_real_pole(double *f, 
                  double *f_sp,
                  double complex *flm, 
                  int L, 
                  ssht_dl_method_t dl_method, 
-                 int verbosity);
+                 int verbosity)
         void ssht_adjoint_mw_inverse_sov_sym_ss(double complex *flm, double complex *f, 
           int L, int spin, 
           ssht_dl_method_t dl_method,
-          int verbosity);
+          int verbosity)
         void ssht_adjoint_mw_inverse_sov_sym_ss_real(double complex *flm, double *f, 
                int L, 
                ssht_dl_method_t dl_method, 
-               int verbosity);
+               int verbosity)
         void ssht_adjoint_mw_forward_sov_sym_ss(double complex *f, double complex *flm,
           int L, int spin,
           ssht_dl_method_t dl_method,
-          int verbosity);
+          int verbosity)
         void ssht_adjoint_mw_forward_sov_sym_ss_real(double *f, 
                double complex *flm,
                int L,
                ssht_dl_method_t dl_method,
-               int verbosity);
+               int verbosity)
 
 
 
@@ -193,188 +195,188 @@ cdef extern from "ssht.h":
 
 def ssht_forward_mw_complex(np.ndarray[ double complex, ndim=2, mode="c"] f_mw_c not None,int L,int spin):
 
-        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO;
+        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO
         f_lm = np.empty([L * L,], dtype=complex)
-        ssht_core_mw_forward_sov_conv_sym(<double complex*> np.PyArray_DATA(f_lm),<const double complex*> np.PyArray_DATA(f_mw_c), L, spin, dl_method, 0);
+        ssht_core_mw_forward_sov_conv_sym(<double complex*> np.PyArray_DATA(f_lm),<const double complex*> np.PyArray_DATA(f_mw_c), L, spin, dl_method, 0)
         return f_lm
         
 def ssht_inverse_mw_complex(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, int L, int spin):
 
-        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO;
+        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO
         f_mw_c = np.empty([L,2*L-1,], dtype=complex)
-        ssht_core_mw_inverse_sov_sym(<double complex*> np.PyArray_DATA(f_mw_c),<const double complex*> np.PyArray_DATA(f_lm), L, spin, dl_method, 0);
+        ssht_core_mw_inverse_sov_sym(<double complex*> np.PyArray_DATA(f_mw_c),<const double complex*> np.PyArray_DATA(f_lm), L, spin, dl_method, 0)
         return f_mw_c
 
 
 def ssht_inverse_mw_complex_adjoint(np.ndarray[ double complex, ndim=2, mode="c"] f_mw_c not None,int L,int spin):
 
-        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO;
+        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO
         f_lm = np.empty([L * L,], dtype=complex)
-        ssht_adjoint_mw_inverse_sov_sym(<double complex*> np.PyArray_DATA(f_lm),<const double complex*> np.PyArray_DATA(f_mw_c), L, spin, dl_method, 0);
+        ssht_adjoint_mw_inverse_sov_sym(<double complex*> np.PyArray_DATA(f_lm),<const double complex*> np.PyArray_DATA(f_mw_c), L, spin, dl_method, 0)
         return f_lm
         
 def ssht_forward_mw_complex_adjoint(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, int L, int spin):
 
-        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO;
+        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO
         f_mw_c = np.empty([L,2*L-1,], dtype=complex)
-        ssht_adjoint_mw_forward_sov_sym(<double complex*> np.PyArray_DATA(f_mw_c),<const double complex*> np.PyArray_DATA(f_lm), L, spin, dl_method, 0);
+        ssht_adjoint_mw_forward_sov_sym(<double complex*> np.PyArray_DATA(f_mw_c),<const double complex*> np.PyArray_DATA(f_lm), L, spin, dl_method, 0)
         return f_mw_c
 
 #----------------------------------------------------------------------------------------------------#
 
 def ssht_forward_mw_real(np.ndarray[ double, ndim=2, mode="c"] f_mw_r not None,int L):
 
-        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO;
+        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO
         f_lm = np.empty([L * L,], dtype=complex)
-        ssht_core_mw_forward_sov_conv_sym_real(<double complex*> np.PyArray_DATA(f_lm),<const double*> np.PyArray_DATA(f_mw_r), L, dl_method, 0);
+        ssht_core_mw_forward_sov_conv_sym_real(<double complex*> np.PyArray_DATA(f_lm),<const double*> np.PyArray_DATA(f_mw_r), L, dl_method, 0)
         return f_lm
         
 def ssht_inverse_mw_real(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, int L):
 
-        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO;
+        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO
         f_mw_r = np.empty([L,2*L-1,], dtype=np.float_)
-        ssht_core_mw_inverse_sov_sym_real(<double*> np.PyArray_DATA(f_mw_r),<const double complex*> np.PyArray_DATA(f_lm), L, dl_method, 0);
+        ssht_core_mw_inverse_sov_sym_real(<double*> np.PyArray_DATA(f_mw_r),<const double complex*> np.PyArray_DATA(f_lm), L, dl_method, 0)
         return f_mw_r
 
 def ssht_inverse_mw_real_adjoint(np.ndarray[ double, ndim=2, mode="c"] f_mw_r not None,int L):
 
-        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO;
+        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO
         f_lm = np.empty([L * L,], dtype=complex)
-        ssht_adjoint_mw_inverse_sov_sym_real(<double complex*> np.PyArray_DATA(f_lm),<const double*> np.PyArray_DATA(f_mw_r), L, dl_method, 0);
+        ssht_adjoint_mw_inverse_sov_sym_real(<double complex*> np.PyArray_DATA(f_lm),<const double*> np.PyArray_DATA(f_mw_r), L, dl_method, 0)
         return f_lm
         
 def ssht_forward_mw_real_adjoint(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, int L):
 
-        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO;
+        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO
         f_mw_r = np.empty([L,2*L-1,], dtype=np.float_)
-        ssht_adjoint_mw_forward_sov_sym_real(<double*> np.PyArray_DATA(f_mw_r),<const double complex*> np.PyArray_DATA(f_lm), L, dl_method, 0);
+        ssht_adjoint_mw_forward_sov_sym_real(<double*> np.PyArray_DATA(f_mw_r),<const double complex*> np.PyArray_DATA(f_lm), L, dl_method, 0)
         return f_mw_r
 
 #----------------------------------------------------------------------------------------------------#
 
 def ssht_forward_mwss_complex(np.ndarray[ double complex, ndim=2, mode="c"] f_mwss_c not None,int L,int spin):
 
-        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO;
+        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO
         f_lm = np.empty([L * L,], dtype=complex)
-        ssht_core_mw_forward_sov_conv_sym_ss(<double complex*> np.PyArray_DATA(f_lm),<const double complex*> np.PyArray_DATA(f_mwss_c), L, spin, dl_method, 0);
+        ssht_core_mw_forward_sov_conv_sym_ss(<double complex*> np.PyArray_DATA(f_lm),<const double complex*> np.PyArray_DATA(f_mwss_c), L, spin, dl_method, 0)
         return f_lm
         
 def ssht_inverse_mwss_complex(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, int L, int spin):
 
-        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO;
+        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO
         f_mwss_c = np.empty([L+1,2*L,], dtype=complex)
-        ssht_core_mw_inverse_sov_sym_ss(<double complex*> np.PyArray_DATA(f_mwss_c),<const double complex*> np.PyArray_DATA(f_lm), L, spin, dl_method, 0);
+        ssht_core_mw_inverse_sov_sym_ss(<double complex*> np.PyArray_DATA(f_mwss_c),<const double complex*> np.PyArray_DATA(f_lm), L, spin, dl_method, 0)
         return f_mwss_c
 
 
 def ssht_inverse_mwss_complex_adjoint(np.ndarray[ double complex, ndim=2, mode="c"] f_mwss_c not None,int L,int spin):
 
-        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO;
+        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO
         f_lm = np.empty([L * L,], dtype=complex)
-        ssht_adjoint_mw_inverse_sov_sym_ss(<double complex*> np.PyArray_DATA(f_lm),<const double complex*> np.PyArray_DATA(f_mwss_c), L, spin, dl_method, 0);
+        ssht_adjoint_mw_inverse_sov_sym_ss(<double complex*> np.PyArray_DATA(f_lm),<const double complex*> np.PyArray_DATA(f_mwss_c), L, spin, dl_method, 0)
         return f_lm
         
 def ssht_forward_mwss_complex_adjoint(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, int L, int spin):
 
-        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO;
+        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO
         f_mwss_c = np.empty([L+1,2*L,], dtype=complex)
-        ssht_adjoint_mw_forward_sov_sym_ss(<double complex*> np.PyArray_DATA(f_mwss_c),<const double complex*> np.PyArray_DATA(f_lm), L, spin, dl_method, 0);
+        ssht_adjoint_mw_forward_sov_sym_ss(<double complex*> np.PyArray_DATA(f_mwss_c),<const double complex*> np.PyArray_DATA(f_lm), L, spin, dl_method, 0)
         return f_mwss_c
 #----------------------------------------------------------------------------------------------------#
 
 def ssht_forward_mwss_real(np.ndarray[ double, ndim=2, mode="c"] f_mwss_r not None,int L):
 
-        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO;
+        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO
         f_lm = np.empty([L * L,], dtype=complex)
-        ssht_core_mw_forward_sov_conv_sym_ss_real(<double complex*> np.PyArray_DATA(f_lm),<const double*> np.PyArray_DATA(f_mwss_r), L, dl_method, 0);
+        ssht_core_mw_forward_sov_conv_sym_ss_real(<double complex*> np.PyArray_DATA(f_lm),<const double*> np.PyArray_DATA(f_mwss_r), L, dl_method, 0)
         return f_lm
         
 def ssht_inverse_mwss_real(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, int L):
 
-        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO;
+        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO
         f_mwss_r = np.empty([L+1,2*L,], dtype=np.float_)
-        ssht_core_mw_inverse_sov_sym_ss_real(<double*> np.PyArray_DATA(f_mwss_r),<const double complex*> np.PyArray_DATA(f_lm), L, dl_method, 0);
+        ssht_core_mw_inverse_sov_sym_ss_real(<double*> np.PyArray_DATA(f_mwss_r),<const double complex*> np.PyArray_DATA(f_lm), L, dl_method, 0)
         return f_mwss_r
 
 def ssht_inverse_mwss_real_adjoint(np.ndarray[ double, ndim=2, mode="c"] f_mwss_r not None,int L):
 
-        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO;
+        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO
         f_lm = np.empty([L * L,], dtype=complex)
-        ssht_adjoint_mw_inverse_sov_sym_ss_real(<double complex*> np.PyArray_DATA(f_lm),<const double*> np.PyArray_DATA(f_mwss_r), L, dl_method, 0);
+        ssht_adjoint_mw_inverse_sov_sym_ss_real(<double complex*> np.PyArray_DATA(f_lm),<const double*> np.PyArray_DATA(f_mwss_r), L, dl_method, 0)
         return f_lm
         
 def ssht_forward_mwss_real_adjoint(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, int L):
 
-        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO;
+        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO
         f_mwss_r = np.empty([L+1,2*L,], dtype=np.float_)
-        ssht_adjoint_mw_forward_sov_sym_ss_real(<double*> np.PyArray_DATA(f_mwss_r),<const double complex*> np.PyArray_DATA(f_lm), L, dl_method, 0);
+        ssht_adjoint_mw_forward_sov_sym_ss_real(<double*> np.PyArray_DATA(f_mwss_r),<const double complex*> np.PyArray_DATA(f_lm), L, dl_method, 0)
         return f_mwss_r
 
 #----------------------------------------------------------------------------------------------------#
 
 def ssht_forward_mw_complex_pole(np.ndarray[ double complex, ndim=2, mode="c"] f_mw_c not None, double complex f_sp, double phi_sp, int L,int spin):
 
-        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO;
+        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO
         f_lm = np.empty([L * L,], dtype=complex)
-        ssht_core_mw_forward_sov_conv_sym_pole(<double complex*> np.PyArray_DATA(f_lm),<const double complex*> np.PyArray_DATA(f_mw_c),  f_sp,  phi_sp, L, spin, dl_method, 0);
+        ssht_core_mw_forward_sov_conv_sym_pole(<double complex*> np.PyArray_DATA(f_lm),<const double complex*> np.PyArray_DATA(f_mw_c),  f_sp,  phi_sp, L, spin, dl_method, 0)
         return f_lm
         
 def ssht_inverse_mw_complex_pole(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, int L, int spin):
 
-        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO;
+        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO
         f_mw_c = np.empty([L-1,(2*L-1),], dtype=complex)
         cdef double complex f_sp
         cdef double phi_sp
-        ssht_core_mw_inverse_sov_sym_pole(<double complex*> np.PyArray_DATA(f_mw_c),  &f_sp,  &phi_sp, <const double complex*> np.PyArray_DATA(f_lm), L, spin, dl_method, 0);
+        ssht_core_mw_inverse_sov_sym_pole(<double complex*> np.PyArray_DATA(f_mw_c),  &f_sp,  &phi_sp, <const double complex*> np.PyArray_DATA(f_lm), L, spin, dl_method, 0)
         return f_mw_c, f_sp, phi_sp
 
 
 def ssht_inverse_mw_complex_pole_adjoint(np.ndarray[ double complex, ndim=2, mode="c"] f_mw_c not None, double complex f_sp, double phi_sp, int L,int spin):
 
-        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO;
+        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO
         f_lm = np.empty([L * L,], dtype=complex)
-        ssht_adjoint_mw_inverse_sov_sym_pole(<double complex*> np.PyArray_DATA(f_lm),<const double complex*> np.PyArray_DATA(f_mw_c),  f_sp,  phi_sp, L, spin, dl_method, 0);
+        ssht_adjoint_mw_inverse_sov_sym_pole(<double complex*> np.PyArray_DATA(f_lm),<const double complex*> np.PyArray_DATA(f_mw_c),  f_sp,  phi_sp, L, spin, dl_method, 0)
         return f_lm
         
 def ssht_forward_mw_complex_pole_adjoint(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, int L, int spin):
 
-        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO;
+        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO
         f_mw_c = np.empty([L-1,(2*L-1),], dtype=complex)
         cdef double complex f_sp
         cdef double phi_sp
-        ssht_adjoint_mw_forward_sov_sym_pole(<double complex*> np.PyArray_DATA(f_mw_c),  &f_sp,  &phi_sp, <const double complex*> np.PyArray_DATA(f_lm), L, spin, dl_method, 0);
+        ssht_adjoint_mw_forward_sov_sym_pole(<double complex*> np.PyArray_DATA(f_mw_c),  &f_sp,  &phi_sp, <const double complex*> np.PyArray_DATA(f_lm), L, spin, dl_method, 0)
         return f_mw_c, f_sp, phi_sp
 
 #----------------------------------------------------------------------------------------------------#
 
 def ssht_forward_mw_real_pole(np.ndarray[ double, ndim=2, mode="c"] f_mw_r not None, double f_sp,  int L):
 
-        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO;
+        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO
         f_lm = np.empty([L * L,], dtype=complex)
-        ssht_core_mw_forward_sov_conv_sym_real_pole(<double complex*> np.PyArray_DATA(f_lm),<const double*> np.PyArray_DATA(f_mw_r), f_sp, L, dl_method, 0);
+        ssht_core_mw_forward_sov_conv_sym_real_pole(<double complex*> np.PyArray_DATA(f_lm),<const double*> np.PyArray_DATA(f_mw_r), f_sp, L, dl_method, 0)
         return f_lm
         
 def ssht_inverse_mw_real_pole(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, int L):
 
-        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO;
+        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO
         f_mw_r = np.empty([L-1,2*L-1,], dtype=np.float_)
         cdef double f_sp
-        ssht_core_mw_inverse_sov_sym_real_pole(<double*> np.PyArray_DATA(f_mw_r), &f_sp, <const double complex*> np.PyArray_DATA(f_lm), L, dl_method, 0);
+        ssht_core_mw_inverse_sov_sym_real_pole(<double*> np.PyArray_DATA(f_mw_r), &f_sp, <const double complex*> np.PyArray_DATA(f_lm), L, dl_method, 0)
         return f_mw_r, f_sp
 
 def ssht_inverse_mw_real_pole_adjoint(np.ndarray[ double, ndim=2, mode="c"] f_mw_r not None, double f_sp,  int L):
 
-        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO;
+        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO
         f_lm = np.empty([L * L,], dtype=complex)
-        ssht_adjoint_mw_inverse_sov_sym_real_pole(<double complex*> np.PyArray_DATA(f_lm),<const double*> np.PyArray_DATA(f_mw_r), f_sp, L, dl_method, 0);
+        ssht_adjoint_mw_inverse_sov_sym_real_pole(<double complex*> np.PyArray_DATA(f_lm),<const double*> np.PyArray_DATA(f_mw_r), f_sp, L, dl_method, 0)
         return f_lm
         
 def ssht_forward_mw_real_pole_adjoint(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, int L):
 
-        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO;
+        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO
         f_mw_r = np.empty([L-1,2*L-1,], dtype=np.float_)
         cdef double f_sp
-        ssht_adjoint_mw_forward_sov_sym_real_pole(<double*> np.PyArray_DATA(f_mw_r), &f_sp, <const double complex*> np.PyArray_DATA(f_lm), L, dl_method, 0);
+        ssht_adjoint_mw_forward_sov_sym_real_pole(<double*> np.PyArray_DATA(f_mw_r), &f_sp, <const double complex*> np.PyArray_DATA(f_lm), L, dl_method, 0)
         return f_mw_r, f_sp
 
 #----------------------------------------------------------------------------------------------------#
@@ -382,13 +384,13 @@ def ssht_forward_mw_real_pole_adjoint(np.ndarray[ double complex, ndim=1, mode="
 def ssht_forward_dh_complex(np.ndarray[ double complex, ndim=2, mode="c"] f_dh_c not None,int L,int spin):
 
         f_lm = np.empty([L * L,], dtype=complex)
-        ssht_core_dh_forward_sov(<double complex*> np.PyArray_DATA(f_lm),<const double complex*> np.PyArray_DATA(f_dh_c), L, spin, 0);
+        ssht_core_dh_forward_sov(<double complex*> np.PyArray_DATA(f_lm),<const double complex*> np.PyArray_DATA(f_dh_c), L, spin, 0)
         return f_lm
         
 def ssht_inverse_dh_complex(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, int L, int spin):
 
         f_dh_c = np.empty([2*L,2*L-1,], dtype=complex)
-        ssht_core_dh_inverse_sov(<double complex*> np.PyArray_DATA(f_dh_c),<const double complex*> np.PyArray_DATA(f_lm), L, spin, 0);
+        ssht_core_dh_inverse_sov(<double complex*> np.PyArray_DATA(f_dh_c),<const double complex*> np.PyArray_DATA(f_lm), L, spin, 0)
         return f_dh_c
 
 #----------------------------------------------------------------------------------------------------#
@@ -396,13 +398,13 @@ def ssht_inverse_dh_complex(np.ndarray[ double complex, ndim=1, mode="c"] f_lm n
 def ssht_forward_dh_real(np.ndarray[ double, ndim=2, mode="c"] f_dh_r not None,int L):
 
         f_lm = np.empty([L * L,], dtype=complex)
-        ssht_core_dh_forward_sov_real(<double complex*> np.PyArray_DATA(f_lm),<const double*> np.PyArray_DATA(f_dh_r), L,  0);
+        ssht_core_dh_forward_sov_real(<double complex*> np.PyArray_DATA(f_lm),<const double*> np.PyArray_DATA(f_dh_r), L,  0)
         return f_lm
         
 def ssht_inverse_dh_real(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, int L):
 
         f_dh_r = np.empty([2*L,2*L-1,], dtype=np.float_)
-        ssht_core_dh_inverse_sov_real(<double*> np.PyArray_DATA(f_dh_r),<const double complex*> np.PyArray_DATA(f_lm), L, 0);
+        ssht_core_dh_inverse_sov_real(<double*> np.PyArray_DATA(f_dh_r),<const double complex*> np.PyArray_DATA(f_lm), L, 0)
         return f_dh_r
 
 
@@ -410,32 +412,32 @@ def ssht_inverse_dh_real(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not 
 
 def ssht_forward_gl_complex(np.ndarray[ double complex, ndim=2, mode="c"] f_gl_c not None,int L,int spin):
 
-        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO;
+        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO
         f_lm = np.empty([L * L,], dtype=complex)
-        ssht_core_gl_forward_sov(<double complex*> np.PyArray_DATA(f_lm),<const double complex*> np.PyArray_DATA(f_gl_c), L, spin, 0);
+        ssht_core_gl_forward_sov(<double complex*> np.PyArray_DATA(f_lm),<const double complex*> np.PyArray_DATA(f_gl_c), L, spin, 0)
         return f_lm
         
 def ssht_inverse_gl_complex(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, int L, int spin):
 
-        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO;
+        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO
         f_gl_c = np.empty([L,2*L-1,], dtype=complex)
-        ssht_core_gl_inverse_sov(<double complex*> np.PyArray_DATA(f_gl_c),<const double complex*> np.PyArray_DATA(f_lm), L, spin, 0);
+        ssht_core_gl_inverse_sov(<double complex*> np.PyArray_DATA(f_gl_c),<const double complex*> np.PyArray_DATA(f_lm), L, spin, 0)
         return f_gl_c
 
 #----------------------------------------------------------------------------------------------------#
 
 def ssht_forward_gl_real(np.ndarray[ double, ndim=2, mode="c"] f_gl_r not None,int L):
 
-        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO;
+        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO
         f_lm = np.empty([L * L,], dtype=complex)
-        ssht_core_gl_forward_sov_real(<double complex*> np.PyArray_DATA(f_lm),<const double*> np.PyArray_DATA(f_gl_r), L, 0);
+        ssht_core_gl_forward_sov_real(<double complex*> np.PyArray_DATA(f_lm),<const double*> np.PyArray_DATA(f_gl_r), L, 0)
         return f_lm
         
 def ssht_inverse_gl_real(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, int L):
 
-        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO;
+        cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO
         f_gl_r = np.empty([L,2*L-1,], dtype=np.float_)
-        ssht_core_gl_inverse_sov_real(<double*> np.PyArray_DATA(f_gl_r),<const double complex*> np.PyArray_DATA(f_lm), L, 0);
+        ssht_core_gl_inverse_sov_real(<double*> np.PyArray_DATA(f_gl_r),<const double complex*> np.PyArray_DATA(f_lm), L, 0)
         return f_gl_r
 
 
@@ -475,13 +477,13 @@ def forward(f, int L, int Spin=0, str Method='MW', bint Reality=False):
         raise ssht_spin_error('Reality set to True and Spin is not 0. However, spin signals must be complex.')
 
     if f.dtype == np.float_ and Reality == False:
-        print 'Real signal given but Reality flag is False. Set Reality = True to improve performance'
+        print('Real signal given but Reality flag is False. Set Reality = True to improve performance')
         f_new = np.empty(sample_shape(L,Method=Method), dtype=np.complex_)
         f_new = f + 1j*np.zeros(sample_shape(L,Method=Method), dtype=np.float_)
         f = f_new
 
     if f.dtype == np.complex_ and Reality == True:
-        print 'Complex signal given but Reality flag is True. Ignoring complex component'
+        print('Complex signal given but Reality flag is True. Ignoring complex component')
         f_new = np.real(f)
         f = f_new.copy(order='c')
         
@@ -585,13 +587,13 @@ def inverse_adjoint(f, int L, int Spin=0, str Method='MW', bint Reality=False):
         raise ssht_spin_error('Reality set to True and Spin is not 0. However, spin signals must be complex.')
 
     if f.dtype == np.float_ and Reality == False:
-        print 'Real signal given but Reality flag is False. Set Reality = True to improve performance'
+        print('Real signal given but Reality flag is False. Set Reality = True to improve performance')
         f_new = np.empty(sample_shape(L,Method=Method), dtype=np.complex_)
         f_new = f + 1j*np.zeros(sample_shape(L,Method=Method), dtype=np.float_)
         f = f_new
 
     if f.dtype == np.complex_ and Reality == True:
-        print 'Complex signal given but Reality flag is True. Ignoring complex component'
+        print('Complex signal given but Reality flag is True. Ignoring complex component')
         f_new = np.real(f)
         f = f_new.copy(order='c')
         
@@ -669,7 +671,7 @@ def ind2elm(int ind):
 
   cdef int ell, em
   el = cy_isqrt(ind)
-  em = ind - (el)*(el) - (el);
+  em = ind - (el)*(el) - (el)
 
   return el, em
 
@@ -1024,7 +1026,7 @@ def plot_sphere(f, int L, str Method='MW', bint Close=True, bint Parametric=Fals
         else:
             f, f_sp, phi_sp = f
 
-    (thetas, phis) = sample_positions(L, Method=Method, Grid=True);
+    (thetas, phis) = sample_positions(L, Method=Method, Grid=True)
 
     if (thetas.size != f.size):
         ssht_input_error('Band limit L deos not match that of f')
@@ -1355,7 +1357,7 @@ def equatorial_projection_rotation_angle(int resolution, list zoom_region, rot=N
         y_pos     = (2.*half_box_len_y*(<float>j+0.5)/<float>Ny -half_box_len_y)
         theta_pos = inverse_equatorial_projection_function_float_theta(x_pos, y_pos, Equatorial_Projection_enum)
         phi_pos   = inverse_equatorial_projection_function_float_phi(x_pos, y_pos, Equatorial_Projection_enum)
-        #print i, j, x_pos, y_pos, rho, theta_pos
+        # print(i, j, x_pos, y_pos, rho, theta_pos)
 
         if not np.isnan(phi_pos):
           delta_theta  = np.sin(phi_pos)*delta_y+np.cos(phi_pos)*delta_x - np.tan(theta_pos)*delta_z
@@ -1430,7 +1432,7 @@ def equatorial_projection_angle_array(int resolution, list zoom_region=[-1.,-1.]
         y_pos     = (2.*half_box_len_y*(<float>j+0.5)/<float>Ny -half_box_len_y)
         theta_pos = inverse_equatorial_projection_function_float_theta(x_pos, y_pos, Equatorial_Projection_enum)
         phi_pos   = inverse_equatorial_projection_function_float_phi(x_pos, y_pos, Equatorial_Projection_enum)
-        #print i, j, x_pos, y_pos, rho, theta_pos
+        # print(i, j, x_pos, y_pos, rho, theta_pos)
 
         if not np.isnan(phi_pos):
           phi_pos += rot_angle
@@ -1550,7 +1552,7 @@ def equatorial_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L, i
         y_pos     = (2.*half_box_len_y*(<float>j+0.5)/<float>Ny -half_box_len_y)
         theta_pos = inverse_equatorial_projection_function_float_theta(x_pos, y_pos, Equatorial_Projection_enum)
         phi_pos   = inverse_equatorial_projection_function_float_phi(x_pos, y_pos, Equatorial_Projection_enum)
-        #print i, j, x_pos, y_pos, rho, theta_pos
+        # print(i, j, x_pos, y_pos, rho, theta_pos)
         if np.isnan(phi_pos):
           f_project[j,i] = np.nan
         else:
@@ -1834,7 +1836,7 @@ def polar_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L, int re
           rho       = np.sqrt(x_pos*x_pos + y_pos*y_pos) 
           theta_pos = inverse_projection_function_float(rho, Polar_Projection_enum)
           phi_pos   = np.arctan2(y_pos,x_pos)
-          #print i, j, x_pos, y_pos, rho, theta_pos
+          # print(i, j, x_pos, y_pos, rho, theta_pos)
 
           # perform rotation
           if rot is not None:
@@ -2148,8 +2150,8 @@ def mollweide_coords_s2_to_xy(thetas, phis):
   # % where thetas and phis are spherical coordinates and x and y are the
   # % projected Mollweide coordinates.
 
-  MAX_ITERATIONS = 1e5;
-  TOL = 1e-10;
+  MAX_ITERATIONS = 1e5
+  TOL = 1e-10
 
   #% Convert theta to longitude.
   thetas, phis = theta_phi_to_ra_dec(thetas,phis)
@@ -2160,14 +2162,14 @@ def mollweide_coords_s2_to_xy(thetas, phis):
 
   while(inaccurate):
     count += 1
-    dt = (t + np.sin(t) - np.pi*np.sin(thetas)) / (1 + np.cos(t));
-    t = t - dt;
+    dt = (t + np.sin(t) - np.pi*np.sin(thetas)) / (1 + np.cos(t))
+    t = t - dt
     if(np.max(np.abs(dt)) < TOL or count > MAX_ITERATIONS):
       inaccurate = False
 
-  t = t/2;
-  x = 2 * np.sqrt(2) / np.pi * phis * np.cos(t);
-  y = np.sqrt(2) * np.sin(t);
+  t = t/2
+  x = 2 * np.sqrt(2) / np.pi * phis * np.cos(t)
+  y = np.sqrt(2) * np.sin(t)
 
   return (x, y)
 
@@ -2182,7 +2184,7 @@ def dl_beta_recurse(np.ndarray[ double, ndim=2, mode="c"] dl not None, double be
   cdef ssht_dl_size_t dl_size=SSHT_DL_HALF
   
   ssht_dl_beta_risbo_half_table(<double*> np.PyArray_DATA(dl), beta, L, dl_size,\
-                                           el, <double*> np.PyArray_DATA(sqrt_tbl), <double*> np.PyArray_DATA(signs));
+                                           el, <double*> np.PyArray_DATA(sqrt_tbl), <double*> np.PyArray_DATA(signs))
 
   return dl
 
@@ -2205,15 +2207,15 @@ def generate_dl(double beta, int L):
   # do recursion
   #el = 0 first
   ssht_dl_beta_risbo_half_table(<double*> np.PyArray_DATA(dl_dummy), beta, L, dl_size,\
-                                           0, <double*> np.PyArray_DATA(sqrt_tbl), <double*> np.PyArray_DATA(signs));
+                                           0, <double*> np.PyArray_DATA(sqrt_tbl), <double*> np.PyArray_DATA(signs))
 
   dl_array[0,offset_m,offset_m] = dl_dummy[offset_m,offset_m]
 
   for el in range(1,L):
     ssht_dl_beta_risbo_half_table(<double*> np.PyArray_DATA(dl_dummy), beta, L, dl_size,\
-                                           el, <double*> np.PyArray_DATA(sqrt_tbl), <double*> np.PyArray_DATA(signs));
+                                           el, <double*> np.PyArray_DATA(sqrt_tbl), <double*> np.PyArray_DATA(signs))
     for i in range(-el,el+1):
-#      print i
+      # print(i)
       for j in range(-el,el+1):
         dl_array[el,offset_m+i,offset_m+j] = dl_dummy[offset_m+i,offset_m+j]
 
@@ -2238,16 +2240,16 @@ def generate_dl_Mmax(double beta, int L, int M):
   # do recursion
   #el = 0 first
   ssht_dl_beta_risbo_half_table(<double*> np.PyArray_DATA(dl_dummy), beta, L, dl_size,\
-                                           0, <double*> np.PyArray_DATA(sqrt_tbl), <double*> np.PyArray_DATA(signs));
+                                           0, <double*> np.PyArray_DATA(sqrt_tbl), <double*> np.PyArray_DATA(signs))
 
   dl_array[0,offset_m,offset_m] = dl_dummy[offset_m_dummy,offset_m_dummy]
 
   for el in range(1,L):
-#    print el
+    # print(el)
     ssht_dl_beta_risbo_half_table(<double*> np.PyArray_DATA(dl_dummy), beta, L, dl_size,\
-                                           el, <double*> np.PyArray_DATA(sqrt_tbl), <double*> np.PyArray_DATA(signs));
+                                           el, <double*> np.PyArray_DATA(sqrt_tbl), <double*> np.PyArray_DATA(signs))
     for i in range(-M+1,M):
-#      print i
+      # print(i)
       for j in range(-M+1,M):
         dl_array[el,offset_m+i,offset_m+j] = dl_dummy[offset_m_dummy+i,offset_m_dummy+j]
 
@@ -2311,14 +2313,14 @@ def rotate_flms(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None,\
             Dlmn =  <complex> alpha_array[m+L-1] * <complex> dl_array[el,m+L-1,n+L-1]\
                    * <complex> gamma_array[n+L-1] # not sure about
             if Axisymmetric:
-                ind = el;
+                ind = el
             else:
-                ind = cy_elm2ind(el,n);
+                ind = cy_elm2ind(el,n)
 
             f_lm_rotated[index] = <double complex> f_lm_rotated[index] + \
-                <complex> Dlmn * <complex> f_lm[ind];
+                <complex> Dlmn * <complex> f_lm[ind]
 
-        index = index + 1;
+        index = index + 1
 
   if Keep_dl:
     return f_lm_rotated, dl_array
