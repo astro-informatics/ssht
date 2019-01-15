@@ -1,4 +1,4 @@
-from __future__ import print_function
+# cython: language_level=3
 
 # import both numpy and the Cython declarations for numpy
 import numpy as np
@@ -682,7 +682,7 @@ cdef inline int cy_isqrt(int n):
     while square <= n:
         square += delta
         delta  += 2
-    return (delta/2 -1)
+    return (int(delta/2) -1)
 
 cdef inline int cy_elm2ind( int el, int m):
 
@@ -1481,7 +1481,7 @@ def equatorial_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L, i
   if Method_enum==MW:
     Method="MW"
   elif Method_enum==MWSS:
-    Method_enum = "MWSS"
+    Method = "MWSS"
   elif Method_enum==DH:
     Method = "DH"
   elif Method_enum==GL:
@@ -1494,7 +1494,7 @@ def equatorial_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L, i
   Ny = int(<float>resolution*half_box_len_y/half_box_len_x)
 
   n_theta, n_phi = sample_shape(L, Method=Method)
-  n_theta_north = n_theta/2
+  n_theta_north = int(n_theta/2)
   n_theta_south = n_theta-n_theta_north
 
   theta, phi = sample_positions(L, Grid=True, Method=Method)
@@ -1721,7 +1721,7 @@ def polar_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L, int re
   if Method_enum==MW:
     Method="MW"
   elif Method_enum==MWSS:
-    Method_enum = "MWSS"
+    Method = "MWSS"
   elif Method_enum==DH:
     Method = "DH"
   elif Method_enum==GL:
@@ -1754,7 +1754,7 @@ def polar_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L, int re
   tol_error = 1E-10
 
   n_theta, n_phi = sample_shape(L, Method=Method)
-  n_theta_north = n_theta/2
+  n_theta_north = int(n_theta/2)
   n_theta_south = n_theta-n_theta_north
 
   theta, phi = sample_positions(L, Grid=True, Method=Method)
