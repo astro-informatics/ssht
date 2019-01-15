@@ -11,7 +11,7 @@ UNAME := $(shell uname)
 PROGDIR = ..
 
 ifeq ($(UNAME), Linux)
-  MLAB		= /usr/local/MATLAB/R2013a
+  MLAB		= ${MATLAB}
   MLABINC	= ${MLAB}/extern/include
   MLABLIB	= ${MLAB}/extern/lib
 
