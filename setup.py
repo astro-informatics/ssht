@@ -28,11 +28,9 @@ extra_link_args = [
 setup(
     name='pyssht',
     version='2.0',
-    prefix='.',
     cmdclass={'build_ext': build_ext},
     ext_modules=cythonize([Extension(
         'src/python/pyssht',
-        package_dir=['src'],
         sources=['src/python/pyssht.pyx'],
         include_dirs=include_dirs,
         libraries=['ssht', 'fftw3'],
