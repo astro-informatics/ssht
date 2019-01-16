@@ -1,4 +1,4 @@
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 import numpy as np
 import pyssht as ssht
 import matplotlib.pyplot as plt
@@ -83,7 +83,7 @@ for i, j in enumerate(range(2 * L - 2, L - 1, -1)):
 
 # Integral of function given by rescaled (el,m)=(0,0) harmonic coefficient.
 I0 = flm[0] * np.sqrt(4 * np.pi)
-print('Integration using iunput flm:', I0)
+print('Integration using input flm:', I0)
 
 # Integrate function on sphere using all points.
 f = ssht.inverse(flm, L, Method=method, Reality=reality)
