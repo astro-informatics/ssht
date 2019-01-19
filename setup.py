@@ -21,6 +21,7 @@ include_dirs = [
 ]
 
 extra_link_args = [
+    '-L./build',
     '-L./lib/c',
     '-L' + os.environ['FFTW'] + '/lib',
 ]
