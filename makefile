@@ -10,24 +10,19 @@ OPT		= -std=c99 -pedantic -Wall -O3 -fopenmp -DSSHT_VERSION=\"1.2b1\" -DSSHT_BUI
 UNAME := $(shell uname)
 PROGDIR = ..
 
+MLAB		= ${MATLAB}
+MLABINC	= ${MLAB}/extern/include
+MLABLIB	= ${MLAB}/extern/lib
+# --------------------
 ifeq ($(UNAME), Linux)
-  MLAB		= ${MATLAB}
-  MLABINC	= ${MLAB}/extern/include
-  MLABLIB	= ${MLAB}/extern/lib
-
   MEXEXT	= mexa64
-  MEX 		= ${MLAB}/bin/mex
-  MEXFLAGS	= -cxx
 endif
 ifeq ($(UNAME), Darwin)
-  MLAB		= ${MATLAB}
-  MLABINC	= ${MLAB}/extern/include
-  MLABLIB	= ${MLAB}/extern/lib
-
   MEXEXT	= mexmaci64
-  MEX 		= ${MLAB}/bin/mex
-  MEXFLAGS	= -cxx
 endif
+# -------------------- 
+MEX 		= ${MLAB}/bin/mex
+MEXFLAGS	= -cxx
 
 SSHTDIR  = $(PROGDIR)/ssht
 SSHTLIB  = $(SSHTDIR)/lib/c
@@ -38,13 +33,7 @@ SSHTOBJ  = $(SSHTSRC)
 SSHTINC  = $(SSHTDIR)/include/c
 SSHTDOC  = $(SSHTDIR)/doc/c
 
-ifeq ($(UNAME), Linux)
-  FFTWDIR      = $(FFTW)
-endif
-ifeq ($(UNAME), Darwin)
-  FFTWDIR      = $(FFTW)
-endif
-
+FFTWDIR      = $(FFTW)
 FFTWINC	     = $(FFTWDIR)/include
 FFTWLIB      = $(FFTWDIR)/lib
 FFTWLIBNM    = fftw3
