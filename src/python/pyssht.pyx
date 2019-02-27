@@ -705,10 +705,10 @@ def theta_to_index(double theta, int L, str Method="MW"):
   if Method == 'GL':
     if theta > theta_gl_grid[L-1]:
       p = L-1
-      for k in range(theta_gl_grid.size):
-        if theta < theta_gl_grid[k]:
-          p = k-1
-          break
+    for k in range(theta_gl_grid.size):
+      if theta < theta_gl_grid[k]:
+        p = k-1
+        break
   return p
 
 def phi_to_index(double phi, int L, str Method="MW"):
@@ -739,10 +739,10 @@ cdef inline int cy_theta_to_index(double theta, int L, METHOD_TYPE Method_enum):
   if Method_enum == GL:
     if theta > theta_gl_grid[L-1]:
       p = L-1
-      for k in range(theta_gl_grid.size):
-        if theta < theta_gl_grid[k]:
-          p = k-1
-          break
+    for k in range(theta_gl_grid.size):
+      if theta < theta_gl_grid[k]:
+        p = k-1
+        break
   return p
 
 cdef inline int cy_phi_to_index(double phi, int L, METHOD_TYPE Method_enum):
