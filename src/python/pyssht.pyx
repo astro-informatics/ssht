@@ -697,11 +697,11 @@ def theta_to_index(double theta, int L, str Method="MW"):
     theta_gl_grid, phi_gl_grid = sample_positions(L,Method="GL")
 
   if Method == 'MW':
-    p = int((theta*(2*L-1)/np.pi-1)/2)  # (2.0*t + 1.0) * SSHT_PI / (2.0*L - 1.0)
+    p = int((theta/np.pi*(2*L-1)-1)/2)  # (2.0*t + 1.0) * SSHT_PI / (2.0*L - 1.0)
   if Method == 'MWSS':
-    p = int((theta*(2*L)/np.pi)/2)  # 2.0 * t * SSHT_PI / (2.0 * L)
+    p = int((theta/np.pi*(2*L))/2)  # 2.0 * t * SSHT_PI / (2.0 * L)
   if Method == 'DH':
-    p = int((theta*(4*L)/np.pi-1)/2)  # (2.0*t + 1.0) * SSHT_PI / (4.0*L)
+    p = int((theta/np.pi*(4*L)-1)/2)  # (2.0*t + 1.0) * SSHT_PI / (4.0*L)
   if Method == 'GL':
     if theta > theta_gl_grid[L-1]:
       p = L-1
@@ -715,13 +715,13 @@ def phi_to_index(double phi, int L, str Method="MW"):
   cdef int q
   
   if Method == 'MW':
-    q = int(phi*(2*L-1)/(2*np.pi))      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
+    q = int(phi/(2*np.pi)*(2*L-1))      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
   if Method == 'MWSS':
-    q = int(phi*(2*L)/(2*np.pi))      # 2.0 * p * SSHT_PI / (2.0*L)
+    q = int(phi/(2*np.pi)*(2*L))      # 2.0 * p * SSHT_PI / (2.0*L)
   if Method == 'DH':
-    q = int(phi*(2*L-1)/(2*np.pi))      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
+    q = int(phi/(2*np.pi)*(2*L-1))      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
   if Method == 'GL':
-    q = int(phi*(2*L-1)/(2*np.pi))      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
+    q = int(phi/(2*np.pi)*(2*L-1))      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
   return q
 
 cdef inline int cy_theta_to_index(double theta, int L, METHOD_TYPE Method_enum):
