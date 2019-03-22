@@ -692,16 +692,17 @@ cdef inline int cy_elm2ind( int el, int m):
 def theta_to_index(double theta, int L, str Method="MW"):
   cdef int p
   cdef np.ndarray[np.float_t, ndim=1] theta_gl_grid, phi_gl_grid
+  precision = 14
 
   if Method == 'GL':
     theta_gl_grid, phi_gl_grid = sample_positions(L,Method="GL")
 
   if Method == 'MW':
-    p = int((theta*(2*L-1)/np.pi-1)/2)  # (2.0*t + 1.0) * SSHT_PI / (2.0*L - 1.0)
+    p = np.floor(round((theta*(2*L-1)/np.pi-1)/2,precision))  # (2.0*t + 1.0) * SSHT_PI / (2.0*L - 1.0)
   if Method == 'MWSS':
-    p = int((theta*(2*L)/np.pi)/2)  # 2.0 * t * SSHT_PI / (2.0 * L)
+    p = np.floor(round((theta*(2*L)/np.pi)/2,precision))   # 2.0 * t * SSHT_PI / (2.0 * L)
   if Method == 'DH':
-    p = int((theta*(4*L)/np.pi-1)/2)  # (2.0*t + 1.0) * SSHT_PI / (4.0*L)
+    p = np.floor(round((theta*(4*L)/np.pi-1)/2,precision))   # (2.0*t + 1.0) * SSHT_PI / (4.0*L)
   if Method == 'GL':
     if theta > theta_gl_grid[L-1]:
       p = L-1
@@ -713,29 +714,31 @@ def theta_to_index(double theta, int L, str Method="MW"):
 
 def phi_to_index(double phi, int L, str Method="MW"):
   cdef int q
+  precision = 14
   
   if Method == 'MW':
-    q = int(phi*(2*L-1)/(2*np.pi))      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
+    q = np.floor(round(phi*(2*L-1)/(2*np.pi),precision))      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
   if Method == 'MWSS':
-    q = int(phi*(2*L)/(2*np.pi))      # 2.0 * p * SSHT_PI / (2.0*L)
+    q = np.floor(round(phi*(2*L)/(2*np.pi),precision))      # 2.0 * p * SSHT_PI / (2.0*L)
   if Method == 'DH':
-    q = int(phi*(2*L-1)/(2*np.pi))      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
+    q = np.floor(round(phi*(2*L-1)/(2*np.pi),precision))      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
   if Method == 'GL':
-    q = int(phi*(2*L-1)/(2*np.pi))      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
+    q = np.floor(round(phi*(2*L-1)/(2*np.pi),precision))      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
   return q
 
 cdef inline int cy_theta_to_index(double theta, int L, METHOD_TYPE Method_enum):
   cdef int p
+  precision = 14
 
   if Method_enum == GL:
     theta_gl_grid, phi_gl_grid = sample_positions(L,Method="GL")
 
   if Method_enum == MW:
-    p = int((theta*(2*L-1)/np.pi-1)/2+0.5)  # (2.0*t + 1.0) * SSHT_PI / (2.0*L - 1.0)
+    p = np.floor(round((theta*(2*L-1)/np.pi-1)/2+0.5,precision))  # (2.0*t + 1.0) * SSHT_PI / (2.0*L - 1.0)
   if Method_enum == MWSS:
-    p = int((theta*(2*L)/np.pi)/2+0.5)  # 2.0 * t * SSHT_PI / (2.0 * L)
+    p = np.floor(round((theta*(2*L)/np.pi)/2+0.5,precision))  # 2.0 * t * SSHT_PI / (2.0 * L)
   if Method_enum == DH:
-    p = int((theta*(4*L)/np.pi-1)/2+0.5)  # (2.0*t + 1.0) * SSHT_PI / (4.0*L)
+    p = np.floor(round((theta*(4*L)/np.pi-1)/2+0.5,precision))  # (2.0*t + 1.0) * SSHT_PI / (4.0*L)
   if Method_enum == GL:
     if theta > theta_gl_grid[L-1]:
       p = L-1
@@ -747,21 +750,22 @@ cdef inline int cy_theta_to_index(double theta, int L, METHOD_TYPE Method_enum):
 
 cdef inline int cy_phi_to_index(double phi, int L, METHOD_TYPE Method_enum):
   cdef int q
+  precision = 14
   
   if Method_enum == MW:
-    q = int(phi*(2*L-1)/(2*np.pi)+0.5)      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
+    q = np.floor(round(phi*(2*L-1)/(2*np.pi)+0.5,precision))      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
     if q == 2*L-1:
       q = 0
   if Method_enum == MWSS:
-    q = int(phi*(2*L)/(2*np.pi)+0.5)      # 2.0 * p * SSHT_PI / (2.0*L)
+    q = np.floor(round(phi*(2*L)/(2*np.pi)+0.5,precision))      # 2.0 * p * SSHT_PI / (2.0*L)
     if q == 2*L:
       q = 0
   if Method_enum == DH:
-    q = int(phi*(2*L-1)/(2*np.pi)+0.5)      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
+    q = np.floor(round(phi*(2*L-1)/(2*np.pi)+0.5,precision))      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
     if q == 2*L-1:
       q = 0
   if Method_enum == GL:
-    q = int(phi*(2*L-1)/(2*np.pi)+0.5)      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
+    q = np.floor(round(phi*(2*L-1)/(2*np.pi)+0.5,precision))      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
     if q == 2*L-1:
       q = 0
 
