@@ -745,6 +745,16 @@ cdef inline int cy_theta_to_index(double theta, int L, METHOD_TYPE Method_enum):
         break
   return p
 
+cdef inline double cy_index_to_theta(int index, int L, METHOD_TYPE Method_enum):
+  cdef double p
+
+  if Method_enum == MW:
+    p = 2.0 * (np.pi - 1.0) *( float(index) - 0.5 ) / ( 2.0 * float(L) - 1.0 )
+  if Method_enum == MWSS: 
+    p = np.pi*( float(index) - 0.5 ) / float(L)
+
+  return p
+
 cdef inline int cy_phi_to_index(double phi, int L, METHOD_TYPE Method_enum):
   cdef int q
   
@@ -764,6 +774,16 @@ cdef inline int cy_phi_to_index(double phi, int L, METHOD_TYPE Method_enum):
     q = int(phi*(2*L-1)/(2*np.pi)+0.5)      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
     if q == 2*L-1:
       q = 0
+
+  return q
+
+cdef inline double cy_index_to_phi(int index, int L, METHOD_TYPE Method_enum):
+  cdef double q
+
+  if Method_enum == MW:
+    q = 2.0 * np.pi * ( float(index) - 0.5 ) / ( 2.0 * float(L) - 1.0 )
+  if Method_enum == MWSS:
+    q = np.pi * ( float(index) - 0.5 ) / float(L)
 
   return q
 
@@ -1708,6 +1728,253 @@ cdef float inverse_equatorial_projection_function_float_phi(float x, float y, \
     if phi < 0.0:
       phi += 2*np.pi
     return phi
+
+def polar_plane_to_sphere(np.ndarray[ double, ndim=2, mode="c"] image, int L, dict random_choice, rot=False, Polar_Projection_enum=SP):
+  """
+  Projects planar map onto a spherical MWSS map by a generalized 
+  polar projection and performs random euler rotation if specified.
+
+  Args:
+    - image:
+        (2D float array) image data to be augmented.
+    - random_choice:
+        (dictionary) dictionary of random choices.
+
+  Returns:
+    - 2D binary array of MWSS pixelized spherical image.
+
+  Raises:
+    - None
+  """
+  cdef METHOD_TYPE Method_enum=MWSS
+
+  cdef list rotation_inverse, rotation
+  cdef np.ndarray[np.float_t, ndim=2] spherical_map, spherical_count, theta_2D, phi_2D, theta_new, phi_new, x, y, z, xx, yy, zz
+  cdef int i, j, theta_index, phi_index, tolerance, len_1, len_2, x_new_scal, y_new_scal, theta_max, theta_min, phi_max, phi_min
+  cdef double r, phi, r_scal, theta, r_new, r_unscal, x_new, y_new, i_new, j_new
+  
+  if rot:
+    rotation = list(random_choice["euler_angles"])
+    rotation_inverse = []
+    rotation_inverse.append(rotation[2] * -1.0)
+    rotation_inverse.append(rotation[1] * -1.0)
+    rotation_inverse.append(rotation[0] * -1.0)
+
+  spherical_map = np.zeros((L + 1, 2 * L))
+  spherical_count = np.zeros((L + 1, 2 * L))
+
+  theta_2D = np.zeros((image.shape[0],image.shape[1]))
+  phi_2D = np.zeros((image.shape[0],image.shape[1]))
+
+  len_1, len_2 = image.shape[0], image.shape[1]
+
+
+  for i in range(image.shape[0]):
+    for j in range(image.shape[1]):
+        i_new, j_new = _image_index_to_unit_index(len_1, len_2, ij=(i,j) )
+        r, phi = _planar_to_polar_coordinates(i_new,j_new)
+        r_scal = r * np.tan(random_choice["theta_project"])
+        theta = _polar_radius_to_theta(r_scal, Polar_Projection_enum=Polar_Projection_enum)
+        theta_2D[i,j] = theta
+        phi_2D[i,j] = phi
+
+  if rot:
+    x, y, z = s2_to_cart(theta_2D, phi_2D)
+    xx, yy, zz = rot_cart_2d(x, y, z, rotation)
+    theta_2D, phi_2D = cart_to_s2(xx, yy, zz)
+
+  # Box limits
+  theta_max = 0
+  theta_min = 10
+
+  phi_max = 0
+  phi_min = 10
+
+  for i in range(image.shape[0]):
+    for j in range(image.shape[1]):
+        theta_index = cy_theta_to_index(theta_2D[i,j], L, Method_enum)
+        phi_index = cy_phi_to_index(phi_2D[i,j], L, Method_enum)
+        spherical_map[theta_index, phi_index] += image[i,j]
+        spherical_count[theta_index, phi_index] += 1.0
+        if theta_index > theta_max:
+            theta_max = theta_index
+        if theta_index < theta_min:
+            theta_min = theta_index
+        if phi_index > phi_max:
+            phi_max = phi_index
+        if phi_index < phi_min:
+            phi_min = phi_index
+
+  tolerance = int( 3 * (np.pi / L ) )
+  theta_max += tolerance
+  phi_max += tolerance
+  theta_min -= tolerance
+  phi_min -= tolerance
+
+  theta_new = np.zeros((1,1))
+  phi_new = np.zeros((1,1))
+
+  for i in range(spherical_map.shape[0]):
+    for j in range(spherical_map.shape[1]):
+        if i >= theta_min and i <= theta_max and j >= phi_min and j <= phi_max:
+            if spherical_count[i,j] < 1:
+                theta_new[0,0] = cy_index_to_theta(i, L, Method_enum)
+                phi_new[0,0] = cy_index_to_phi(j, L, Method_enum)
+                if rot:
+                    x, y, z = s2_to_cart(theta_new, phi_new)
+                    xx, yy, zz = rot_cart_2d(x, y, z, rotation_inverse)
+                    theta_new, phi_new = cart_to_s2(xx, yy, zz)
+                r_new = _theta_to_polar_radius(theta_new[0,0], Polar_Projection_enum=Polar_Projection_enum)
+                r_unscal = r_new / np.tan(random_choice["theta_project"])
+                x_new, y_new = _polar_to_planar_coordinates(
+                    r=r_unscal, 
+                    phi=phi_new[0,0]
+                )
+                x_new_scal, y_new_scal = _unit_index_to_image_index(len_1, len_2, ij=(x_new,y_new))
+                if x_new_scal < image.shape[0] and x_new_scal > -1:
+                    if y_new_scal < image.shape[1] and y_new_scal > -1:
+                        spherical_map[i,j] = image[ x_new_scal, y_new_scal ]
+            else:
+                spherical_map[i,j] /= spherical_count[i,j]
+        else:
+            spherical_map[i,j] = 0.0
+
+
+  return spherical_map
+
+def _image_index_to_unit_index(int len_1, int len_2, tuple ij):
+  """
+  Rescales an image index into a unit square index for scaling purposes.
+
+  Args:
+      - shape:
+          (Int Tuple) shape of image to be rescaled
+      - ij:  
+          (Int Tuple) ij components to be rescaled.
+
+  Returns:
+      - (Float Tuple) rescaled i and j components.
+
+  Raises:
+      - None
+  """
+  i_new = 2.0 * (float(ij[0])/float(len_1)  - 0.5)
+  j_new = 2.0 * (float(ij[1])/float(len_2)  - 0.5)
+  return i_new, j_new
+
+def _unit_index_to_image_index(double len_1, double len_2, tuple ij):
+  """
+  Reverses the scaling done by _image_index_to_unit_index.
+
+  Args:
+      - shape:
+          (Int Tuple) shape of image to be rescaled
+      - ij:  
+          (Int Tuple) ij components to be rescaled.
+
+  Returns:
+      - (Float Tuple) rescaled i and j components.
+
+  Raises:
+      - None
+  """
+  i_new = int( float(len_1) * ( ij[0]/2 + 0.5) )
+  j_new = int( float(len_2) * ( ij[1]/2 + 0.5) )
+  return i_new, j_new
+
+def _planar_to_polar_coordinates(double x, double y):
+  """
+  Computes polar co-ordinates from cartesian co-ordinates.
+
+  Args:
+      - x:
+          (Int) cartesian x co-ordinate
+      - y: 
+          (Int) cartesian y co-ordinate
+
+  Returns:
+      Tuple of radius r and polar angle phi as floats.
+
+  Raises:
+      - None
+  """
+  r = np.sqrt( x**2 + y**2 ) 
+  phi = np.arctan2(y, x)
+
+  return r, phi%(2.0*np.pi)
+
+def _polar_to_planar_coordinates(double r, double phi):
+  """
+  Computes cartesian co-ordinates from polar co-ordinates.
+
+  Args:
+      - r:
+          (Float) Radial distance
+      - phi:
+          (Float) polar angle in radians
+
+  Returns:
+      Tuple of x and y positions as floats.
+
+  Raises:
+      - None
+  """
+  return r * np.cos(phi), r * np.sin(phi)
+
+def _polar_radius_to_theta(double r, Polar_Projection_enum=SP):
+  """
+  Computes the corresonding lattitude given the radius of a planar pixel
+  for a variety of polar projection functions.
+
+  Args:
+      - r:    
+          (Float) polar radius of planar pixel.
+
+  Returns:
+      - Theta as a float.
+
+  Raises:
+      - Exception if projection method not supported
+  """
+
+  if Polar_Projection_enum == SP:
+      return 2.0 * np.arctan2(r, 2.0)
+
+  elif Polar_Projection_enum == GP:
+      return np.arctan2(r)
+
+  elif Polar_Projection_enum == OP:
+      return np.arcsin(r)
+
+  else:
+      raise Exception("Projection method no supported. Try 'SP' (stereo), 'GP' (gnonmic), or 'OP' (ortho)")
+
+def _theta_to_polar_radius(double theta, Polar_Projection_enum=SP):
+  """
+  Computes the corresponding polar radius given a spherical lattitude.
+
+  Args:
+      - theta:
+          (Float) Spherical lattitude in radians.
+
+  Returns:
+      - Radius as a float.
+
+  Raises:
+      - Exception if projection method not supported
+  """
+
+  if Polar_Projection_enum == SP:
+      return 2.0 * np.tan(theta / 2.0)
+
+  elif Polar_Projection_enum == GP:
+      return np.tan(theta)
+
+  elif Polar_Projection_enum == OP:
+      return np.sin(theta)
+
+  else:
+      raise Exception("Projection method no supported. Try 'SP' (stereo), 'GP' (gnonmic), or 'OP' (ortho)")
 
 
 def polar_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L, int resolution=500, rot=None,\
