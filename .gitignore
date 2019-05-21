@@ -13,4 +13,4 @@ CMakeFiles/
 
 pip-wheel-metadata/
 src/pyssht.egg-info/
-src/pyssht/pyssht.cpython-37m-darwin.so
+src/pyssht/pyssht*so
