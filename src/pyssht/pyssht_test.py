@@ -1,7 +1,7 @@
 from __future__ import print_function, unicode_literals
 import numpy as np
 import pyssht as ssht
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import unittest
 
 # s2c test
