@@ -21,7 +21,6 @@ if(NOT python)
         ssht_types.h ssht.h
         DESTINATION include/ssht)
 
-    include("exporting")
     #building about and test executables
     add_executable(ssht_about ssht_about.c)
     target_compile_definitions(ssht_about

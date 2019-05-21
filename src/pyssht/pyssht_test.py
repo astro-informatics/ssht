@@ -483,4 +483,5 @@ class MyTestCase(unittest.TestCase):
             'Reality set to True and Spin is not 0. However, spin signals must be complex.' in context.exception.args)
 
 
-unittest.main()
+if __name__ == "__main__":
+    unittest.main()

@@ -738,7 +738,7 @@ If `Keep_dl` is not set the output is the rotated set of spherical harmonic coef
 ## pyssht.guassian_smoothing
 
 ~~~~
-fs_lm = pyssht.guassian_smoothing(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, int L, sigma_in=None, bl_in = None)
+fs_lm = pyssht.gaussian_smoothing(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, int L, sigma_in=None, bl_in = None)
 ~~~~
 
 Smooths a set of harmonic coefficients either with a precomputed smoothing kernal `bl` or with a Gaussian given on input.
