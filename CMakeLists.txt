@@ -14,8 +14,42 @@ option(openmp         "Enable OpenMP"                  ON)
 option(fPIC           "Enable fPIC (only for gcc)"     ON)
 option(tests          "Enable testing"                 ON)
 option(python         "Creates python package"         OFF)
+option(conan_fftw     "Download fftw using conan"      OFF)
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
+
+if(conan_fftw)
+    if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
+        message(STATUS "Downloading conan.cmake from https://github.com/conan-io/cmake-conan")
+        file(DOWNLOAD "https://raw.githubusercontent.com/conan-io/cmake-conan/master/conan.cmake"
+            "${CMAKE_BINARY_DIR}/conan.cmake")
+    endif()
+    include(${CMAKE_BINARY_DIR}/conan.cmake)
+
+    if(NOT CONAN_OPTIONS)
+        set(CONAN_OPTIONS
+            "fftw:fPIC=True" "fftw:shared=False" "fftw:precision=double"
+            "fftw:openmp=False")
+    endif()
+    if(NOT CONAN_BUILD)
+        set(CONAN_BUILD "missing")
+    endif()
+    set(_GLIBCXX_USE_CXX11_ABI TRUE)
+
+    conan_check(REQUIRED)
+    conan_add_remote(
+        URL https://api.bintray.com/conan/bincrafters/public-conan
+        NAME bincrafters)
+    conan_cmake_run(REQUIRES fftw/3.3.8@bincrafters/stable
+        BASIC_SETUP
+        OPTIONS "${CONAN_OPTIONS}"
+        KEEP_RPATHS
+        CMAKE_TARGETS
+        NO_OUTPUT_DIRS
+        BUILD ${CONAN_BUILD}
+        # import headers to help vim find them
+        IMPORTS "include, * -> conan/include")
+endif()
 
 find_package(FFTW3 REQUIRED COMPONENT SERIAL DOUBLE)
 if(openmp)

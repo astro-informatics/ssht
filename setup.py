@@ -1,10 +1,7 @@
-from sys import platform
-
 from skbuild import setup
 
-cmake_args = ["-Dpython:BOOL=ON", "-Dopenmp:BOOL=OFF", "-Dtests:BOOL=OFF"]
-if platform.lower() == "darwin":
-    cmake_args.append("-DCMAKE_OSX_DEPLOYMENT_TARGET:STRING=10.9")
+cmake_args = ["-Dpython:BOOL=ON", "-Dopenmp:BOOL=OFF", "-Dtests:BOOL=OFF",
+              "-Dconan_fftw=ON"]
 
 setup(
     name="pyssht",
@@ -12,7 +9,15 @@ setup(
     author="Jason McEwen",
     install_requires=["numpy", "cython"],
     extras_require={
-        "dev": ["setuptools", "wheel", "scikit-build", "cmake", "ninja", "cython"]
+        "dev": [
+            "setuptools",
+            "wheel",
+            "scikit-build",
+            "cmake",
+            "ninja",
+            "cython",
+            "conan",
+        ]
     },
     description="Fast spin spherical transforms",
     url="http://astro-informatics.github.io/ssht/",
