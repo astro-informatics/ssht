@@ -428,14 +428,14 @@ Computes the rotations of the cartisian coordinates given a set of Eular angles.
 
 Tuple containing `(x_p, y_p, z_p)` the rotated coordinates the same shape and type as the inputs.
 
-## pyssht.rot_cart_1d and pyssht.rot_cart_1d
+## pyssht.rot_cart_1d and pyssht.rot_cart_2d
 
 ~~~~
 (x_p, y_p, z_p) = pyssht.rot_cart_1d(np.ndarray[np.float_t, ndim=1] x, np.ndarray[np.float_t, ndim=1] y, np.ndarray[np.float_t, ndim=1] z, list rot)
 ~~~~
 
 ~~~~
-(x_p, y_p, z_p) = pyssht.rot_cart_1d(np.ndarray[np.float_t, ndim=2] x, np.ndarray[np.float_t, ndim=2] y, np.ndarray[np.float_t, ndim=2] z, list rot)
+(x_p, y_p, z_p) = pyssht.rot_cart_2d(np.ndarray[np.float_t, ndim=2] x, np.ndarray[np.float_t, ndim=2] y, np.ndarray[np.float_t, ndim=2] z, list rot)
 ~~~~
 
 Computes the rotations of the cartisian coordinates given a set of Eular angles. The inputs can be any shape `ndarray`s. Same as `pyssht.rot_cart` except optimised for arrays that are 1 or 2 demensional.
