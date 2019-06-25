@@ -38,7 +38,7 @@ args = p.Results;
 
 % Check size theta and phi identical.
 [theta_m, theta_n] = size(theta);
-[phi_m, phi_n] = size(theta);
+[phi_m, phi_n] = size(phi);
 if (theta_m ~= phi_m || theta_n ~= phi_n)
   error('Inconsistent theta and phi data.');
 end
