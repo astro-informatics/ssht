@@ -1053,7 +1053,7 @@ def plot_sphere(f, int L, str Method='MW', bint Close=True, bint Parametric=Fals
 
     #% Compute position scaling for parametric plot.
     if Parametric:
-        f_normalised = (f_plot - vmin/(vmax - vmin))*Parametric_Saling[1]+Parametric_Saling[0]
+        f_normalised = (f_plot - vmin/(vmax - vmin))*Parametric_Scaling[1]+Parametric_Scaling[0]
 
 
     # % Close plot.
