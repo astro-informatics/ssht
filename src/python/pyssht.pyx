@@ -8,7 +8,9 @@ import matplotlib.pyplot as plt
 from matplotlib import cm, colors, colorbar, gridspec
 from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from libc.math cimport log, exp, sqrt, atan2, pi, cos, sin, asin, atan, tan
+from libc.math cimport log, exp, sqrt, atan2, cos, sin, asin, atan, tan
+
+cdef double pi=3.1415926535897932384626433832795028841971
 
 #----------------------------------------------------------------------------------------------------#
 
