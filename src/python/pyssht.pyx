@@ -9,6 +9,7 @@ from matplotlib import cm, colors, colorbar, gridspec
 from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.axes_grid1 import make_axes_locatable
 from libc.math cimport log, exp
+from scipy.special import factorial
 
 #----------------------------------------------------------------------------------------------------#
 
@@ -2410,13 +2411,13 @@ def create_ylm(thetas, phis, int L, int Spin=0, str recursion='Kostelec'):
   # Compute spherical harmonics.
   ylm = np.zeros((L * L, thetas.size), dtype=complex)
 
-  # Precompute data.
-  sqrt_tbl = np.sqrt(range(2 * L))
-  signs = np.ones(L+1)
-  signs[1::2] = -1
-
-  # Compute spherical harmonics from Wigner functions.
   if recursion == 'Kostelec':
+    # Precompute data.
+    sqrt_tbl = np.sqrt(range(2 * L))
+    signs = np.ones(L+1)
+    signs[1::2] = -1
+
+    # Compute spherical harmonics from Wigner functions.
     for itheta, theta in enumerate(thetas):
       dln = np.zeros(L)
       dlnm1 = np.zeros(L)
@@ -2424,33 +2425,114 @@ def create_ylm(thetas, phis, int L, int Spin=0, str recursion='Kostelec'):
         tmp = dln
         dln = dln_beta_recurse(dln, dlnm1, theta, L, el, -Spin, sqrt_tbl, signs)
         dlnm1 = tmp
-
-        m = 0
-        ind = cy_elm2ind(el, m)
-        ylm[ind][itheta] = signs[abs(Spin)] * np.sqrt((2*el+1)/(4*np.pi))\
-        * dln[m] * np.exp(1j * m * phis[itheta])
+        ######## m = 0 ########
+        ind = cy_elm2ind(el, 0)
+        ylm[ind][itheta] = signs[abs(Spin)] * np.sqrt((2*el+1)/(4*np.pi)) * dln[0]
         for m in range(1, el + 1):
           ind_pm = cy_elm2ind(el, m)
-          ind_nm = cy_elm2ind(el, -m)
           ylm[ind_pm][itheta] = signs[abs(Spin)] * np.sqrt((2*el+1)/(4*np.pi))\
           * dln[m] * np.exp(1j * m * phis[itheta])
-          ylm[ind_nm] = (-1) ** m * np.conj(ylm[ind_pm])
+          ind_nm = cy_elm2ind(el, -m)
+          ylm[ind_nm][itheta] = (-1) ** m * np.conj(ylm[ind_pm][itheta])
 
   elif recursion == 'Risbo':
+    # Precompute data.
+    sqrt_tbl = np.sqrt(range(2 * L))
+    signs = np.ones(L+1)
+    signs[1::2] = -1
+
+    # Compute spherical harmonics from Wigner functions.
     for itheta, theta in enumerate(thetas):
       dl = np.zeros((2 * L - 1, 2 * L - 1))
       for el in range(abs(Spin), L):
         dl = dl_beta_recurse(dl, theta, L, el, sqrt_tbl, signs)
-        m = 0
-        ind = cy_elm2ind(el, m)
-        ylm[ind][itheta] = signs[abs(Spin)] * np.sqrt((2*el+1)/(4*np.pi))\
-        * dl[m + L - 1][-Spin + L - 1] * np.exp(1j * m * phis[itheta])
+        ######## m = 0 ########
+        ind = cy_elm2ind(el, 0)
+        ylm[ind][itheta] = signs[abs(Spin)] * np.sqrt((2*el+1)/(4*np.pi)) * dl[L - 1][-Spin + L - 1]
         for m in range(1, el + 1):
           ind_pm = cy_elm2ind(el, m)
-          ind_nm = cy_elm2ind(el, -m)
           ylm[ind_pm][itheta] = signs[abs(Spin)] * np.sqrt((2*el+1)/(4*np.pi))\
           * dl[m + L - 1][-Spin + L - 1] * np.exp(1j * m * phis[itheta])
-          ylm[ind_nm] = (-1) ** m * np.conj(ylm[ind_pm])
+          ind_nm = cy_elm2ind(el, -m)
+          ylm[ind_nm][itheta] = (-1) ** m * np.conj(ylm[ind_pm][itheta])
+
+  elif recursion == 'NumericalRecipes':
+    if Spin != 0:
+      raise ssht_input_error('Non-zero spin not supported for NumericalRecipes ylm recursion.')
+
+    for itheta, theta in enumerate(thetas):
+      x = np.cos(theta)
+
+      ######## m = 0 ########
+      # Compute Pmm.
+      pmm = 1
+      somx2 = np.sqrt((1 - x) * (1 + x))
+      fact = 1
+      ind = cy_elm2ind(0, 0)
+      c1 = 1 / (4 * np.pi)
+      C = np.sqrt(c1)
+      ylm[ind][itheta]  = C * pmm
+
+      # Compute Pm,m+1.
+      if L - 1 != 0:
+        pmmp1 = x * pmm
+        ind = cy_elm2ind(1, 0)
+        c1 = 3 / (4 * np.pi)
+        C = np.sqrt(c1)
+        ylm[ind][itheta] = C * pmmp1
+
+      # Compute Pm,l for l > m+1.
+      for el in range(2, L):
+        pll = (x * (2 * el - 1) * pmmp1 - (el - 1) * pmm) / el
+        pmm = pmmp1
+        pmmp1 = pll
+        ind = cy_elm2ind(el, 0)
+        c1 = (2 * el + 1) / (4 * np.pi)
+        C = np.sqrt(c1)
+        ylm[ind][itheta] = C * pll
+
+      for m in range(1, L):
+        # Compute Pmm.
+        pmm = 1
+        somx2 = np.sqrt((1 - x) * (1 + x))
+        fact = 1
+        for i in range(1, m + 1):
+          pmm = -pmm * fact * somx2
+          fact = fact + 2.0
+        ind_pm = cy_elm2ind(m, m)
+        c1 = (2 * m + 1) / (4 * np.pi)
+        C = np.sqrt(c1 * factorial(
+          m - abs(m), exact=False) / factorial(
+            m + abs(m), exact=False))
+        ylm[ind_pm][itheta] = C * pmm * np.exp(1j * m * phis[itheta])
+        ind_nm = cy_elm2ind(m, -m)
+        ylm[ind_nm][itheta] = (-1) ** m * np.conj(ylm[ind_pm][itheta])
+
+        # Compute Pm,m+1.
+        if m != L - 1:
+          pmmp1 = x * (2 * m + 1) * pmm
+          ind_pm = cy_elm2ind(m + 1, m)
+          c1 = (2 * (m + 1) + 1) / (4 * np.pi)
+          C = np.sqrt(c1 * factorial(
+            m + 1 - abs(m), exact=False) / factorial(
+              m + 1 +abs(m), exact=False))
+          ylm[ind_pm][itheta] = C * pmmp1 * np.exp(1j * m * phis[itheta])
+          ind_nm = cy_elm2ind(m + 1, -m)
+          ylm[ind_nm][itheta] = (-1) ** m * np.conj(ylm[ind_pm][itheta])
+
+        # Compute Pm,l for l > m+1.
+        for el in range(m + 2, L):
+          pll = (x * (2 * el - 1) * pmmp1 - (el + m - 1) * pmm) / (el - m)
+          pmm = pmmp1
+          pmmp1 = pll
+          ind_pm = cy_elm2ind(el, m)
+          c1 = (2 * el + 1) / (4 * np.pi)
+          C = np.sqrt(c1 * factorial(
+            el - abs(m), exact=False) / factorial(
+              el + abs(m), exact=False))
+          ylm[ind_pm][itheta] = C * pll * np.exp(1j * m * phis[itheta])
+          ind_nm = cy_elm2ind(el, -m)
+          ylm[ind_nm][itheta] = (-1) ** m * np.conj(ylm[ind_pm][itheta])
 
   else:
     raise ssht_input_error('Invalid recursion method.')

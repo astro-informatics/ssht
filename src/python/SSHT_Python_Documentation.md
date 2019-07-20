@@ -809,7 +809,8 @@ Computes spherical harmonic functions for all el and all 0<=|m|<= el using vario
 * `Spin` the spin of the signal, non-negative integer (default = 0)
 * `recursion` the recursion scheme used, string:
     1. `'Kostelec'` [3-term recursion, e.g. Kostelec (default)]
-    2. `'Risbo'`    [Risbo recursion]
+    2. `'Risbo'` [Risbo recursion]
+    3. `'NumericalRecipes'` [Numerical Recipes]
 
 #### Output
 
