@@ -696,7 +696,7 @@ Compute the el-th plane of the Wigner small-d functions (from the (el-1)-th plan
 * `dl` the Wigner plane for all m and n, indexed dl[m][n] of size (2*L-1)*(2*L-1)
 * `beta` angle to calculate Wigner D matrix at, type `double`
 * `L` the band limit of the signal, non-zero positive integer
-* `el` el is the current harmonic degree (i.e. dl input should already be computed for el-1, and dl output will be computed for el)
+* `el` is the current harmonic degree (i.e. dl input should already be computed for el-1, and dl output will be computed for el)
 * `sqrt_tbl` precomputed square-roots from \(0\) to \(2*(L-1)+1\)
 * `signs` precomputed \((-1)^m\) signs from \(m=0\) to \(L\)
 
@@ -718,7 +718,7 @@ Compute the el-th line of the Wigner small-d functions for given n (from the (el
 #### Inputs
 
 * `dl` the Wigner line for el for non-negative m and given n of size L
-* `dlm1` dlm1 is the line for el-1 and dlp1 is the line computed for el+1
+* `dlm1` is the line for el-1 and dlp1 is the line computed for el+1
 * `beta` angle to calculate Wigner D matrix at, type `double`
 * `L` the band limit of the signal, non-zero positive integer
 * `el` el is the current harmonic degree
@@ -804,7 +804,7 @@ Computes spherical harmonic functions for all el and all 0<=|m|<= el using vario
 #### Inputs
 
 * `thetas` positions of the samples in the \(\theta\) direction
-* `phis` positions of the samples in the \(\theta\) direction
+* `phis` positions of the samples in the \(\phi\) direction
 * `L` the band limit of the signal, non-zero positive integer
 * `Spin` the spin of the signal, non-negative integer (default = 0)
 * `recursion` the recursion scheme used, string:
