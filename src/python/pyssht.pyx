@@ -2383,7 +2383,7 @@ def guassian_smoothing(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not No
   return fs_lm
 
 
-def create_ylm(thetas, phis, int L, int Spin=0, str recursion='Kostelec'):
+def create_ylm(thetas, phis, int L, int Spin=0, str recursion='Risbo'):
   # check if thetas is number or array and reshape if not
   if isinstance(thetas, (int, float)):
     theta_m, theta_n = 1, 1
