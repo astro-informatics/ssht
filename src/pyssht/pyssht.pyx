@@ -4,10 +4,6 @@
 import numpy as np
 cimport numpy as np
 
-import matplotlib.pyplot as plt
-from matplotlib import cm, colors, colorbar, gridspec
-from mpl_toolkits.mplot3d import Axes3D
-from mpl_toolkits.axes_grid1 import make_axes_locatable
 from libc.math cimport log, exp
 
 #----------------------------------------------------------------------------------------------------#
@@ -1016,6 +1012,10 @@ def rot_cart_2d(np.ndarray[np.float_t, ndim=2] x, np.ndarray[np.float_t, ndim=2]
 def plot_sphere(f, int L, str Method='MW', bint Close=True, bint Parametric=False, list Parametric_Saling=[0.0,0.5], \
                      Output_File=None, bint Show=True, bint Color_Bar=True, Units=None, Color_Range=None, \
                      int Axis=True): 
+    import matplotlib.pyplot as plt
+    from matplotlib import cm, colors, colorbar, gridspec
+    from mpl_toolkits.mplot3d import Axes3D
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
 
     # add ability to choose color bar min max
     # and sort out shapes of the plots
@@ -2332,7 +2332,7 @@ def rotate_flms(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None,\
 
 # other usefull functions
 
-def guassian_smoothing(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, int L, sigma_in=None, bl_in = None):
+def gaussian_smoothing(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, int L, sigma_in=None, bl_in = None):
 
   cdef double sigma
   cdef np.ndarray[ double, ndim=1, mode="c"] bl

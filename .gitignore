@@ -10,3 +10,7 @@ src/python/*.so
 
 CMakeCache.txt
 CMakeFiles/
+
+pip-wheel-metadata/
+src/pyssht.egg-info/
+src/pyssht/pyssht*so
