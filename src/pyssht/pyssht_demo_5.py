@@ -31,7 +31,7 @@ mat_contents = sio.loadmat(matfile)
 flm = np.ascontiguousarray(mat_contents['flm'][:, 0])
 
 # % Smooth harmonic coefficients.
-flm_smooth = ssht.guassian_smoothing(flm, L, sigma)
+flm_smooth = ssht.gaussian_smoothing(flm, L, sigma)
 
 # Compute real space version of Earth.
 f = ssht.inverse(flm, L, Reality=True)
