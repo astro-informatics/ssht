@@ -17,6 +17,7 @@ setup(
             "ninja",
             "cython",
             "conan",
+            "scipy"
         ]
     },
     description="Fast spin spherical transforms",
