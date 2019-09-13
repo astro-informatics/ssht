@@ -7,7 +7,7 @@ setup(
     name="pyssht",
     version="2.0",
     author="Jason McEwen",
-    install_requires=["numpy", "cython"],
+    install_requires=["numpy", "cython", "scipy"],
     extras_require={
         "dev": [
             "setuptools",
@@ -16,8 +16,7 @@ setup(
             "cmake",
             "ninja",
             "cython",
-            "conan",
-            "scipy"
+            "conan"
         ]
     },
     description="Fast spin spherical transforms",
