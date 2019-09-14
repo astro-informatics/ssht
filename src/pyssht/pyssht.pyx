@@ -5,6 +5,7 @@ import numpy as np
 cimport numpy as np
 
 from libc.math cimport log, exp
+from scipy.special import factorial
 
 #----------------------------------------------------------------------------------------------------#
 
@@ -37,6 +38,11 @@ cdef extern from "ssht.h":
         void ssht_dl_beta_risbo_half_table(double *dl, double beta, int L,
                                            ssht_dl_size_t dl_size,
                                            int el, double *sqrt_tbl, double *signs)
+        void ssht_dl_beta_kostelec_halfline_table(double *dlm1p1_line,
+                                                  double *dl_line,
+					                                        double beta, int L, int mm,
+                                                  int el, double *sqrt_tbl,
+                                                  double *signs)
 
 # I included
         ctypedef enum  ssht_dl_method_t:
@@ -1009,7 +1015,7 @@ def rot_cart_2d(np.ndarray[np.float_t, ndim=2] x, np.ndarray[np.float_t, ndim=2]
 
 # Plotting functions
 
-def plot_sphere(f, int L, str Method='MW', bint Close=True, bint Parametric=False, list Parametric_Saling=[0.0,0.5], \
+def plot_sphere(f, int L, str Method='MW', bint Close=True, bint Parametric=False, list Parametric_Scaling=[0.0,0.5], \
                      Output_File=None, bint Show=True, bint Color_Bar=True, Units=None, Color_Range=None, \
                      int Axis=True): 
     import matplotlib.pyplot as plt
@@ -1048,7 +1054,7 @@ def plot_sphere(f, int L, str Method='MW', bint Close=True, bint Parametric=Fals
 
     #% Compute position scaling for parametric plot.
     if Parametric:
-        f_normalised = (f_plot - vmin/(vmax - vmin))*Parametric_Saling[1]+Parametric_Saling[0]
+        f_normalised = (f_plot - vmin/(vmax - vmin))*Parametric_Scaling[1]+Parametric_Scaling[0]
 
 
     # % Close plot.
@@ -2184,9 +2190,22 @@ def dl_beta_recurse(np.ndarray[ double, ndim=2, mode="c"] dl not None, double be
   cdef ssht_dl_size_t dl_size=SSHT_DL_HALF
   
   ssht_dl_beta_risbo_half_table(<double*> np.PyArray_DATA(dl), beta, L, dl_size,\
-                                           el, <double*> np.PyArray_DATA(sqrt_tbl), <double*> np.PyArray_DATA(signs))
+                                el, <double*> np.PyArray_DATA(sqrt_tbl),<double*> np.PyArray_DATA(signs))
 
   return dl
+
+def dln_beta_recurse(np.ndarray[ double, ndim=1, mode="c"] dl not None,\
+            np.ndarray[ double, ndim=1, mode="c"] dlm1 not None, double beta,\
+            int L, int el, int n, np.ndarray[ double, ndim=1, mode="c"] sqrt_tbl not None,\
+            np.ndarray[ double, ndim=1, mode="c"] signs not None):
+
+  ssht_dl_beta_kostelec_halfline_table(<double*> np.PyArray_DATA(dlm1),\
+                                        <double*> np.PyArray_DATA(dl),\
+                                        beta, L, n, el,\
+                                        <double*> np.PyArray_DATA(sqrt_tbl),\
+                                        <double*> np.PyArray_DATA(signs))
+
+  return dlm1
 
 def generate_dl(double beta, int L):
 
@@ -2362,3 +2381,190 @@ def gaussian_smoothing(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not No
       fs_lm[index] = f_lm[index]*bl[el]
 
   return fs_lm
+
+def kostelec_ylm(thetas, phis, int L, int Spin=0):
+  '''
+  compute the ylm with Kostelec recursion
+  '''
+  # initialise
+  ylm = np.zeros((L * L, thetas.size), dtype=complex)
+
+  # Precompute data.
+  sqrt_tbl = np.sqrt(range(2 * L))
+  signs = np.ones(L+1)
+  signs[1::2] = -1
+
+  # Compute spherical harmonics from Wigner functions.
+  for itheta, theta in enumerate(thetas):
+    dln = np.zeros(L)
+    dlnm1 = np.zeros(L)
+    for el in range(abs(Spin), L):
+      tmp = dln
+      dln = dln_beta_recurse(dln, dlnm1, theta, L, el, -Spin, sqrt_tbl, signs)
+      dlnm1 = tmp
+      ######## m = 0 ########
+      ind = cy_elm2ind(el, 0)
+      ylm[ind][itheta] = signs[abs(Spin)] * np.sqrt((2*el+1)/(4*np.pi)) * dln[0]
+      for m in range(1, el + 1):
+        ind_pm = cy_elm2ind(el, m)
+        ylm[ind_pm][itheta] = signs[abs(Spin)] * np.sqrt((2*el+1)/(4*np.pi))\
+        * dln[m] * np.exp(1j * m * phis[itheta])
+        ind_nm = cy_elm2ind(el, -m)
+        ylm[ind_nm][itheta] = (-1) ** m * np.conj(ylm[ind_pm][itheta])
+
+  return ylm
+
+def risbo_ylm(thetas, phis, int L, int Spin=0):
+  '''
+  compute the ylm with Risbo recursion
+  '''
+  # initialise
+  ylm = np.zeros((L * L, thetas.size), dtype=complex)
+
+  # Precompute data.
+  sqrt_tbl = np.sqrt(range(2 * L))
+  signs = np.ones(L+1)
+  signs[1::2] = -1
+
+  # Compute spherical harmonics from Wigner functions.
+  for itheta, theta in enumerate(thetas):
+    dl = np.zeros((2 * L - 1, 2 * L - 1))
+    for el in range(abs(Spin), L):
+      dl = dl_beta_recurse(dl, theta, L, el, sqrt_tbl, signs)
+      ######## m = 0 ########
+      ind = cy_elm2ind(el, 0)
+      ylm[ind][itheta] = signs[abs(Spin)] * np.sqrt((2*el+1)/(4*np.pi)) * dl[L - 1][-Spin + L - 1]
+      for m in range(1, el + 1):
+        ind_pm = cy_elm2ind(el, m)
+        ylm[ind_pm][itheta] = signs[abs(Spin)] * np.sqrt((2*el+1)/(4*np.pi))\
+        * dl[m + L - 1][-Spin + L - 1] * np.exp(1j * m * phis[itheta])
+        ind_nm = cy_elm2ind(el, -m)
+        ylm[ind_nm][itheta] = (-1) ** m * np.conj(ylm[ind_pm][itheta])
+
+  return ylm
+
+def numerical_recipes_ylm(thetas, phis, int L, int Spin=0):
+  '''
+  compute the ylm with numerical recipes recursion
+  '''
+  if Spin != 0:
+      raise ssht_input_error('Non-zero spin not supported for NumericalRecipes ylm recursion.')
+
+  # initialise
+  ylm = np.zeros((L * L, thetas.size), dtype=complex)
+
+  for itheta, theta in enumerate(thetas):
+    x = np.cos(theta)
+
+    ######## m = 0 ########
+    # Compute Pmm.
+    pmm = 1
+    somx2 = np.sqrt((1 - x) * (1 + x))
+    fact = 1
+    ind = cy_elm2ind(0, 0)
+    c1 = 1 / (4 * np.pi)
+    C = np.sqrt(c1)
+    ylm[ind][itheta]  = C * pmm
+
+    # Compute Pm,m+1.
+    if L - 1 != 0:
+      pmmp1 = x * pmm
+      ind = cy_elm2ind(1, 0)
+      c1 = 3 / (4 * np.pi)
+      C = np.sqrt(c1)
+      ylm[ind][itheta] = C * pmmp1
+
+    # Compute Pm,l for l > m+1.
+    for el in range(2, L):
+      pll = (x * (2 * el - 1) * pmmp1 - (el - 1) * pmm) / el
+      pmm = pmmp1
+      pmmp1 = pll
+      ind = cy_elm2ind(el, 0)
+      c1 = (2 * el + 1) / (4 * np.pi)
+      C = np.sqrt(c1)
+      ylm[ind][itheta] = C * pll
+
+    ######## m != 0 ########
+    for m in range(1, L):
+      # Compute Pmm.
+      pmm = 1
+      somx2 = np.sqrt((1 - x) * (1 + x))
+      fact = 1
+      for i in range(1, m + 1):
+        pmm = -pmm * fact * somx2
+        fact = fact + 2.0
+      ind_pm = cy_elm2ind(m, m)
+      c1 = (2 * m + 1) / (4 * np.pi)
+      C = np.sqrt(c1 * factorial(
+        m - abs(m), exact=False) / factorial(
+          m + abs(m), exact=False))
+      ylm[ind_pm][itheta] = C * pmm * np.exp(1j * m * phis[itheta])
+      ind_nm = cy_elm2ind(m, -m)
+      ylm[ind_nm][itheta] = (-1) ** m * np.conj(ylm[ind_pm][itheta])
+
+      # Compute Pm,m+1.
+      if m != L - 1:
+        pmmp1 = x * (2 * m + 1) * pmm
+        ind_pm = cy_elm2ind(m + 1, m)
+        c1 = (2 * (m + 1) + 1) / (4 * np.pi)
+        C = np.sqrt(c1 * factorial(
+          m + 1 - abs(m), exact=False) / factorial(
+            m + 1 +abs(m), exact=False))
+        ylm[ind_pm][itheta] = C * pmmp1 * np.exp(1j * m * phis[itheta])
+        ind_nm = cy_elm2ind(m + 1, -m)
+        ylm[ind_nm][itheta] = (-1) ** m * np.conj(ylm[ind_pm][itheta])
+
+      # Compute Pm,l for l > m+1.
+      for el in range(m + 2, L):
+        pll = (x * (2 * el - 1) * pmmp1 - (el + m - 1) * pmm) / (el - m)
+        pmm = pmmp1
+        pmmp1 = pll
+        ind_pm = cy_elm2ind(el, m)
+        c1 = (2 * el + 1) / (4 * np.pi)
+        C = np.sqrt(c1 * factorial(
+          el - abs(m), exact=False) / factorial(
+            el + abs(m), exact=False))
+        ylm[ind_pm][itheta] = C * pll * np.exp(1j * m * phis[itheta])
+        ind_nm = cy_elm2ind(el, -m)
+        ylm[ind_nm][itheta] = (-1) ** m * np.conj(ylm[ind_pm][itheta])
+
+  return ylm
+
+def create_ylm(thetas, phis, int L, int Spin=0, str recursion='Risbo'):
+  # check if thetas is number or array and reshape if not
+  if isinstance(thetas, (int, float)):
+    theta_m, theta_n = 1, 1
+    thetas = np.array([thetas])
+  elif thetas.ndim == 1:
+    theta_m, theta_n = len(thetas), 1
+  else:
+    theta_m, theta_n = np.shape(thetas)
+    thetas = thetas.flatten()
+
+  # check if phis is number or array and reshape if not
+  if isinstance(phis, (int, float)):
+    phi_m, phi_n = 1, 1
+    phis = np.array([phis])
+  elif phis.ndim == 1:
+    phi_m, phi_n = len(phis), 1
+  else:
+    phi_m, phi_n = np.shape(phis)
+    phis = phis.flatten()
+
+  # Check size theta and phi identical.
+  if theta_m != phi_m or theta_n != phi_n:
+    raise ssht_input_error('Inconsistent theta and phi data.')
+
+  if recursion == 'Kostelec':
+    ylm = kostelec_ylm(thetas, phis, L, Spin)
+  elif recursion == 'Risbo':
+    ylm = risbo_ylm(thetas, phis, L, Spin)
+  elif recursion == 'NumericalRecipes':
+    ylm = numerical_recipes_ylm(thetas, phis, L, Spin)
+  else:
+    raise ssht_input_error('Invalid recursion method.')
+
+  # Reshape output data.
+  ylm = ylm.reshape(-1, theta_m, theta_n, order='F')
+
+  return ylm
