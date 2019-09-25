@@ -747,10 +747,6 @@ cdef inline int cy_theta_to_index(double theta, int L, METHOD_TYPE Method_enum):
         break
   return p
 
-def index_to_theta(int index, int L, str Method):
-  cdef METHOD_TYPE Method_enum=get_method_enum(Method)
-  return cy_index_to_theta(index, L, Method_enum)
-
 cdef inline double cy_index_to_theta(int index, int L, METHOD_TYPE Method_enum):
   cdef double p
 
@@ -782,11 +778,6 @@ cdef inline int cy_phi_to_index(double phi, int L, METHOD_TYPE Method_enum):
       q = 0
 
   return q
-
-def index_to_phi(int index, int L, str Method):
-  cdef METHOD_TYPE Method_enum=get_method_enum(Method)
-  return cy_index_to_phi(index, L, Method_enum)
-
 
 cdef inline double cy_index_to_phi(int index, int L, METHOD_TYPE Method_enum):
   cdef double q
@@ -1047,6 +1038,10 @@ def rot_cart_2d(np.ndarray[np.float_t, ndim=2] x, np.ndarray[np.float_t, ndim=2]
 def plot_sphere(f, int L, str Method='MW', bint Close=True, bint Parametric=False, list Parametric_Saling=[0.0,0.5], \
                      Output_File=None, bint Show=True, bint Color_Bar=True, Units=None, Color_Range=None, \
                      int Axis=True): 
+    import matplotlib.pyplot as plt
+    from matplotlib import cm, colors, colorbar, gridspec
+    from mpl_toolkits.mplot3d import Axes3D
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
 
     # add ability to choose color bar min max
     # and sort out shapes of the plots
@@ -1223,8 +1218,15 @@ def mollweide_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L, in
 
   return f_plot, mask
 
-cdef METHOD_TYPE get_method_enum(str Method):
+
+
+def mollweide_projection(f, int L, int resolution=500, rot=None,\
+                        zoom_region=[np.sqrt(2.0)*2,np.sqrt(2.0)], str Method="MW"):
+
+  cdef int i, j, n_phi, n_theta
+  cdef np.ndarray[np.float_t, ndim=2] f_real, f_imag
   cdef METHOD_TYPE Method_enum
+
   if Method=="MW":
     Method_enum=MW
   elif Method=="MWSS":
@@ -1235,16 +1237,6 @@ cdef METHOD_TYPE get_method_enum(str Method):
     Method_enum = GL
   else:
     raise ssht_input_error('Method is not recognised, Methods are: MW, MWSS, DH and GL')
-  return Method_enum
-
-
-
-def mollweide_projection(f, int L, int resolution=500, rot=None,\
-                        zoom_region=[np.sqrt(2.0)*2,np.sqrt(2.0)], str Method="MW"):
-
-  cdef int i, j, n_phi, n_theta
-  cdef np.ndarray[np.float_t, ndim=2] f_real, f_imag
-  cdef METHOD_TYPE Method_enum=get_method_enum(Method)
 
   if not isinstance(f, np.ndarray):
     raise TypeError("Input not a ndarray")
@@ -1760,8 +1752,7 @@ def polar_plane_to_sphere(np.ndarray[ double, ndim=2, mode="c"] image, int L, bi
   Raises:
     - None
   """
-  cdef METHOD_TYPE Method_enum=MW
-
+  cdef METHOD_TYPE Method_enum=MWSS
   cdef list rotation_inverse, rotation
   cdef np.ndarray[np.float_t, ndim=2] spherical_map, spherical_count, theta_2D, phi_2D, theta_new, phi_new, x, y, z, xx, yy, zz
   cdef int i, j, theta_index, phi_index, tolerance, len_1, len_2, x_new_scal, y_new_scal, theta_max, theta_min, phi_max, phi_min
@@ -1772,7 +1763,7 @@ def polar_plane_to_sphere(np.ndarray[ double, ndim=2, mode="c"] image, int L, bi
   elif Method=="MWSS":
     Method_enum=MWSS
   else:
-    raise(ValueError("Incorect method, allowed methods are MW or MWSS"))
+    raise(ValueError("Method not accepted, only accepts MW or MWSS"))
 
   if rot:
     rotation = rotation_angles
@@ -1781,12 +1772,8 @@ def polar_plane_to_sphere(np.ndarray[ double, ndim=2, mode="c"] image, int L, bi
     rotation_inverse.append(rotation[1] * -1.0)
     rotation_inverse.append(rotation[0] * -1.0)
 
-  # spherical_map = np.zeros((L + 1, 2 * L))
-  # spherical_count = np.zeros((L + 1, 2 * L))
-
-  n_theta, n_phi = sample_shape(L, Method=Method)
-  spherical_map = np.zeros((n_theta, n_phi))
-  spherical_count = np.zeros((n_theta, n_phi))
+  spherical_map = np.zeros((L + 1, 2 * L))
+  spherical_count = np.zeros((L + 1, 2 * L))
 
   theta_2D = np.zeros((image.shape[0],image.shape[1]))
   phi_2D = np.zeros((image.shape[0],image.shape[1]))
@@ -2615,7 +2602,7 @@ def rotate_flms(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None,\
 
 # other usefull functions
 
-def guassian_smoothing(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, int L, sigma_in=None, bl_in = None):
+def gaussian_smoothing(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, int L, sigma_in=None, bl_in = None):
 
   cdef double sigma
   cdef np.ndarray[ double, ndim=1, mode="c"] bl
