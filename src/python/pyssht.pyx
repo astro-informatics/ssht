@@ -747,6 +747,10 @@ cdef inline int cy_theta_to_index(double theta, int L, METHOD_TYPE Method_enum):
         break
   return p
 
+def index_to_theta(int index, int L, str Method):
+  cdef METHOD_TYPE Method_enum=get_method_enum(Method)
+  return cy_index_to_theta(index, L, Method_enum)
+
 cdef inline double cy_index_to_theta(int index, int L, METHOD_TYPE Method_enum):
   cdef double p
 
@@ -778,6 +782,11 @@ cdef inline int cy_phi_to_index(double phi, int L, METHOD_TYPE Method_enum):
       q = 0
 
   return q
+
+def index_to_phi(int index, int L, str Method):
+  cdef METHOD_TYPE Method_enum=get_method_enum(Method)
+  return cy_index_to_phi(index, L, Method_enum)
+
 
 cdef inline double cy_index_to_phi(int index, int L, METHOD_TYPE Method_enum):
   cdef double q
@@ -1214,15 +1223,8 @@ def mollweide_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L, in
 
   return f_plot, mask
 
-
-
-def mollweide_projection(f, int L, int resolution=500, rot=None,\
-                        zoom_region=[np.sqrt(2.0)*2,np.sqrt(2.0)], str Method="MW"):
-
-  cdef int i, j, n_phi, n_theta
-  cdef np.ndarray[np.float_t, ndim=2] f_real, f_imag
+cdef METHOD_TYPE get_method_enum(str Method):
   cdef METHOD_TYPE Method_enum
-
   if Method=="MW":
     Method_enum=MW
   elif Method=="MWSS":
@@ -1233,6 +1235,16 @@ def mollweide_projection(f, int L, int resolution=500, rot=None,\
     Method_enum = GL
   else:
     raise ssht_input_error('Method is not recognised, Methods are: MW, MWSS, DH and GL')
+  return Method_enum
+
+
+
+def mollweide_projection(f, int L, int resolution=500, rot=None,\
+                        zoom_region=[np.sqrt(2.0)*2,np.sqrt(2.0)], str Method="MW"):
+
+  cdef int i, j, n_phi, n_theta
+  cdef np.ndarray[np.float_t, ndim=2] f_real, f_imag
+  cdef METHOD_TYPE Method_enum=get_method_enum(Method)
 
   if not isinstance(f, np.ndarray):
     raise TypeError("Input not a ndarray")
@@ -1748,7 +1760,7 @@ def polar_plane_to_sphere(np.ndarray[ double, ndim=2, mode="c"] image, int L, bi
   Raises:
     - None
   """
-  cdef METHOD_TYPE Method_enum=MWSS
+  cdef METHOD_TYPE Method_enum=MW
 
   cdef list rotation_inverse, rotation
   cdef np.ndarray[np.float_t, ndim=2] spherical_map, spherical_count, theta_2D, phi_2D, theta_new, phi_new, x, y, z, xx, yy, zz
