@@ -8,7 +8,9 @@ import matplotlib.pyplot as plt
 from matplotlib import cm, colors, colorbar, gridspec
 from mpl_toolkits.mplot3d import Axes3D
 from mpl_toolkits.axes_grid1 import make_axes_locatable
-from libc.math cimport log, exp, sqrt, atan2, pi, cos, sin, asin, atan, tan
+from libc.math cimport log, exp, sqrt, atan2, cos, sin, asin, atan, tan
+
+cdef double pi=3.1415926535897932384626433832795028841971
 
 #----------------------------------------------------------------------------------------------------#
 
@@ -1729,7 +1731,7 @@ cdef float inverse_equatorial_projection_function_float_phi(float x, float y, \
       phi += 2*pi
     return phi
 
-def polar_plane_to_sphere(np.ndarray[ double, ndim=2, mode="c"] image, int L, bint rot=False, Polar_Projection_enum=SP, list rotation_angles=[0.0,0.,0.], double theta_project=1.0):
+def polar_plane_to_sphere(np.ndarray[ double, ndim=2, mode="c"] image, int L, bint rot=False, Polar_Projection_enum=SP, list rotation_angles=[0.0,0.,0.], double theta_project=1.0, str Method="MW"):
   """
   Projects planar map onto a spherical MWSS map by a generalized 
   polar projection and performs random euler rotation if specified.
@@ -1753,6 +1755,13 @@ def polar_plane_to_sphere(np.ndarray[ double, ndim=2, mode="c"] image, int L, bi
   cdef int i, j, theta_index, phi_index, tolerance, len_1, len_2, x_new_scal, y_new_scal, theta_max, theta_min, phi_max, phi_min
   cdef double r, phi, r_scal, theta, r_new, r_unscal, x_new, y_new, i_new, j_new
   
+  if Method=="MW":
+    Method_enum=MW
+  elif Method=="MWSS":
+    Method_enum=MWSS
+  else:
+    raise(ValueError("Incorect method, allowed methods are MW or MWSS"))
+
   if rot:
     rotation = rotation_angles
     rotation_inverse = []
@@ -1760,8 +1769,12 @@ def polar_plane_to_sphere(np.ndarray[ double, ndim=2, mode="c"] image, int L, bi
     rotation_inverse.append(rotation[1] * -1.0)
     rotation_inverse.append(rotation[0] * -1.0)
 
-  spherical_map = np.zeros((L + 1, 2 * L))
-  spherical_count = np.zeros((L + 1, 2 * L))
+  # spherical_map = np.zeros((L + 1, 2 * L))
+  # spherical_count = np.zeros((L + 1, 2 * L))
+
+  n_theta, n_phi = sample_shape(L, Method=Method)
+  spherical_map = np.zeros((n_theta, n_phi))
+  spherical_count = np.zeros((n_theta, n_phi))
 
   theta_2D = np.zeros((image.shape[0],image.shape[1]))
   phi_2D = np.zeros((image.shape[0],image.shape[1]))
