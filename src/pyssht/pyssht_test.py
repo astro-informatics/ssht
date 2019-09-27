@@ -1,7 +1,7 @@
 from __future__ import print_function, unicode_literals
 import numpy as np
 import pyssht as ssht
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import unittest
 
 # s2c test
@@ -483,4 +483,5 @@ class MyTestCase(unittest.TestCase):
             'Reality set to True and Spin is not 0. However, spin signals must be complex.' in context.exception.args)
 
 
-unittest.main()
+if __name__ == "__main__":
+    unittest.main()
