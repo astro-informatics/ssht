@@ -759,7 +759,7 @@ cdef inline double cy_index_to_theta(int index, int L, METHOD_TYPE Method_enum):
   if Method_enum == MW:
     p = pi * float(2*index+1) / ( 2.0 * float(L) - 1.0 )# (2.0*t + 1.0) * SSHT_PI / (2.0*L - 1.0)
   if Method_enum == MWSS: 
-    p = pi*float(index) / float(L) # 2.0 * t * SSHT_PI / (2.0 * L)
+    p = pi*float(index) / float(L) # 2.0 * t * SSHT_PI / (2.0 * L);
 
   return p
 
@@ -2587,7 +2587,7 @@ def rotate_flms(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None,\
   cdef int index = 0, ind, n_max, n
   cdef complex Dlmn=0
 
-  if dl_array_in == None:
+  if dl_array_in is None:
     dl_array = generate_dl(beta, L)
   else:
     dl_array = dl_array_in
