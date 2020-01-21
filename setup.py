@@ -1,24 +1,26 @@
 from skbuild import setup
 
-cmake_args = ["-Dpython:BOOL=ON", "-Dopenmp:BOOL=OFF", "-Dtests:BOOL=OFF",
-              "-Dconan_fftw=ON"]
+cmake_args = [
+    "-Dpython:BOOL=ON",
+    "-Dopenmp:BOOL=OFF",
+    "-Dtests:BOOL=OFF",
+    "-Dconan_fftw=ON",
+]
 
 setup(
     name="pyssht",
     version="2.0",
     author="Jason McEwen",
     install_requires=["numpy", "cython", "scipy"],
-    extras_require={
-        "dev": [
-            "setuptools",
-            "wheel",
-            "scikit-build",
-            "cmake",
-            "ninja",
-            "cython",
-            "conan"
-        ]
-    },
+    setup_requires=[
+        "setuptools",
+        "wheel",
+        "scikit-build",
+        "cmake",
+        "ninja",
+        "cython",
+        "conan",
+    ],
     description="Fast spin spherical transforms",
     url="http://astro-informatics.github.io/ssht/",
     package_dir={"pyssht": "src/pyssht"},
