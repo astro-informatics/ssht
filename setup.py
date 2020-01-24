@@ -15,6 +15,7 @@ build_requirements = [
     "ninja",
     "cython",
     "conan",
+    "pip!=20.0.0,!=20.0.1",
 ]
 
 setup(
