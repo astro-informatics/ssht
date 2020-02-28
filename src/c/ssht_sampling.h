@@ -89,7 +89,7 @@ static inline void ssht_sampling_elm2ind(int *ind, int el, int m) {
  */
 static inline void ssht_sampling_ind2elm(int *el, int *m, int ind) {
 
-  *el = sqrt(ind);
+  *el = lrint(floor(sqrt(ind)));
   *m = ind - (*el)*(*el) - (*el);
 
 }
