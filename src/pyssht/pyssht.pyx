@@ -978,7 +978,7 @@ def old_make_rotation_matrix(list rot):
 
 def make_rotation_matrix(list rot):
   '''
-  ZYZ rotation: R = Rz(gamma)Ry(beta)Rz(alpha)
+  ZYZ rotation: R = Rz(alpha)Ry(beta)Rz(gamma)
   list rot = [alpha,beta,gamma]
   '''
   cdef np.ndarray[np.float_t, ndim=2] rot_matix = np.empty((3,3), dtype=np.float_)
@@ -991,13 +991,13 @@ def make_rotation_matrix(list rot):
   cdef double s3 = sin(float(rot[2]))
 
   rot_matix[0,0] = c1*c2*c3 - s1*s3
-  rot_matix[0,1] = c2*c3*s1 - c1*s3
-  rot_matix[0,2] = c3*s2
-  rot_matix[1,0] = c1*c2*s3 + c3*s1
+  rot_matix[0,1] = c1*c2*s3 - c3*s1
+  rot_matix[0,2] = c1*s2
+  rot_matix[1,0] = c2*c3*s1 + c1*s3
   rot_matix[1,1] = c1*c3 - c2*s1*s3
   rot_matix[1,2] = s1*s2
-  rot_matix[2,0] = -c1*s2
-  rot_matix[2,1] = s1*s2
+  rot_matix[2,0] = -c3*s2
+  rot_matix[2,1] = s2*s3
   rot_matix[2,2] = c2
 
   return rot_matix
