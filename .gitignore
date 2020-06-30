@@ -14,3 +14,4 @@ CMakeFiles/
 pip-wheel-metadata/
 src/pyssht.egg-info/
 src/pyssht/pyssht*so
+__pycache__
