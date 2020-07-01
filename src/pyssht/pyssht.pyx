@@ -2565,6 +2565,6 @@ def create_ylm(thetas, phis, int L, int Spin=0, str recursion='Risbo'):
     raise ssht_input_error('Invalid recursion method.')
 
   # Reshape output data.
-  ylm = ylm.reshape(-1, theta_m, theta_n, order='F')
+  ylm = ylm.reshape(-1, theta_m, theta_n)
 
   return ylm
