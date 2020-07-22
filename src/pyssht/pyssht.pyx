@@ -5,7 +5,7 @@ import numpy as np
 cimport numpy as np
 
 from libc.math cimport log, exp
-from scipy.special import factorial
+from gmpy2 import factorial
 
 #----------------------------------------------------------------------------------------------------#
 
