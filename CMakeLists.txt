@@ -37,10 +37,7 @@ if(conan_fftw)
     set(_GLIBCXX_USE_CXX11_ABI TRUE)
 
     conan_check(REQUIRED)
-    conan_add_remote(
-        URL https://api.bintray.com/conan/bincrafters/public-conan
-        NAME bincrafters)
-    conan_cmake_run(REQUIRES fftw/3.3.8@bincrafters/stable
+    conan_cmake_run(REQUIRES fftw/3.3.8
         BASIC_SETUP
         OPTIONS "${CONAN_OPTIONS}"
         KEEP_RPATHS
