@@ -28,7 +28,7 @@ if(conan_fftw)
 
     if(NOT CONAN_OPTIONS)
         set(CONAN_OPTIONS
-            "fftw:fPIC=True" "fftw:shared=False" "fftw:precision=double"
+            "fftw:shared=False" "fftw:precision=double"
             "fftw:openmp=False")
     endif()
     if(NOT CONAN_BUILD)
@@ -48,7 +48,7 @@ if(conan_fftw)
         IMPORTS "include, * -> conan/include")
 endif()
 
-find_package(FFTW3 REQUIRED COMPONENT SERIAL DOUBLE)
+find_package(FFTW3 REQUIRED COMPONENTS SERIAL DOUBLE)
 if(openmp)
     find_package(OpenMP QUIET)
 endif()
