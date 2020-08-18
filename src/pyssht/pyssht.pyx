@@ -6,6 +6,7 @@ cimport numpy as np
 
 from libc.math cimport log, exp, sqrt, atan2, cos, sin, asin, atan, tan
 from scipy.special import factorial
+from scipy.interpolate import interp2d
 
 cdef double pi=3.1415926535897932384626433832795028841971
 
@@ -952,7 +953,7 @@ def ra_dec_to_theta_phi(ra, dec, bint Degrees=False):
 
   return theta, phi
 
-def make_rotation_matrix(list rot):
+def old_make_rotation_matrix(list rot):
   cdef np.ndarray[np.float_t, ndim=2] rot_matix = np.empty((3,3), dtype=np.float_)
 
   cdef double c1 = cos(float(rot[0]))
@@ -970,6 +971,33 @@ def make_rotation_matrix(list rot):
   rot_matix[1,2] = c3*s2
   rot_matix[2,0] = s2*s1
   rot_matix[2,1] = -s2*c1
+  rot_matix[2,2] = c2
+
+  return rot_matix
+
+
+def make_rotation_matrix(list rot):
+  '''
+  ZYZ rotation: R = Rz(alpha)Ry(beta)Rz(gamma)
+  list rot = [alpha,beta,gamma]
+  '''
+  cdef np.ndarray[np.float_t, ndim=2] rot_matix = np.empty((3,3), dtype=np.float_)
+
+  cdef double c1 = cos(float(rot[0]))
+  cdef double s1 = sin(float(rot[0]))
+  cdef double c2 = cos(float(rot[1]))
+  cdef double s2 = sin(float(rot[1]))
+  cdef double c3 = cos(float(rot[2]))
+  cdef double s3 = sin(float(rot[2]))
+
+  rot_matix[0,0] = c1*c2*c3 - s1*s3
+  rot_matix[0,1] = -c1*c2*s3 - c3*s1
+  rot_matix[0,2] = c1*s2
+  rot_matix[1,0] = c2*c3*s1 + c1*s3
+  rot_matix[1,1] = c1*c3 - c2*s1*s3
+  rot_matix[1,2] = s1*s2
+  rot_matix[2,0] = -c3*s2
+  rot_matix[2,1] = s2*s3
   rot_matix[2,2] = c2
 
   return rot_matix
@@ -1040,6 +1068,76 @@ def rot_cart_2d(np.ndarray[np.float_t, ndim=2] x, np.ndarray[np.float_t, ndim=2]
       z_p[i,j] = x[i,j]*rot_matix[2,0] + y[i,j]*rot_matix[2,1] + z[i,j]*rot_matix[2,2]
 
   return x_p, y_p, z_p
+
+
+def rotate_image(image, rot_list, Method=None):
+  if Method is not None:
+    raise NotImplementedError()  
+
+  Height = image.shape[0]
+  Width = image.shape[1]
+  # get theta, phi of pix positions
+  i_array = np.arange(Height)
+  j_array = np.arange(Width)
+
+  j_array, i_array = np.meshgrid(j_array, i_array)
+
+  theta = (i_array)*np.pi/Height
+  phi = (j_array)*2*np.pi/Width
+
+  # convert theta phi to x, y, z
+
+  x, y, z = s2_to_cart(theta, phi)
+
+  # rotate x, y, z
+
+  x, y, z = rot_cart_2d(x, y, z, rot_list)
+
+  # convert x, y, z, to theta, phi
+  theta, phi = cart_to_s2(x, y, z)
+
+  # convert to indexes
+  i_array = theta*(Height)/np.pi 
+  j_array = phi*(Width)/(2*np.pi)
+
+  # interpolate array
+  new_image = bilinear_interpolate(image, j_array, i_array)
+
+
+  return new_image
+
+def bilinear_interpolate(im, x, y):
+  x = np.asarray(x)
+  y = np.asarray(y)
+
+  x0 = np.floor(x).astype(int)
+  x1 = x0 + 1
+  y0 = np.floor(y).astype(int)
+  y1 = y0 + 1
+
+
+  wa = (x1-x) * (y1-y)
+  wb = (x1-x) * (y-y0)
+  wc = (x-x0) * (y1-y)
+  wd = (x-x0) * (y-y0)
+
+  x0 = np.clip(x0, 0, im.shape[1]-1)
+  x1 = np.clip(x1, 0, im.shape[1]-1)
+  y0 = np.clip(y0, 0, im.shape[0]-1)
+  y1 = np.clip(y1, 0, im.shape[0]-1)
+
+
+  new_image = np.zeros_like(im)
+
+  for i_channel in range(im.shape[2]):
+    Ia = im[ y0, x0, i_channel ]
+    Ib = im[ y1, x0, i_channel ]
+    Ic = im[ y0, x1, i_channel ]
+    Id = im[ y1, x1, i_channel ]
+
+    new_image[...,i_channel] = wa*Ia + wb*Ib + wc*Ic + wd*Id
+
+  return new_image
 
 
 #----------------------------------------------------------------------------------------------------#
