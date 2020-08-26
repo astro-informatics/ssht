@@ -1776,9 +1776,13 @@ def polar_plane_to_sphere(np.ndarray[ double, ndim=2, mode="c"] image, int L, bi
   if Method=="MW":
     Method_enum=MW
   elif Method=="MWSS":
-    Method_enum=MWSS
+    Method_enum = MWSS
+  elif Method=="DH":
+    Method_enum = DH
+  elif Method=="GL":
+    Method_enum = GL
   else:
-    raise(ValueError("Incorect method, allowed methods are MW or MWSS"))
+    raise ssht_input_error('Method is not recognised, Methods are: MW, MWSS, DH and GL')
 
   if rot:
     rotation = rotation_angles
