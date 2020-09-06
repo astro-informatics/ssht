@@ -4,8 +4,11 @@
 import numpy as np
 cimport numpy as np
 
-from libc.math cimport log, exp
-from gmpy2 import factorial
+from libc.math cimport log, exp, sqrt, atan2, cos, sin, asin, atan, tan
+from scipy.special import factorial
+from scipy.interpolate import interp2d
+
+cdef double pi=3.1415926535897932384626433832795028841971
 
 #----------------------------------------------------------------------------------------------------#
 
@@ -699,11 +702,11 @@ def theta_to_index(double theta, int L, str Method="MW"):
     theta_gl_grid, phi_gl_grid = sample_positions(L,Method="GL")
 
   if Method == 'MW':
-    p = int((theta*(2*L-1)/np.pi-1)/2)  # (2.0*t + 1.0) * SSHT_PI / (2.0*L - 1.0)
+    p = int((theta*(2*L-1)/pi-1)/2)  # (2.0*t + 1.0) * SSHT_PI / (2.0*L - 1.0)
   if Method == 'MWSS':
-    p = int((theta*(2*L)/np.pi)/2)  # 2.0 * t * SSHT_PI / (2.0 * L)
+    p = int((theta*(2*L)/pi)/2)  # 2.0 * t * SSHT_PI / (2.0 * L)
   if Method == 'DH':
-    p = int((theta*(4*L)/np.pi-1)/2)  # (2.0*t + 1.0) * SSHT_PI / (4.0*L)
+    p = int((theta*(4*L)/pi-1)/2)  # (2.0*t + 1.0) * SSHT_PI / (4.0*L)
   if Method == 'GL':
     if theta > theta_gl_grid[L-1]:
       p = L-1
@@ -717,13 +720,13 @@ def phi_to_index(double phi, int L, str Method="MW"):
   cdef int q
   
   if Method == 'MW':
-    q = int(phi*(2*L-1)/(2*np.pi))      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
+    q = int(phi*(2*L-1)/(2*pi))      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
   if Method == 'MWSS':
-    q = int(phi*(2*L)/(2*np.pi))      # 2.0 * p * SSHT_PI / (2.0*L)
+    q = int(phi*(2*L)/(2*pi))      # 2.0 * p * SSHT_PI / (2.0*L)
   if Method == 'DH':
-    q = int(phi*(2*L-1)/(2*np.pi))      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
+    q = int(phi*(2*L-1)/(2*pi))      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
   if Method == 'GL':
-    q = int(phi*(2*L-1)/(2*np.pi))      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
+    q = int(phi*(2*L-1)/(2*pi))      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
   return q
 
 cdef inline int cy_theta_to_index(double theta, int L, METHOD_TYPE Method_enum):
@@ -733,11 +736,11 @@ cdef inline int cy_theta_to_index(double theta, int L, METHOD_TYPE Method_enum):
     theta_gl_grid, phi_gl_grid = sample_positions(L,Method="GL")
 
   if Method_enum == MW:
-    p = int((theta*(2*L-1)/np.pi-1)/2+0.5)  # (2.0*t + 1.0) * SSHT_PI / (2.0*L - 1.0)
+    p = int((theta*(2*L-1)/pi-1)/2+0.5)  # (2.0*t + 1.0) * SSHT_PI / (2.0*L - 1.0)
   if Method_enum == MWSS:
-    p = int((theta*(2*L)/np.pi)/2+0.5)  # 2.0 * t * SSHT_PI / (2.0 * L)
+    p = int((theta*(2*L)/pi)/2+0.5)  # 2.0 * t * SSHT_PI / (2.0 * L)
   if Method_enum == DH:
-    p = int((theta*(4*L)/np.pi-1)/2+0.5)  # (2.0*t + 1.0) * SSHT_PI / (4.0*L)
+    p = int((theta*(4*L)/pi-1)/2+0.5)  # (2.0*t + 1.0) * SSHT_PI / (4.0*L)
   if Method_enum == GL:
     if theta > theta_gl_grid[L-1]:
       p = L-1
@@ -747,25 +750,54 @@ cdef inline int cy_theta_to_index(double theta, int L, METHOD_TYPE Method_enum):
         break
   return p
 
+def index_to_theta(int index, int L, str Method):
+  cdef METHOD_TYPE Method_enum=get_method_enum(Method)
+  return cy_index_to_theta(index, L, Method_enum)
+
+cdef inline double cy_index_to_theta(int index, int L, METHOD_TYPE Method_enum):
+  cdef double p
+
+  if Method_enum == MW:
+    p = pi * float(2*index+1) / ( 2.0 * float(L) - 1.0 )# (2.0*t + 1.0) * SSHT_PI / (2.0*L - 1.0)
+  if Method_enum == MWSS: 
+    p = pi*float(index) / float(L) # 2.0 * t * SSHT_PI / (2.0 * L);
+
+  return p
+
 cdef inline int cy_phi_to_index(double phi, int L, METHOD_TYPE Method_enum):
   cdef int q
   
   if Method_enum == MW:
-    q = int(phi*(2*L-1)/(2*np.pi)+0.5)      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
+    q = int(phi*(2*L-1)/(2*pi)+0.5)      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
     if q == 2*L-1:
       q = 0
   if Method_enum == MWSS:
-    q = int(phi*(2*L)/(2*np.pi)+0.5)      # 2.0 * p * SSHT_PI / (2.0*L)
+    q = int(phi*(2*L)/(2*pi)+0.5)      # 2.0 * p * SSHT_PI / (2.0*L)
     if q == 2*L:
       q = 0
   if Method_enum == DH:
-    q = int(phi*(2*L-1)/(2*np.pi)+0.5)      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
+    q = int(phi*(2*L-1)/(2*pi)+0.5)      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
     if q == 2*L-1:
       q = 0
   if Method_enum == GL:
-    q = int(phi*(2*L-1)/(2*np.pi)+0.5)      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
+    q = int(phi*(2*L-1)/(2*pi)+0.5)      # 2.0 * p * SSHT_PI / (2.0*L - 1.0)
     if q == 2*L-1:
       q = 0
+
+  return q
+
+def index_to_phi(int index, int L, str Method):
+  cdef METHOD_TYPE Method_enum=get_method_enum(Method)
+  return cy_index_to_phi(index, L, Method_enum)
+
+
+cdef inline double cy_index_to_phi(int index, int L, METHOD_TYPE Method_enum):
+  cdef double q
+
+  if Method_enum == MW:
+    q = 2.0 * pi * float(index) / ( 2.0 * float(L) - 1.0 )
+  if Method_enum == MWSS:
+    q = pi * float(index) / float(L)
 
   return q
 
@@ -871,7 +903,7 @@ def cart_to_s2(x, y, z):
   theta = np.arctan2(np.sqrt(x*x + y*y),z)
 
   with np.errstate(invalid='ignore'):
-    phi[phi<0] += 2*np.pi 
+    phi[phi<0] += 2*pi 
 
   return (theta, phi)
 
@@ -895,41 +927,41 @@ def cart_to_spherical(x, y, z):
   r = np.sqrt(x*x + y*y + z*z)
 
   with np.errstate(invalid='ignore'):
-    phi[phi<0] += 2*np.pi 
+    phi[phi<0] += 2*pi 
 
   return (r, theta, phi)
 
 def theta_phi_to_ra_dec(theta, phi, bint Degrees=False):
-  dec = (theta - np.pi/2)*(-1)
+  dec = (theta - pi/2)*(-1)
   ra  = phi
 
   if Degrees:
-    dec = dec*180/np.pi
-    ra  = ra*180/np.pi
+    dec = dec*180/pi
+    ra  = ra*180/pi
 
   return dec, ra
 
 
 def ra_dec_to_theta_phi(ra, dec, bint Degrees=False):
   if Degrees:
-    dec = dec*np.pi/180
-    ra  = ra*np.pi/180
+    dec = dec*pi/180
+    ra  = ra*pi/180
 
-  theta = np.pi/2 - dec
+  theta = pi/2 - dec
   phi  = ra
 
 
   return theta, phi
 
-def make_rotation_matrix(list rot):
+def old_make_rotation_matrix(list rot):
   cdef np.ndarray[np.float_t, ndim=2] rot_matix = np.empty((3,3), dtype=np.float_)
 
-  cdef double c1 = np.cos(rot[0])
-  cdef double s1 = np.sin(rot[0])
-  cdef double c2 = np.cos(rot[1])
-  cdef double s2 = np.sin(rot[1])
-  cdef double c3 = np.cos(rot[2])
-  cdef double s3 = np.sin(rot[2])
+  cdef double c1 = cos(float(rot[0]))
+  cdef double s1 = sin(float(rot[0]))
+  cdef double c2 = cos(float(rot[1]))
+  cdef double s2 = sin(float(rot[1]))
+  cdef double c3 = cos(float(rot[2]))
+  cdef double s3 = sin(float(rot[2]))
 
   rot_matix[0,0] = c3*c1 - c2*s1*s3
   rot_matix[0,1] = c3*s1 + c2*c1*s3
@@ -939,6 +971,33 @@ def make_rotation_matrix(list rot):
   rot_matix[1,2] = c3*s2
   rot_matix[2,0] = s2*s1
   rot_matix[2,1] = -s2*c1
+  rot_matix[2,2] = c2
+
+  return rot_matix
+
+
+def make_rotation_matrix(list rot):
+  '''
+  ZYZ rotation: R = Rz(alpha)Ry(beta)Rz(gamma)
+  list rot = [alpha,beta,gamma]
+  '''
+  cdef np.ndarray[np.float_t, ndim=2] rot_matix = np.empty((3,3), dtype=np.float_)
+
+  cdef double c1 = cos(float(rot[0]))
+  cdef double s1 = sin(float(rot[0]))
+  cdef double c2 = cos(float(rot[1]))
+  cdef double s2 = sin(float(rot[1]))
+  cdef double c3 = cos(float(rot[2]))
+  cdef double s3 = sin(float(rot[2]))
+
+  rot_matix[0,0] = c1*c2*c3 - s1*s3
+  rot_matix[0,1] = -c1*c2*s3 - c3*s1
+  rot_matix[0,2] = c1*s2
+  rot_matix[1,0] = c2*c3*s1 + c1*s3
+  rot_matix[1,1] = c1*c3 - c2*s1*s3
+  rot_matix[1,2] = s1*s2
+  rot_matix[2,0] = -c3*s2
+  rot_matix[2,1] = s2*s3
   rot_matix[2,2] = c2
 
   return rot_matix
@@ -1009,6 +1068,76 @@ def rot_cart_2d(np.ndarray[np.float_t, ndim=2] x, np.ndarray[np.float_t, ndim=2]
       z_p[i,j] = x[i,j]*rot_matix[2,0] + y[i,j]*rot_matix[2,1] + z[i,j]*rot_matix[2,2]
 
   return x_p, y_p, z_p
+
+
+def rotate_image(image, rot_list, Method=None):
+  if Method is not None:
+    raise NotImplementedError()  
+
+  Height = image.shape[0]
+  Width = image.shape[1]
+  # get theta, phi of pix positions
+  i_array = np.arange(Height)
+  j_array = np.arange(Width)
+
+  j_array, i_array = np.meshgrid(j_array, i_array)
+
+  theta = (i_array)*np.pi/Height
+  phi = (j_array)*2*np.pi/Width
+
+  # convert theta phi to x, y, z
+
+  x, y, z = s2_to_cart(theta, phi)
+
+  # rotate x, y, z
+
+  x, y, z = rot_cart_2d(x, y, z, rot_list)
+
+  # convert x, y, z, to theta, phi
+  theta, phi = cart_to_s2(x, y, z)
+
+  # convert to indexes
+  i_array = theta*(Height)/np.pi 
+  j_array = phi*(Width)/(2*np.pi)
+
+  # interpolate array
+  new_image = bilinear_interpolate(image, j_array, i_array)
+
+
+  return new_image
+
+def bilinear_interpolate(im, x, y):
+  x = np.asarray(x)
+  y = np.asarray(y)
+
+  x0 = np.floor(x).astype(int)
+  x1 = x0 + 1
+  y0 = np.floor(y).astype(int)
+  y1 = y0 + 1
+
+
+  wa = (x1-x) * (y1-y)
+  wb = (x1-x) * (y-y0)
+  wc = (x-x0) * (y1-y)
+  wd = (x-x0) * (y-y0)
+
+  x0 = np.clip(x0, 0, im.shape[1]-1)
+  x1 = np.clip(x1, 0, im.shape[1]-1)
+  y0 = np.clip(y0, 0, im.shape[0]-1)
+  y1 = np.clip(y1, 0, im.shape[0]-1)
+
+
+  new_image = np.zeros_like(im)
+
+  for i_channel in range(im.shape[2]):
+    Ia = im[ y0, x0, i_channel ]
+    Ib = im[ y1, x0, i_channel ]
+    Ic = im[ y0, x1, i_channel ]
+    Id = im[ y1, x1, i_channel ]
+
+    new_image[...,i_channel] = wa*Ia + wb*Ib + wc*Ic + wd*Id
+
+  return new_image
 
 
 #----------------------------------------------------------------------------------------------------#
@@ -1144,19 +1273,19 @@ def mollweide_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L, in
 
 
   aux_angle = np.arcsin(y/np.sqrt(2.0))
-  dec = np.arcsin((2*aux_angle + np.sin(2*aux_angle))/np.pi)
-  ra = np.pi*x/(2*np.sqrt(2.0)*np.cos(aux_angle))
+  dec = np.arcsin((2*aux_angle + np.sin(2*aux_angle))/pi)
+  ra = pi*x/(2*np.sqrt(2.0)*np.cos(aux_angle))
 
 
   theta, phi = ra_dec_to_theta_phi(ra, dec)
 
   for i from 0 <= i < Ny:
     for j from 0 <= j < Nx:
-      if phi[i,j]<-np.pi or phi[i,j]>np.pi:
+      if phi[i,j]<-pi or phi[i,j]>pi:
         phi[i,j] = np.nan
       else:
         if phi[i,j] < 0.0:
-          phi[i,j] += 2*np.pi
+          phi[i,j] += 2*pi
 
  
   if not(rot is None):
@@ -1165,10 +1294,10 @@ def mollweide_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L, in
         for j from 0 <= j < Nx:
           if not(np.isnan(phi[i,j])):
             phi[i,j] += rot_angle
-            if phi[i,j] > 2*np.pi:
-              phi[i,j] -= 2*np.pi
+            if phi[i,j] > 2*pi:
+              phi[i,j] -= 2*pi
             if phi[i,j] < 0:
-              phi[i,j] += 2*np.pi
+              phi[i,j] += 2*pi
 
     elif len(rot) == 3:
       xx, yy, zz = s2_to_cart(theta, phi)
@@ -1198,15 +1327,8 @@ def mollweide_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L, in
 
   return f_plot, mask
 
-
-
-def mollweide_projection(f, int L, int resolution=500, rot=None,\
-                        zoom_region=[np.sqrt(2.0)*2,np.sqrt(2.0)], str Method="MW"):
-
-  cdef int i, j, n_phi, n_theta
-  cdef np.ndarray[np.float_t, ndim=2] f_real, f_imag
+cdef METHOD_TYPE get_method_enum(str Method):
   cdef METHOD_TYPE Method_enum
-
   if Method=="MW":
     Method_enum=MW
   elif Method=="MWSS":
@@ -1217,6 +1339,16 @@ def mollweide_projection(f, int L, int resolution=500, rot=None,\
     Method_enum = GL
   else:
     raise ssht_input_error('Method is not recognised, Methods are: MW, MWSS, DH and GL')
+  return Method_enum
+
+
+
+def mollweide_projection(f, int L, int resolution=500, rot=None,\
+                        zoom_region=[np.sqrt(2.0)*2,np.sqrt(2.0)], str Method="MW"):
+
+  cdef int i, j, n_phi, n_theta
+  cdef np.ndarray[np.float_t, ndim=2] f_real, f_imag
+  cdef METHOD_TYPE Method_enum=get_method_enum(Method)
 
   if not isinstance(f, np.ndarray):
     raise TypeError("Input not a ndarray")
@@ -1257,17 +1389,17 @@ def equatorial_projection(f, int L, int resolution=500, rot=None,\
   if Projection == "MERCATOR":
     Equatorial_Projection_enum = MERCATOR
     if zoom_region[0] < -0.5:
-      zoom_region = [np.pi-1E-5,7*np.pi/16]
-    if zoom_region[1] > np.pi/2-1E-5:
-      zoom_region[1] = np.pi/2-1E-5
+      zoom_region = [pi-1E-5,7*pi/16]
+    if zoom_region[1] > pi/2-1E-5:
+      zoom_region[1] = pi/2-1E-5
   elif Projection == "SINE":
     Equatorial_Projection_enum = SINE
     if zoom_region[0] < -0.5:
-      zoom_region = [np.pi-1E-5,np.pi/2]
+      zoom_region = [pi-1E-5,pi/2]
   else:
     ssht_input_error('Projection type not recognised, Projectios are MERCATOR and SINE')
-  if zoom_region[0] > np.pi-1E-5:
-    zoom_region[0] = np.pi-1E-5
+  if zoom_region[0] > pi-1E-5:
+    zoom_region[0] = pi-1E-5
 
   if Method=="MW":
     Method_enum=MW
@@ -1333,8 +1465,8 @@ def equatorial_projection_rotation_angle(int resolution, list zoom_region, rot=N
   cdef int n_theta, n_phi, n_theta_north, n_theta_south, i, j, p, q, i_rot, j_rot
   cdef int Nx, Ny
 
-  half_box_len_x = forward_equatorial_projection_function_float_x(np.pi/2, zoom_region[0], Equatorial_Projection_enum)
-  half_box_len_y = forward_equatorial_projection_function_float_y(np.pi/2-zoom_region[1], 0.0, Equatorial_Projection_enum)
+  half_box_len_x = forward_equatorial_projection_function_float_x(pi/2, zoom_region[0], Equatorial_Projection_enum)
+  half_box_len_y = forward_equatorial_projection_function_float_y(pi/2-zoom_region[1], 0.0, Equatorial_Projection_enum)
  
   Nx = resolution
   Ny = int(<float>resolution*half_box_len_y/half_box_len_x)
@@ -1366,11 +1498,11 @@ def equatorial_projection_rotation_angle(int resolution, list zoom_region, rot=N
         # print(i, j, x_pos, y_pos, rho, theta_pos)
 
         if not np.isnan(phi_pos):
-          delta_theta  = np.sin(phi_pos)*delta_y+np.cos(phi_pos)*delta_x - np.tan(theta_pos)*delta_z
-          delta_theta *= np.cos(theta_pos)
+          delta_theta  = sin(phi_pos)*delta_y+cos(phi_pos)*delta_x - tan(theta_pos)*delta_z
+          delta_theta *= cos(theta_pos)
 
-          delta_phi  = -np.tan(phi_pos)*delta_x + delta_y
-          delta_phi *= np.cos(phi_pos)/np.sin(theta_pos)
+          delta_phi  = -tan(phi_pos)*delta_x + delta_y
+          delta_phi *= cos(phi_pos)/sin(theta_pos)
 
           delta_x_plane  = forward_equatorial_projection_function_float_x_dtheta(theta_pos, phi_pos, \
             Equatorial_Projection_enum=Equatorial_Projection_enum)*delta_theta
@@ -1383,7 +1515,7 @@ def equatorial_projection_rotation_angle(int resolution, list zoom_region, rot=N
             Equatorial_Projection_enum=Equatorial_Projection_enum)*delta_phi
 
 
-          rotation_angle[j,i] = -np.arctan2(delta_x_plane, delta_y_plane)
+          rotation_angle[j,i] = -atan2(delta_x_plane, delta_y_plane)
 
 
   return rotation_angle
@@ -1402,17 +1534,17 @@ def equatorial_projection_angle_array(int resolution, list zoom_region=[-1.,-1.]
   if Projection == "MERCATOR":
     Equatorial_Projection_enum = MERCATOR
     if zoom_region[0] < -0.5:
-      zoom_region = [np.pi-1E-5,7*np.pi/16]
-    if zoom_region[1] > np.pi/2-1E-5:
-      zoom_region[1] = np.pi/2-1E-5
+      zoom_region = [pi-1E-5,7*pi/16]
+    if zoom_region[1] > pi/2-1E-5:
+      zoom_region[1] = pi/2-1E-5
   elif Projection == "SINE":
     Equatorial_Projection_enum = SINE
     if zoom_region[0] < -0.5:
-      zoom_region = [np.pi-1E-5,np.pi/2]
+      zoom_region = [pi-1E-5,pi/2]
   else:
     ssht_input_error('Projection type not recognised, Projectios are MERCATOR and SINE')
-  if zoom_region[0] > np.pi-1E-5:
-    zoom_region[0] = np.pi-1E-5
+  if zoom_region[0] > pi-1E-5:
+    zoom_region[0] = pi-1E-5
 
   cdef double rot_angle = dummy
 
@@ -1422,8 +1554,8 @@ def equatorial_projection_angle_array(int resolution, list zoom_region=[-1.,-1.]
   cdef int n_theta, n_phi, n_theta_north, n_theta_south, i, j, p, q, i_rot, j_rot
   cdef int Nx, Ny
 
-  half_box_len_x = forward_equatorial_projection_function_float_x(np.pi/2, zoom_region[0], Equatorial_Projection_enum)
-  half_box_len_y = forward_equatorial_projection_function_float_y(np.pi/2-zoom_region[1], 0.0, Equatorial_Projection_enum)
+  half_box_len_x = forward_equatorial_projection_function_float_x(pi/2, zoom_region[0], Equatorial_Projection_enum)
+  half_box_len_y = forward_equatorial_projection_function_float_y(pi/2-zoom_region[1], 0.0, Equatorial_Projection_enum)
  
   Nx = resolution
   Ny = int(<float>resolution*half_box_len_y/half_box_len_x)
@@ -1442,10 +1574,10 @@ def equatorial_projection_angle_array(int resolution, list zoom_region=[-1.,-1.]
 
         if not np.isnan(phi_pos):
           phi_pos += rot_angle
-          if phi_pos > 2*np.pi:
-            phi_pos -= 2*np.pi
+          if phi_pos > 2*pi:
+            phi_pos -= 2*pi
           if phi_pos < 0.0:
-            phi_pos += 2*np.pi          
+            phi_pos += 2*pi          
           
           theta_angle[j,i] = theta_pos
           phi_angle[j,i]   = phi_pos
@@ -1493,8 +1625,8 @@ def equatorial_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L, i
   elif Method_enum==GL:
     Method = "GL"
 
-  half_box_len_x = forward_equatorial_projection_function_float_x(np.pi/2, zoom_region[0], Equatorial_Projection_enum)
-  half_box_len_y = forward_equatorial_projection_function_float_y(np.pi/2-zoom_region[1], 0.0, Equatorial_Projection_enum)
+  half_box_len_x = forward_equatorial_projection_function_float_x(pi/2, zoom_region[0], Equatorial_Projection_enum)
+  half_box_len_y = forward_equatorial_projection_function_float_y(pi/2-zoom_region[1], 0.0, Equatorial_Projection_enum)
  
   Nx = resolution
   Ny = int(<float>resolution*half_box_len_y/half_box_len_x)
@@ -1510,10 +1642,10 @@ def equatorial_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L, i
       for i from 0 <= i < n_theta:
         for j from 0 <= j < n_phi:
           phi[i,j] += rot_angle
-          if phi[i,j] > 2*np.pi:
-            phi[i,j] -= 2*np.pi
+          if phi[i,j] > 2*pi:
+            phi[i,j] -= 2*pi
           if phi[i,j] < 0:
-            phi[i,j] += 2*np.pi
+            phi[i,j] += 2*pi
 
     elif len(rot) == 3:
       xx, yy, zz = s2_to_cart(theta, phi)
@@ -1564,20 +1696,20 @@ def equatorial_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L, i
         else:
           # perform rotation
           if rot is not None:
-            x_pos   = np.sin(theta_pos)*np.cos(phi_pos)
-            y_pos   = np.sin(theta_pos)*np.sin(phi_pos)
-            z_pos   = np.cos(theta_pos)
+            x_pos   = sin(theta_pos)*cos(phi_pos)
+            y_pos   = sin(theta_pos)*sin(phi_pos)
+            z_pos   = cos(theta_pos)
             x_p_pos = x_pos*rot_matix[0,0] + y_pos*rot_matix[0,1] + z_pos*rot_matix[0,2]
             y_p_pos = x_pos*rot_matix[1,0] + y_pos*rot_matix[1,1] + z_pos*rot_matix[1,2]
             z_p_pos = x_pos*rot_matix[2,0] + y_pos*rot_matix[2,1] + z_pos*rot_matix[2,2]
 
-            theta_pos = np.arctan2(np.sqrt(x_p_pos*x_p_pos + y_p_pos*y_p_pos),z_p_pos)
-            phi_pos   = np.arctan2(y_p_pos,x_p_pos)
+            theta_pos = atan2(sqrt(x_p_pos*x_p_pos + y_p_pos*y_p_pos),z_p_pos)
+            phi_pos   = atan2(y_p_pos,x_p_pos)
 
           if phi_pos < 0:
-            phi_pos += 2*np.pi
-          if phi_pos > 2*np.pi:
-            phi_pos -= 2*np.pi
+            phi_pos += 2*pi
+          if phi_pos > 2*pi:
+            phi_pos -= 2*pi
           
           p = cy_theta_to_index(theta_pos, L, Method_enum)
           q = cy_phi_to_index(phi_pos, L, Method_enum)
@@ -1600,15 +1732,15 @@ def forward_equatorial_projection_function_array(np.ndarray[ double, ndim=2, mod
 
   if Equatorial_Projection_enum == MERCATOR:
     x_project = phi
-    x_project[x_project>np.pi] = x_project[x_project>np.pi] - 2*np.pi
+    x_project[x_project>pi] = x_project[x_project>pi] - 2*pi
     with np.errstate(divide='ignore'):
-      y_project = np.log(np.tan(0.5*(np.pi-theta)))
+      y_project = np.log(np.tan(0.5*(pi-theta)))
     return x_project, y_project
   if Equatorial_Projection_enum == SINE:
     x_project = phi
-    x_project[x_project>np.pi] = x_project[x_project>np.pi] - 2*np.pi
+    x_project[x_project>pi] = x_project[x_project>pi] - 2*pi
     x_project = x_project*np.sin(theta)
-    y_project = np.pi/2-theta
+    y_project = pi/2-theta
     return x_project, y_project
 
 cdef float forward_equatorial_projection_function_float_x(float theta, float phi, \
@@ -1618,14 +1750,14 @@ cdef float forward_equatorial_projection_function_float_x(float theta, float phi
 
   if Equatorial_Projection_enum == MERCATOR:
     x_project = phi
-    if x_project > np.pi:
-      x_project -= 2*np.pi
+    if x_project > pi:
+      x_project -= 2*pi
     return x_project
   if Equatorial_Projection_enum == SINE:
     x_project = phi
-    if x_project > np.pi:
-      x_project -= 2*np.pi
-    x_project *= np.sin(theta)
+    if x_project > pi:
+      x_project -= 2*pi
+    x_project *= sin(theta)
     return x_project
 
 cdef float forward_equatorial_projection_function_float_y(float theta, float phi,\
@@ -1634,10 +1766,10 @@ cdef float forward_equatorial_projection_function_float_y(float theta, float phi
   cdef float y_project
 
   if Equatorial_Projection_enum == MERCATOR:
-    y_project = np.log(np.tan(0.5*(np.pi-theta)))
+    y_project = log(tan(0.5*(pi-theta)))
     return y_project
   if Equatorial_Projection_enum == SINE:
-    y_project = np.pi/2-theta
+    y_project = pi/2-theta
     return y_project
 
 cdef float forward_equatorial_projection_function_float_x_dtheta(float theta, float phi, \
@@ -1649,9 +1781,9 @@ cdef float forward_equatorial_projection_function_float_x_dtheta(float theta, fl
     return 0.0
   if Equatorial_Projection_enum == SINE:
     dg_dtheta = phi
-    if dg_dtheta > np.pi:
-      dg_dtheta -= 2*np.pi
-    dg_dtheta *= np.cos(theta)
+    if dg_dtheta > pi:
+      dg_dtheta -= 2*pi
+    dg_dtheta *= cos(theta)
     return dg_dtheta
 
 cdef float forward_equatorial_projection_function_float_x_dphi(float theta, float phi, \
@@ -1660,7 +1792,7 @@ cdef float forward_equatorial_projection_function_float_x_dphi(float theta, floa
   if Equatorial_Projection_enum == MERCATOR:
     return 1.0
   if Equatorial_Projection_enum == SINE:
-    return np.sin(theta)
+    return sin(theta)
 
 cdef float forward_equatorial_projection_function_float_y_dtheta(float theta, float phi,\
  EQUATORIAL_PROJECTION_TYPE Equatorial_Projection_enum=MERCATOR):
@@ -1668,7 +1800,7 @@ cdef float forward_equatorial_projection_function_float_y_dtheta(float theta, fl
   cdef float df_dtheta
 
   if Equatorial_Projection_enum == MERCATOR:
-    df_dtheta = -1.0/(2*np.sin((np.pi-theta)/2.0)*np.cos((np.pi-theta)/2.0))
+    df_dtheta = -1.0/(2*sin((pi-theta)/2.0)*cos((pi-theta)/2.0))
     return df_dtheta
   if Equatorial_Projection_enum == SINE:
     df_dtheta = -1.0
@@ -1690,10 +1822,10 @@ cdef float inverse_equatorial_projection_function_float_theta(float x, float y, 
   cdef float theta
 
   if Equatorial_Projection_enum == MERCATOR:
-    theta = np.pi-np.arctan(exp(y))*2.0
+    theta = pi-atan(exp(y))*2.0
     return theta
   if Equatorial_Projection_enum == SINE:
-    theta = np.pi/2-y
+    theta = pi/2-y
     return theta
 
 cdef float inverse_equatorial_projection_function_float_phi(float x, float y, \
@@ -1704,16 +1836,269 @@ cdef float inverse_equatorial_projection_function_float_phi(float x, float y, \
   if Equatorial_Projection_enum == MERCATOR:
     phi = x
     if phi < 0.0:
-      phi += 2*np.pi
+      phi += 2*pi
     return phi
   if Equatorial_Projection_enum == SINE:
     phi = x
-    phi /= np.sin(np.pi/2-y)    
-    if phi > np.pi or phi < -np.pi:
+    phi /= sin(pi/2-y)    
+    if phi > pi or phi < -pi:
       return np.nan 
     if phi < 0.0:
-      phi += 2*np.pi
+      phi += 2*pi
     return phi
+
+def polar_plane_to_sphere(np.ndarray[ double, ndim=2, mode="c"] image, int L, bint rot=False, Polar_Projection_enum=SP, list rotation_angles=[0.0,0.,0.], double theta_project=1.0, str Method="MW"):
+  """
+  Projects planar map onto a spherical MWSS map by a generalized 
+  polar projection and performs random euler rotation if specified.
+
+  Args:
+    - image:
+        (2D float array) image data to be augmented.
+    - random_choice:
+        (dictionary) dictionary of random choices.
+
+  Returns:
+    - 2D binary array of MWSS pixelized spherical image.
+
+  Raises:
+    - None
+  """
+  cdef METHOD_TYPE Method_enum=MW
+
+  cdef list rotation_inverse, rotation
+  cdef np.ndarray[np.float_t, ndim=2] spherical_map, spherical_count, theta_2D, phi_2D, theta_new, phi_new, x, y, z, xx, yy, zz
+  cdef int i, j, theta_index, phi_index, tolerance, len_1, len_2, x_new_scal, y_new_scal, theta_max, theta_min, phi_max, phi_min
+  cdef double r, phi, r_scal, theta, r_new, r_unscal, x_new, y_new, i_new, j_new
+  
+  if Method=="MW":
+    Method_enum=MW
+  elif Method=="MWSS":
+    Method_enum = MWSS
+  elif Method=="DH":
+    Method_enum = DH
+  elif Method=="GL":
+    Method_enum = GL
+  else:
+    raise ssht_input_error('Method is not recognised, Methods are: MW, MWSS, DH and GL')
+
+  if rot:
+    rotation = rotation_angles
+    rotation_inverse = []
+    rotation_inverse.append(rotation[2] * -1.0)
+    rotation_inverse.append(rotation[1] * -1.0)
+    rotation_inverse.append(rotation[0] * -1.0)
+
+  # spherical_map = np.zeros((L + 1, 2 * L))
+  # spherical_count = np.zeros((L + 1, 2 * L))
+
+  n_theta, n_phi = sample_shape(L, Method=Method)
+  spherical_map = np.zeros((n_theta, n_phi))
+  spherical_count = np.zeros((n_theta, n_phi))
+
+  theta_2D = np.zeros((image.shape[0],image.shape[1]))
+  phi_2D = np.zeros((image.shape[0],image.shape[1]))
+
+  len_1, len_2 = image.shape[0], image.shape[1]
+
+  r_array = np.zeros((image.shape[0], image.shape[1]))
+  r2_array = np.zeros((image.shape[0], image.shape[1]))
+
+
+  for i in range(image.shape[0]):
+    for j in range(image.shape[1]):
+        i_new = _image_index_to_unit_index(len_1, i)
+        j_new = _image_index_to_unit_index(len_2, j)
+        r = _planar_to_polar_coordinates_r(i_new,j_new)
+        phi = _planar_to_polar_coordinates_phi(i_new,j_new)
+        r_scal = r * tan(theta_project)
+        theta = _polar_radius_to_theta(r_scal, Polar_Projection_enum=Polar_Projection_enum)
+        theta_2D[i,j] = theta
+        phi_2D[i,j] = phi
+        r_array[i,j] = r_scal
+
+
+  if rot:
+    x, y, z = s2_to_cart(theta_2D, phi_2D)
+    xx, yy, zz = rot_cart_2d(x, y, z, rotation)
+    theta_2D, phi_2D = cart_to_s2(xx, yy, zz)
+
+  # Box limits
+  theta_max = 0
+  theta_min = 10
+
+  phi_max = 0
+  phi_min = 10
+
+  for i in range(image.shape[0]):
+    for j in range(image.shape[1]):
+        theta_index = cy_theta_to_index(theta_2D[i,j], L, Method_enum)
+        phi_index = cy_phi_to_index(phi_2D[i,j], L, Method_enum)
+        spherical_map[theta_index, phi_index] += image[i,j]
+        spherical_count[theta_index, phi_index] += 1.0
+        if theta_index > theta_max:
+            theta_max = theta_index
+        if theta_index < theta_min:
+            theta_min = theta_index
+        if phi_index > phi_max:
+            phi_max = phi_index
+        if phi_index < phi_min:
+            phi_min = phi_index
+
+
+  tolerance = int( 3 * (pi / L ) )
+  theta_max += tolerance
+  phi_max += tolerance
+  theta_min -= tolerance
+  phi_min -= tolerance
+
+  theta_new = np.zeros((spherical_map.shape[0], spherical_map.shape[1]))
+  phi_new = np.zeros((spherical_map.shape[0], spherical_map.shape[1]))
+
+  for i in range(spherical_map.shape[0]):
+    for j in range(spherical_map.shape[1]):
+        if i >= theta_min and i <= theta_max and j >= phi_min and j <= phi_max:
+            if spherical_count[i,j] < 1:
+                theta_new[i,j] = cy_index_to_theta(i, L, Method_enum)
+                phi_new[i,j] = cy_index_to_phi(j, L, Method_enum)
+
+  if rot:
+      x, y, z = s2_to_cart(theta_new, phi_new)
+      xx, yy, zz = rot_cart_2d(x, y, z, rotation_inverse)
+      theta_new, phi_new = cart_to_s2(xx, yy, zz)
+
+  for i in range(spherical_map.shape[0]):
+    for j in range(spherical_map.shape[1]):
+        if i >= theta_min and i <= theta_max and j >= phi_min and j <= phi_max:
+            if spherical_count[i,j] < 1:
+                r_new = _theta_to_polar_radius(theta_new[i,j], Polar_Projection_enum=Polar_Projection_enum)
+                r_unscal = r_new / tan(theta_project)
+                x_new = _polar_to_planar_coordinates_x(
+                    r=r_unscal, 
+                    phi=phi_new[i,j]
+                )
+                y_new = _polar_to_planar_coordinates_y(
+                    r=r_unscal, 
+                    phi=phi_new[i,j]
+                )
+                x_new_scal = _unit_index_to_image_index(len_1, x_new)
+                y_new_scal = _unit_index_to_image_index(len_2, y_new)
+                if x_new_scal < image.shape[0] and x_new_scal > -1:
+                    if y_new_scal < image.shape[1] and y_new_scal > -1:
+                        spherical_map[i,j] = image[ x_new_scal, y_new_scal ]
+            else:
+                spherical_map[i,j] /= spherical_count[i,j]
+        else:
+            spherical_map[i,j] = 0.0
+
+
+  return spherical_map
+
+cdef inline double _image_index_to_unit_index(int len_1, int i):
+  return 2.0 * (float(i)/float(len_1)  - 0.5)
+
+cdef inline int _unit_index_to_image_index(int len_1, double i):
+  return int( float(len_1) * ( float(i)/2. + 0.5) + 0.5)
+
+cdef inline double _planar_to_polar_coordinates_r(double x, double y):
+  """
+  Computes polar co-ordinates from cartesian co-ordinates.
+
+  Args:
+      - x:
+          (Int) cartesian x co-ordinate
+      - y: 
+          (Int) cartesian y co-ordinate
+
+  Returns:
+     radius r and polar angle phi as floats.
+
+  Raises:
+      - None
+  """
+  return sqrt( x**2 + y**2 ) 
+
+cdef inline double _planar_to_polar_coordinates_phi(double x, double y):
+  """
+  Computes polar co-ordinates from cartesian co-ordinates.
+
+  Args:
+      - x:
+          (Int) cartesian x co-ordinate
+      - y: 
+          (Int) cartesian y co-ordinate
+
+  Returns:
+     radius r and polar angle phi as floats.
+
+  Raises:
+      - None
+  """
+  cdef double phi
+  phi = atan2(y, x)
+
+  return phi%(2.0*pi)
+
+cdef inline double _polar_to_planar_coordinates_x(double r, double phi):
+  return r * cos(phi)
+
+cdef inline _polar_to_planar_coordinates_y(double r, double phi):
+  return r * sin(phi)
+
+cdef inline double _polar_radius_to_theta(double r, Polar_Projection_enum=SP):
+  """
+  Computes the corresonding lattitude given the radius of a planar pixel
+  for a variety of polar projection functions.
+
+  Args:
+      - r:    
+          (Float) polar radius of planar pixel.
+
+  Returns:
+      - Theta as a float.
+
+  Raises:
+      - Exception if projection method not supported
+  """
+
+  if Polar_Projection_enum == SP:
+      return 2.0 * atan(r/2.0)
+
+  elif Polar_Projection_enum == GP:
+      return atan(r)
+
+  elif Polar_Projection_enum == OP:
+      return asin(r)
+
+  else:
+      raise Exception("Projection method no supported. Try 'SP' (stereo), 'GP' (gnonmic), or 'OP' (ortho)")
+
+cdef inline double _theta_to_polar_radius(double theta, Polar_Projection_enum=SP):
+  """
+  Computes the corresponding polar radius given a spherical lattitude.
+
+  Args:
+      - theta:
+          (Float) Spherical lattitude in radians.
+
+  Returns:
+      - Radius as a float.
+
+  Raises:
+      - Exception if projection method not supported
+  """
+
+  if Polar_Projection_enum == SP:
+      return 2.0 * tan(theta / 2.0)
+
+  elif Polar_Projection_enum == GP:
+      return tan(theta)
+
+  elif Polar_Projection_enum == OP:
+      return sin(theta)
+
+  else:
+      raise Exception("Projection method no supported. Try 'SP' (stereo), 'GP' (gnonmic), or 'OP' (ortho)")
 
 
 def polar_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L, int resolution=500, rot=None,\
@@ -1735,9 +2120,9 @@ def polar_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L, int re
 
   if zoom_region < 0:
     if Polar_Projection_enum == GP:
-      zoom_region = np.pi/4
+      zoom_region = pi/4
     else:
-      zoom_region = np.pi/2
+      zoom_region = pi/2
 
 
   cdef double rot_angle = dummy
@@ -1770,10 +2155,10 @@ def polar_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L, int re
       for i from 0 <= i < n_theta:
         for j from 0 <= j < n_phi:
           phi[i,j] += rot_angle
-          if phi[i,j] > 2*np.pi:
-            phi[i,j] -= 2*np.pi
+          if phi[i,j] > 2*pi:
+            phi[i,j] -= 2*pi
           if phi[i,j] < 0:
-            phi[i,j] += 2*np.pi
+            phi[i,j] += 2*pi
 
     elif len(rot) == 3:
       xx, yy, zz = s2_to_cart(theta, phi)
@@ -1784,11 +2169,11 @@ def polar_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L, int re
   x_project = np.empty((theta.shape[0],theta.shape[1]), dtype=float)
   y_project = np.empty((theta.shape[0],theta.shape[1]), dtype=float)
 
-  x_project[theta<np.pi/2] = forward_projection_function_array(theta[theta<np.pi/2], Polar_Projection_enum)*np.cos(phi[theta<np.pi/2])
-  y_project[theta<np.pi/2] = forward_projection_function_array(theta[theta<np.pi/2], Polar_Projection_enum)*np.sin(phi[theta<np.pi/2])
+  x_project[theta<pi/2] = forward_projection_function_array(theta[theta<pi/2], Polar_Projection_enum)*np.cos(phi[theta<pi/2])
+  y_project[theta<pi/2] = forward_projection_function_array(theta[theta<pi/2], Polar_Projection_enum)*np.sin(phi[theta<pi/2])
 
-  x_project[theta>=np.pi/2] = forward_projection_function_array((np.pi-theta[theta>=np.pi/2]), Polar_Projection_enum)*np.cos(phi[theta>=np.pi/2])
-  y_project[theta>=np.pi/2] = forward_projection_function_array((np.pi-theta[theta>=np.pi/2]), Polar_Projection_enum)*np.sin(phi[theta>=np.pi/2])
+  x_project[theta>=pi/2] = forward_projection_function_array((pi-theta[theta>=pi/2]), Polar_Projection_enum)*np.cos(phi[theta>=pi/2])
+  y_project[theta>=pi/2] = forward_projection_function_array((pi-theta[theta>=pi/2]), Polar_Projection_enum)*np.sin(phi[theta>=pi/2])
 
   ortho_proj_north = np.zeros((resolution, resolution), dtype=float)
   ortho_proj_south = np.zeros((resolution, resolution), dtype=float)
@@ -1809,7 +2194,7 @@ def polar_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L, int re
         p = int(resolution*(x_project[i,j]+half_box_len)/(2.0*half_box_len))
         q = int(resolution*(y_project[i,j]+half_box_len)/(2.0*half_box_len))
 
-        if theta[i,j] < np.pi/2:        
+        if theta[i,j] < pi/2:        
           if np.isnan(f[i,j]):
             ortho_proj_north[p,q] = np.nan
             mask_north[p,q] = 0.0
@@ -1839,28 +2224,28 @@ def polar_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L, int re
         if projection_index_to_length(i,j,resolution, half_box_len) < max_len:
           x_pos     = (2.*half_box_len*(<float>i+0.5)/<float>resolution -half_box_len)
           y_pos     = (2.*half_box_len*(<float>j+0.5)/<float>resolution -half_box_len)
-          rho       = np.sqrt(x_pos*x_pos + y_pos*y_pos) 
+          rho       = sqrt(x_pos*x_pos + y_pos*y_pos) 
           theta_pos = inverse_projection_function_float(rho, Polar_Projection_enum)
-          phi_pos   = np.arctan2(y_pos,x_pos)
+          phi_pos   = atan2(y_pos,x_pos)
           # print(i, j, x_pos, y_pos, rho, theta_pos)
 
           # perform rotation
           if rot is not None:
             if Polar_Projection_enum != OP:
-              x_pos   = np.sin(theta_pos)*np.cos(phi_pos)
-              y_pos   = np.sin(theta_pos)*np.sin(phi_pos)
-            z_pos   = np.cos(theta_pos)
+              x_pos   = sin(theta_pos)*cos(phi_pos)
+              y_pos   = sin(theta_pos)*sin(phi_pos)
+            z_pos   = cos(theta_pos)
             x_p_pos = x_pos*rot_matix[0,0] + y_pos*rot_matix[0,1] + z_pos*rot_matix[0,2]
             y_p_pos = x_pos*rot_matix[1,0] + y_pos*rot_matix[1,1] + z_pos*rot_matix[1,2]
             z_p_pos = x_pos*rot_matix[2,0] + y_pos*rot_matix[2,1] + z_pos*rot_matix[2,2]
 
-            theta_pos = np.arctan2(np.sqrt(x_p_pos*x_p_pos + y_p_pos*y_p_pos),z_p_pos)
-            phi_pos   = np.arctan2(y_p_pos,x_p_pos)
+            theta_pos = atan2(sqrt(x_p_pos*x_p_pos + y_p_pos*y_p_pos),z_p_pos)
+            phi_pos   = atan2(y_p_pos,x_p_pos)
 
           if phi_pos < 0:
-            phi_pos += 2*np.pi
-          if phi_pos > 2*np.pi:
-            phi_pos -= 2*np.pi
+            phi_pos += 2*pi
+          if phi_pos > 2*pi:
+            phi_pos -= 2*pi
           
           p = cy_theta_to_index(theta_pos, L, Method_enum)
           q = cy_phi_to_index(phi_pos, L, Method_enum)
@@ -1879,27 +2264,27 @@ def polar_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L, int re
         if projection_index_to_length(i,j,resolution, half_box_len) < max_len:
           x_pos     = (2.*half_box_len*(<float>i+0.5)/<float>resolution -half_box_len)
           y_pos     = (2.*half_box_len*(<float>j+0.5)/<float>resolution -half_box_len)
-          rho       = np.sqrt(x_pos*x_pos + y_pos*y_pos) 
-          theta_pos = np.pi-inverse_projection_function_float(rho, Polar_Projection_enum)
-          phi_pos   = np.arctan2(y_pos,x_pos)
+          rho       = sqrt(x_pos*x_pos + y_pos*y_pos) 
+          theta_pos = pi-inverse_projection_function_float(rho, Polar_Projection_enum)
+          phi_pos   = atan2(y_pos,x_pos)
 
           # perform rotation
           if rot is not None:
             if Polar_Projection_enum != OP:
-              x_pos   = np.sin(theta_pos)*np.cos(phi_pos)
-              y_pos   = np.sin(theta_pos)*np.sin(phi_pos)
-            z_pos   = np.cos(theta_pos)
+              x_pos   = sin(theta_pos)*cos(phi_pos)
+              y_pos   = sin(theta_pos)*sin(phi_pos)
+            z_pos   = cos(theta_pos)
             x_p_pos = x_pos*rot_matix[0,0] + y_pos*rot_matix[0,1] + z_pos*rot_matix[0,2]
             y_p_pos = x_pos*rot_matix[1,0] + y_pos*rot_matix[1,1] + z_pos*rot_matix[1,2]
             z_p_pos = x_pos*rot_matix[2,0] + y_pos*rot_matix[2,1] + z_pos*rot_matix[2,2]
 
-            theta_pos = np.arctan2(np.sqrt(x_p_pos*x_p_pos + y_p_pos*y_p_pos),z_p_pos)
-            phi_pos   = np.arctan2(y_p_pos,x_p_pos)
+            theta_pos = atan2(sqrt(x_p_pos*x_p_pos + y_p_pos*y_p_pos),z_p_pos)
+            phi_pos   = atan2(y_p_pos,x_p_pos)
 
           if phi_pos < 0:
-            phi_pos += 2*np.pi
-          if phi_pos > 2*np.pi:
-            phi_pos -= 2*np.pi
+            phi_pos += 2*pi
+          if phi_pos > 2*pi:
+            phi_pos -= 2*pi
           
           p = cy_theta_to_index(theta_pos, L, Method_enum)
           q = cy_phi_to_index(phi_pos, L, Method_enum)
@@ -1926,34 +2311,34 @@ def forward_projection_function_array(np.ndarray theta, POLAR_PROJECTION_TYPE Po
 
 cdef inline float forward_projection_function_float(float theta, POLAR_PROJECTION_TYPE Polar_Projection_enum):
   if Polar_Projection_enum==OP:
-    return np.sin(theta)
+    return sin(theta)
   elif Polar_Projection_enum==GP:
-    return np.tan(theta)
+    return tan(theta)
   elif Polar_Projection_enum==SP:
-    return 2.0*np.tan(theta/2.0)
+    return 2.0*tan(theta/2.0)
 
 cdef inline float forward_projection_function_prime_float(float theta, POLAR_PROJECTION_TYPE Polar_Projection_enum):
-  cdef cos_theta = np.cos(theta)
+  cdef cos_theta = cos(theta)
   if Polar_Projection_enum==OP:
-    cos_theta = np.cos(theta)
+    cos_theta = cos(theta)
     return cos_theta
   elif Polar_Projection_enum==GP:
-    cos_theta = np.cos(theta)
+    cos_theta = cos(theta)
     return 1.0/(cos_theta*cos_theta)
   elif Polar_Projection_enum==SP:
-    cos_theta = np.cos(theta/2.0)
+    cos_theta = cos(theta/2.0)
     return 1.0/(cos_theta*cos_theta)
 
 cdef inline float inverse_projection_function_float(float rho, POLAR_PROJECTION_TYPE Polar_Projection_enum):
   if Polar_Projection_enum==OP:
-    return np.arcsin(rho)
+    return asin(rho)
   elif Polar_Projection_enum==GP:
-    return np.arctan(rho)
+    return atan(rho)
   elif Polar_Projection_enum==SP:
-    return 2.0*np.arctan(rho/2.0)
+    return 2.0*atan(rho/2.0)
 
 cdef inline float projection_index_to_length(int i, int j, int N, float half_box_len):
-  return np.sqrt((2.*half_box_len*(<float>i+0.5)/<float>N -half_box_len)*(2.*half_box_len*(<float>i+0.5)/<float>N -half_box_len) \
+  return sqrt((2.*half_box_len*(<float>i+0.5)/<float>N -half_box_len)*(2.*half_box_len*(<float>i+0.5)/<float>N -half_box_len) \
           + (2.*half_box_len*(<float>j+0.5)/<float>N -half_box_len)*(2.*half_box_len*(<float>j+0.5)/<float>N -half_box_len))
 
 cdef inline float projection_max_len(POLAR_PROJECTION_TYPE Polar_Projection_enum):
@@ -1993,11 +2378,11 @@ def polar_projection(f, int L, int resolution=500, rot=None,\
   else:
     raise ssht_input_error('Projection is not recognised, Methods are: OP, GP and SP')
 
-  if Polar_Projection_enum==GP and zoom_region>=np.pi/2:
+  if Polar_Projection_enum==GP and zoom_region>=pi/2:
     raise ssht_input_error('zoom_region cannot be >= pi/2 for GP')
-  if Polar_Projection_enum==OP and zoom_region>np.pi/2:
+  if Polar_Projection_enum==OP and zoom_region>pi/2:
     raise ssht_input_error('zoom_region cannot be > pi/2 for OP')
-  if Polar_Projection_enum==SP and zoom_region>=np.pi:
+  if Polar_Projection_enum==SP and zoom_region>=pi:
     raise ssht_input_error('zoom_region cannot be >= pi for SP')
 
 
@@ -2060,9 +2445,9 @@ def polar_projection_rotation_array(int resolution, str Projection="OP", rot=Non
 
   if zoom_region < 0:
     if Polar_Projection_enum == GP:
-      zoom_region = np.pi/4
+      zoom_region = pi/4
     else:
-      zoom_region = np.pi/2
+      zoom_region = pi/2
 
 
   cdef np.ndarray[np.float_t, ndim=2] rot_matix
@@ -2101,42 +2486,42 @@ def polar_projection_rotation_array(int resolution, str Projection="OP", rot=Non
         if projection_index_to_length(i,j,resolution, half_box_len) < max_len:
           x_pos_plane     = (2.*half_box_len*(<float>i+0.5)/<float>resolution -half_box_len)
           y_pos_plane     = (2.*half_box_len*(<float>j+0.5)/<float>resolution -half_box_len)
-          rho       = np.sqrt(x_pos_plane*x_pos_plane + y_pos_plane*y_pos_plane) 
+          rho       = sqrt(x_pos_plane*x_pos_plane + y_pos_plane*y_pos_plane) 
           theta_pos = inverse_projection_function_float(rho, Polar_Projection_enum)
-          phi_pos   = np.arctan2(y_pos_plane,x_pos_plane)
+          phi_pos   = atan2(y_pos_plane,x_pos_plane)
 
-          delta_rho  = np.sin(phi_pos)*delta_y+np.cos(phi_pos)*delta_x - np.tan(theta_pos)*delta_z
-          delta_rho *= np.cos(theta_pos)
+          delta_rho  = sin(phi_pos)*delta_y+cos(phi_pos)*delta_x - tan(theta_pos)*delta_z
+          delta_rho *= cos(theta_pos)
           delta_rho *= forward_projection_function_prime_float(theta_pos, Polar_Projection_enum)
 
-          delta_phi  = -np.tan(phi_pos)*delta_x + delta_y
-          delta_phi *= np.cos(phi_pos)/np.sin(theta_pos)
+          delta_phi  = -tan(phi_pos)*delta_x + delta_y
+          delta_phi *= cos(phi_pos)/sin(theta_pos)
 
-          delta_x_plane = np.cos(phi_pos)*delta_rho - rho*np.sin(phi_pos)*delta_phi
-          delta_y_plane = np.sin(phi_pos)*delta_rho + rho*np.cos(phi_pos)*delta_phi
+          delta_x_plane = cos(phi_pos)*delta_rho - rho*sin(phi_pos)*delta_phi
+          delta_y_plane = sin(phi_pos)*delta_rho + rho*cos(phi_pos)*delta_phi
 
           # calculate angle
-          rotation_angle_north[i,j] = -np.arctan2(delta_x_plane, delta_y_plane)
+          rotation_angle_north[i,j] = -atan2(delta_x_plane, delta_y_plane)
 
         if projection_index_to_length(i,j,resolution, half_box_len) < max_len:
           x_pos_plane     = (2.*half_box_len*(<float>i+0.5)/<float>resolution -half_box_len)
           y_pos_plane     = (2.*half_box_len*(<float>j+0.5)/<float>resolution -half_box_len)
-          rho       = np.sqrt(x_pos_plane*x_pos_plane + y_pos_plane*y_pos_plane) 
-          theta_pos = np.pi-inverse_projection_function_float(rho, Polar_Projection_enum)
-          phi_pos   = np.arctan2(y_pos_plane,x_pos_plane)
+          rho       = sqrt(x_pos_plane*x_pos_plane + y_pos_plane*y_pos_plane) 
+          theta_pos = pi-inverse_projection_function_float(rho, Polar_Projection_enum)
+          phi_pos   = atan2(y_pos_plane,x_pos_plane)
 
-          delta_rho  = np.sin(phi_pos)*delta_y+np.cos(phi_pos)*delta_x - np.tan(theta_pos)*delta_z
-          delta_rho *= np.cos(theta_pos)
-          delta_rho *= -forward_projection_function_prime_float(np.pi-theta_pos, Polar_Projection_enum)
+          delta_rho  = sin(phi_pos)*delta_y+cos(phi_pos)*delta_x - tan(theta_pos)*delta_z
+          delta_rho *= cos(theta_pos)
+          delta_rho *= -forward_projection_function_prime_float(pi-theta_pos, Polar_Projection_enum)
 
-          delta_phi  = -np.tan(phi_pos)*delta_x + delta_y
-          delta_phi *= np.cos(phi_pos)/np.sin(theta_pos)
+          delta_phi  = -tan(phi_pos)*delta_x + delta_y
+          delta_phi *= cos(phi_pos)/sin(theta_pos)
 
-          delta_x_plane = np.cos(phi_pos)*delta_rho - rho*np.sin(phi_pos)*delta_phi
-          delta_y_plane = np.sin(phi_pos)*delta_rho + rho*np.cos(phi_pos)*delta_phi
+          delta_x_plane = cos(phi_pos)*delta_rho - rho*sin(phi_pos)*delta_phi
+          delta_y_plane = sin(phi_pos)*delta_rho + rho*cos(phi_pos)*delta_phi
 
           # calculate angle
-          rotation_angle_south[i,j] = np.arctan2(delta_x_plane, delta_y_plane)
+          rotation_angle_south[i,j] = atan2(delta_x_plane, delta_y_plane)
 
 
 
@@ -2168,13 +2553,13 @@ def mollweide_coords_s2_to_xy(thetas, phis):
 
   while(inaccurate):
     count += 1
-    dt = (t + np.sin(t) - np.pi*np.sin(thetas)) / (1 + np.cos(t))
+    dt = (t + np.sin(t) - pi*np.sin(thetas)) / (1 + np.cos(t))
     t = t - dt
     if(np.max(np.abs(dt)) < TOL or count > MAX_ITERATIONS):
       inaccurate = False
 
   t = t/2
-  x = 2 * np.sqrt(2) / np.pi * phis * np.cos(t)
+  x = 2 * np.sqrt(2) / pi * phis * np.cos(t)
   y = np.sqrt(2) * np.sin(t)
 
   return (x, y)
@@ -2304,7 +2689,7 @@ def rotate_flms(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None,\
   cdef int index = 0, ind, n_max, n
   cdef complex Dlmn=0
 
-  if dl_array_in == None:
+  if dl_array_in is None:
     dl_array = generate_dl(beta, L)
   else:
     dl_array = dl_array_in

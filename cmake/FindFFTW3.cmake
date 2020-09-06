@@ -43,8 +43,9 @@ macro(find_specific_libraries KIND PARALLEL)
     message(FATAL_ERROR "Please, find ${PARALLEL} libraries before FFTW")
   endif()
 
-  find_library(FFTW3_${KIND}_${PARALLEL}_LIBRARY NAMES
-    fftw3${SUFFIX_${KIND}}${SUFFIX_${PARALLEL}}${SUFFIX_FINAL} HINTS ${HINT_DIRS})
+  find_library(FFTW3_${KIND}_${PARALLEL}_LIBRARY 
+    NAMES fftw3${SUFFIX_${KIND}}${SUFFIX_${PARALLEL}}${SUFFIX_FINAL} libfftw3${SUFFIX_${KIND}}${SUFFIX_${PARALLEL}}${SUFFIX_FINAL} 
+    HINTS ${HINT_DIRS})
   if(FFTW3_${KIND}_${PARALLEL}_LIBRARY MATCHES fftw3)
     list(APPEND FFTW3_LIBRARIES ${FFTW3_${KIND}_${PARALLEL}_LIBRARY})
     set(FFTW3_${KIND}_${PARALLEL}_FOUND TRUE)
@@ -99,9 +100,6 @@ macro(find_specific_libraries KIND PARALLEL)
   endif()
 endmacro()
 
-
-
-
 if(NOT FFTW3_FIND_COMPONENTS)
   set(FFTW3_FIND_COMPONENTS SINGLE DOUBLE LONGDOUBLE SERIAL)
 endif()
@@ -130,9 +128,6 @@ if(MPI_C_FOUND)
   set(MPI_FOUND ${MPI_C_FOUND})
 endif()
 unset(FFTW3_FIND_COMPONENTS)
-
-
-
 
 if(WIN32)
   set(HINT_DIRS ${FFTW3_DIRECTORY} $ENV{FFTW3_DIRECTORY})
@@ -191,7 +186,7 @@ set(SUFFIX_THREADS "_threads")
 set(SUFFIX_FINAL "")
 
 if(WIN32)
-  set(SUFFIX_FINAL "-3")
+  set(SUFFIX_FINAL "")
 else()
   set(HINT_DIRS ${PC_FFTW3_LIBDIR} ${PC_FFTW3_LIBRARY_DIRS}
     $ENV{FFTW3_LIBRARY_DIR} ${FFTW3_LIBRARY_DIR} )

@@ -7,22 +7,23 @@ cmake_args = [
     "-Dconan_fftw=ON",
 ]
 
+build_requirements = [
+    "setuptools",
+    "wheel",
+    "scikit-build",
+    "cmake>=3.10",
+    "ninja",
+    "cython",
+    "conan",
+    "pip!=20.0.0,!=20.0.1",
+]
+
 setup(
     name="pyssht",
     version="2.0",
     author="Jason McEwen",
-    install_requires=["numpy", "cython", "gmpy2"],
-    extras_require={
-        "dev": [
-            "setuptools",
-            "wheel",
-            "scikit-build",
-            "cmake",
-            "ninja",
-            "cython",
-            "conan",
-        ]
-    },
+    install_requires=["numpy", "cython", "scipy"],
+    extras_require={"build": build_requirements, "dev": build_requirements},
     description="Fast spin spherical transforms",
     url="http://astro-informatics.github.io/ssht/",
     package_dir={"pyssht": "src/pyssht"},
