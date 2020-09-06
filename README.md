@@ -21,8 +21,12 @@ Release 1.1b1, April 2017
 ## DOCUMENTATION
 See doc/index.html
 
+Usage for the python package is given in the package docstring.
+
 ## INSTALLATION
 See doc/index.html
+
+The python package can be installed with ``pip install pyssht``.
 
 ## REQUIREMENTS
 FFTW [(http://www.fftw.org/)](http://www.fftw.org/)
