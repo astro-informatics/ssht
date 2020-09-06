@@ -454,9 +454,12 @@ Tuple containing `(x_p, y_p, z_p)` the rotated coordinates the same shape and ty
 ## pyssht.plot_sphere
 
 ~~~~{.python}
-pyssht.plot_sphere(f, L, Method='MW', Close=True, Parametric=False,\
-                    Parametric_Scaling=[0.0,0.5], Output_File=None,\
-                    Show=True, Color_Bar=True, Units=None, Color_Range=None,\ Axis=True)
+pyssht.plot_sphere(
+    f, L, Method='MW', Close=True, Parametric=False,
+    Parametric_Scaling=[0.0,0.5], Output_File=None,
+    Show=True, Color_Bar=True, Units=None, Color_Range=None,
+    Axis=True
+)
 ~~~~
 
 Plots data on to a sphere. It is really slow and not very good!
@@ -488,9 +491,11 @@ None
 ## pyssht.mollweide_projection
 
 ~~~~{.python}
-f_plot, mask(, f_plot_imag, mask_imag) = pyssht.mollweide_projection(f, int L,\
-                        int resolution=500, rot=None,\
-                        zoom_region=[np.sqrt(2.0)*2,np.sqrt(2.0)], str Method="MW")
+f_plot, mask = pyssht.mollweide_projection(
+    f, L, resolution=500, rot=None,
+    zoom_region=[np.sqrt(2.0)*2,np.sqrt(2.0)],
+    Method="MW"
+)
 ~~~~
 
 Creates an `ndarray` of the mollweide projection of a spherical image and a mask array. This is useful for plotting results, not to be used for analysis on the plane. Elements in the signal `f` that are `NaN`s are marked in the mask. This allows one to plot these regions the color of their choice.

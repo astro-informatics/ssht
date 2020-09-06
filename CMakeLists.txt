@@ -28,7 +28,7 @@ if(conan_fftw)
 
     if(NOT CONAN_OPTIONS)
         set(CONAN_OPTIONS
-            "fftw:fPIC=True" "fftw:shared=False" "fftw:precision=double"
+            "fftw:shared=False" "fftw:precision=double"
             "fftw:openmp=False")
     endif()
     if(NOT CONAN_BUILD)
@@ -37,10 +37,7 @@ if(conan_fftw)
     set(_GLIBCXX_USE_CXX11_ABI TRUE)
 
     conan_check(REQUIRED)
-    conan_add_remote(
-        URL https://api.bintray.com/conan/bincrafters/public-conan
-        NAME bincrafters)
-    conan_cmake_run(REQUIRES fftw/3.3.8@bincrafters/stable
+    conan_cmake_run(REQUIRES fftw/3.3.8
         BASIC_SETUP
         OPTIONS "${CONAN_OPTIONS}"
         KEEP_RPATHS
@@ -51,7 +48,7 @@ if(conan_fftw)
         IMPORTS "include, * -> conan/include")
 endif()
 
-find_package(FFTW3 REQUIRED COMPONENT SERIAL DOUBLE)
+find_package(FFTW3 REQUIRED COMPONENTS SERIAL DOUBLE)
 if(openmp)
     find_package(OpenMP QUIET)
 endif()
