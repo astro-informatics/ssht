@@ -52,6 +52,9 @@ harmonics, sphere, transforms, fourier, fast, algorithms, mcewen, wiaux" />
 <h2>News</h2>
 
 <ul>
+<li><strong>Sept 2020</strong><br />
+Release of SSHT 1.3 ([pypi](pypi.org) release)
+<ul>
 <li><strong>April 2018</strong><br />
 Release of SSHT 1.2b1 (support to link to C++).
 </li>
@@ -191,8 +194,14 @@ Private release of SSHT 0.1.
   <p> To build the Matlab interface run (which will also build the
   library if it has not already been built):
   <pre> >> make matlab</pre>
-  <p> To build the python interface run:
-  <pre> >> python setup.py build_ext --inplace</pre>
+
+  <p> To build and install the python interface run:
+  <pre> >> pip install .</pre>
+
+  <p> The python package is backed by
+  <a href="https://scikit-build.readthedocs.io/en/latest/">scikit-build</a> and
+  <a href="https://cmake.org">CMake</a>. It will install a local version of
+  FFTW and will compile its own version of the C package. </p>
 
 
   <h4>Testing</h4>

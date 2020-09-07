@@ -1,11 +1,10 @@
-
 # SSHT: Fast spin spherical harmonic transforms
 
 ## DESCRIPTION
 The SSHT code provides functionality to perform fast and exact spin spherical harmonic transforms.
 
 ## VERSION
-Release 1.1b1, April 2017
+Release 1.3, Sept 20
 
 ## AUTHORS
 - J. D. McEwen (www.jasonmcewen.org)
@@ -30,9 +29,6 @@ The python package can be installed with ``pip install pyssht``.
 
 ## REQUIREMENTS
 FFTW [(http://www.fftw.org/)](http://www.fftw.org/)
-
-## DOWNLOAD
-[http://www.spinssht.org](http://www.spinssht.org)
 
 ## SUPPORT
 Please email the authors or create an issue on the public github repository.
