@@ -30,7 +30,7 @@ SSHTMOD  = $(SSHTDIR)/src/f90/mod
 SSHTPROG = $(SSHTDIR)/src/f90/prog
 SSHTBIN  = $(SSHTDIR)/bin/f90
 SSHTOBJ  = $(SSHTINC)
-SSHTDOC  = $(SSHTDIR)/doc/f90
+SSHTDOC  = $(SSHTDIR)/docs/f90
 
 FFTWLIB      = $(PROGDIR)/fftw/lib
 FFTWLIBNM    = fftw3

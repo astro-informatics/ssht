@@ -18,12 +18,12 @@ Release 1.3, Sept 20
 - J. D. McEwen, G. Puy, J.-Ph. Thiran, P. Vandergheynst, D. Van De Ville, and Y. Wiaux, Sparse image reconstruction on the sphere: implications of a new sampling theorem. IEEE Trans. Image Proc., 22(6):2275-2285, 2013 [(arXiv:1205.1013)](https://arxiv.org/abs/1205.1013).
 
 ## DOCUMENTATION
-See doc/index.html
+See docs/index.html
 
 Usage for the python package is given in the package docstring.
 
 ## INSTALLATION
-See doc/index.html
+See docs/index.html
 
 The python package can be installed with ``pip install pyssht``.
 
