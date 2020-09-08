@@ -1,16 +1,15 @@
 cmake_minimum_required(VERSION 3.12)
 
 project(Ssht
-    VERSION "1.1.3"
+    VERSION "1.3.0"
     DESCRIPTION "Fast and exact spin spherical harmonic transforms"
     HOMEPAGE_URL "http://astro-informatics.github.io/ssht/"
-    LANGUAGES C CXX)
+    LANGUAGES C)
 
 
 set(Ssht_BUILD "CMake")
 set(CMAKE_C_STANDARD 99)
 
-option(openmp         "Enable OpenMP"                  ON)
 option(fPIC           "Enable fPIC (only for gcc)"     ON)
 option(tests          "Enable testing"                 ON)
 option(python         "Creates python package"         OFF)
@@ -34,7 +33,6 @@ if(conan_fftw)
     if(NOT CONAN_BUILD)
         set(CONAN_BUILD "missing")
     endif()
-    set(_GLIBCXX_USE_CXX11_ABI TRUE)
 
     conan_check(REQUIRED)
     conan_cmake_run(REQUIRES fftw/3.3.8
@@ -46,11 +44,13 @@ if(conan_fftw)
         BUILD ${CONAN_BUILD}
         # import headers to help vim find them
         IMPORTS "include, * -> conan/include")
-endif()
-
-find_package(FFTW3 REQUIRED COMPONENTS SERIAL DOUBLE)
-if(openmp)
-    find_package(OpenMP QUIET)
+    add_library(fftw3 ALIAS CONAN_PKG::fftw)
+else()
+  find_package(FFTW3 REQUIRED COMPONENTS DOUBLE)
+  add_library(fftw3 INTERFACE IMPORTED)
+  target_link_libraries(fftw3 INTERFACE ${FFTW3_DOUBLE_SERIAL_LIBRARY})
+  target_include_directories(fftw3 INTERFACE ${FFTW3_INCLUDE_DIRS})
+  target_compile_definitions(fftw3 INTERFACE ${FFTW3_DEFINITIONS})
 endif()
 
 add_subdirectory(src/c)
@@ -63,7 +63,6 @@ else()
     set(CMAKE_FIND_FRAMEWORK "${OLD_CMAKE_FIND_FRAMEWORK}")
 
     if(NOT SKBUILD)
-        # get numpy include directory
         execute_process(
             COMMAND
             ${Python3_EXECUTABLE} -c "import skbuild; print(skbuild.__file__)"

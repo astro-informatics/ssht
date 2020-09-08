@@ -3,7 +3,6 @@ from pathlib import Path
 
 cmake_args = [
     "-Dpython:BOOL=ON",
-    "-Dopenmp:BOOL=OFF",
     "-Dtests:BOOL=OFF",
     "-Dconan_fftw=ON",
 ]
