@@ -31,7 +31,7 @@ SSHTSRC  = $(SSHTDIR)/src/c
 SSHTBIN  = $(SSHTDIR)/bin/c
 SSHTOBJ  = $(SSHTSRC)
 SSHTINC  = $(SSHTDIR)/include/c
-SSHTDOC  = $(SSHTDIR)/doc/c
+SSHTDOC  = $(SSHTDIR)/docs/c
 
 FFTWDIR      = $(FFTW)
 FFTWINC	     = $(FFTWDIR)/include
