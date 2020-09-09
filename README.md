@@ -4,7 +4,7 @@
 The SSHT code provides functionality to perform fast and exact spin spherical harmonic transforms.
 
 ## VERSION
-Release 1.3, Sept 20
+Release 1.3.0, Sept 20
 
 ## AUTHORS
 - J. D. McEwen (www.jasonmcewen.org)
