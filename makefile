@@ -1,7 +1,7 @@
 # ======== COMPILER ========
 
 CC      = gcc
-OPT		= -std=c99 -pedantic -Wall -O3 -fopenmp -DSSHT_VERSION=\"1.3.0\" -DSSHT_BUILD=\"`git rev-parse HEAD`\"
+OPT		= -std=c99 -pedantic -Wall -O3 -fopenmp -DSSHT_VERSION=\"1.3.1\" -DSSHT_BUILD=\"`git rev-parse HEAD`\"
 #OPT	= -Wall -g -fopenmp -DSSHT_VERSION=\"1.0b1\" -DSSHT_BUILD=\"`git rev-parse HEAD`\"
 
 
@@ -30,7 +30,7 @@ SSHTLIBNM= ssht
 SSHTSRC  = $(SSHTDIR)/src/c
 SSHTBIN  = $(SSHTDIR)/bin/c
 SSHTOBJ  = $(SSHTSRC)
-SSHTINC  = $(SSHTDIR)/include/c
+SSHTINC  = $(SSHTDIR)/src/c
 SSHTDOC  = $(SSHTDIR)/docs/c
 
 FFTWDIR      = $(FFTW)

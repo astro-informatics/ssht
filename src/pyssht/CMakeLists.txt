@@ -8,5 +8,5 @@ endif()
 Python3_add_library(pyssht MODULE ${cython_sources})
 target_link_libraries(pyssht PUBLIC ssht)
 target_include_directories(pyssht
-    PUBLIC "${PROJECT_SOURCE_DIR}/include/c" ${NumPy_INCLUDE_DIRS})
+    PUBLIC "${PROJECT_SOURCE_DIR}/src/c" ${NumPy_INCLUDE_DIRS})
 install(TARGETS pyssht LIBRARY DESTINATION src/pyssht)
