@@ -4,7 +4,8 @@ from pathlib import Path
 cmake_args = [
     "-Dpython:BOOL=ON",
     "-Dtests:BOOL=OFF",
-    "-Dconan_fftw=ON",
+    "-Dconan_deps=ON",
+    "-DfPIC=ON",
 ]
 
 build_requirements = [
@@ -24,7 +25,7 @@ long_description = (
 
 setup(
     name="pyssht",
-    version="2.2.1",
+    version="2.2.2",
     author=[
         "J. D. McEwen",
         "C. R. G. Wallis",
