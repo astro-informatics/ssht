@@ -1,13 +1,22 @@
 # SSHT: Fast spin spherical harmonic transforms
 
+[docs-img]: https://img.shields.io/badge/docs-stable-blue.svg
+[docs-url]: astro-informatics.github.io/ssht/
+
+[![][docs-img]][docs-url]
+![Bintray](https://img.shields.io/bintray/v/mdavezac/AstroFizz/ssht:AstroFizz?label=bintray%20-%20C%20package)
+[![PyPI version](https://badge.fury.io/py/pyssht.svg)](https://badge.fury.io/py/pyssht)
+
 ## DESCRIPTION
-The SSHT code provides functionality to perform fast and exact spin spherical harmonic transforms.
+
+The SSHT code provides functionality to perform fast and exact spin spherical
+harmonic transforms.
 
 ## VERSION
 Release 1.3.1, Sept 20
 
 ## AUTHORS
-- J. D. McEwen (www.jasonmcewen.org)
+- [J. D. McEwen](https://www.jasonmcewen.org)
 - C. G. R. Wallis
 - M. Buttner
 - B. Leistedt
@@ -23,37 +32,18 @@ See docs/index.html
 Usage for the python package is given in the package docstring.
 
 ## INSTALLATION
-See docs/index.html
-
 The python package can be installed with ``pip install pyssht``.
 
-## REQUIREMENTS
-FFTW [(http://www.fftw.org/)](http://www.fftw.org/)
+The C package can be installed with [CMake](https://cmake.org):
 
-## SUPPORT
-Please email the authors or create an issue on the public github repository.
+```cmake
+git clone http://astro-informatics.github.io/ssht/ -b main
+mkdir ssht/build && cd ssht/build
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local ..
+make
+make install
+```
 
-## NOTE
-The package is in beta and is still under development. Please report problems/bugs by email (jason.mcewen@ucl.ac.uk) or create an issue on the public github repository.
+The above will also download [FFTW](http://www.fftw.org/), if necessary.
 
-## LICENSE
-Ssht is release under the GPL-3 licence.
-
-
-     SSHT package to perform spin spherical harmonic transforms
-     Copyright (C) 2011  Jason McEwen
-
-     This program is free software; you can redistribute it and/or
-     modify it under the terms of the GNU General Public License
-     as published by the Free Software Foundation; either version 3
-     of the License, or (at your option) any later version.
-
-     This program is distributed in the hope that it will be useful,
-     but WITHOUT ANY WARRANTY; without even the implied warranty of
-     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-     GNU General Public License for more details (LICENSE.GPL3.txt).
-
-     You should have received a copy of the GNU General Public License
-     along with this program; if not, write to the Free Software
-     Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, 
-     MA  02110-1301, USA.
+Instructions for installing the fortran package can be found in docs/index.html.
