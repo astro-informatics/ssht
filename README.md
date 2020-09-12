@@ -1,10 +1,12 @@
 # SSHT: Fast spin spherical harmonic transforms
 
 [docs-img]: https://img.shields.io/badge/docs-stable-blue.svg
-[docs-url]: astro-informatics.github.io/ssht/
+[docs-url]: https://astro-informatics.github.io/ssht/
+[bintray-img]: https://img.shields.io/bintray/v/mdavezac/AstroFizz/ssht:AstroFizz?label=C%20package
+[bintray-url]: https://bintray.com/mdavezac/AstroFizz/ssht:AstroFizz/1.3.1:stable/link
 
 [![][docs-img]][docs-url]
-![Bintray](https://img.shields.io/bintray/v/mdavezac/AstroFizz/ssht:AstroFizz?label=bintray%20-%20C%20package)
+[![][bintray-img]][bintray-url]
 [![PyPI version](https://badge.fury.io/py/pyssht.svg)](https://badge.fury.io/py/pyssht)
 
 ## DESCRIPTION
