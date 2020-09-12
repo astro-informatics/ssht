@@ -17,14 +17,14 @@ class SshtConan(ConanFile):
     exports_sources = [
         "src/c/*",
         "CMakeLists.txt",
-        "src/pyssht/*",
         "cmake/*.cmake",
     ]
 
     def configured_cmake(self):
         cmake = CMake(self)
-        cmake.definitions["tests"] = False
+        cmake.definitions["tests"] = True
         cmake.definitions["conan_deps"] = True
+        cmake.definitions["python"] = False
         cmake.definitions["fPIC"] = self.options.fPIC
         cmake.configure(source_folder=".")
         return cmake
