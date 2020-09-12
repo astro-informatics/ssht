@@ -6,6 +6,7 @@ from conans import ConanFile, CMake, tools
 class SshtTestConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
     generators = "cmake"
+    requires = ["fftw/3.3.8"]
 
     def build(self):
         cmake = CMake(self)

@@ -228,3 +228,8 @@ find_package_handle_standard_args(FFTW3
     VERSION_VAR FFTW3_VERSION_STRING
     HANDLE_COMPONENTS
 )
+
+add_library(fftw3 INTERFACE IMPORTED)
+target_link_libraries(fftw3 INTERFACE ${FFTW3_DOUBLE_SERIAL_LIBRARY})
+target_include_directories(fftw3 INTERFACE ${FFTW3_INCLUDE_DIRS})
+target_compile_definitions(fftw3 INTERFACE ${FFTW3_DEFINITIONS})

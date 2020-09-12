@@ -1,5 +1,6 @@
 add_library(ssht STATIC ssht_adjoint.c ssht_core.c ssht_dl.c ssht_sampling.c)
 target_link_libraries(ssht PUBLIC fftw3 m)
+target_include_directories(ssht PUBLIC $<INSTALL_INTERFACE:include>)
 
 if(fPIC)
     set_target_properties(ssht PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
@@ -13,7 +14,6 @@ if(NOT python)
         ssht_types.h ssht.h
         DESTINATION include/ssht)
 
-    #building about and test executables
     add_executable(ssht_about ssht_about.c)
     target_compile_definitions(ssht_about
         PRIVATE SSHT_VERSION="${Ssht_VERSION}" SSHT_BUILD="${Ssht_BUILD}")
@@ -25,4 +25,5 @@ if(tests AND NOT python)
     add_executable(ssht_test ssht_test.c)
     target_link_libraries(ssht_test ssht)
     set_target_properties(ssht_test PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
+    add_test(NAME ssht_test COMMAND ssht_test)
 endif()
