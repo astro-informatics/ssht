@@ -32,6 +32,7 @@ class SshtConan(ConanFile):
     def build(self):
         cmake = self.configured_cmake()
         cmake.build()
+        cmake.test()
 
     def package(self):
         cmake = self.configured_cmake()
