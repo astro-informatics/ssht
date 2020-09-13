@@ -36,12 +36,21 @@ Usage for the python package is given in the package docstring.
 ## INSTALLATION
 The python package can be installed with ``pip install pyssht``.
 
-The C package can be installed with [CMake](https://cmake.org):
+The C package can be installed with [CMake](https://cmake.org) and
+[conan](https://docs.conan.io/en/latest/howtos/other_languages_package_manager/python.html):
 
-```cmake
+Both can be installed using pip:
+
+```bash
+pip install conan cmake
+```
+
+Then ssht can be compiled with:
+
+```bash
 git clone http://astro-informatics.github.io/ssht/ -b main
 mkdir ssht/build && cd ssht/build
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local ..
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -Dconan_deps=True ..
 make
 make install
 ```

@@ -1,6 +1,7 @@
 add_library(ssht STATIC ssht_adjoint.c ssht_core.c ssht_dl.c ssht_sampling.c)
-target_link_libraries(ssht PUBLIC fftw3 m)
+target_link_libraries(ssht PUBLIC ${FFTW3_TARGET} m)
 target_include_directories(ssht PUBLIC $<INSTALL_INTERFACE:include>)
+set_property(TARGET ssht PROPERTY C_STANDARD 99)
 
 if(fPIC)
     set_target_properties(ssht PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
