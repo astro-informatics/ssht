@@ -8,17 +8,19 @@ include(${CMAKE_BINARY_DIR}/conan.cmake)
 
 if(NOT CONAN_OPTIONS)
     set(CONAN_OPTIONS "fftw:shared=False" "fftw:precision=double" "fftw:openmp=False")
-    if(fPIC)
+    if(fPIC AND NOT WIN32)
         list(APPEND CONAN_OPTIONS "fftw:fPIC=True")
-    else()
+    elseif(NOT WIN32)
         list(APPEND CONAN_OPTIONS "fftw:fPIC=False")
     endif()
 endif()
 if(NOT CONAN_DEPS)
     set(CONAN_DEPS "fftw/3.3.8")
 endif()
-if(NOT CONAN_BUILD)
+if(NOT CONAN_BUILD AND NOT WIN32)
     set(CONAN_BUILD "missing")
+elseif(NOT CONAN_BUILD AND WIN32)
+    set(CONAN_BUILD "all")
 endif()
 
 conan_check(REQUIRED)
@@ -29,4 +31,3 @@ conan_cmake_run(REQUIRES ${CONAN_DEPS}
     CMAKE_TARGETS
     NO_OUTPUT_DIRS
     BUILD ${CONAN_BUILD})
-add_library(fftw3 ALIAS CONAN_PKG::fftw)
