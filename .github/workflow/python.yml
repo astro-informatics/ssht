@@ -1,4 +1,4 @@
-name: ci
+name: python
 
 on:
   push:
@@ -11,7 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest]
         python-version: [3.8]
 
     steps:
@@ -21,13 +21,11 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     
-    - name: Create wheel
-      run: python setup.py bdist
-    
     - name: Install Application
-      run: pip install --user dist/pyssht*
+      run: pip install .
       
     - name: Test with pytest
       run: |
           pip install pytest
-          pytest src/pyssht/pyssht_test.py
+          cp src/pyssht/pyssht_test.py test_pyssht.py
+          pytest test_pyssht.py
