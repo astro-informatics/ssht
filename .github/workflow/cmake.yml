@@ -31,7 +31,6 @@ jobs:
           cmake -E make_directory ${{runner.workspace}}/build
 
     - name: Configure CMake
-      shell: bash
       working-directory: ${{runner.workspace}}/build
       run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -Dpython=False -Dconan_deps=True
 
