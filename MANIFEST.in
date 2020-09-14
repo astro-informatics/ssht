@@ -1,9 +1,9 @@
-include CMakelists.txt
+include CMakeLists.txt
 include setup.py setup.cfg pyproject.toml
 include COPYRIGHT.txt LICENSE.md README.md
 include cmake/*.cmake
-recursive-include src/c *.c *.h CMakelists.txt
-recursive-include src/pyssht .py *.pyx *.md CMakelists.txt
+recursive-include src/c *.c *.h CMakeLists.txt
+recursive-include src/pyssht .py *.pyx *.md CMakeLists.txt
 recursive-include docs *
 prune src/matlab
 prune src/f90
