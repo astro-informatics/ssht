@@ -27,5 +27,4 @@ jobs:
     - name: Test with pytest
       run: |
           pip install pytest
-          cp src/pyssht/pyssht_test.py test_pyssht.py
-          pytest test_pyssht.py
+          pytest tests/test_pyssht.py
