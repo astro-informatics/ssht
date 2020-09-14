@@ -21,16 +21,14 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     
-    - name: Install build packages
-      run: |
-        python -m pip install --upgrade pip
-        pip install setuptools wheel scikit-build cmake ninja cython numpy conan
+    - name: Install build packages and pytest
+      run: python -m pip install --upgrade pip scikit-build pytest
+
+    - name: Create sdist package
+      run: python setup.py sdist
 
     - name: Install pyssht
-      run: pip install .
+      run: pip install dist/pyssht-1.3.1.tar.gz
       
-    - name: Test with pytest
-      run: |
-          pip install pytest
-          cp src/pyssht/pyssht_test.py test_pyssht.py
-          pytest test_pyssht.py
+    - name: run pytest
+      run: pytest tests/test_pyssht.py
