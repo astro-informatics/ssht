@@ -4,18 +4,17 @@
 [docs-url]: https://astro-informatics.github.io/ssht/
 [bintray-img]: https://img.shields.io/bintray/v/mdavezac/AstroFizz/ssht:AstroFizz?label=C%20package
 [bintray-url]: https://bintray.com/mdavezac/AstroFizz/ssht:AstroFizz/1.3.1:stable/link
+[pypi-img]: https://badge.fury.io/py/pyssht.svg
+[pypi-url]: https://badge.fury.io/py/pyssht
 
 [![][docs-img]][docs-url]
 [![][bintray-img]][bintray-url]
-[![PyPI version](https://badge.fury.io/py/pyssht.svg)](https://badge.fury.io/py/pyssht)
+[![][pypi-img]][pypy-url]
 
 ## DESCRIPTION
 
 The SSHT code provides functionality to perform fast and exact spin spherical
 harmonic transforms.
-
-## VERSION
-Release 1.3.1, Sept 20
 
 ## AUTHORS
 - [J. D. McEwen](https://www.jasonmcewen.org)
