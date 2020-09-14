@@ -3,7 +3,7 @@ from conans import ConanFile, CMake
 
 class SshtConan(ConanFile):
     name = "ssht"
-    version = "1.3.1"
+    version = "1.3.2"
     license = "GPL-3.0"
     url = "https://github.com/astro-informatics/ssht"
     homepage = "https://github.com/astro-informatics/ssht"
