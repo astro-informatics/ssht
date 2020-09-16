@@ -1,4 +1,3 @@
-# add command to cythonize results
 add_cython_target(cython_sources pyssht.pyx C PY3)
 
 if(WIN32)

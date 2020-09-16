@@ -7,11 +7,8 @@ project(
   HOMEPAGE_URL "http://astro-informatics.github.io/ssht/"
   LANGUAGES C)
 
-set(Ssht_BUILD "CMake")
-set(CMAKE_C_STANDARD 99)
-
 option(tests "Enable testing" ON)
-option(python "Creates python package" OFF)
+option(python "Creates python package only" OFF)
 option(fPIC "Compile with fPIC" ON)
 option(conan_deps "Download dependencies using conan" OFF)
 
