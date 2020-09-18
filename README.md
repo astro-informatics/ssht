@@ -47,7 +47,7 @@ pip install conan cmake
 Then ssht can be compiled with:
 
 ```bash
-git clone http://astro-informatics.github.io/ssht/ -b main
+git clone https://github.com/astro-informatics/ssht.git
 mkdir ssht/build && cd ssht/build
 cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -Dconan_deps=True ..
 make
