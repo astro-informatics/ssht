@@ -6,7 +6,7 @@
 #ifndef SSHT_ADJOINT
 #define SSHT_ADJOINT
 
-#include <complex.h>
+#include "ssht_types.h"
 
 #ifdef __cplusplus
 extern "C"{

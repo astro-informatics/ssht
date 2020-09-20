@@ -6,7 +6,7 @@
 #ifndef SSHT_CORE
 #define SSHT_CORE
 
-#include <complex.h>
+#include "ssht_types.h"
 
 
 #ifdef __cplusplus

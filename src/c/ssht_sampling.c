@@ -11,7 +11,6 @@
  */
 
 
-#include <complex.h>
 #include <math.h>
 #include "ssht_types.h"
 
