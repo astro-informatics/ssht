@@ -46,10 +46,14 @@
 
 #ifdef __cplusplus
 #include <complex>
-#define SSHT_COMPLEX(TYPE) std::complex<TYPE>
+typedef std::complex<double> ssht_complex_double;
 extern "C" {
+#elif defined(_WIN32) || defined(__WIN32__)
+#include <complex.h>
+typedef _Dcomplex ssht_complex_double;
 #else
-#define SSHT_COMPLEX(TYPE) TYPE complex
+#include <complex.h>
+typedef double complex ssht_complex_double;
 #endif
 
 

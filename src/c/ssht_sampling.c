@@ -34,7 +34,7 @@ void gauleg(double x1, double x2, double *x, double *w, int n);
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-SSHT_COMPLEX(double) ssht_sampling_weight_mw(int p) {
+ssht_complex_double ssht_sampling_weight_mw(int p) {
 
   if (p == 1) {
     return I * SSHT_PION2;

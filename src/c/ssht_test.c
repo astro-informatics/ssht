@@ -15,8 +15,6 @@
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
 
-#include <complex.h> // Must be before fftw3.h
-#include <fftw3.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
