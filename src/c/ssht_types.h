@@ -48,9 +48,6 @@
 #include <ctgmath>
 typedef std::complex<double> ssht_complex_double;
 extern "C" {
-#elif defined(_WIN32) || defined(__WIN32__)
-#include <tgmath.h>
-typedef _Dcomplex ssht_complex_double;
 #else
 #include <tgmath.h>
 typedef double complex ssht_complex_double;
