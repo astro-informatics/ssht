@@ -15,7 +15,7 @@
 #include <string.h>
 #include <math.h>
 
-#include <complex.h>
+#include <tgmath.h>
 #include <fftw3.h>
 
 #include "ssht_types.h"

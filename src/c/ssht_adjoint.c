@@ -15,7 +15,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <complex.h>  // Must be before fftw3.h
+#include <tgmath.h>  // Must be before fftw3.h
 #include <fftw3.h>
 
 #include "ssht_types.h"
