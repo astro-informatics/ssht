@@ -6,12 +6,12 @@ on:
   pull_request:
 
 jobs:
-  testing:
+    python_package:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest]
+        os: [ubuntu-latest, macos-latest]
         python-version: [3.8]
 
     steps:
