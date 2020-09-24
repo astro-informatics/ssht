@@ -24,6 +24,7 @@ class SshtConan(ConanFile):
         if self.settings.compiler == "Visual Studio":
             del self.options.fPIC
         self.options["fftw"].fPIC = self.options.fPIC
+        del self.settings.compiler.libcxx
 
     @property
     def cmake(self):
