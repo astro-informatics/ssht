@@ -1,16 +1,16 @@
 ﻿---
 BasedOnStyle: LLVM
 AlignAfterOpenBracket: AlwaysBreak
-AllowAllArgumentsOnNextLine: 'true'
-BinPackArguments: 'false'
-BinPackParameters: 'false'
-ColumnLimit: '88'
-CompactNamespaces: 'true'
+AllowAllArgumentsOnNextLine: true
+BinPackArguments: false
+BinPackParameters: false
+ColumnLimit: 88
+CompactNamespaces: true
 IncludeBlocks: Regroup
-IndentWidth: '2'
+IndentWidth: 2
 Language: Cpp
-ReflowComments: 'true'
-SortIncludes: 'true'
+ReflowComments: true
+SortIncludes: true
 UseTab: Never
 IncludeCategories:
   - Regex:           '^<cmocka\.h>'
