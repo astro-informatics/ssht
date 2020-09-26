@@ -9,15 +9,13 @@ project(
 
 option(tests "Enable testing" ON)
 option(python "Creates python package only" OFF)
-option(fPIC "Compile with fPIC" ON)
 option(conan_deps "Download dependencies using conan" OFF)
+if(NOT WIN32)
+    option(fPIC "Compile with fPIC" ON)
+endif()
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 
-if(WIN32 AND fPIC)
-    message(WARNING "fPIC is not meaningful on windows.")
-    set(fPIC False)
-endif()
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
 endif()
