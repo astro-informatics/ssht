@@ -8,8 +8,3 @@ repos:
       - id: debug-statements
       - id: no-commit-to-branch
         args: ["--branch", "master"]
-  - repo: https://github.com/pocc/pre-commit-hooks
-    rev: v1.1.1
-    hooks:
-      - id: clang-format
-        args: [--style=file]
