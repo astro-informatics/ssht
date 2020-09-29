@@ -20,14 +20,25 @@ void ssht_real_inverse(
     ssht_core_mw_inverse_sov_sym_real(
         f, flm, params.L, params.dl_method, params.verbosity);
     break;
-  case MW_LB_SOV_SYM:
-    ssht_core_mw_lb_inverse_sov_sym_real(
-        f, flm, params.L0, params.L, params.dl_method, params.verbosity);
-    break;
   case MW_SOV_SYM_POLE:
     ssht_core_mw_inverse_sov_sym_real_pole(
         f + 1, f, flm, params.L, params.dl_method, params.verbosity);
     break;
+  case MW_SOV_SYM_SS:
+    ssht_core_mw_inverse_sov_sym_ss_real(
+        f, flm, params.L, params.dl_method, params.verbosity);
+    break;
+  case MW_SOV_SYM_SS_POLE:
+    ssht_core_mw_inverse_sov_sym_ss_real_pole(
+        f + 2, f + 1, f, flm, params.L, params.dl_method, params.verbosity);
+    break;
+  case MW_SOV_SYM_LB:
+    ssht_core_mw_lb_inverse_sov_sym_real(
+        f, flm, params.L0, params.L, params.dl_method, params.verbosity);
+    break;
+  case MW_SOV_SYM_LB_SS:
+    ssht_core_mw_lb_inverse_sov_sym_ss_real(
+        f, flm, params.L0, params.L, params.dl_method, params.verbosity);
   }
 }
 
@@ -47,13 +58,25 @@ void ssht_real_forward(
     ssht_core_mw_forward_sov_conv_sym_real(
         flm, f, params.L, params.dl_method, params.verbosity);
     break;
-  case MW_LB_SOV_SYM:
-    ssht_core_mw_lb_forward_sov_conv_sym_real(
-        flm, f, params.L0, params.L, params.dl_method, params.verbosity);
-    break;
   case MW_SOV_SYM_POLE:
     ssht_core_mw_forward_sov_conv_sym_real_pole(
         flm, f + 1, *f, params.L, params.dl_method, params.verbosity);
+    break;
+  case MW_SOV_SYM_SS:
+    ssht_core_mw_forward_sov_conv_sym_ss_real(
+        flm, f, params.L, params.dl_method, params.verbosity);
+    break;
+  case MW_SOV_SYM_SS_POLE:
+    ssht_core_mw_forward_sov_conv_sym_ss_real_pole(
+        flm, f + 2, *(f + 1), *f, params.L, params.dl_method, params.verbosity);
+    break;
+  case MW_SOV_SYM_LB:
+    ssht_core_mw_lb_forward_sov_conv_sym_real(
+        flm, f, params.L0, params.L, params.dl_method, params.verbosity);
+    break;
+  case MW_SOV_SYM_LB_SS:
+    ssht_core_mw_lb_forward_sov_conv_sym_ss_real(
+        flm, f, params.L0, params.L, params.dl_method, params.verbosity);
     break;
   }
 }
@@ -63,8 +86,11 @@ size_t harmonic_space_size(const struct ssht_InterfaceParameters params) {
   case DH_SOV:
   case GL_SOV:
   case MW_SOV_SYM:
-  case MW_LB_SOV_SYM:
   case MW_SOV_SYM_POLE:
+  case MW_SOV_SYM_SS:
+  case MW_SOV_SYM_SS_POLE:
+  case MW_SOV_SYM_LB:
+  case MW_SOV_SYM_LB_SS:
     return params.L * params.L;
   }
 }
@@ -75,10 +101,15 @@ size_t image_space_size(const struct ssht_InterfaceParameters params) {
     return 2 * params.L * (2 * params.L - 1);
   case GL_SOV:
   case MW_SOV_SYM:
-  case MW_LB_SOV_SYM:
+  case MW_SOV_SYM_LB:
     return params.L * (2 * params.L - 1);
   case MW_SOV_SYM_POLE:
     return (params.L - 1) * (2 * params.L - 1) + 1;
+  case MW_SOV_SYM_SS:
+  case MW_SOV_SYM_LB_SS:
+    return 2 * params.L * (params.L + 1);
+  case MW_SOV_SYM_SS_POLE:
+    return 2 * params.L * (params.L - 1) + 2;
   }
 }
 
@@ -89,9 +120,12 @@ void gen_flm_real_interface(
   case GL_SOV:
   case MW_SOV_SYM_POLE:
   case MW_SOV_SYM:
+  case MW_SOV_SYM_SS:
+  case MW_SOV_SYM_SS_POLE:
     gen_flm_real(flm, params.L, seed);
     break;
-  case MW_LB_SOV_SYM:
+  case MW_SOV_SYM_LB:
+  case MW_SOV_SYM_LB_SS:
     gen_lb_flm_real(flm, params.L0, params.L, seed);
     break;
   }
@@ -115,13 +149,22 @@ void method_name(char *result, const struct ssht_InterfaceParameters params) {
     strcpy(result, "GH");
     break;
   case MW_SOV_SYM_POLE:
-    sprintf(result, "Symmetric MW with pole%s", dl);
+    sprintf(result, "Symmetric MW with poles%s", dl);
     break;
   case MW_SOV_SYM:
     sprintf(result, "Symmetric MW%s", dl);
     break;
-  case MW_LB_SOV_SYM:
+  case MW_SOV_SYM_SS_POLE:
+    sprintf(result, "MW including all symmetries and poles%s", dl);
+    break;
+  case MW_SOV_SYM_LB:
     sprintf(result, "Symmetric MW with lower bound%s", dl);
+    break;
+  case MW_SOV_SYM_SS:
+    sprintf(result, "MW including all symmetries%s", dl);
+    break;
+  case MW_SOV_SYM_LB_SS:
+    sprintf(result, "MW including all symmetries and lower bound%s", dl);
     break;
   }
 }

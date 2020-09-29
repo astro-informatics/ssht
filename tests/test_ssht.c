@@ -8,6 +8,7 @@
 
 #include "interface.h"
 #include "ssht.h"
+#include "ssht_error.h"
 #include "utilities.h"
 
 #include <cmocka.h>
@@ -22,10 +23,13 @@ static void back_and_forth(void **void_state) {
   const struct ssht_InterfaceParameters *const params = &state->params;
   complex double *complex_original =
       (complex double *)calloc(harmonic_space_size(*params), sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(complex_original);
   gen_flm_real_interface(complex_original, state->seed, *params);
   double *real = (double *)calloc(image_space_size(*params), sizeof(double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(real);
   complex double *complex_final =
       (complex double *)calloc(harmonic_space_size(*params), sizeof(complex double));
+  SSHT_ERROR_MEM_ALLOC_CHECK(complex_final);
 
   ssht_real_inverse(real, complex_original, *params);
   ssht_real_forward(complex_final, real, *params);
@@ -41,6 +45,7 @@ static void back_and_forth(void **void_state) {
 
 struct CMUnitTest real_parametrization(ssht_transforms method, ssht_dl_method_t dl) {
   struct State *state = (struct State *)calloc(1, sizeof(struct State));
+  SSHT_ERROR_MEM_ALLOC_CHECK(state);
   state->params.L = 64;
   state->params.L0 = 32;
   state->params.verbosity = 0;
@@ -77,8 +82,14 @@ int main(void) {
       real_parametrization(GL_SOV, SSHT_DL_RISBO),
       real_parametrization(MW_SOV_SYM, SSHT_DL_RISBO),
       real_parametrization(MW_SOV_SYM, SSHT_DL_TRAPANI),
-      real_parametrization(MW_LB_SOV_SYM, SSHT_DL_RISBO),
-      real_parametrization(MW_LB_SOV_SYM, SSHT_DL_TRAPANI),
+      real_parametrization(MW_SOV_SYM_LB, SSHT_DL_RISBO),
+      real_parametrization(MW_SOV_SYM_LB, SSHT_DL_TRAPANI),
+      real_parametrization(MW_SOV_SYM_POLE, SSHT_DL_RISBO),
+      real_parametrization(MW_SOV_SYM_POLE, SSHT_DL_TRAPANI),
+      real_parametrization(MW_SOV_SYM_LB_SS, SSHT_DL_RISBO),
+      real_parametrization(MW_SOV_SYM_LB_SS, SSHT_DL_TRAPANI),
+      real_parametrization(MW_SOV_SYM_SS_POLE, SSHT_DL_RISBO),
+      real_parametrization(MW_SOV_SYM_SS_POLE, SSHT_DL_TRAPANI),
       {NULL, NULL, NULL, NULL, NULL}};
 
   const int result = cmocka_run_group_tests(tests, NULL, NULL);

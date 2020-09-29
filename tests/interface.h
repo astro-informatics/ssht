@@ -11,8 +11,11 @@ typedef enum {
   DH_SOV = 0,
   GL_SOV,
   MW_SOV_SYM,
-  MW_LB_SOV_SYM,
   MW_SOV_SYM_POLE,
+  MW_SOV_SYM_SS,
+  MW_SOV_SYM_SS_POLE,
+  MW_SOV_SYM_LB,
+  MW_SOV_SYM_LB_SS,
 } ssht_transforms;
 
 /*! Parameters to the main ssht functions */
