@@ -1,9 +1,12 @@
 add_library(ssht STATIC ssht_adjoint.c ssht_core.c ssht_dl.c ssht_sampling.c)
 target_link_libraries(ssht PUBLIC ${FFTW3_TARGET} m)
 target_include_directories(
-  ssht PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-              $<INSTALL_INTERFACE:include>)
+  ssht
+  PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+         $<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
+         $<INSTALL_INTERFACE:include>)
 set_target_properties(ssht PROPERTIES C_STANDARD 99)
+configure_file(ssht_version.in.h ${CMAKE_CURRENT_BINARY_DIR}/ssht_version.h)
 
 if(fPIC)
   set_target_properties(ssht PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
@@ -22,14 +25,18 @@ if(NOT python)
           ssht_core.h
           ssht_error.h
           ssht_types.h
+          ${CMAKE_BINARY_DIR}/ssht_version.h
           ssht.h
     DESTINATION include/ssht)
 
   add_executable(ssht_about ssht_about.c)
-  target_compile_definitions(
-    ssht_about PRIVATE SSHT_VERSION="${PROJECT_VERSION}" SSHT_BUILD="CMake")
+  target_include_directories(ssht_about PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+  set_source_files_properties(
+    ssht_about.c PROPERTIES OBJECT_DEPENDS
+                            ${CMAKE_CURRENT_BINARY_DIR}/ssht_version.h)
   set_target_properties(ssht_about PROPERTIES RUNTIME_OUTPUT_DIRECTORY
                                               ${PROJECT_BINARY_DIR})
+  target_compile_definitions(ssht_about PRIVATE BUILT_WITH_CMAKE)
 endif()
 
 if(tests AND NOT python)
