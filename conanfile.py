@@ -1,4 +1,4 @@
-from conans import ConanFile, CMake
+from conans import CMake, ConanFile
 
 
 class SshtConan(ConanFile):
@@ -16,6 +16,9 @@ class SshtConan(ConanFile):
     generators = "cmake"
     exports_sources = [
         "src/c/*",
+        "tests/CMakeLists.txt",
+        "tests/*.c",
+        "tests/*.h",
         "CMakeLists.txt",
         "cmake/*.cmake",
     ]
@@ -34,10 +37,16 @@ class SshtConan(ConanFile):
             self._cmake.definitions["conan_deps"] = True
             self._cmake.definitions["python"] = False
             self._cmake.definitions["fPIC"] = self.options.fPIC
-            self._cmake.configure(source_folder=".")
+            self._cmake.configure(build_folder="build")
         return self._cmake
 
     def build(self):
+        from pathlib import Path
+
+        path = Path(self.source_folder)
+        build = Path(self.source_folder) / "build"
+        build.mkdir(exist_ok=True)
+        (path / "conanbuildinfo.cmake").rename(path / "build" / "conanbuildinfo.cmake")
         self.cmake.build()
         self.cmake.test()
 
