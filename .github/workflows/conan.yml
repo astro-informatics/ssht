@@ -1,0 +1,43 @@
+name: test conan package
+
+on:
+  push:
+      branches: ["main"]
+  pull_request:
+
+jobs:
+  testing:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        build_type: ["Debug"]
+        fpic: ["True"]
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: actions/setup-python@v2
+      with:
+        python-version: 3.8
+    
+    - name: install conan
+      run: |
+          python3 -m pip install --upgrade pip wheel
+          python3 -m pip install conan
+
+    - name: create package
+      run: |
+          conan create . astro-informatics/stable \
+            --build missing \
+            -o ssht:fPIC=${{matrix.fpic}} \
+            -s build_type=${{matrix.build_type}}
+
+    - uses: grisumbras/locate-conan-package@latest
+      id: locate_package
+
+    - uses: actions/upload-artifact@v1
+      with:
+        path: ${{ steps.locate_package.outputs.path }}
+        channel: astro-informatics/stable
