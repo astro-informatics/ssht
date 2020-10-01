@@ -16,20 +16,20 @@ from pylab import cm
 # Define parameters.
 L = 64
 Spin = 0
-method = 'MW_pole'
+method = "MW_pole"
 
 # Generate random flms (of complex signal).
 flm = np.random.randn(L * L) + 1j * np.random.randn(L * L)
 
 # Zero harmonic coefficients with el<|spin|.
-ind_min = np.abs(Spin)**2
+ind_min = np.abs(Spin) ** 2
 flm[0:ind_min] = 0.0 + 1j * 0.0
 
 # Compute inverse then forward transform.
-f, f_sp, phi_sp = ssht.inverse(flm, L, Spin=Spin, Method='MW_pole')
+f, f_sp, phi_sp = ssht.inverse(flm, L, Spin=Spin, Method="MW_pole")
 
-flm_syn = ssht.forward((f, f_sp, phi_sp), L, Spin=Spin, Method='MW_pole')
+flm_syn = ssht.forward((f, f_sp, phi_sp), L, Spin=Spin, Method="MW_pole")
 
 # Compute max error in harmonic space.
 maxerr = np.abs(flm_syn - flm).max()
-print('Max error:', maxerr)
+print("Max error:", maxerr)

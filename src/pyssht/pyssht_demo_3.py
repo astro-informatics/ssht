@@ -16,13 +16,13 @@ from pylab import cm
 # Define parameters.
 L = 64
 spin = 4
-methods = ['MW', 'MWSS', 'GL', 'DH']
+methods = ["MW", "MWSS", "GL", "DH"]
 
 # Generate random flms (of complex signal).
 flm = np.random.randn(L * L) + 1j * np.random.randn(L * L)
 
 # Zero harmonic coefficients with el<|spin|.
-ind_min = np.abs(spin)**2
+ind_min = np.abs(spin) ** 2
 flm[0:ind_min] = 0.0 + 1j * 0.0
 
 # Compute inverse then forward transform.
@@ -32,4 +32,4 @@ for method in methods:
 
     # Compute max error in harmonic space.
     maxerr = np.abs(flm_syn - flm).max()
-    print('Method:', method, '\nMax error:', maxerr)
+    print("Method:", method, "\nMax error:", maxerr)
