@@ -36,8 +36,10 @@ jobs:
 
     - uses: grisumbras/locate-conan-package@latest
       id: locate_package
+      with:
+        channel: stable
 
     - uses: actions/upload-artifact@v1
       with:
         path: ${{ steps.locate_package.outputs.path }}
-        channel: astro-informatics/stable
+        name: conan-artifacts-${{ matrix.os }}
