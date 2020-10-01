@@ -15,8 +15,7 @@
 #include <string.h>
 #include <math.h>
 
-#include <complex.h>
-
+#include <tgmath.h>
 #include <fftw3.h>
 
 #include "ssht_types.h"
@@ -48,7 +47,7 @@
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mw_inverse_sov_sym(SSHT_COMPLEX(double) *f, const SSHT_COMPLEX(double) *flm,
+void ssht_core_mw_inverse_sov_sym(ssht_complex_double *f, const ssht_complex_double *flm,
 				  int L, int spin,
 				  ssht_dl_method_t dl_method,
 				  int verbosity) {
@@ -74,7 +73,7 @@ void ssht_core_mw_inverse_sov_sym(SSHT_COMPLEX(double) *f, const SSHT_COMPLEX(do
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mw_lb_inverse_sov_sym(SSHT_COMPLEX(double) *f, const SSHT_COMPLEX(double) *flm,
+void ssht_core_mw_lb_inverse_sov_sym(ssht_complex_double *f, const ssht_complex_double *flm,
           int L0, int L, int spin,
           ssht_dl_method_t dl_method,
           int verbosity) {
@@ -85,15 +84,15 @@ void ssht_core_mw_lb_inverse_sov_sym(SSHT_COMPLEX(double) *f, const SSHT_COMPLEX
   double *sqrt_tbl, *signs;
   int el2pel, m_offset;
   double ssign, elfactor;
-  SSHT_COMPLEX(double) mmfactor;
+  ssht_complex_double mmfactor;
   double *dl;
   double *dl8 = NULL;
   int dl_offset, dl_stride;
-  SSHT_COMPLEX(double) *exps, *m_factors;
+  ssht_complex_double *exps, *m_factors;
   int exps_offset;
   double elmmsign, elssign;
   int spinneg;
-  SSHT_COMPLEX(double) *Fmm, *fext;
+  ssht_complex_double *Fmm, *fext;
   int Fmm_offset, Fmm_stride, fext_stride;
   fftw_plan plan;
 
@@ -102,7 +101,7 @@ void ssht_core_mw_lb_inverse_sov_sym(SSHT_COMPLEX(double) *f, const SSHT_COMPLEX
   SSHT_ERROR_MEM_ALLOC_CHECK(sqrt_tbl)
   signs = (double*)calloc(L+1, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(signs)
-  exps = (SSHT_COMPLEX(double)*)calloc(2*L-1, sizeof(SSHT_COMPLEX(double)));
+  exps = (ssht_complex_double*)calloc(2*L-1, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(exps)
   m_factors = calloc(2*L-1, sizeof *m_factors);
   SSHT_ERROR_MEM_ALLOC_CHECK(m_factors)
@@ -132,7 +131,7 @@ void ssht_core_mw_lb_inverse_sov_sym(SSHT_COMPLEX(double) *f, const SSHT_COMPLEX
   }
 
   // Compute Fmm.
-  Fmm = (SSHT_COMPLEX(double)*)calloc((2*L-1)*(2*L-1), sizeof(SSHT_COMPLEX(double)));
+  Fmm = (ssht_complex_double*)calloc((2*L-1)*(2*L-1), sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmm)
   Fmm_offset = L-1;
   Fmm_stride = 2*L-1;
@@ -250,7 +249,7 @@ void ssht_core_mw_lb_inverse_sov_sym(SSHT_COMPLEX(double) *f, const SSHT_COMPLEX
   }
 
   // Allocate space for function values.
-  fext = (SSHT_COMPLEX(double)*)calloc((2*L-1)*(2*L-1), sizeof(SSHT_COMPLEX(double)));
+  fext = (ssht_complex_double*)calloc((2*L-1)*(2*L-1), sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(fext)
   fext_stride = 2*L-1;
 
@@ -282,7 +281,7 @@ void ssht_core_mw_lb_inverse_sov_sym(SSHT_COMPLEX(double) *f, const SSHT_COMPLEX
   free(Fmm);
 
   // Extract f from version of f extended to the torus (fext).
-  memcpy(f, fext, L*(2*L-1)*sizeof(SSHT_COMPLEX(double)));
+  memcpy(f, fext, L*(2*L-1)*sizeof(ssht_complex_double));
   /* Memcpy equivalent to:
   for (t=0; t<=L-1; t++)
     for (p=0; p<=2*L-2; p++)
@@ -319,7 +318,7 @@ void ssht_core_mw_lb_inverse_sov_sym(SSHT_COMPLEX(double) *f, const SSHT_COMPLEX
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mw_inverse_sov_sym_real(double *f, const SSHT_COMPLEX(double) *flm,
+void ssht_core_mw_inverse_sov_sym_real(double *f, const ssht_complex_double *flm,
 				       int L,
 				       ssht_dl_method_t dl_method,
 				       int verbosity) {
@@ -345,7 +344,7 @@ void ssht_core_mw_inverse_sov_sym_real(double *f, const SSHT_COMPLEX(double) *fl
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mw_lb_inverse_sov_sym_real(double *f, const SSHT_COMPLEX(double) *flm,
+void ssht_core_mw_lb_inverse_sov_sym_real(double *f, const ssht_complex_double *flm,
 				       int L0, int L,
 				       ssht_dl_method_t dl_method,
 				       int verbosity) {
@@ -356,16 +355,16 @@ void ssht_core_mw_lb_inverse_sov_sym_real(double *f, const SSHT_COMPLEX(double) 
   double *sqrt_tbl, *signs;
   int el2pel, m_offset;
   double ssign, elfactor;
-  SSHT_COMPLEX(double) *m_factors;
-  SSHT_COMPLEX(double) mmfactor;
+  ssht_complex_double *m_factors;
+  ssht_complex_double mmfactor;
   double *dl;
   double *dl8 = NULL;
   int dl_offset, dl_stride;
-  SSHT_COMPLEX(double) *exps;
+  ssht_complex_double *exps;
   int exps_offset;
   double elmmsign, elssign;
   int spinneg;
-  SSHT_COMPLEX(double) *Fmm, *Fmm_shift;
+  ssht_complex_double *Fmm, *Fmm_shift;
   double *fext_real;
   int Fmm_offset, Fmm_stride;
 	// int fext_stride;
@@ -377,7 +376,7 @@ void ssht_core_mw_lb_inverse_sov_sym_real(double *f, const SSHT_COMPLEX(double) 
   SSHT_ERROR_MEM_ALLOC_CHECK(sqrt_tbl)
   signs = (double*)calloc(L+1, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(signs)
-  exps = (SSHT_COMPLEX(double)*)calloc(2*L-1, sizeof(SSHT_COMPLEX(double)));
+  exps = (ssht_complex_double*)calloc(2*L-1, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(exps)
   m_factors = calloc(2*L-1, sizeof *m_factors);
   SSHT_ERROR_MEM_ALLOC_CHECK(m_factors)
@@ -407,7 +406,7 @@ void ssht_core_mw_lb_inverse_sov_sym_real(double *f, const SSHT_COMPLEX(double) 
   }
 
   // Compute Fmm.
-  Fmm = (SSHT_COMPLEX(double)*)calloc((2*L-1)*L, sizeof(SSHT_COMPLEX(double)));
+  Fmm = (ssht_complex_double*)calloc((2*L-1)*L, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmm)
   Fmm_offset = L-1;
   Fmm_stride = L;
@@ -522,7 +521,7 @@ void ssht_core_mw_lb_inverse_sov_sym_real(double *f, const SSHT_COMPLEX(double) 
   }
 
   // Apply spatial shift.
-  Fmm_shift = (SSHT_COMPLEX(double)*)calloc((2*L-1)*L, sizeof(SSHT_COMPLEX(double)));
+  Fmm_shift = (ssht_complex_double*)calloc((2*L-1)*L, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmm_shift)
   for (mm=0; mm<=L-1; mm++)
     for (m=0; m<=L-1; m++)
@@ -587,7 +586,7 @@ void ssht_core_mw_lb_inverse_sov_sym_real(double *f, const SSHT_COMPLEX(double) 
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mwdirect_inverse(SSHT_COMPLEX(double) *f, const SSHT_COMPLEX(double) *flm,
+void ssht_core_mwdirect_inverse(ssht_complex_double *f, const ssht_complex_double *flm,
 				 int L, int spin, int verbosity) {
 
   int t, p, m, el, ind, eltmp;
@@ -686,7 +685,7 @@ void ssht_core_mwdirect_inverse(SSHT_COMPLEX(double) *f, const SSHT_COMPLEX(doub
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mwdirect_inverse_sov(SSHT_COMPLEX(double) *f, const SSHT_COMPLEX(double) *flm,
+void ssht_core_mwdirect_inverse_sov(ssht_complex_double *f, const ssht_complex_double *flm,
 				     int L, int spin, int verbosity) {
 
   int t, p, m, el, ind;
@@ -694,7 +693,7 @@ void ssht_core_mwdirect_inverse_sov(SSHT_COMPLEX(double) *f, const SSHT_COMPLEX(
   double *dlm1p1_line,  *dl_line;
   double *dl_ptr;
   double *sqrt_tbl, *signs;
-  SSHT_COMPLEX(double) *ftm, *inout;
+  ssht_complex_double *ftm, *inout;
   double theta, ssign, elfactor;
   fftw_plan plan;
 
@@ -725,7 +724,7 @@ void ssht_core_mwdirect_inverse_sov(SSHT_COMPLEX(double) *f, const SSHT_COMPLEX(
   }
 
   // Compute ftm.
-  ftm = (SSHT_COMPLEX(double)*)calloc(L*(2*L-1), sizeof(SSHT_COMPLEX(double)));
+  ftm = (ssht_complex_double*)calloc(L*(2*L-1), sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(ftm)
   ftm_stride = 2*L-1;
   ftm_offset = L-1;
@@ -763,7 +762,7 @@ void ssht_core_mwdirect_inverse_sov(SSHT_COMPLEX(double) *f, const SSHT_COMPLEX(
   free(dl_line);
 
   // Compute f.
-  inout = (SSHT_COMPLEX(double)*)calloc(2*L-1, sizeof(SSHT_COMPLEX(double)));
+  inout = (ssht_complex_double*)calloc(2*L-1, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
   f_stride = 2*L-1;
   plan = fftw_plan_dft_1d(2*L-1, inout, inout, FFTW_BACKWARD, FFTW_MEASURE);
@@ -807,7 +806,7 @@ void ssht_core_mwdirect_inverse_sov(SSHT_COMPLEX(double) *f, const SSHT_COMPLEX(
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mw_forward_sov_conv_sym(SSHT_COMPLEX(double) *flm, const SSHT_COMPLEX(double) *f,
+void ssht_core_mw_forward_sov_conv_sym(ssht_complex_double *flm, const ssht_complex_double *f,
                        int L, int spin,
                        ssht_dl_method_t dl_method,
                        int verbosity) {
@@ -834,7 +833,7 @@ void ssht_core_mw_forward_sov_conv_sym(SSHT_COMPLEX(double) *flm, const SSHT_COM
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mw_lb_forward_sov_conv_sym(SSHT_COMPLEX(double) *flm, const SSHT_COMPLEX(double) *f,
+void ssht_core_mw_lb_forward_sov_conv_sym(ssht_complex_double *flm, const ssht_complex_double *f,
 				       int L0, int L, int spin,
 				       ssht_dl_method_t dl_method,
 				       int verbosity) {
@@ -845,16 +844,16 @@ void ssht_core_mw_lb_forward_sov_conv_sym(SSHT_COMPLEX(double) *flm, const SSHT_
   int el2pel;
   double ssign, elfactor;
   fftw_plan plan, plan_bwd, plan_fwd;
-  SSHT_COMPLEX(double) *inout;
-  SSHT_COMPLEX(double) *Fmt, *Fmm, *Gmm, *m_mm_factor;
-  SSHT_COMPLEX(double) *w, *wr;
-  SSHT_COMPLEX(double) *Fmm_pad, *tmp_pad;
+  ssht_complex_double *inout;
+  ssht_complex_double *Fmt, *Fmm, *Gmm, *m_mm_factor;
+  ssht_complex_double *w, *wr;
+  ssht_complex_double *Fmm_pad, *tmp_pad;
   int f_stride, Fmt_stride, Fmt_offset, Fmm_stride, Fmm_offset;
   double *dl;
   double *dl8 = NULL;
   int dl_offset, dl_stride;
   int w_offset;
-  SSHT_COMPLEX(double) *expsm, *expsmm;
+  ssht_complex_double *expsm, *expsmm;
   int exps_offset;
   int elmmsign, elssign;
   int spinneg;
@@ -864,9 +863,9 @@ void ssht_core_mw_lb_forward_sov_conv_sym(SSHT_COMPLEX(double) *flm, const SSHT_
   SSHT_ERROR_MEM_ALLOC_CHECK(sqrt_tbl)
   signs = (double*)calloc(L+1, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(signs)
-  expsm = (SSHT_COMPLEX(double)*)calloc(2*L-1, sizeof(SSHT_COMPLEX(double)));
+  expsm = (ssht_complex_double*)calloc(2*L-1, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(expsm)
-  expsmm = (SSHT_COMPLEX(double)*)calloc(2*L-1, sizeof(SSHT_COMPLEX(double)));
+  expsmm = (ssht_complex_double*)calloc(2*L-1, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(expsmm)
 
   // Perform precomputations.
@@ -896,16 +895,16 @@ void ssht_core_mw_lb_forward_sov_conv_sym(SSHT_COMPLEX(double) *flm, const SSHT_
   }
 
   // Compute Fourier transform over phi, i.e. compute Fmt.
-  Fmt = (SSHT_COMPLEX(double)*)calloc((2*L-1)*(2*L-1), sizeof(SSHT_COMPLEX(double)));
+  Fmt = (ssht_complex_double*)calloc((2*L-1)*(2*L-1), sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmt)
   Fmt_stride = 2*L-1;
   Fmt_offset = L-1;
   f_stride = 2*L-1;
-  inout = (SSHT_COMPLEX(double)*)calloc(2*L-1, sizeof(SSHT_COMPLEX(double)));
+  inout = (ssht_complex_double*)calloc(2*L-1, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
   plan = fftw_plan_dft_1d(2*L-1, inout, inout, FFTW_FORWARD, FFTW_ESTIMATE);
   for (t=0; t<=L-1; t++) {
-    memcpy(inout, &f[t*f_stride], f_stride*sizeof(SSHT_COMPLEX(double)));
+    memcpy(inout, &f[t*f_stride], f_stride*sizeof(ssht_complex_double));
     fftw_execute_dft(plan, inout, inout);
     for(m=0; m<=L-1; m++)
       Fmt[(m+Fmt_offset)*Fmt_stride + t] = inout[m] / (2.0*L-1.0);
@@ -920,12 +919,12 @@ void ssht_core_mw_lb_forward_sov_conv_sym(SSHT_COMPLEX(double) *flm, const SSHT_
 	signs[abs(m)] * ssign * Fmt[(m+Fmt_offset)*Fmt_stride + (2*L-2-t)];
 
   // Compute Fourier transform over theta, i.e. compute Fmm.
-  Fmm = (SSHT_COMPLEX(double)*)calloc((2*L-1)*(2*L-1), sizeof(SSHT_COMPLEX(double)));
+  Fmm = (ssht_complex_double*)calloc((2*L-1)*(2*L-1), sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmm)
   Fmm_stride = 2*L-1;
   Fmm_offset = L-1;
   for (m=-(L-1); m<=L-1; m++) {
-    memcpy(inout, &Fmt[(m+Fmt_offset)*Fmt_stride], Fmt_stride*sizeof(SSHT_COMPLEX(double)));
+    memcpy(inout, &Fmt[(m+Fmt_offset)*Fmt_stride], Fmt_stride*sizeof(ssht_complex_double));
     fftw_execute_dft(plan, inout, inout);
     for(mm=0; mm<=L-1; mm++)
       Fmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset] =
@@ -944,16 +943,16 @@ void ssht_core_mw_lb_forward_sov_conv_sym(SSHT_COMPLEX(double) *flm, const SSHT_
   	expsmm[mm + exps_offset];
 
   // Compute weights.
-  w = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
+  w = (ssht_complex_double*)calloc(4*L-3, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(w)
   w_offset = 2*(L-1);
   for (mm=-2*(L-1); mm<=2*(L-1); mm++)
     w[mm+w_offset] = ssht_sampling_weight_mw(mm);
 
   // Compute IFFT of w to give wr.
-  wr = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
+  wr = (ssht_complex_double*)calloc(4*L-3, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(wr)
-  inout = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
+  inout = (ssht_complex_double*)calloc(4*L-3, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
   plan_bwd = fftw_plan_dft_1d(4*L-3, inout, inout, FFTW_BACKWARD, FFTW_MEASURE);
   plan_fwd = fftw_plan_dft_1d(4*L-3, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
@@ -968,11 +967,11 @@ void ssht_core_mw_lb_forward_sov_conv_sym(SSHT_COMPLEX(double) *flm, const SSHT_
     wr[mm + w_offset] = inout[mm + 2*(L-1) + 1 + w_offset];
 
   // Compute Gmm by convolution implemented as product in real space.
-  Fmm_pad = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
+  Fmm_pad = (ssht_complex_double*)calloc(4*L-3, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmm_pad)
-  tmp_pad = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
+  tmp_pad = (ssht_complex_double*)calloc(4*L-3, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(tmp_pad)
-  Gmm = (SSHT_COMPLEX(double)*)calloc((2*L-1)*(2*L-1), sizeof(SSHT_COMPLEX(double)));
+  Gmm = (ssht_complex_double*)calloc((2*L-1)*(2*L-1), sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Gmm)
   for (m=-(L-1); m<=L-1; m++) {
 
@@ -1200,7 +1199,7 @@ void ssht_core_mw_lb_forward_sov_conv_sym(SSHT_COMPLEX(double) *flm, const SSHT_
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mw_forward_sov_conv_sym_real(SSHT_COMPLEX(double) *flm, const double *f,
+void ssht_core_mw_forward_sov_conv_sym_real(ssht_complex_double *flm, const double *f,
                         int L,
                         ssht_dl_method_t dl_method,
                         int verbosity) {
@@ -1227,7 +1226,7 @@ void ssht_core_mw_forward_sov_conv_sym_real(SSHT_COMPLEX(double) *flm, const dou
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mw_lb_forward_sov_conv_sym_real(SSHT_COMPLEX(double) *flm, const double *f,
+void ssht_core_mw_lb_forward_sov_conv_sym_real(ssht_complex_double *flm, const double *f,
 					    int L0, int L,
 					    ssht_dl_method_t dl_method,
 					    int verbosity) {
@@ -1239,16 +1238,16 @@ void ssht_core_mw_lb_forward_sov_conv_sym_real(SSHT_COMPLEX(double) *flm, const 
   double ssign, elfactor;
   fftw_plan plan, plan_bwd, plan_fwd;
   double *in_real;
-  SSHT_COMPLEX(double) *inout, *out;
-  SSHT_COMPLEX(double) *Fmt, *Fmm, *Gmm, *m_mm_factor;
-  SSHT_COMPLEX(double) *w, *wr;
-  SSHT_COMPLEX(double) *Fmm_pad, *tmp_pad;
+  ssht_complex_double *inout, *out;
+  ssht_complex_double *Fmt, *Fmm, *Gmm, *m_mm_factor;
+  ssht_complex_double *w, *wr;
+  ssht_complex_double *Fmm_pad, *tmp_pad;
   int f_stride, Fmt_stride, Fmt_offset, Fmm_stride, Fmm_offset, Gmm_stride;
   double *dl;
   double *dl8 = NULL;
   int dl_offset, dl_stride;
   int w_offset;
-  SSHT_COMPLEX(double) *expsm, *expsmm;
+  ssht_complex_double *expsm, *expsmm;
   int exps_offset;
   int elmmsign, elssign;
   int spinneg;
@@ -1259,9 +1258,9 @@ void ssht_core_mw_lb_forward_sov_conv_sym_real(SSHT_COMPLEX(double) *flm, const 
   SSHT_ERROR_MEM_ALLOC_CHECK(sqrt_tbl)
   signs = (double*)calloc(L+1, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(signs)
-  expsm = (SSHT_COMPLEX(double)*)calloc(L, sizeof(SSHT_COMPLEX(double)));
+  expsm = (ssht_complex_double*)calloc(L, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(expsm)
-  expsmm = (SSHT_COMPLEX(double)*)calloc(2*L-1, sizeof(SSHT_COMPLEX(double)));
+  expsmm = (ssht_complex_double*)calloc(2*L-1, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(expsmm)
 
   // Perform precomputations.
@@ -1291,13 +1290,13 @@ void ssht_core_mw_lb_forward_sov_conv_sym_real(SSHT_COMPLEX(double) *flm, const 
   }
 
   // Compute Fourier transform over phi, i.e. compute Fmt.
-  Fmt = (SSHT_COMPLEX(double)*)calloc(L*(2*L-1), sizeof(SSHT_COMPLEX(double)));
+  Fmt = (ssht_complex_double*)calloc(L*(2*L-1), sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmt)
   Fmt_stride = 2*L-1;
   f_stride = 2*L-1;
   in_real = (double*)calloc(2*L-1, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(in_real)
-  out = (SSHT_COMPLEX(double)*)calloc(L, sizeof(SSHT_COMPLEX(double)));
+  out = (ssht_complex_double*)calloc(L, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(out)
   plan = fftw_plan_dft_r2c_1d(2*L-1, in_real, out, FFTW_MEASURE);
   for (t=0; t<=L-1; t++) {
@@ -1317,15 +1316,15 @@ void ssht_core_mw_lb_forward_sov_conv_sym_real(SSHT_COMPLEX(double) *flm, const 
 	signs[abs(m)] * ssign * Fmt[m*Fmt_stride + (2*L-2-t)];
 
   // Compute Fourier transform over theta, i.e. compute Fmm.
-  Fmm = (SSHT_COMPLEX(double)*)calloc(L*(2*L-1), sizeof(SSHT_COMPLEX(double)));
+  Fmm = (ssht_complex_double*)calloc(L*(2*L-1), sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmm)
   Fmm_stride = 2*L-1;
   Fmm_offset = L-1;
-  inout = (SSHT_COMPLEX(double)*)calloc(2*L-1, sizeof(SSHT_COMPLEX(double)));
+  inout = (ssht_complex_double*)calloc(2*L-1, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
   plan = fftw_plan_dft_1d(2*L-1, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
   for (m=0; m<=L-1; m++) {
-    memcpy(inout, &Fmt[m*Fmt_stride], Fmt_stride*sizeof(SSHT_COMPLEX(double)));
+    memcpy(inout, &Fmt[m*Fmt_stride], Fmt_stride*sizeof(ssht_complex_double));
     fftw_execute_dft(plan, inout, inout);
     for(mm=0; mm<=L-1; mm++)
       Fmm[m*Fmm_stride + mm + Fmm_offset] =
@@ -1344,16 +1343,16 @@ void ssht_core_mw_lb_forward_sov_conv_sym_real(SSHT_COMPLEX(double) *flm, const 
 	expsmm[mm + exps_offset];
 
   // Compute weights.
-  w = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
+  w = (ssht_complex_double*)calloc(4*L-3, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(w)
   w_offset = 2*(L-1);
   for (mm=-2*(L-1); mm<=2*(L-1); mm++)
     w[mm+w_offset] = ssht_sampling_weight_mw(mm);
 
   // Compute IFFT of w to give wr.
-  wr = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
+  wr = (ssht_complex_double*)calloc(4*L-3, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(wr)
-  inout = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
+  inout = (ssht_complex_double*)calloc(4*L-3, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
   plan_bwd = fftw_plan_dft_1d(4*L-3, inout, inout, FFTW_BACKWARD, FFTW_MEASURE);
   plan_fwd = fftw_plan_dft_1d(4*L-3, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
@@ -1368,11 +1367,11 @@ void ssht_core_mw_lb_forward_sov_conv_sym_real(SSHT_COMPLEX(double) *flm, const 
     wr[mm + w_offset] = inout[mm + 2*(L-1) + 1 + w_offset];
 
   // Compute Gmm by convolution implemented as product in real space.
-  Fmm_pad = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
+  Fmm_pad = (ssht_complex_double*)calloc(4*L-3, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmm_pad)
-  tmp_pad = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
+  tmp_pad = (ssht_complex_double*)calloc(4*L-3, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(tmp_pad)
-  Gmm = (SSHT_COMPLEX(double)*)calloc((2*L-1)*L, sizeof(SSHT_COMPLEX(double)));
+  Gmm = (ssht_complex_double*)calloc((2*L-1)*L, sizeof(ssht_complex_double));
   Gmm_stride = L;
   SSHT_ERROR_MEM_ALLOC_CHECK(Gmm)
   for (m=0; m<=L-1; m++) {
@@ -1605,18 +1604,18 @@ void ssht_core_mw_lb_forward_sov_conv_sym_real(SSHT_COMPLEX(double) *flm, const 
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mw_inverse_sov_sym_pole(SSHT_COMPLEX(double) *f,
-				       SSHT_COMPLEX(double) *f_sp, double *phi_sp,
-				       const SSHT_COMPLEX(double) *flm,
+void ssht_core_mw_inverse_sov_sym_pole(ssht_complex_double *f,
+				       ssht_complex_double *f_sp, double *phi_sp,
+				       const ssht_complex_double *flm,
 				       int L, int spin,
 				       ssht_dl_method_t dl_method,
 				       int verbosity) {
 
-  SSHT_COMPLEX(double)* f_full;
+  ssht_complex_double* f_full;
   int f_stride = 2*L-1;
 
   // Allocate full array.
-  f_full = (SSHT_COMPLEX(double)*)calloc(L*(2*L-1), sizeof(SSHT_COMPLEX(double)));
+  f_full = (ssht_complex_double*)calloc(L*(2*L-1), sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(f_full)
 
   // Perform inverse transform.
@@ -1624,7 +1623,7 @@ void ssht_core_mw_inverse_sov_sym_pole(SSHT_COMPLEX(double) *f,
 			       dl_method, verbosity);
 
   // Copy output function values, including separate point for South pole.
-  memcpy(f, f_full, (L-1)*(2*L-1)*sizeof(SSHT_COMPLEX(double)));
+  memcpy(f, f_full, (L-1)*(2*L-1)*sizeof(ssht_complex_double));
   *f_sp = f_full[(L-1)*f_stride + 0];
   *phi_sp = ssht_sampling_mw_p2phi(0, L);
 
@@ -1653,7 +1652,7 @@ void ssht_core_mw_inverse_sov_sym_pole(SSHT_COMPLEX(double) *f,
  */
 void ssht_core_mw_inverse_sov_sym_real_pole(double *f,
 					    double *f_sp,
-					    const SSHT_COMPLEX(double) *flm,
+					    const ssht_complex_double *flm,
 					    int L,
 					    ssht_dl_method_t dl_method,
 					    int verbosity) {
@@ -1699,20 +1698,20 @@ void ssht_core_mw_inverse_sov_sym_real_pole(double *f,
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mw_forward_sov_conv_sym_pole(SSHT_COMPLEX(double) *flm, const SSHT_COMPLEX(double) *f,
-					    SSHT_COMPLEX(double) f_sp, double phi_sp,
+void ssht_core_mw_forward_sov_conv_sym_pole(ssht_complex_double *flm, const ssht_complex_double *f,
+					    ssht_complex_double f_sp, double phi_sp,
 					    int L, int spin,
 					    ssht_dl_method_t dl_method,
 					    int verbosity) {
 
-  SSHT_COMPLEX(double) *f_full;
+  ssht_complex_double *f_full;
   int p, f_stride = 2*L-1;
   double phi;
 
   // Copy function values to full array.
-  f_full = (SSHT_COMPLEX(double)*)calloc(L*(2*L-1), sizeof(SSHT_COMPLEX(double)));
+  f_full = (ssht_complex_double*)calloc(L*(2*L-1), sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(f_full)
-  memcpy(f_full, f, (L-1)*(2*L-1)*sizeof(SSHT_COMPLEX(double)));
+  memcpy(f_full, f, (L-1)*(2*L-1)*sizeof(ssht_complex_double));
 
   // Define South pole for all phi.
   for (p=0; p<=2*L-2; p++) {
@@ -1747,7 +1746,7 @@ void ssht_core_mw_forward_sov_conv_sym_pole(SSHT_COMPLEX(double) *flm, const SSH
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mw_forward_sov_conv_sym_real_pole(SSHT_COMPLEX(double) *flm,
+void ssht_core_mw_forward_sov_conv_sym_real_pole(ssht_complex_double *flm,
 						 const double *f,
 						 double f_sp,
 						 int L,
@@ -1795,7 +1794,7 @@ void ssht_core_mw_forward_sov_conv_sym_real_pole(SSHT_COMPLEX(double) *flm,
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mw_inverse_sov_sym_ss(SSHT_COMPLEX(double) *f, const SSHT_COMPLEX(double) *flm,
+void ssht_core_mw_inverse_sov_sym_ss(ssht_complex_double *f, const ssht_complex_double *flm,
                      int L, int spin,
                      ssht_dl_method_t dl_method,
                      int verbosity) {
@@ -1821,7 +1820,7 @@ void ssht_core_mw_inverse_sov_sym_ss(SSHT_COMPLEX(double) *f, const SSHT_COMPLEX
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mw_lb_inverse_sov_sym_ss(SSHT_COMPLEX(double) *f, const SSHT_COMPLEX(double) *flm,
+void ssht_core_mw_lb_inverse_sov_sym_ss(ssht_complex_double *f, const ssht_complex_double *flm,
 				     int L0, int L, int spin,
 				     ssht_dl_method_t dl_method,
 				     int verbosity) {
@@ -1836,11 +1835,11 @@ void ssht_core_mw_lb_inverse_sov_sym_ss(SSHT_COMPLEX(double) *f, const SSHT_COMP
   double *dl;
   double *dl8 = NULL;
   int dl_offset, dl_stride;
-  SSHT_COMPLEX(double) *exps;
+  ssht_complex_double *exps;
   int exps_offset;
   double elmmsign, elssign;
   int spinneg;
-  SSHT_COMPLEX(double) *Fmm, *fext;
+  ssht_complex_double *Fmm, *fext;
   int Fmm_offset, Fmm_stride, fext_stride;
   fftw_plan plan;
 
@@ -1849,7 +1848,7 @@ void ssht_core_mw_lb_inverse_sov_sym_ss(SSHT_COMPLEX(double) *f, const SSHT_COMP
   SSHT_ERROR_MEM_ALLOC_CHECK(sqrt_tbl)
   signs = (double*)calloc(L+1, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(signs)
-  exps = (SSHT_COMPLEX(double)*)calloc(2*L-1, sizeof(SSHT_COMPLEX(double)));
+  exps = (ssht_complex_double*)calloc(2*L-1, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(exps)
   inds = (int*)calloc(2*L-1, sizeof(int));
   SSHT_ERROR_MEM_ALLOC_CHECK(inds)
@@ -1881,7 +1880,7 @@ void ssht_core_mw_lb_inverse_sov_sym_ss(SSHT_COMPLEX(double) *f, const SSHT_COMP
   // Compute Fmm.
   // Note that m and mm indices are increased in size by one and
   // will be filled with zeros by calloc.
-  Fmm = (SSHT_COMPLEX(double)*)calloc((2*L)*(2*L), sizeof(SSHT_COMPLEX(double)));
+  Fmm = (ssht_complex_double*)calloc((2*L)*(2*L), sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmm)
   Fmm_offset = L-1;
   Fmm_stride = 2*L;
@@ -1998,7 +1997,7 @@ void ssht_core_mw_lb_inverse_sov_sym_ss(SSHT_COMPLEX(double) *f, const SSHT_COMP
   // Allocate space for function values.
   // Note that t and p indices of fext are increased in size by
   // one compared to usual sampling.
-  fext = (SSHT_COMPLEX(double)*)calloc((2*L)*(2*L), sizeof(SSHT_COMPLEX(double)));
+  fext = (ssht_complex_double*)calloc((2*L)*(2*L), sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(fext)
   fext_stride = 2*L;
 
@@ -2032,7 +2031,7 @@ void ssht_core_mw_lb_inverse_sov_sym_ss(SSHT_COMPLEX(double) *f, const SSHT_COMP
   // Extract f from version of f extended to the torus (fext).
   // Note that t and p indices of fext are increased in size by
   // one compared to usual sampling.
-  memcpy(f, fext, (L+1)*(2*L)*sizeof(SSHT_COMPLEX(double)));
+  memcpy(f, fext, (L+1)*(2*L)*sizeof(ssht_complex_double));
 
   // Free fext memory.
   free(fext);
@@ -2065,7 +2064,7 @@ void ssht_core_mw_lb_inverse_sov_sym_ss(SSHT_COMPLEX(double) *f, const SSHT_COMP
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mw_inverse_sov_sym_ss_real(double *f, const SSHT_COMPLEX(double) *flm,
+void ssht_core_mw_inverse_sov_sym_ss_real(double *f, const ssht_complex_double *flm,
                       int L,
                       ssht_dl_method_t dl_method,
                       int verbosity) {
@@ -2092,7 +2091,7 @@ void ssht_core_mw_inverse_sov_sym_ss_real(double *f, const SSHT_COMPLEX(double) 
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mw_lb_inverse_sov_sym_ss_real(double *f, const SSHT_COMPLEX(double) *flm,
+void ssht_core_mw_lb_inverse_sov_sym_ss_real(double *f, const ssht_complex_double *flm,
 					  int L0, int L,
 					  ssht_dl_method_t dl_method,
 					  int verbosity) {
@@ -2107,11 +2106,11 @@ void ssht_core_mw_lb_inverse_sov_sym_ss_real(double *f, const SSHT_COMPLEX(doubl
   double *dl;
   double *dl8 = NULL;
   int dl_offset, dl_stride;
-  SSHT_COMPLEX(double) *exps;
+  ssht_complex_double *exps;
   int exps_offset;
   double elmmsign, elssign;
   int spinneg;
-  SSHT_COMPLEX(double) *Fmm, *Fmm_shift;
+  ssht_complex_double *Fmm, *Fmm_shift;
   double *fext_real;
   int Fmm_offset, Fmm_stride;
   fftw_plan plan;
@@ -2122,7 +2121,7 @@ void ssht_core_mw_lb_inverse_sov_sym_ss_real(double *f, const SSHT_COMPLEX(doubl
   SSHT_ERROR_MEM_ALLOC_CHECK(sqrt_tbl)
   signs = (double*)calloc(L+1, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(signs)
-  exps = (SSHT_COMPLEX(double)*)calloc(2*L-1, sizeof(SSHT_COMPLEX(double)));
+  exps = (ssht_complex_double*)calloc(2*L-1, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(exps)
   inds = (int*)calloc(2*L-1, sizeof(int));
   SSHT_ERROR_MEM_ALLOC_CHECK(inds)
@@ -2154,7 +2153,7 @@ void ssht_core_mw_lb_inverse_sov_sym_ss_real(double *f, const SSHT_COMPLEX(doubl
   // Compute Fmm.
   // Note that m and mm indices are increased in size by one and
   // will be filled with zeros by calloc.
-  Fmm = (SSHT_COMPLEX(double)*)calloc((2*L)*(L+1), sizeof(SSHT_COMPLEX(double)));
+  Fmm = (ssht_complex_double*)calloc((2*L)*(L+1), sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmm)
   Fmm_offset = L-1;
   Fmm_stride = L+1;
@@ -2259,7 +2258,7 @@ void ssht_core_mw_lb_inverse_sov_sym_ss_real(double *f, const SSHT_COMPLEX(doubl
 	* Fmm[(-mm + Fmm_offset)*Fmm_stride + m];
 
   // Apply spatial shift.
-  Fmm_shift = (SSHT_COMPLEX(double)*)calloc((2*L)*(L+1), sizeof(SSHT_COMPLEX(double)));
+  Fmm_shift = (ssht_complex_double*)calloc((2*L)*(L+1), sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmm_shift)
   for (mm=0; mm<=L-1; mm++)
     for (m=0; m<=L-1; m++)
@@ -2323,7 +2322,7 @@ void ssht_core_mw_lb_inverse_sov_sym_ss_real(double *f, const SSHT_COMPLEX(doubl
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mwdirect_inverse_ss(SSHT_COMPLEX(double) *f, const SSHT_COMPLEX(double) *flm,
+void ssht_core_mwdirect_inverse_ss(ssht_complex_double *f, const ssht_complex_double *flm,
 				   int L, int spin, int verbosity) {
 
   int t, p, m, el, ind, eltmp;
@@ -2422,7 +2421,7 @@ void ssht_core_mwdirect_inverse_ss(SSHT_COMPLEX(double) *f, const SSHT_COMPLEX(d
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mw_forward_sov_conv_sym_ss(SSHT_COMPLEX(double) *flm, const SSHT_COMPLEX(double) *f,
+void ssht_core_mw_forward_sov_conv_sym_ss(ssht_complex_double *flm, const ssht_complex_double *f,
                       int L, int spin,
                       ssht_dl_method_t dl_method,
                       int verbosity) {
@@ -2449,7 +2448,7 @@ void ssht_core_mw_forward_sov_conv_sym_ss(SSHT_COMPLEX(double) *flm, const SSHT_
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mw_lb_forward_sov_conv_sym_ss(SSHT_COMPLEX(double) *flm, const SSHT_COMPLEX(double) *f,
+void ssht_core_mw_lb_forward_sov_conv_sym_ss(ssht_complex_double *flm, const ssht_complex_double *f,
 					  int L0, int L, int spin,
 					  ssht_dl_method_t dl_method,
 					  int verbosity) {
@@ -2461,16 +2460,16 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss(SSHT_COMPLEX(double) *flm, const SS
   int *inds;
   double ssign, elfactor;
   fftw_plan plan, plan_bwd, plan_fwd;
-  SSHT_COMPLEX(double) *inout;
-  SSHT_COMPLEX(double) *Fmt, *Fmm, *Gmm;
-  SSHT_COMPLEX(double) *w, *wr;
-  SSHT_COMPLEX(double) *Fmm_pad, *tmp_pad;
+  ssht_complex_double *inout;
+  ssht_complex_double *Fmt, *Fmm, *Gmm;
+  ssht_complex_double *w, *wr;
+  ssht_complex_double *Fmm_pad, *tmp_pad;
   int f_stride, Fmt_stride, Fmt_offset, Fmm_stride, Fmm_offset;
   double *dl;
   double *dl8 = NULL;
   int dl_offset, dl_stride;
   int w_offset;
-  SSHT_COMPLEX(double) *expsm, *expsmm;
+  ssht_complex_double *expsm, *expsmm;
   int exps_offset;
   int elmmsign, elssign;
   int spinneg;
@@ -2481,9 +2480,9 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss(SSHT_COMPLEX(double) *flm, const SS
   SSHT_ERROR_MEM_ALLOC_CHECK(sqrt_tbl)
   signs = (double*)calloc(L+1, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(signs)
-  expsm = (SSHT_COMPLEX(double)*)calloc(2*L-1, sizeof(SSHT_COMPLEX(double)));
+  expsm = (ssht_complex_double*)calloc(2*L-1, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(expsm)
-  expsmm = (SSHT_COMPLEX(double)*)calloc(2*L-1, sizeof(SSHT_COMPLEX(double)));
+  expsmm = (ssht_complex_double*)calloc(2*L-1, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(expsmm)
   inds = (int*)calloc(2*L-1, sizeof(int));
   SSHT_ERROR_MEM_ALLOC_CHECK(inds)
@@ -2517,16 +2516,16 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss(SSHT_COMPLEX(double) *flm, const SS
   // Compute Fourier transform over phi, i.e. compute Fmt.
   // Note that t and p indices of fext are increased in size by
   // one compared to usual sampling.
-  Fmt = (SSHT_COMPLEX(double)*)calloc((2*L)*(2*L), sizeof(SSHT_COMPLEX(double)));
+  Fmt = (ssht_complex_double*)calloc((2*L)*(2*L), sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmt)
   Fmt_stride = 2*L;
   Fmt_offset = L-1;
   f_stride = 2*L;
-  inout = (SSHT_COMPLEX(double)*)calloc(2*L, sizeof(SSHT_COMPLEX(double)));
+  inout = (ssht_complex_double*)calloc(2*L, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
   plan = fftw_plan_dft_1d(2*L, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
   for (t=0; t<=L; t++) {
-    memcpy(inout, &f[t*f_stride], f_stride*sizeof(SSHT_COMPLEX(double)));
+    memcpy(inout, &f[t*f_stride], f_stride*sizeof(ssht_complex_double));
     fftw_execute_dft(plan, inout, inout);
     for(m=0; m<=L; m++)
       Fmt[(m+Fmt_offset)*Fmt_stride + t] = inout[m] / (2.0*L);
@@ -2544,15 +2543,15 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss(SSHT_COMPLEX(double) *flm, const SS
 
   // Compute Fourier transform over theta, i.e. compute Fmm.
   // Note that m and mm indices are increased in size by one.
-  Fmm = (SSHT_COMPLEX(double)*)calloc((2*L)*(2*L), sizeof(SSHT_COMPLEX(double)));
+  Fmm = (ssht_complex_double*)calloc((2*L)*(2*L), sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmm)
   Fmm_stride = 2*L;
   Fmm_offset = L-1;
-  inout = (SSHT_COMPLEX(double)*)calloc(2*L, sizeof(SSHT_COMPLEX(double)));
+  inout = (ssht_complex_double*)calloc(2*L, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
   plan = fftw_plan_dft_1d(2*L, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
   for (m=-(L-1); m<=L; m++) {
-    memcpy(inout, &Fmt[(m+Fmt_offset)*Fmt_stride], Fmt_stride*sizeof(SSHT_COMPLEX(double)));
+    memcpy(inout, &Fmt[(m+Fmt_offset)*Fmt_stride], Fmt_stride*sizeof(ssht_complex_double));
     fftw_execute_dft(plan, inout, inout);
     for(mm=0; mm<=L; mm++)
       Fmm[(m+Fmm_offset)*Fmm_stride + mm + Fmm_offset] =
@@ -2565,16 +2564,16 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss(SSHT_COMPLEX(double) *flm, const SS
   free(inout);
 
   // Compute weights.
-  w = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
+  w = (ssht_complex_double*)calloc(4*L-3, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(w)
   w_offset = 2*(L-1);
   for (mm=-2*(L-1); mm<=2*(L-1); mm++)
     w[mm+w_offset] = ssht_sampling_weight_mw(mm);
 
   // Compute IFFT of w to give wr.
-  wr = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
+  wr = (ssht_complex_double*)calloc(4*L-3, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(wr)
-  inout = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
+  inout = (ssht_complex_double*)calloc(4*L-3, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
   plan_bwd = fftw_plan_dft_1d(4*L-3, inout, inout, FFTW_BACKWARD, FFTW_MEASURE);
   plan_fwd = fftw_plan_dft_1d(4*L-3, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
@@ -2589,11 +2588,11 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss(SSHT_COMPLEX(double) *flm, const SS
     wr[mm + w_offset] = inout[mm + 2*(L-1) + 1 + w_offset];
 
   // Compute Gmm by convolution implemented as product in real space.
-  Fmm_pad = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
+  Fmm_pad = (ssht_complex_double*)calloc(4*L-3, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmm_pad)
-  tmp_pad = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
+  tmp_pad = (ssht_complex_double*)calloc(4*L-3, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(tmp_pad)
-  Gmm = (SSHT_COMPLEX(double)*)calloc((2*L-1)*(2*L-1), sizeof(SSHT_COMPLEX(double)));
+  Gmm = (ssht_complex_double*)calloc((2*L-1)*(2*L-1), sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Gmm)
   Gmm_stride = 2*L-1;
   Gmm_offset = L-1;
@@ -2817,7 +2816,7 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss(SSHT_COMPLEX(double) *flm, const SS
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mw_forward_sov_conv_sym_ss_real(SSHT_COMPLEX(double) *flm, const double *f,
+void ssht_core_mw_forward_sov_conv_sym_ss_real(ssht_complex_double *flm, const double *f,
                            int L,
                            ssht_dl_method_t dl_method,
                            int verbosity) {
@@ -2844,7 +2843,7 @@ void ssht_core_mw_forward_sov_conv_sym_ss_real(SSHT_COMPLEX(double) *flm, const 
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mw_lb_forward_sov_conv_sym_ss_real(SSHT_COMPLEX(double) *flm, const double *f,
+void ssht_core_mw_lb_forward_sov_conv_sym_ss_real(ssht_complex_double *flm, const double *f,
 					       int L0, int L,
 					       ssht_dl_method_t dl_method,
 					       int verbosity) {
@@ -2857,16 +2856,16 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss_real(SSHT_COMPLEX(double) *flm, con
   double ssign, elfactor;
   fftw_plan plan, plan_bwd, plan_fwd;
   double *in_real;
-  SSHT_COMPLEX(double) *inout, *out;
-  SSHT_COMPLEX(double) *Fmt, *Fmm, *Gmm;
-  SSHT_COMPLEX(double) *w, *wr;
-  SSHT_COMPLEX(double) *Fmm_pad, *tmp_pad;
+  ssht_complex_double *inout, *out;
+  ssht_complex_double *Fmt, *Fmm, *Gmm;
+  ssht_complex_double *w, *wr;
+  ssht_complex_double *Fmm_pad, *tmp_pad;
   int f_stride, Fmt_stride, Fmt_offset, Fmm_stride, Fmm_offset, Gmm_stride;
   double *dl;
   double *dl8 = NULL;
   int dl_offset, dl_stride;
   int w_offset;
-  SSHT_COMPLEX(double) *expsm;
+  ssht_complex_double *expsm;
   int exps_offset;
   int elmmsign, elssign;
   int spinneg;
@@ -2877,7 +2876,7 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss_real(SSHT_COMPLEX(double) *flm, con
   SSHT_ERROR_MEM_ALLOC_CHECK(sqrt_tbl)
   signs = (double*)calloc(L+1, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(signs)
-  expsm = (SSHT_COMPLEX(double)*)calloc(L, sizeof(SSHT_COMPLEX(double)));
+  expsm = (ssht_complex_double*)calloc(L, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(expsm)
   inds = (int*)calloc(L, sizeof(int));
   SSHT_ERROR_MEM_ALLOC_CHECK(inds)
@@ -2908,13 +2907,13 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss_real(SSHT_COMPLEX(double) *flm, con
   // Compute Fourier transform over phi, i.e. compute Fmt.
   // Note that t and p indices of fext are increased in size by
   // one compared to usual sampling.
-  Fmt = (SSHT_COMPLEX(double)*)calloc((L+1)*(2*L), sizeof(SSHT_COMPLEX(double)));
+  Fmt = (ssht_complex_double*)calloc((L+1)*(2*L), sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmt)
   Fmt_stride = 2*L;
   f_stride = 2*L;
   in_real = (double*)calloc(2*L, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(in_real)
-  out = (SSHT_COMPLEX(double)*)calloc(L+1, sizeof(SSHT_COMPLEX(double)));
+  out = (ssht_complex_double*)calloc(L+1, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(out)
   plan = fftw_plan_dft_r2c_1d(2*L, in_real, out, FFTW_MEASURE);
   for (t=0; t<=L; t++) {
@@ -2936,15 +2935,15 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss_real(SSHT_COMPLEX(double) *flm, con
 
   // Compute Fourier transform over theta, i.e. compute Fmm.
   // Note that m and mm indices are increased in size by one.
-  Fmm = (SSHT_COMPLEX(double)*)calloc((L+1)*(2*L), sizeof(SSHT_COMPLEX(double)));
+  Fmm = (ssht_complex_double*)calloc((L+1)*(2*L), sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmm)
   Fmm_stride = 2*L;
   Fmm_offset = L-1;
-  inout = (SSHT_COMPLEX(double)*)calloc(2*L, sizeof(SSHT_COMPLEX(double)));
+  inout = (ssht_complex_double*)calloc(2*L, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
   plan = fftw_plan_dft_1d(2*L, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
   for (m=0; m<=L; m++) {
-    memcpy(inout, &Fmt[m*Fmt_stride], Fmt_stride*sizeof(SSHT_COMPLEX(double)));
+    memcpy(inout, &Fmt[m*Fmt_stride], Fmt_stride*sizeof(ssht_complex_double));
     fftw_execute_dft(plan, inout, inout);
     for(mm=0; mm<=L; mm++)
       Fmm[m*Fmm_stride + mm + Fmm_offset] =
@@ -2957,16 +2956,16 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss_real(SSHT_COMPLEX(double) *flm, con
   free(inout);
 
   // Compute weights.
-  w = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
+  w = (ssht_complex_double*)calloc(4*L-3, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(w)
   w_offset = 2*(L-1);
   for (mm=-2*(L-1); mm<=2*(L-1); mm++)
     w[mm+w_offset] = ssht_sampling_weight_mw(mm);
 
   // Compute IFFT of w to give wr.
-  wr = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
+  wr = (ssht_complex_double*)calloc(4*L-3, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(wr)
-  inout = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
+  inout = (ssht_complex_double*)calloc(4*L-3, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
   plan_bwd = fftw_plan_dft_1d(4*L-3, inout, inout, FFTW_BACKWARD, FFTW_MEASURE);
   plan_fwd = fftw_plan_dft_1d(4*L-3, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
@@ -2981,11 +2980,11 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss_real(SSHT_COMPLEX(double) *flm, con
     wr[mm + w_offset] = inout[mm + 2*(L-1) + 1 + w_offset];
 
   // Compute Gmm by convolution implemented as product in real space.
-  Fmm_pad = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
+  Fmm_pad = (ssht_complex_double*)calloc(4*L-3, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Fmm_pad)
-  tmp_pad = (SSHT_COMPLEX(double)*)calloc(4*L-3, sizeof(SSHT_COMPLEX(double)));
+  tmp_pad = (ssht_complex_double*)calloc(4*L-3, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(tmp_pad)
-  Gmm = (SSHT_COMPLEX(double)*)calloc((2*L-1)*L, sizeof(SSHT_COMPLEX(double)));
+  Gmm = (ssht_complex_double*)calloc((2*L-1)*L, sizeof(ssht_complex_double));
   Gmm_stride = L;
   SSHT_ERROR_MEM_ALLOC_CHECK(Gmm)
   for (m=0; m<=L-1; m++) {
@@ -3206,19 +3205,19 @@ void ssht_core_mw_lb_forward_sov_conv_sym_ss_real(SSHT_COMPLEX(double) *flm, con
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mw_inverse_sov_sym_ss_pole(SSHT_COMPLEX(double) *f,
-					  SSHT_COMPLEX(double) *f_np, double *phi_np,
-					  SSHT_COMPLEX(double) *f_sp, double *phi_sp,
-					  const SSHT_COMPLEX(double) *flm,
+void ssht_core_mw_inverse_sov_sym_ss_pole(ssht_complex_double *f,
+					  ssht_complex_double *f_np, double *phi_np,
+					  ssht_complex_double *f_sp, double *phi_sp,
+					  const ssht_complex_double *flm,
 					  int L, int spin,
 					  ssht_dl_method_t dl_method,
 					  int verbosity) {
 
-  SSHT_COMPLEX(double)* f_full;
+  ssht_complex_double* f_full;
   int t, f_stride = 2*L;
 
   // Allocate full array.
-  f_full = (SSHT_COMPLEX(double)*)calloc((L+1)*(2*L), sizeof(SSHT_COMPLEX(double)));
+  f_full = (ssht_complex_double*)calloc((L+1)*(2*L), sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(f_full)
 
   // Perform inverse transform.
@@ -3228,7 +3227,7 @@ void ssht_core_mw_inverse_sov_sym_ss_pole(SSHT_COMPLEX(double) *f,
   // Copy output function values, including separate points for  poles.
  for (t=1; t<=L-1; t++)
    memcpy(&f[(t-1)*f_stride], &f_full[t*f_stride],
-	  (2*L)*sizeof(SSHT_COMPLEX(double)));
+	  (2*L)*sizeof(ssht_complex_double));
   *f_np = f_full[0];
   *phi_np = ssht_sampling_mw_ss_p2phi(0, L);
   *f_sp = f_full[L*f_stride + 0];
@@ -3261,7 +3260,7 @@ void ssht_core_mw_inverse_sov_sym_ss_pole(SSHT_COMPLEX(double) *f,
 void ssht_core_mw_inverse_sov_sym_ss_real_pole(double *f,
 					       double *f_np,
 					       double *f_sp,
-					       const SSHT_COMPLEX(double) *flm,
+					       const ssht_complex_double *flm,
 					       int L,
 					       ssht_dl_method_t dl_method,
 					       int verbosity) {
@@ -3313,23 +3312,23 @@ void ssht_core_mw_inverse_sov_sym_ss_real_pole(double *f,
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mw_forward_sov_conv_sym_ss_pole(SSHT_COMPLEX(double) *flm, const SSHT_COMPLEX(double) *f,
-					       SSHT_COMPLEX(double) f_np, double phi_np,
-					       SSHT_COMPLEX(double) f_sp, double phi_sp,
+void ssht_core_mw_forward_sov_conv_sym_ss_pole(ssht_complex_double *flm, const ssht_complex_double *f,
+					       ssht_complex_double f_np, double phi_np,
+					       ssht_complex_double f_sp, double phi_sp,
 					       int L, int spin,
 					       ssht_dl_method_t dl_method,
 					       int verbosity) {
 
-  SSHT_COMPLEX(double) *f_full;
+  ssht_complex_double *f_full;
   int t, p, f_stride = 2*L;
   double phi;
 
   // Copy function values to full array.
-  f_full = (SSHT_COMPLEX(double)*)calloc((L+1)*(2*L), sizeof(SSHT_COMPLEX(double)));
+  f_full = (ssht_complex_double*)calloc((L+1)*(2*L), sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(f_full)
   for (t=1; t<=L-1; t++)
     memcpy(&f_full[t*f_stride], &f[(t-1)*f_stride],
-	   (2*L)*sizeof(SSHT_COMPLEX(double)));
+	   (2*L)*sizeof(ssht_complex_double));
 
   // Define poles for all phi.
   for (p=0; p<=2*L-1; p++) {
@@ -3366,7 +3365,7 @@ void ssht_core_mw_forward_sov_conv_sym_ss_pole(SSHT_COMPLEX(double) *flm, const 
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_mw_forward_sov_conv_sym_ss_real_pole(SSHT_COMPLEX(double) *flm,
+void ssht_core_mw_forward_sov_conv_sym_ss_real_pole(ssht_complex_double *flm,
 						    const double *f,
 						    double f_np,
 						    double f_sp,
@@ -3418,7 +3417,7 @@ void ssht_core_mw_forward_sov_conv_sym_ss_real_pole(SSHT_COMPLEX(double) *flm,
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_gl_inverse_sov(SSHT_COMPLEX(double) *f, const SSHT_COMPLEX(double) *flm,
+void ssht_core_gl_inverse_sov(ssht_complex_double *f, const ssht_complex_double *flm,
 			      int L, int spin, int verbosity) {
 
   int t, p, m, el, ind;
@@ -3426,7 +3425,7 @@ void ssht_core_gl_inverse_sov(SSHT_COMPLEX(double) *f, const SSHT_COMPLEX(double
   double *dlm1p1_line,  *dl_line;
   double *dl_ptr;
   double *sqrt_tbl, *signs;
-  SSHT_COMPLEX(double) *ftm, *inout;
+  ssht_complex_double *ftm, *inout;
   double theta, ssign, elfactor;
   fftw_plan plan;
   double *thetas, *weights;
@@ -3465,7 +3464,7 @@ void ssht_core_gl_inverse_sov(SSHT_COMPLEX(double) *f, const SSHT_COMPLEX(double
   ssht_sampling_gl_thetas_weights(thetas, weights, L);
 
   // Compute ftm.
-  ftm = (SSHT_COMPLEX(double)*)calloc(L*(2*L-1), sizeof(SSHT_COMPLEX(double)));
+  ftm = (ssht_complex_double*)calloc(L*(2*L-1), sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(ftm)
   ftm_stride = 2*L-1;
   ftm_offset = L-1;
@@ -3507,7 +3506,7 @@ void ssht_core_gl_inverse_sov(SSHT_COMPLEX(double) *f, const SSHT_COMPLEX(double
   free(weights);
 
   // Compute f.
-  inout = (SSHT_COMPLEX(double)*)calloc(2*L-1, sizeof(SSHT_COMPLEX(double)));
+  inout = (ssht_complex_double*)calloc(2*L-1, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
   f_stride = 2*L-1;
   plan = fftw_plan_dft_1d(2*L-1, inout, inout, FFTW_BACKWARD, FFTW_MEASURE);
@@ -3549,7 +3548,7 @@ void ssht_core_gl_inverse_sov(SSHT_COMPLEX(double) *f, const SSHT_COMPLEX(double
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_gl_inverse_sov_real(double *f, const SSHT_COMPLEX(double) *flm,
+void ssht_core_gl_inverse_sov_real(double *f, const ssht_complex_double *flm,
 				   int L, int verbosity) {
 
   int t, p, m, el, ind;
@@ -3557,8 +3556,8 @@ void ssht_core_gl_inverse_sov_real(double *f, const SSHT_COMPLEX(double) *flm,
   double *dlm1p1_line,  *dl_line;
   double *dl_ptr;
   double *sqrt_tbl, *signs;
-  SSHT_COMPLEX(double) *ftm;
-  SSHT_COMPLEX(double) *in;
+  ssht_complex_double *ftm;
+  ssht_complex_double *in;
   double *out;
   double theta, ssign, elfactor;
   fftw_plan plan;
@@ -3599,7 +3598,7 @@ void ssht_core_gl_inverse_sov_real(double *f, const SSHT_COMPLEX(double) *flm,
   ssht_sampling_gl_thetas_weights(thetas, weights, L);
 
   // Compute ftm.
-  ftm = (SSHT_COMPLEX(double)*)calloc(L*L, sizeof(SSHT_COMPLEX(double)));
+  ftm = (ssht_complex_double*)calloc(L*L, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(ftm)
   ftm_stride = L;
   ftm_offset = 0;
@@ -3641,14 +3640,14 @@ void ssht_core_gl_inverse_sov_real(double *f, const SSHT_COMPLEX(double) *flm,
   free(weights);
 
   // Compute f.
-  in = (SSHT_COMPLEX(double)*)calloc(L, sizeof(SSHT_COMPLEX(double)));
+  in = (ssht_complex_double*)calloc(L, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(in)
   out = (double*)calloc(2*L-1, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(out)
   plan = fftw_plan_dft_c2r_1d(2*L-1, in, out, FFTW_MEASURE);
   f_stride = 2*L-1;
   for (t=0; t<=L-1; t++) {
-    memcpy(in, &ftm[t*ftm_stride], L*sizeof(SSHT_COMPLEX(double)));
+    memcpy(in, &ftm[t*ftm_stride], L*sizeof(ssht_complex_double));
     fftw_execute_dft_c2r(plan, in, out);
     for (p=0; p<=2*L-2; p++)
       f[t*f_stride + p] = out[p];
@@ -3682,7 +3681,7 @@ void ssht_core_gl_inverse_sov_real(double *f, const SSHT_COMPLEX(double) *flm,
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_gl_forward_sov(SSHT_COMPLEX(double) *flm, const SSHT_COMPLEX(double) *f,
+void ssht_core_gl_forward_sov(ssht_complex_double *flm, const ssht_complex_double *f,
 			      int L, int spin, int verbosity) {
 
   int t, m, el, ind;
@@ -3693,7 +3692,7 @@ void ssht_core_gl_forward_sov(SSHT_COMPLEX(double) *flm, const SSHT_COMPLEX(doub
   int *inds;
   double *sqrt_tbl, *signs;
   int Ftm_stride, Ftm_offset;
-  SSHT_COMPLEX(double) *Ftm, *inout;
+  ssht_complex_double *Ftm, *inout;
   double theta, ssign, elfactor;
   fftw_plan plan;
   double *thetas, *weights;
@@ -3735,16 +3734,16 @@ void ssht_core_gl_forward_sov(SSHT_COMPLEX(double) *flm, const SSHT_COMPLEX(doub
   ssht_sampling_gl_thetas_weights(thetas, weights, L);
 
   // Compute Fourier transform over phi, i.e. compute Ftm.
-  Ftm = (SSHT_COMPLEX(double)*)calloc(L*(2*L-1), sizeof(SSHT_COMPLEX(double)));
+  Ftm = (ssht_complex_double*)calloc(L*(2*L-1), sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Ftm)
   Ftm_stride = 2*L-1;
   Ftm_offset = L-1;
   f_stride = 2*L-1;
-  inout = (SSHT_COMPLEX(double)*)calloc(2*L-1, sizeof(SSHT_COMPLEX(double)));
+  inout = (ssht_complex_double*)calloc(2*L-1, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
   plan = fftw_plan_dft_1d(2*L-1, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
   for (t=0; t<=L-1; t++) {
-    memcpy(inout, &f[t*f_stride], f_stride*sizeof(SSHT_COMPLEX(double)));
+    memcpy(inout, &f[t*f_stride], f_stride*sizeof(ssht_complex_double));
     fftw_execute_dft(plan, inout, inout);
     for(m=0; m<=L-1; m++)
       Ftm[t*Ftm_stride + m + Ftm_offset] =
@@ -3829,7 +3828,7 @@ void ssht_core_gl_forward_sov(SSHT_COMPLEX(double) *flm, const SSHT_COMPLEX(doub
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_gl_forward_sov_real(SSHT_COMPLEX(double) *flm, const double *f,
+void ssht_core_gl_forward_sov_real(ssht_complex_double *flm, const double *f,
 				   int L, int verbosity) {
 
   int t, m, el, ind, ind_nm;
@@ -3840,9 +3839,9 @@ void ssht_core_gl_forward_sov_real(SSHT_COMPLEX(double) *flm, const double *f,
   int *inds;
   double *sqrt_tbl, *signs;
   int Ftm_stride, Ftm_offset;
-  SSHT_COMPLEX(double) *Ftm;
+  ssht_complex_double *Ftm;
   double *in_real;
-  SSHT_COMPLEX(double) *out;
+  ssht_complex_double *out;
   double theta, ssign, elfactor;
   fftw_plan plan;
   double *thetas, *weights;
@@ -3885,14 +3884,14 @@ void ssht_core_gl_forward_sov_real(SSHT_COMPLEX(double) *flm, const double *f,
   ssht_sampling_gl_thetas_weights(thetas, weights, L);
 
   // Compute Fourier transform over phi, i.e. compute Ftm.
-  Ftm = (SSHT_COMPLEX(double)*)calloc(L*L, sizeof(SSHT_COMPLEX(double)));
+  Ftm = (ssht_complex_double*)calloc(L*L, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Ftm)
   Ftm_stride = L;
   Ftm_offset = 0;
   f_stride = 2*L-1;
   in_real = (double*)calloc(2*L-1, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(in_real)
-  out = (SSHT_COMPLEX(double)*)calloc(L, sizeof(SSHT_COMPLEX(double)));
+  out = (ssht_complex_double*)calloc(L, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(out)
   plan = fftw_plan_dft_r2c_1d(2*L-1, in_real, out, FFTW_MEASURE);
   for (t=0; t<=L-1; t++) {
@@ -3993,7 +3992,7 @@ void ssht_core_gl_forward_sov_real(SSHT_COMPLEX(double) *flm, const double *f,
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_dh_inverse_sov(SSHT_COMPLEX(double) *f, const SSHT_COMPLEX(double) *flm,
+void ssht_core_dh_inverse_sov(ssht_complex_double *f, const ssht_complex_double *flm,
 			      int L, int spin, int verbosity) {
 
   int t, p, m, el, ind;
@@ -4001,7 +4000,7 @@ void ssht_core_dh_inverse_sov(SSHT_COMPLEX(double) *f, const SSHT_COMPLEX(double
   double *dlm1p1_line,  *dl_line;
   double *dl_ptr;
   double *sqrt_tbl, *signs;
-  SSHT_COMPLEX(double) *ftm, *inout;
+  ssht_complex_double *ftm, *inout;
   double theta, ssign, elfactor;
   fftw_plan plan;
 
@@ -4032,7 +4031,7 @@ void ssht_core_dh_inverse_sov(SSHT_COMPLEX(double) *f, const SSHT_COMPLEX(double
   }
 
   // Compute ftm.
-  ftm = (SSHT_COMPLEX(double)*)calloc((2*L)*(2*L-1), sizeof(SSHT_COMPLEX(double)));
+  ftm = (ssht_complex_double*)calloc((2*L)*(2*L-1), sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(ftm)
   ftm_stride = 2*L-1;
   ftm_offset = L-1;
@@ -4070,7 +4069,7 @@ void ssht_core_dh_inverse_sov(SSHT_COMPLEX(double) *f, const SSHT_COMPLEX(double
   free(dl_line);
 
   // Compute f.
-  inout = (SSHT_COMPLEX(double)*)calloc(2*L-1, sizeof(SSHT_COMPLEX(double)));
+  inout = (ssht_complex_double*)calloc(2*L-1, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
   f_stride = 2*L-1;
   plan = fftw_plan_dft_1d(2*L-1, inout, inout, FFTW_BACKWARD, FFTW_MEASURE);
@@ -4112,7 +4111,7 @@ void ssht_core_dh_inverse_sov(SSHT_COMPLEX(double) *f, const SSHT_COMPLEX(double
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_dh_inverse_sov_real(double *f, const SSHT_COMPLEX(double) *flm,
+void ssht_core_dh_inverse_sov_real(double *f, const ssht_complex_double *flm,
 				   int L, int verbosity) {
 
   int t, p, m, el, ind;
@@ -4120,8 +4119,8 @@ void ssht_core_dh_inverse_sov_real(double *f, const SSHT_COMPLEX(double) *flm,
   double *dlm1p1_line,  *dl_line;
   double *dl_ptr;
   double *sqrt_tbl, *signs;
-  SSHT_COMPLEX(double) *ftm;
-  SSHT_COMPLEX(double) *in;
+  ssht_complex_double *ftm;
+  ssht_complex_double *in;
   double *out;
   double theta, ssign, elfactor;
   fftw_plan plan;
@@ -4154,7 +4153,7 @@ void ssht_core_dh_inverse_sov_real(double *f, const SSHT_COMPLEX(double) *flm,
   }
 
   // Compute ftm.
-  ftm = (SSHT_COMPLEX(double)*)calloc(2*L*L, sizeof(SSHT_COMPLEX(double)));
+  ftm = (ssht_complex_double*)calloc(2*L*L, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(ftm)
   ftm_stride = L;
   ftm_offset = 0;
@@ -4192,14 +4191,14 @@ void ssht_core_dh_inverse_sov_real(double *f, const SSHT_COMPLEX(double) *flm,
   free(dl_line);
 
   // Compute f.
-  in = (SSHT_COMPLEX(double)*)calloc(L, sizeof(SSHT_COMPLEX(double)));
+  in = (ssht_complex_double*)calloc(L, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(in)
   out = (double*)calloc(2*L-1, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(out)
   plan = fftw_plan_dft_c2r_1d(2*L-1, in, out, FFTW_MEASURE);
   f_stride = 2*L-1;
   for (t=0; t<=2*L-1; t++) {
-    memcpy(in, &ftm[t*ftm_stride], L*sizeof(SSHT_COMPLEX(double)));
+    memcpy(in, &ftm[t*ftm_stride], L*sizeof(ssht_complex_double));
     fftw_execute_dft_c2r(plan, in, out);
     for (p=0; p<=2*L-2; p++)
       f[t*f_stride + p] = out[p];
@@ -4233,7 +4232,7 @@ void ssht_core_dh_inverse_sov_real(double *f, const SSHT_COMPLEX(double) *flm,
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_dh_forward_sov(SSHT_COMPLEX(double) *flm, const SSHT_COMPLEX(double) *f,
+void ssht_core_dh_forward_sov(ssht_complex_double *flm, const ssht_complex_double *f,
 			      int L, int spin, int verbosity) {
 
   int t, m, el, ind;
@@ -4244,7 +4243,7 @@ void ssht_core_dh_forward_sov(SSHT_COMPLEX(double) *flm, const SSHT_COMPLEX(doub
   int *inds;
   double *sqrt_tbl, *signs;
   int Ftm_stride, Ftm_offset;
-  SSHT_COMPLEX(double) *Ftm, *inout;
+  ssht_complex_double *Ftm, *inout;
   double theta, ssign, elfactor;
   fftw_plan plan;
   double w;
@@ -4278,16 +4277,16 @@ void ssht_core_dh_forward_sov(SSHT_COMPLEX(double) *flm, const SSHT_COMPLEX(doub
   }
 
   // Compute Fourier transform over phi, i.e. compute Ftm.
-  Ftm = (SSHT_COMPLEX(double)*)calloc((2*L)*(2*L-1), sizeof(SSHT_COMPLEX(double)));
+  Ftm = (ssht_complex_double*)calloc((2*L)*(2*L-1), sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Ftm)
   Ftm_stride = 2*L-1;
   Ftm_offset = L-1;
   f_stride = 2*L-1;
-  inout = (SSHT_COMPLEX(double)*)calloc(2*L-1, sizeof(SSHT_COMPLEX(double)));
+  inout = (ssht_complex_double*)calloc(2*L-1, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(inout)
   plan = fftw_plan_dft_1d(2*L-1, inout, inout, FFTW_FORWARD, FFTW_MEASURE);
   for (t=0; t<=2*L-1; t++) {
-    memcpy(inout, &f[t*f_stride], f_stride*sizeof(SSHT_COMPLEX(double)));
+    memcpy(inout, &f[t*f_stride], f_stride*sizeof(ssht_complex_double));
     fftw_execute_dft(plan, inout, inout);
     for(m=0; m<=L-1; m++)
       Ftm[t*Ftm_stride + m + Ftm_offset] =
@@ -4370,7 +4369,7 @@ void ssht_core_dh_forward_sov(SSHT_COMPLEX(double) *flm, const SSHT_COMPLEX(doub
  *
  * \author <a href="http://www.jasonmcewen.org">Jason McEwen</a>
  */
-void ssht_core_dh_forward_sov_real(SSHT_COMPLEX(double) *flm, const double *f,
+void ssht_core_dh_forward_sov_real(ssht_complex_double *flm, const double *f,
 				   int L, int verbosity) {
 
   int t, m, el, ind, ind_nm;
@@ -4381,9 +4380,9 @@ void ssht_core_dh_forward_sov_real(SSHT_COMPLEX(double) *flm, const double *f,
   int *inds;
   double *sqrt_tbl, *signs;
   int Ftm_stride, Ftm_offset;
-  SSHT_COMPLEX(double) *Ftm;
+  ssht_complex_double *Ftm;
   double *in_real;
-  SSHT_COMPLEX(double) *out;
+  ssht_complex_double *out;
   double theta, ssign, elfactor;
   fftw_plan plan;
   double w;
@@ -4418,14 +4417,14 @@ void ssht_core_dh_forward_sov_real(SSHT_COMPLEX(double) *flm, const double *f,
   }
 
   // Compute Fourier transform over phi, i.e. compute Ftm.
-  Ftm = (SSHT_COMPLEX(double)*)calloc(2*L*L, sizeof(SSHT_COMPLEX(double)));
+  Ftm = (ssht_complex_double*)calloc(2*L*L, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(Ftm)
   Ftm_stride = L;
   Ftm_offset = 0;
   f_stride = 2*L-1;
   in_real = (double*)calloc(2*L-1, sizeof(double));
   SSHT_ERROR_MEM_ALLOC_CHECK(in_real)
-  out = (SSHT_COMPLEX(double)*)calloc(L, sizeof(SSHT_COMPLEX(double)));
+  out = (ssht_complex_double*)calloc(L, sizeof(ssht_complex_double));
   SSHT_ERROR_MEM_ALLOC_CHECK(out)
   plan = fftw_plan_dft_r2c_1d(2*L-1, in_real, out, FFTW_MEASURE);
   for (t=0; t<=2*L-1; t++) {

@@ -1,4 +1,4 @@
-name: CMake
+name: windows
 
 on:
   push:
@@ -7,37 +7,34 @@ on:
 
 env:
   BUILD_TYPE: Debug
+  CC: gcc
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest]
-        python-version: [3.8]
+  cmake-build:
+    runs-on: windows-latest
 
+    
     steps:
     - uses: actions/checkout@v2
 
-    - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
-      with:
-        python-version: ${{ matrix.python-version }}
-
     - name: Create Build Environment
-      shell: bash
       run: |
+        iwr -useb get.scoop.sh | iex
+        scoop install gcc
+
         python -m pip install wheel
-        python -m pip install --upgrade pip conan
+        python -m pip install --upgrade pip wheel conan ninja
+
         cmake -E make_directory ${{runner.workspace}}/build
 
     - name: Configure CMake
+      shell: bash
       working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER=gcc -DCMAKE_BUILD_TYPE=$BUILD_TYPE -Dpython=False -Dconan_deps=True
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -G Ninja -Dconan_deps=ON
 
     - name: Build
       working-directory: ${{runner.workspace}}/build
+      shell: bash
       run: cmake --build . --config $BUILD_TYPE
 
     - name: Test

@@ -2,18 +2,17 @@ cmake_minimum_required(VERSION 3.12)
 
 project(
   Ssht
-  VERSION "1.3.1"
+  VERSION "1.3.2"
   DESCRIPTION "Fast and exact spin spherical harmonic transforms"
   HOMEPAGE_URL "http://astro-informatics.github.io/ssht/"
   LANGUAGES C)
 
-set(Ssht_BUILD "CMake")
-set(CMAKE_C_STANDARD 99)
-
 option(tests "Enable testing" ON)
-option(python "Creates python package" OFF)
-option(fPIC "Compile with fPIC" ON)
+option(python "Creates python package only" OFF)
 option(conan_deps "Download dependencies using conan" OFF)
+if(NOT WIN32)
+    option(fPIC "Compile with fPIC" ON)
+endif()
 
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 

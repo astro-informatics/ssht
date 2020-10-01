@@ -12,7 +12,7 @@ build_requirements = [
     "setuptools",
     "wheel",
     "scikit-build",
-    "cmake>=3.10",
+    "cmake>=3.12",
     "ninja",
     "cython",
     "conan",
@@ -25,7 +25,7 @@ long_description = (
 
 setup(
     name="pyssht",
-    version="1.3.1",
+    version="1.3.2",
     author=[
         "J. D. McEwen",
         "C. R. G. Wallis",
@@ -33,7 +33,7 @@ setup(
         "B. Leistedt",
         "Y. Wiaux",
     ],
-    install_requires=["numpy", "cython", "scipy"],
+    install_requires=["numpy", "scipy"],
     extras_require={"build": build_requirements, "dev": build_requirements},
     description="Fast spin spherical transforms",
     long_description=long_description,

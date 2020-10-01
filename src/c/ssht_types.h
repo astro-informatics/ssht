@@ -45,11 +45,12 @@
 #define SSHT_PROMPT "[ssht] "
 
 #ifdef __cplusplus
-#include <complex>
-#define SSHT_COMPLEX(TYPE) std::complex<TYPE>
+#include <ctgmath>
+typedef std::complex<double> ssht_complex_double;
 extern "C" {
 #else
-#define SSHT_COMPLEX(TYPE) TYPE complex
+#include <tgmath.h>
+typedef double complex ssht_complex_double;
 #endif
 
 

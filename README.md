@@ -3,13 +3,13 @@
 [docs-img]: https://img.shields.io/badge/docs-stable-blue.svg
 [docs-url]: https://astro-informatics.github.io/ssht/
 [bintray-img]: https://img.shields.io/bintray/v/mdavezac/AstroFizz/ssht:AstroFizz?label=C%20package
-[bintray-url]: https://bintray.com/mdavezac/AstroFizz/ssht:AstroFizz/1.3.1:stable/link
+[bintray-url]: https://bintray.com/mdavezac/AstroFizz/ssht:AstroFizz/1.3.2:stable/link
 [pypi-img]: https://badge.fury.io/py/pyssht.svg
 [pypi-url]: https://badge.fury.io/py/pyssht
 
 [![][docs-img]][docs-url]
 [![][bintray-img]][bintray-url]
-[![][pypi-img]][pypy-url]
+[![][pypi-img]][pypi-url]
 
 ## DESCRIPTION
 
@@ -47,7 +47,7 @@ pip install conan cmake
 Then ssht can be compiled with:
 
 ```bash
-git clone http://astro-informatics.github.io/ssht/ -b main
+git clone https://github.com/astro-informatics/ssht.git
 mkdir ssht/build && cd ssht/build
 cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -Dconan_deps=True ..
 make

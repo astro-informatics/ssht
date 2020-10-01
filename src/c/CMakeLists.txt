@@ -17,7 +17,7 @@ if(NOT python)
 
     add_executable(ssht_about ssht_about.c)
     target_compile_definitions(ssht_about
-        PRIVATE SSHT_VERSION="${Ssht_VERSION}" SSHT_BUILD="${Ssht_BUILD}")
+        PRIVATE SSHT_VERSION="${PROJECT_VERSION}" SSHT_BUILD="CMake")
     set_target_properties(ssht_about
         PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR})
 endif()
