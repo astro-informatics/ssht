@@ -25,7 +25,7 @@ if(NOT python)
           ssht_core.h
           ssht_error.h
           ssht_types.h
-          ${CMAKE_BINARY_DIR}/ssht_version.h
+          ${CMAKE_CURRENT_BINARY_DIR}/ssht_version.h
           ssht.h
     DESTINATION include/ssht)
 endif()
