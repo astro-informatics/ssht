@@ -21,18 +21,18 @@ jobs:
     - uses: actions/setup-python@v2
       with:
         python-version: 3.8
-    
+
     - name: install conan
       run: |
           python3 -m pip install --upgrade pip wheel
           python3 -m pip install conan
 
     - name: create package
-      run: |
-          conan create . astro-informatics/stable \
-            --build missing \
-            -o ssht:fPIC=${{matrix.fpic}} \
-            -s build_type=${{matrix.build_type}}
+      run: >-
+          conan create . astro-informatics/stable
+          --build missing
+          -o ssht:fPIC=${{matrix.fpic}}
+          -s build_type=${{matrix.build_type}}
 
     - uses: grisumbras/locate-conan-package@latest
       id: locate_package
