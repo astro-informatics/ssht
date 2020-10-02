@@ -45,7 +45,7 @@
 #define SSHT_PROMPT "[ssht] "
 
 #ifdef __cplusplus
-#include <ctgmath>
+#include <complex>
 typedef std::complex<double> ssht_complex_double;
 extern "C" {
 #else

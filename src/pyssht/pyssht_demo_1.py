@@ -25,18 +25,17 @@ flm_syn = ssht.forward(f, L)
 
 # Compute max error in harmonic space.
 maxerr = np.abs(flm_syn - flm).max()
-print('Max error:', maxerr)
+print("Max error:", maxerr)
 
 # Plot function on sphere using mollweide projection
 f_plot, mask_array = ssht.mollweide_projection(np.abs(f), L, resolution=200)
 plt.figure()
-imgplot = plt.imshow(f_plot, interpolation='nearest')
+imgplot = plt.imshow(f_plot, interpolation="nearest")
 plt.colorbar(imgplot, fraction=0.025, pad=0.04)
-plt.imshow(mask_array, interpolation='nearest',
-           cmap=cm.gray, vmin=-1., vmax=1.)
-plt.gca().set_aspect('equal')
-plt.title('|f|')
-plt.axis('off')
+plt.imshow(mask_array, interpolation="nearest", cmap=cm.gray, vmin=-1.0, vmax=1.0)
+plt.gca().set_aspect("equal")
+plt.title("|f|")
+plt.axis("off")
 plt.show()
 
 plt.figure()

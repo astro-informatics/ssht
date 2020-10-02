@@ -13,9 +13,13 @@
  */
 
 #include <stdio.h>
+#ifdef BUILT_WITH_CMAKE
+#include "ssht_version.h"
+#endif
 
 int main(void) {
 
+#ifndef BUILT_WITH_CMAKE
   printf("%s\n", "==========================================================");
   printf("%s\n", "SSHT package to perform spin spherical harmonic transforms");
   printf("%s\n", "By Jason McEwen, Chris Wallis, Martin Buttner, ");
@@ -27,6 +31,9 @@ int main(void) {
   printf("%s%s\n", "Version: ", SSHT_VERSION);
   printf("%s%s\n", "Build: ", SSHT_BUILD);
   printf("%s\n", "==========================================================");
+#else
+  printf("%s", ssht_info());
+#endif
 
   return 0;
 

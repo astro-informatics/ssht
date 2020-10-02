@@ -1,4 +1,4 @@
-name: CMake
+name: CMake Build
 
 on:
   push:
@@ -34,7 +34,12 @@ jobs:
 
     - name: Configure CMake
       working-directory: ${{runner.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_C_COMPILER=gcc -DCMAKE_BUILD_TYPE=$BUILD_TYPE -Dpython=False -Dconan_deps=True
+      run: >-
+          cmake $GITHUB_WORKSPACE
+          -DCMAKE_C_COMPILER=gcc
+          -DCMAKE_BUILD_TYPE=$BUILD_TYPE
+          -Dpython=False
+          -Dconan_deps=True
 
     - name: Build
       working-directory: ${{runner.workspace}}/build
@@ -42,4 +47,4 @@ jobs:
 
     - name: Test
       working-directory: ${{runner.workspace}}/build
-      run: ctest -C $BUILD_TYPE
+      run: ./test_ssht

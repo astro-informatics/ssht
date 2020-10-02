@@ -32,9 +32,9 @@ def mw_weights(m):
     if m == 1:
         w = 1j * np.pi / 2
     elif m == -1:
-        w = - 1j * np.pi / 2
+        w = -1j * np.pi / 2
     elif m % 2 == 0:
-        w = 2. / (1. - m * m)
+        w = 2.0 / (1.0 - m * m)
     else:
         w = 0
 
@@ -42,7 +42,7 @@ def mw_weights(m):
 
 
 # Define parameters.
-method = 'MW'  # cant choose different ones
+method = "MW"  # cant choose different ones
 L = 4
 reality = False
 renorm_plot = True
@@ -60,7 +60,7 @@ if reality:
             ind_pm = ssht.elm2ind(el, m)
             ind_nm = ssht.elm2ind(el, -m)
             flm[ind_pm] = np.random.randn() + 1j * np.random.randn()
-            flm[ind_nm] = (-1)**m * np.conj(flm[ind_pm])
+            flm[ind_nm] = (-1) ** m * np.conj(flm[ind_pm])
 else:
     flm = np.random.randn(L * L) + 1j * np.random.randn(L * L)
 
@@ -69,11 +69,10 @@ w = np.zeros(2 * L - 1, dtype=complex)
 wr = np.zeros(2 * L - 1, dtype=complex)
 for i, m in enumerate(range(-(L - 1), L)):
     w[i] = mw_weights(m)
-    wr[i] = mw_weights(m) * np.exp(-1j * m * np.pi /
-                                   (2 * L - 1))  # apply phase shift
+    wr[i] = mw_weights(m) * np.exp(-1j * m * np.pi / (2 * L - 1))  # apply phase shift
 
 # Compute weights as function of theta.
-wr = (np.fft.fft(np.fft.ifftshift(wr)) * 2 * np.pi / (2 * L - 1)**2).real
+wr = (np.fft.fft(np.fft.ifftshift(wr)) * 2 * np.pi / (2 * L - 1) ** 2).real
 
 # Compute symmetrised quadrature weights defined on sphere.
 q = wr[0:L]
@@ -83,13 +82,13 @@ for i, j in enumerate(range(2 * L - 2, L - 1, -1)):
 
 # Integral of function given by rescaled (el,m)=(0,0) harmonic coefficient.
 I0 = flm[0] * np.sqrt(4 * np.pi)
-print('Integration using input flm:', I0)
+print("Integration using input flm:", I0)
 
 # Integrate function on sphere using all points.
 f = ssht.inverse(flm, L, Method=method, Reality=reality)
 Q = np.outer(q, np.ones(2 * L - 1))
 I1 = sum(sum(Q[:] * f[:]))
-print('Integration using all points:', I1)
+print("Integration using all points:", I1)
 
 # Integration function on sphere using L points in phi.
 # (Zero-pad to evalue the band-limited function on the correct L points.)
@@ -106,9 +105,9 @@ for i in range(int((nphi + 1) / 2)):
     f_down[:, i] = f_up[:, i * 2]
 Q_down = np.outer(q, np.ones(L))
 I2 = sum(sum(Q_down * f_down)) * (2 * L - 1) / L
-print('Integration using L points in phi:', I2)
+print("Integration using L points in phi:", I2)
 
 # Compute integration errors.
 I1_err = abs(I1 - I0)
 I2_err = abs(I2 - I0)
-print('Error:', I1_err, I2_err)
+print("Error:", I1_err, I2_err)

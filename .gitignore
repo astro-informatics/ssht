@@ -18,3 +18,4 @@ __pycache__
 MANIFEST
 dist/
 compile_commands.json
+.clangd/

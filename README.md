@@ -6,10 +6,15 @@
 [bintray-url]: https://bintray.com/mdavezac/AstroFizz/ssht:AstroFizz/1.3.2:stable/link
 [pypi-img]: https://badge.fury.io/py/pyssht.svg
 [pypi-url]: https://badge.fury.io/py/pyssht
+[codefactor-img]: https://www.codefactor.io/repository/github/astro-informatics/ssht/badge/main
+[codefactor-url]: https://www.codefactor.io/repository/github/astro-informatics/ssht/overview/main
 
 [![][docs-img]][docs-url]
 [![][bintray-img]][bintray-url]
 [![][pypi-img]][pypi-url]
+[![][codefactor-img]][codefactor-url]
+![CMake Build](https://github.com/astro-informatics/ssht/workflows/CMake%20Build/badge.svg)
+![Python Build](https://github.com/astro-informatics/ssht/workflows/Python%20Build/badge.svg)
 
 ## DESCRIPTION
 
