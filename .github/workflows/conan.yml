@@ -2,10 +2,11 @@ name: Conan Packaging
 
 on:
   push:
-      tags: ['v1.3.2']
       branches: ["main"]
+      tags:
+        - 'v[0-9]+.[0-9]+.[0-9]+'
+        - 'v[0-9]+.[0-9]+.[0-9]+rc[0-9]+'
   pull_request:
-
 
 jobs:
   testing:
@@ -29,15 +30,23 @@ jobs:
           python3 -m pip install --upgrade pip wheel
           python3 -m pip install conan
 
-    - name: create package
+    - name: create stable package
+      if: github.ref == 'refs/tags/v1.3.2'
       run: >-
           conan create . astro-informatics/stable
           --build missing
           -o ssht:fPIC=${{matrix.fpic}}
           -s build_type=${{matrix.build_type}}
 
+    - name: create testing package
+      if: github.ref != 'refs/tags/v1.3.2'
+      run: >-
+          conan create . astro-informatics/testing
+          --build missing
+          -o ssht:fPIC=${{matrix.fpic}}
+          -s build_type=${{matrix.build_type}}
+
     - name: upload to bintray
-      if: github.ref_type == 'tag'
       shell: bash
       env:
           CONAN_PASSWORD: ${{secrets.BINTRAY_TOKEN}}
