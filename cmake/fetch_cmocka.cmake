@@ -15,8 +15,3 @@ if(NOT cmocka_POPULATED)
 
   add_subdirectory(${cmocka_SOURCE_DIR} ${cmocka_BINARY_DIR})
 endif()
-
-find_file(
-  CSTDLIB_HEADERS
-  NAMES setjmp.h
-  PATHS /usr/include)
