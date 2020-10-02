@@ -1,5 +1,6 @@
-from skbuild import setup
 from pathlib import Path
+
+from skbuild import setup
 
 cmake_args = [
     "-Dpython:BOOL=ON",
@@ -8,7 +9,7 @@ cmake_args = [
     "-DfPIC=ON",
 ]
 
-build_requirements = [
+dev_requirements = [
     "setuptools",
     "wheel",
     "scikit-build",
@@ -17,6 +18,7 @@ build_requirements = [
     "cython",
     "conan",
     "pip!=20.0.0,!=20.0.1",
+    "pytest",
 ]
 
 long_description = (
@@ -34,7 +36,7 @@ setup(
         "Y. Wiaux",
     ],
     install_requires=["numpy", "scipy"],
-    extras_require={"build": build_requirements, "dev": build_requirements},
+    extras_require={"dev": dev_requirements},
     description="Fast spin spherical transforms",
     long_description=long_description,
     long_description_content_type="text/markdown",
