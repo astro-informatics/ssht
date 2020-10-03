@@ -31,22 +31,20 @@ jobs:
           python3 -m pip install conan
 
       - name: create stable package
-        if: github.ref == 'refs/tags/v1.3.2'
-        run: >-
-          conan create . astro-informatics/stable
-          --build missing
-          -o ssht:fPIC=${{matrix.fpic}}
-          -s build_type=${{matrix.build_type}}
-
-      - name: create testing package
-        if: github.ref != 'refs/tags/v1.3.2'
-        run: >-
-          conan create . astro-informatics/testing
-          --build missing
-          -o ssht:fPIC=${{matrix.fpic}}
-          -s build_type=${{matrix.build_type}}
+        shell: bash
+        run: |
+          if ["${{ github.ref }}" = "refs/tags/v1.3.2"]; then
+            channel="stable"
+          else
+            channel="testing"
+          fi
+          conan create . astro-informatics/${channel} \
+              --build missing                         \
+              -o ssht:fPIC=${{matrix.fpic}}           \
+              -s build_type=${{matrix.build_type}}    \
 
       - name: upload to bintray
+        if: github.ref_type == 'tag'
         shell: bash
         env:
           CONAN_PASSWORD: ${{secrets.BINTRAY_TOKEN}}
