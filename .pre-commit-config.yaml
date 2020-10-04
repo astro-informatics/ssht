@@ -8,3 +8,8 @@ repos:
       - id: debug-statements
       - id: no-commit-to-branch
         args: ["--branch", "master"]
+  - repo: https://github.com/prettier/prettier
+    rev: 2.1.2
+    hooks:
+      - id: prettier
+        files: '.+\.yaml'

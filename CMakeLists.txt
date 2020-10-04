@@ -33,7 +33,6 @@ endif()
 add_subdirectory(src/c)
 if(tests)
   include("fetch_cmocka")
-  list(APPEND CMAKE_MODULE_PATH ${CMAKE_BINARY_DIR}/_deps/catch2-src/contrib)
   add_subdirectory(tests)
 endif()
 

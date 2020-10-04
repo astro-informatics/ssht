@@ -1,8 +1,11 @@
-name: test conan package
+name: Conan Packaging
 
 on:
   push:
-      branches: ["main"]
+    branches: ["main"]
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"
+      - "v[0-9]+.[0-9]+.[0-9]+rc[0-9]+"
   pull_request:
 
 jobs:
@@ -12,34 +15,42 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest]
-        build_type: ["Debug"]
-        fpic: ["True"]
+        build_type: ["Release"]
+        fpic: ["True", "False"]
 
     steps:
-    - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-    - uses: actions/setup-python@v2
-      with:
-        python-version: 3.8
+      - uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
 
-    - name: install conan
-      run: |
+      - name: install conan
+        run: |
           python3 -m pip install --upgrade pip wheel
           python3 -m pip install conan
 
-    - name: create package
-      run: >-
-          conan create . astro-informatics/stable
-          --build missing
-          -o ssht:fPIC=${{matrix.fpic}}
-          -s build_type=${{matrix.build_type}}
+      - name: create stable package
+        shell: bash
+        run: |
+          if ["${{ github.ref }}" = "refs/tags/v1.3.2"]; then
+            channel="stable"
+          else
+            channel="testing"
+          fi
+          conan create . astro-informatics/${channel} \
+              --build missing                         \
+              -o ssht:fPIC=${{matrix.fpic}}           \
+              -s build_type=${{matrix.build_type}}    \
 
-    - uses: grisumbras/locate-conan-package@latest
-      id: locate_package
-      with:
-        channel: stable
+      - name: upload to bintray
+        if: github.ref_type == 'tag'
+        shell: bash
+        env:
+          CONAN_PASSWORD: ${{secrets.BINTRAY_TOKEN}}
+          CONAN_LOGIN_USERNAME: astroinformaticsci
+          CONAN_REMOTE_URL: https://api.bintray.com/conan/astro-informatics/astro-informatics
 
-    - uses: actions/upload-artifact@v1
-      with:
-        path: ${{ steps.locate_package.outputs.path }}
-        name: conan-artifacts-${{ matrix.os }}
+        run: |
+          conan remote add astro-informatics ${CONAN_REMOTE_URL}
+          conan upload ssht/1.3.2 -c --all -r=astro-informatics
