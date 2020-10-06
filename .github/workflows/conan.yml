@@ -9,7 +9,8 @@ on:
   pull_request:
 
 jobs:
-  testing:
+  conan:
+    name: conan packaging and publication on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
