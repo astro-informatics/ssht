@@ -9,7 +9,8 @@ on:
   pull_request:
 
 jobs:
-  testing:
+  conan:
+    name: conan packaging and publication on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -44,7 +45,7 @@ jobs:
               -s build_type=${{matrix.build_type}}    \
 
       - name: upload to bintray
-        if: github.ref_type == 'tag'
+        if: ${{ startsWith(github.ref, 'refs/tags') }}
         shell: bash
         env:
           CONAN_PASSWORD: ${{secrets.BINTRAY_TOKEN}}
