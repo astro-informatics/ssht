@@ -18,30 +18,21 @@
 
 ## DESCRIPTION
 
-The SSHT code provides functionality to perform fast and exact spin spherical
-harmonic transforms.
+The **SSHT** code provides functionality to perform fast and exact
+spin spherical harmonic transforms based on the sampling theorem on the
+sphere derived in <a href="http://www.jasonmcewen.org/publication/mcewen-fssht/">McEwen & Wiaux (2011)</a>.
 
-## AUTHORS
-- [J. D. McEwen](https://www.jasonmcewen.org)
-- C. G. R. Wallis
-- M. Buttner
-- B. Leistedt
-- Y. Wiaux
-
-## REFERENCES
-- J. D. McEwen and Y. Wiaux, A novel sampling theorem on the sphere, IEEE Trans. Sig. Proc., 59(12):5876-5887, 2011 [(arXiv:1110.6298)](https://arxiv.org/abs/1110.6298).
-- J. D. McEwen, G. Puy, J.-Ph. Thiran, P. Vandergheynst, D. Van De Ville, and Y. Wiaux, Sparse image reconstruction on the sphere: implications of a new sampling theorem. IEEE Trans. Image Proc., 22(6):2275-2285, 2013 [(arXiv:1205.1013)](https://arxiv.org/abs/1205.1013).
-
-## DOCUMENTATION
-See docs/index.html
-
-Usage for the python package is given in the package docstring.
 
 ## INSTALLATION
-The python package can be installed with ``pip install pyssht``.
+
+ The python package, <strong>pyssht</strong>, is available on <a href="https://pypi.org/project/pyssht/">pypi</a> can be installed with: 
+ 
+ ```bash
+ pip install pyssht
+ ```
 
 The C package can be installed with [CMake](https://cmake.org) and
-[conan](https://docs.conan.io/en/latest/howtos/other_languages_package_manager/python.html):
+[conan](https://docs.conan.io/en/latest/howtos/other_languages_package_manager/python.html).
 
 Both can be installed using pip:
 
@@ -61,4 +52,31 @@ make install
 
 The above will also download [FFTW](http://www.fftw.org/), if necessary.
 
-Instructions for installing the fortran package can be found in docs/index.html.
+
+Further instructions for installing **SSHT** Matlab and Fortran versions are available [here](https://astro-informatics.github.io/ssht/).
+
+
+## DOCUMENTATION
+
+Further documentation is available [here](https://astro-informatics.github.io/ssht/).
+
+Usage for the python package is also given in the package docstring.
+
+
+## REFERENCING
+
+If you use **SSHT** for work that results in publication, please reference <a href="https://github.com/astro-informatics/ssht">https://github.com/astro-informatics/ssht/</a> and cite our related academic papers:
+
+- J. D. McEwen and Y. Wiaux, [A novel sampling theorem on the sphere](http://www.jasonmcewen.org/publication/mcewen-fssht/), IEEE Trans. Sig. Proc., 59(12):5876-5887, 2011 [(arXiv:1110.6298)](https://arxiv.org/abs/1110.6298).
+- J. D. McEwen, G. Puy, J.-Ph. Thiran, P. Vandergheynst, D. Van De Ville, and Y. Wiaux, [Sparse image reconstruction on the sphere: implications of a new sampling theorem](http://www.jasonmcewen.org/publication/mcewen-css-2/). IEEE Trans. Image Proc., 22(6):2275-2285, 2013 [(arXiv:1205.1013)](https://arxiv.org/abs/1205.1013).
+
+
+## LICENSE
+
+SSHT is released under the GPL-3 license.  For further details see 
+[LICENSE.txt](https://github.com/astro-informatics/ssht/blob/main/LICENSE).
+
+
+## AUTHORS
+
+SSHT was initially written by [Jason McEwen](http://www.jasonmcewen.org/) but significant contributors have since been made by a number of <a href="https://github.com/astro-informatics/ssht/graphs/contributors">others</a>.
