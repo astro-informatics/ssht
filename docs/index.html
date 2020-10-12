@@ -51,7 +51,7 @@ harmonics, sphere, transforms, fourier, fast, algorithms, mcewen, wiaux" />
 <ul>
 
 <li><strong>October 2020</strong><br />
-Release of SSHT 1.3.3 (<a href="https://bintray.com/astro-informatics/astro-informatics/ssht%3Aastro-informatics/1.3.3%3Astable">bintray</a>release)
+Release of SSHT 1.3.3 (<a href="https://bintray.com/astro-informatics/astro-informatics/ssht%3Aastro-informatics/">bintray</a>release)
 
 <li><strong>September 2020</strong><br />
 Release of SSHT 1.3.1 (<a href="https://pypi.org/project/pyssht/">pypi</a>release)
@@ -89,7 +89,7 @@ Private release of SSHT 0.1.
 <img src="https://img.shields.io/badge/docs-stable-blue.svg">
 </a>
 
-<a href="https://bintray.com/astro-informatics/astro-informatics/ssht:astro-informatics/1.3.3:stable/link">
+<a href="https://bintray.com/astro-informatics/astro-informatics/ssht%3Aastro-informatics/">
 <img src="https://img.shields.io/bintray/v/astro-informatics/astro-informatics/ssht:astro-informatics?label=C%20package">
 </a>
 
@@ -118,14 +118,14 @@ Private release of SSHT 0.1.
   The <strong>SSHT</strong> code provides functionality to perform fast and exact
   spin spherical harmonic transforms based on the sampling theorem on the
   sphere derived in
-  <a href="http://www.jasonmcewen.org/publication/mcewen-fssht/">McEwen & Wiaux (2011)</a>.
+  <a href="http://www.jasonmcewen.org/publication/mcewen-fssht/">McEwen & Wiaux (2011)</a>.</p>
 
   <p>
   In some applications adjoint forward and inverse spherical harmonic
   transforms are also required (for example, when solving convex
   optimisation problems).  Functionality is also provided to perform
   fast and exact adjoint transforms, based on the fast algorithms
-  derived in <a href="http://www.jasonmcewen.org/publication/mcewen-css-2/">McEwen et al. (2013)</a>.
+  derived in <a href="http://www.jasonmcewen.org/publication/mcewen-css-2/">McEwen et al. (2013)</a>.</p>
   
   <p>
   This documentation outlines the various harmonic transforms
@@ -140,7 +140,7 @@ Private release of SSHT 0.1.
   sampling, which is important for certain applications, is also
   provided (the MWSS routines).  For the MW and MWSS routines we also
   provide fast algorithms to perform adjoint forward and inverse
-  transforms.
+  transforms.</p>
 
   <p> We also provide routines to compute spherical harmonic transforms for a number of alternative sampling scheme.  Efficient routines to perform spherical harmonic  transforms using Gauss-Legendre quadrature are inlucded (the GL routines),
   although these are slower than the MW routines, and not stable to such high band-limmits.  Finally, we provide routines to perform transforms based on the
@@ -148,7 +148,7 @@ Private release of SSHT 0.1.
   NOT implement the fast Driscoll & Healy algorithms (which may be
   found in s2kit) but simply apply the quadrature rule to implement a
   simple algorithm based on a separation of variables, hence these
-  routines are slower still.
+  routines are slower still.</p>
 
   <p> All of these transforms correspond to sampling theorems on the
   sphere, with exact forward and inverse transforms for band-limited
@@ -156,7 +156,7 @@ Private release of SSHT 0.1.
   precision.  For all of the algorithms we find maximum reconstruction
   errors are of the order 10^(-10) or considerably smaller.  Please
   see <a href="http://www.jasonmcewen.org/publication/mcewen-fssht/">our paper</a> for a discussion of the various algorithms implemented
-  in the SSHT package and for a comparison of their performance.
+  in the SSHT package and for a comparison of their performance.</p>
 
 
 <!--------------------------------------------------------------->  
@@ -169,7 +169,7 @@ Private release of SSHT 0.1.
   are provided in the C implementation only.  The Fortran version
   contains the core MW routines and additional development and testing
   routines.  Furthermore, <strong>Python</strong> and <strong>Matlab</strong> interfaces to the C implementation
-  are provided.
+  are provided.</p>
 
   <p>
   Source code is <a href="https://github.com/astro-informatics/ssht">hosted on GitHub</a>.</p>
@@ -180,7 +180,7 @@ Private release of SSHT 0.1.
  href="http://www.fftw.org/">FFTW</a> package.  Obviously suitable C and
  Fortran 90 compilers will be required to build the respective
  implementations.  Both C and Matlab mex compilers will be required
- to build the Matlab interface to the C implementation.  The python interface requires <a href="http://www.numpy.org/">numpy</a> and, in addition, the demos require <a href="http://matplotlib.org/">matplotlib</a>.
+ to build the Matlab interface to the C implementation.  The python interface requires <a href="http://www.numpy.org/">numpy</a> and, in addition, the demos require <a href="http://matplotlib.org/">matplotlib</a>.</p>
 
 
  <h4>Python installation</h4>
@@ -217,7 +217,7 @@ make
 make install</pre>
   
   <p>
-  The above will also download <a href="http://www.fftw.org/">FFTW</a>, if necessary.
+  The above will also download <a href="http://www.fftw.org/">FFTW</a>, if necessary.</p>
   
   <h4>Matlab installation</h4>
 
@@ -235,7 +235,7 @@ make install</pre>
   
   <p>
   Note that we recommend the use of the Python, Matlab or C version over Fortran (nevertheless, the Fortran version is provided for posterity).
-
+</p>
 
 <!--------------------------------------------------------------->
 <a name="documentation"><h2>Source code documentation</h2></a>
@@ -244,11 +244,12 @@ make install</pre>
   <strong>SSHT</strong> code is self documented.  Source code documentation for each language is available here:
 
   <ul>
-    <li><a href="https://pypi.org/project/pyssht/1.3.3/">Python source documentation</a> (usage for the python package is given in the package docstring)</li>
+    <li><a href="https://pypi.org/project/pyssht/">Python source documentation</a> (usage for the python package is given in the package docstring)</li>
     <li><a href="c/html/index.html">C source documentation</a></li>
     <li><a href="matlab/html/index.html">Matlab source documentation</a> (usage for the matlab package is available through matlab help documentation)</li>
     <li><a href="f90/html/index.html">Fortran source documentation</a></li>
   </ul>
+</p>
 
 <!--------------------------------------------------------------->
 <a name="referencing"><h2>Referencing</h2></a>
@@ -272,6 +273,7 @@ D. Van De Ville and Y. Wiaux, <a
 | <a href="http://dx.doi.org/10.1109/TIP.2013.2249079">DOI</a>).
 
 </blockquote>
+</p>
 
 <!--------------------------------------------------------------->
 <a name="license"><h2>License</h2></a>
@@ -303,7 +305,7 @@ along with this program.  If not, see <a href="https://www.gnu.org/licenses/">ht
 <a name="authors"><h2>Authors</h2></a>
 
 <p> <strong>SSHT</strong> was initially written by <a href="http://www.jasonmcewen.org/">Jason McEwen</a> but significant contributors have since been made by a number of <a href="https://github.com/astro-informatics/ssht/graphs/contributors">others</a>.
-
+</p>
 
 </div>
 
