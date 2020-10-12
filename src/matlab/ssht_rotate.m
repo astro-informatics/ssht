@@ -1,5 +1,5 @@
 function [f_rotated] = ssht_rotate(f, L, alpha, beta, gamma, varargin)
-% ssht_rotate - Rotate a function defined on space
+% ssht_rotate - Rotate a function defined in real space
 %
 % Rotates a function on the sphere, where the rotation is specified by a 
 % point (alpha, beta, gamma) in SO(3).

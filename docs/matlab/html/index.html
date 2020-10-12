@@ -1,0 +1,165 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=iso-8859-1" />
+<meta name="description" content="ssht: spin spherical harmonic transforms" />
+<meta name="keywords" content="ssht, spherical, harmonics, spherical
+harmonics, sphere, transforms, fourier, fast, algorithms, mcewen, wiaux" />
+<meta name="author" content="Jason McEwen / Design by Andreas Viklund - http://andreasviklund.com/" />
+<link rel="stylesheet" type="text/css" href="../../style.css" title="1024px style" media="screen,projection" />
+<title>ssht</title>
+</head>
+
+<body>
+<div id="wrap">
+
+  
+<!--------------------------- HEADER --------------------------->
+<div id="header">
+
+  <p id="toplinks">
+  
+  </p>
+
+  <table border="0" cellspacing="0">
+    <tr>
+      <td width=200 height=142 align="right" valign="top">
+	<img src="../../images/logo.png" width="140" height="140" border=0> 
+      </td>
+      <td width=500 align="left" valign="center">
+	<h1 class="title">ssht</h1>
+	<p id="slogantitle">Spin spherical harmonic transforms</p>
+      </td>			
+    </tr>
+  </table>
+
+</div>
+  
+<!--------------------------- CONTENT --------------------------->
+<div id="content">
+
+<!--------------------------------------------------------------->
+<a name="matlab"><h2>Matlab interface</h2></a>
+
+  <p> Once the Matlab interface is built, you must ensure the .m files in
+  <code>ssht/src/matlab</code> are in your path in order to run the Matlab functions.
+  A number of Matlab functions and demos illustrating their use are
+  provided.
+
+  <h4>Functions</h4>
+
+  <p>Usage of the <strong>SSHT</strong> Matlab interface will most
+  frequently require only the functions to perform forward and inverse
+  spherical harmonic transforms (<code>ssht_forward</code> and
+  <code>ssht_inverse</code> respectively).  However, a number of
+  additional functions are also provided.  A full list of Matlab
+  functions, with brief descriptions are given here:
+
+  <pre>
+
+  <a href="https://github.com/astro-informatics/ssht/tree/main/src/matlab/ssht_c2s.m">ssht_c2s</a>
+  Convert cartesian to spherical coordinates
+
+  <a href="https://github.com/astro-informatics/ssht/tree/main/src/matlab/ssht_dl.m">ssht_dl</a>
+  Compute Wigner small-d functions
+
+  <a href="https://github.com/astro-informatics/ssht/tree/main/src/matlab/ssht_dln.m">ssht_dln</a>
+  Compute Wigner small-d functions for given n
+
+  <a href="https://github.com/astro-informatics/ssht/tree/main/src/matlab/ssht_elm2ind.m">ssht_elm2ind</a>
+  Convert harmonic indices to vector index
+
+  <a href="https://github.com/astro-informatics/ssht/tree/main/src/matlab/ssht_forward.m">ssht_forward</a>
+  Compute forward spin spherical harmonic transform
+
+  <a href="https://github.com/astro-informatics/ssht/tree/main/src/matlab/ssht_forward_adjoint.m">ssht_forward_adjoint</a>
+  Compute adjoint forward spin spherical harmonic transform
+
+  <a href="https://github.com/astro-informatics/ssht/tree/main/src/matlab/ssht_ind2elm.m">ssht_ind2elm</a>
+  Convert vector index to harmonic indices
+
+  <a href="https://github.com/astro-informatics/ssht/tree/main/src/matlab/ssht_inverse.m">ssht_inverse</a>
+  Compute inverse spin spherical harmonic transform
+
+  <a href="https://github.com/astro-informatics/ssht/tree/main/src/matlab/ssht_inverse_adjoint.m">ssht_inverse_adjoint</a>
+  Compute adjoint inverse spin spherical harmonic transform
+
+  <a href="https://github.com/astro-informatics/ssht/tree/main/src/matlab/ssht_plot_harmonic.m">ssht_plot_harmonic</a>
+  Plot spherical harmonic coefficients
+
+  <a href="https://github.com/astro-informatics/ssht/tree/main/src/matlab/ssht_plot_mollweide.m">ssht_plot_mollweide</a>
+  Plot function using Mollweide projection
+
+  <a href="https://github.com/astro-informatics/ssht/tree/main/src/matlab/ssht_plot_sphere.m">ssht_plot_sphere</a>
+  Plot function on sphere
+
+  <a href="https://github.com/astro-informatics/ssht/tree/main/src/matlab/ssht_rotate.m">ssht_rotate</a>
+  Rotate a function defined in real space
+
+  <a href="https://github.com/astro-informatics/ssht/tree/main/src/matlab/ssht_rotate_flm.m">ssht_rotate_flm</a>
+  Rotate a function in harmonic space
+
+  <a href="https://github.com/astro-informatics/ssht/tree/main/src/matlab/ssht_s2c.m">ssht_s2c</a>
+  Convert spherical to cartesian coordinates
+
+  <a href="https://github.com/astro-informatics/ssht/tree/main/src/matlab/ssht_sampling.m">ssht_sampling</a>
+  Compute sample positions
+  </pre>
+
+  <p> To access the documentation for each function in Matlab, simply
+  run:
+  <pre> help &ltfunction&gt</pre>
+  <p> where <code>&ltfunction&gt</code> is the function name. 
+  
+
+  <h4>Demos</h4>
+
+  <p> A number of demos are provided to illustrate the use of the
+  Matlab interface.  The demos start extremely simple and
+  progressively become more complicated/flexible.
+
+  <pre>
+  <a href="https://github.com/astro-informatics/ssht/tree/main/src/matlab/ssht_demo0.m">ssht_demo0</a>
+  Plot spherical harmonic functions on the sphere.
+
+  <a href="https://github.com/astro-informatics/ssht/tree/main/src/matlab/ssht_demo1.m">ssht_demo1</a>
+  Simple demo to compute inverse and forward transform of complex
+  scalar function, using simplest interface with default options.
+
+  <a href="https://github.com/astro-informatics/ssht/tree/main/src/matlab/ssht_demo2.m">ssht_demo2</a>
+  Simple demo to compute inverse and forward transform of real scalar
+  function, using simplest interface with default options.
+
+  <a href="https://github.com/astro-informatics/ssht/tree/main/src/matlab/ssht_demo3.m">ssht_demo3</a>
+  Demo to compute inverse and forward transform of spin function,
+  using standard interface with various options.
+
+  <a href="https://github.com/astro-informatics/ssht/tree/main/src/matlab/ssht_demo4.m">ssht_demo4</a>
+  Demo to compute inverse and forward transform of spin function,
+  using polar interface with various options.
+
+  <a href="https://github.com/astro-informatics/ssht/tree/main/src/matlab/ssht_demo5.m">ssht_demo5</a>
+  Simulate a Gaussian cosmic microwave background (CMB).
+
+  <a href="https://github.com/astro-informatics/ssht/tree/main/src/matlab/ssht_demo6.m">ssht_demo6</a>
+  Smooth Earth topography map by applying a Gaussian filter in
+  harmonic space.
+
+  <a href="https://github.com/astro-informatics/ssht/tree/main/src/matlab/ssht_demo7.m">ssht_demo7</a>
+  Integrate a band-limited function on the sphere using the
+  symmetrised quadrature weights. 
+
+  <a href="https://github.com/astro-informatics/ssht/tree/main/src/matlab/ssht_demo8.m">ssht_demo8</a>
+  Evaluate Wigner and spherical harmonic functions.
+
+  <a href="https://github.com/astro-informatics/ssht/tree/main/src/matlab/ssht_demo_rotation.m">ssht_demo_rotation</a>
+  Plot spherical harmonic function on the sphere, then rotate it 
+  and plot the rotation.
+  </pre>
+
+ <p> To access the documentation for each demo in Matlab, simply
+  run:
+  <pre> help &ltdemo&gt</pre>
+  <p> where <code>&ltdemo&gt</code> is the demo name.
+
+</div>
