@@ -40,7 +40,7 @@ Both can be installed using pip:
 pip install conan cmake
 ```
 
-Then ssht can be compiled with:
+Then **SSHT** can be compiled with:
 
 ```bash
 git clone https://github.com/astro-informatics/ssht.git
