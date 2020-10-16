@@ -1,7 +1,7 @@
 #include <string.h>
 
 #include "interface.h"
-#include "ssht.h"
+#include "ssht/ssht.h"
 #include "utilities.h"
 
 void ssht_real_inverse(

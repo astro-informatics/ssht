@@ -1,4 +1,4 @@
-#include "ssht.h"
+#include "ssht/ssht.h"
 #include "utilities.h"
 
 #include <complex.h>

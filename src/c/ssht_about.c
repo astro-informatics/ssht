@@ -14,7 +14,7 @@
 
 #include <stdio.h>
 #ifdef BUILT_WITH_CMAKE
-#include "ssht_version.h"
+#include "ssht/ssht_version.h"
 #endif
 
 int main(void) {
