@@ -18,11 +18,11 @@
 #include <tgmath.h>  // Must be before fftw3.h
 #include <fftw3.h>
 
-#include "ssht_types.h"
-#include "ssht_error.h"
-#include "ssht_dl.h"
-#include "ssht_sampling.h"
-#include "ssht_adjoint.h"
+#include "ssht/ssht_types.h"
+#include "ssht/ssht_error.h"
+#include "ssht/ssht_dl.h"
+#include "ssht/ssht_sampling.h"
+#include "ssht/ssht_adjoint.h"
 
 
 //============================================================================

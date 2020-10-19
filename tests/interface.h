@@ -3,8 +3,8 @@
 
 #include <stddef.h>
 
-#include "ssht_dl.h"
-#include "ssht_types.h"
+#include "ssht/ssht_dl.h"
+#include "ssht/ssht_types.h"
 
 /*! Identifies different implementation of the transforms. */
 typedef enum {

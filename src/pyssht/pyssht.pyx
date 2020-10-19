@@ -23,7 +23,7 @@ cdef enum EQUATORIAL_PROJECTION_TYPE:
 
 #----------------------------------------------------------------------------------------------------#
 
-cdef extern from "ssht.h":
+cdef extern from "ssht/ssht.h":
 
         double ssht_sampling_mw_t2theta(int t, int L) #  adjoints
         double ssht_sampling_mw_p2phi(int p, int L)

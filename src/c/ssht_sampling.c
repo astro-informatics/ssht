@@ -11,7 +11,7 @@
  */
 
 
-#include "ssht_types.h"
+#include "ssht/ssht_types.h"
 
 #define ABS(x) ((x) >= 0 ? (x) : -(x))
 

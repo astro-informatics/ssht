@@ -41,9 +41,9 @@
 
 #include <stdlib.h>
 #include <math.h>
-#include "ssht_types.h"
-#include "ssht_error.h"
-#include "ssht_dl.h"
+#include "ssht/ssht_types.h"
+#include "ssht/ssht_error.h"
+#include "ssht/ssht_dl.h"
 
 double logfact(int n);
 

@@ -7,8 +7,8 @@
 #include <string.h>
 
 #include "interface.h"
-#include "ssht.h"
-#include "ssht_error.h"
+#include "ssht/ssht.h"
+#include "ssht/ssht_error.h"
 #include "utilities.h"
 
 #include <cmocka.h>

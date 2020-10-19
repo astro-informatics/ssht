@@ -48,4 +48,4 @@ jobs:
 
       - name: Test
         working-directory: ${{runner.workspace}}/build
-        run: ./test_ssht
+        run: ctest -C $BUILD_TYPE

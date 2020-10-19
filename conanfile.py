@@ -16,6 +16,7 @@ class SshtConan(ConanFile):
     generators = "cmake"
     exports_sources = [
         "src/c/*",
+        "include/ssht/*.h",
         "tests/CMakeLists.txt",
         "tests/*.c",
         "tests/*.h",

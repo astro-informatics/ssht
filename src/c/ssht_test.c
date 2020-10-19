@@ -19,7 +19,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "ssht.h"
+#include "ssht/ssht.h"
 
 #define NREPEAT 5
 #define MAX(a, b) ((a) > (b) ? (a) : (b))
