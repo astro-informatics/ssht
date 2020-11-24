@@ -2,13 +2,12 @@ cmake_minimum_required(VERSION 3.12)
 
 project(
   Ssht
-  VERSION "1.3.3"
+  VERSION "1.3.4"
   DESCRIPTION "Fast and exact spin spherical harmonic transforms"
   HOMEPAGE_URL "http://astro-informatics.github.io/ssht/"
   LANGUAGES C)
 
 option(tests "Enable testing" ON)
-option(python "Creates python package only" OFF)
 option(conan_deps "Download dependencies using conan" OFF)
 if(NOT WIN32)
   option(fPIC "Compile with fPIC" ON)
@@ -36,12 +35,9 @@ if(tests)
   add_subdirectory(tests)
 endif()
 
-if(NOT python)
+if(NOT SKBUILD)
   include("exporting")
 else()
-  include("python-setup")
-  find_python()
-  setup_skbuild()
   find_package(PythonExtensions REQUIRED)
   find_package(Cython REQUIRED)
   find_package(NumPy REQUIRED)

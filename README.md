@@ -3,7 +3,7 @@
 [docs-img]: https://img.shields.io/badge/docs-stable-blue.svg
 [docs-url]: https://astro-informatics.github.io/ssht/
 [bintray-img]: https://img.shields.io/bintray/v/astro-informatics/astro-informatics/ssht:astro-informatics?label=C%20package
-[bintray-url]: https://bintray.com/astro-informatics/astro-informatics/ssht:astro-informatics/1.3.3:stable/link
+[bintray-url]: https://bintray.com/astro-informatics/astro-informatics/ssht:astro-informatics/1.3.4:stable/link
 [pypi-img]: https://badge.fury.io/py/pyssht.svg
 [pypi-url]: https://badge.fury.io/py/pyssht
 [codefactor-img]: https://www.codefactor.io/repository/github/astro-informatics/ssht/badge/main

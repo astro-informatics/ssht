@@ -3,7 +3,6 @@ from pathlib import Path
 from skbuild import setup
 
 cmake_args = [
-    "-Dpython:BOOL=ON",
     "-Dtests:BOOL=OFF",
     "-Dconan_deps=ON",
     "-DfPIC=ON",
@@ -27,7 +26,7 @@ long_description = (
 
 setup(
     name="pyssht",
-    version="1.3.3",
+    version="1.3.4",
     author=[
         "J. D. McEwen",
         "C. R. G. Wallis",
