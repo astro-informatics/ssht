@@ -14,7 +14,7 @@ if(fPIC)
   set_target_properties(ssht PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
 endif()
 
-if(NOT python)
+if(NOT SKBUILD)
   install(
     TARGETS ssht
     EXPORT SshtTargets

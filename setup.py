@@ -3,7 +3,6 @@ from pathlib import Path
 from skbuild import setup
 
 cmake_args = [
-    "-Dpython:BOOL=ON",
     "-Dtests:BOOL=OFF",
     "-Dconan_deps=ON",
     "-DfPIC=ON",
