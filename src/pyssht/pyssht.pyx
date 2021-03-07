@@ -1086,12 +1086,10 @@ def rotate_image(image, rot_list, Method=None):
   phi = (j_array)*2*np.pi/Width
 
   # convert theta phi to x, y, z
-
   x, y, z = s2_to_cart(theta, phi)
 
   # rotate x, y, z
-
-  x, y, z = rot_cart_2d(x, y, z, rot_list)
+  x, y, z = rot_cart_2d(-x, -y, -z, rot_list)
 
   # convert x, y, z, to theta, phi
   theta, phi = cart_to_s2(x, y, z)
