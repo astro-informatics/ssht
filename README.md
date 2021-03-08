@@ -74,7 +74,7 @@ If you use **SSHT** for work that results in publication, please reference <a hr
 ## LICENSE
 
 SSHT is released under the GPL-3 license.  For further details see 
-[LICENSE.txt](https://github.com/astro-informatics/ssht/blob/main/LICENSE).
+[LICENSE](https://github.com/astro-informatics/ssht/blob/main/LICENSE).
 
 
 ## AUTHORS
