@@ -17,7 +17,7 @@ configure_File(cmake/SshtConfigVersion.in.cmake
 
 # Then for installation tree
 file(RELATIVE_PATH REL_INCLUDE_DIR
-    "${CMAKE_INSTALL_PREFIX}/share/cmake/ssht"
+    "${CMAKE_INSTALL_PREFIX}/lib/cmake/ssht"
     "${CMAKE_INSTALL_PREFIX}/include"
 )
 set(ALL_INCLUDE_DIRS "\${Ssht_CMAKE_DIR}/${REL_INCLUDE_DIR}")
@@ -29,8 +29,8 @@ configure_file(cmake/SshtConfig.in.cmake
 install(FILES
   "${PROJECT_BINARY_DIR}/CMakeFiles/SshtConfig.cmake"
   "${PROJECT_BINARY_DIR}/SshtConfigVersion.cmake"
-    DESTINATION share/cmake/ssht
+    DESTINATION lib/cmake/ssht
     COMPONENT dev
 )
 
-install(EXPORT SshtTargets DESTINATION share/cmake/ssht COMPONENT dev)
+install(EXPORT SshtTargets DESTINATION lib/cmake/ssht COMPONENT dev)
