@@ -6,31 +6,24 @@ if(NOT NOEXPORT)
   export(PACKAGE Ssht)
 endif()
 
-# First in binary dir
-set(ALL_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}")
-configure_File(cmake/SshtConfig.in.cmake
-  "${PROJECT_BINARY_DIR}/SshtConfig.cmake" @ONLY
-)
-configure_File(cmake/SshtConfigVersion.in.cmake
-  "${PROJECT_BINARY_DIR}/SshtConfigVersion.cmake" @ONLY
-)
+set(INCLUDE_INSTALL_DIR include/)
+include(CMakePackageConfigHelpers)
+configure_package_config_file(cmake/SshtConfig.in.cmake
+  "${PROJECT_BINARY_DIR}/SshtConfig.cmake"
+  INSTALL_DESTINATION lib/cmake/Ssht
+  PATH_VARS INCLUDE_INSTALL_DIR)
+write_basic_package_version_file(
+  SshtConfigVersion.cmake
+  VERSION ${PROJECT_VERSION}
+  COMPATIBILITY SameMajorVersion)
 
-# Then for installation tree
-file(RELATIVE_PATH REL_INCLUDE_DIR
-    "${CMAKE_INSTALL_PREFIX}/lib/cmake/ssht"
-    "${CMAKE_INSTALL_PREFIX}/include"
-)
-set(ALL_INCLUDE_DIRS "\${Ssht_CMAKE_DIR}/${REL_INCLUDE_DIR}")
-configure_file(cmake/SshtConfig.in.cmake
-  "${PROJECT_BINARY_DIR}/CMakeFiles/SshtConfig.cmake" @ONLY
-)
-
-# Finally install all files
-install(FILES
-  "${PROJECT_BINARY_DIR}/CMakeFiles/SshtConfig.cmake"
-  "${PROJECT_BINARY_DIR}/SshtConfigVersion.cmake"
+if(NOT CONAN_CENTER)
+  install(FILES
+    "${PROJECT_BINARY_DIR}/SshtConfig.cmake"
+    "${PROJECT_BINARY_DIR}/SshtConfigVersion.cmake"
     DESTINATION lib/cmake/ssht
     COMPONENT dev
-)
+  )
+endif()
 
 install(EXPORT SshtTargets DESTINATION lib/cmake/ssht COMPONENT dev)
