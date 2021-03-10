@@ -25,7 +25,7 @@ sphere derived in <a href="http://www.jasonmcewen.org/publication/mcewen-fssht/"
 
 ## INSTALLATION
 
- The python package, <strong>pyssht</strong>, is available on <a href="https://pypi.org/project/pyssht/">pypi</a> and can be installed with: 
+ The python package, **pyssht**, is available on <a href="https://pypi.org/project/pyssht/">pypi</a> and can be installed with: 
  
  ```bash
  pip install pyssht
