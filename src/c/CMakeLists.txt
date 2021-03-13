@@ -5,8 +5,9 @@ target_include_directories(
   PUBLIC $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>
          $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
          $<INSTALL_INTERFACE:include>)
-set_target_properties(ssht PROPERTIES C_STANDARD 99 ARCHIVE_OUTPUT_DIRECTORY
-                                                    ${PROJECT_BINARY_DIR}/lib)
+set_target_properties(ssht PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}/lib)
+target_compile_features(ssht PUBLIC c_std_99)
+
 configure_file(${PROJECT_SOURCE_DIR}/include/ssht/ssht_version.in.h
                ${PROJECT_BINARY_DIR}/include/ssht/ssht_version.h)
 

@@ -2,8 +2,8 @@
 
 [docs-img]: https://img.shields.io/badge/docs-stable-blue.svg
 [docs-url]: https://astro-informatics.github.io/ssht/
-[bintray-img]: https://img.shields.io/bintray/v/astro-informatics/astro-informatics/ssht:astro-informatics?label=C%20package
-[bintray-url]: https://bintray.com/astro-informatics/astro-informatics/ssht:astro-informatics/1.3.5:stable/link
+[bintray-img]: https://img.shields.io/badge/ConanCenter-C%20Package-red.svg
+[bintray-url]: https://conan.io/center/ssht
 [pypi-img]: https://badge.fury.io/py/pyssht.svg
 [pypi-url]: https://badge.fury.io/py/pyssht
 [codefactor-img]: https://www.codefactor.io/repository/github/astro-informatics/ssht/badge/main
@@ -25,7 +25,7 @@ sphere derived in <a href="http://www.jasonmcewen.org/publication/mcewen-fssht/"
 
 ## INSTALLATION
 
- The python package, <strong>pyssht</strong>, is available on <a href="https://pypi.org/project/pyssht/">pypi</a> and can be installed with: 
+ The python package, **pyssht**, is available on <a href="https://pypi.org/project/pyssht/">pypi</a> and can be installed with: 
  
  ```bash
  pip install pyssht
@@ -74,7 +74,7 @@ If you use **SSHT** for work that results in publication, please reference <a hr
 ## LICENSE
 
 SSHT is released under the GPL-3 license.  For further details see 
-[LICENSE.txt](https://github.com/astro-informatics/ssht/blob/main/LICENSE).
+[LICENSE](https://github.com/astro-informatics/ssht/blob/main/LICENSE).
 
 
 ## AUTHORS

@@ -1089,7 +1089,7 @@ def rotate_image(image, rot_list, Method=None):
   x, y, z = s2_to_cart(theta, phi)
 
   # rotate x, y, z
-  x, y, z = rot_cart_2d(-x, -y, -z, rot_list)
+  x, y, z = rot_cart_2d(x, y, z, [-u for u in rot_list[::-1]])
 
   # convert x, y, z, to theta, phi
   theta, phi = cart_to_s2(x, y, z)
@@ -1113,7 +1113,6 @@ def bilinear_interpolate(im, x, y):
   y0 = np.floor(y).astype(int)
   y1 = y0 + 1
 
-
   wa = (x1-x) * (y1-y)
   wb = (x1-x) * (y-y0)
   wc = (x-x0) * (y1-y)
@@ -1124,18 +1123,7 @@ def bilinear_interpolate(im, x, y):
   y0 = np.clip(y0, 0, im.shape[0]-1)
   y1 = np.clip(y1, 0, im.shape[0]-1)
 
-
-  new_image = np.zeros_like(im)
-
-  for i_channel in range(im.shape[2]):
-    Ia = im[ y0, x0, i_channel ]
-    Ib = im[ y1, x0, i_channel ]
-    Ic = im[ y0, x1, i_channel ]
-    Id = im[ y1, x1, i_channel ]
-
-    new_image[...,i_channel] = wa*Ia + wb*Ib + wc*Ic + wd*Id
-
-  return new_image
+  return wa*im[y0, x0] + wb*im[y1, x0] + wc*im[y0, x1] + wd*im[y1, x1]
 
 
 #----------------------------------------------------------------------------------------------------#

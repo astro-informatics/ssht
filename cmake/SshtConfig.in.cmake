@@ -1,8 +1,13 @@
-get_filename_component(Ssht_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
-message(STATUS "Linking to ssht package in ${Ssht_CMAKE_DIR}")
-if(NOT TARGET ssht AND EXISTS "${Ssht_CMAKE_DIR}/SshtTargets.cmake")
-  include("${Ssht_CMAKE_DIR}/SshtTargets.cmake")
+set(Ssht_VERSION "@PROJECT_VERSION@")
+
+@PACKAGE_INIT@
+
+if(NOT "@conan_deps@" AND NOT "@CONAN_EDITABLE_MODE@")
+  include(CMakeFindDependencyMacro)
+  find_dependency(FFTW3 REQUIRED COMPONENTS SERIAL DOUBLE)
 endif()
 
-set(Ssht_INCLUDE_DIRS "@ALL_INCLUDE_DIRS@")
+set(Ssht_INCLUDE_DIRS "@PACKAGE_INCLUDE_INSTALL_DIR@")
 set(Ssht_LIBRARIES ssht)
+
+check_required_components(Ssht)
