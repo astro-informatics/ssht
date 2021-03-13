@@ -26,7 +26,7 @@ long_description = (
 
 setup(
     name="pyssht",
-    version="1.3.6rc1",
+    version="1.3.6",
     author=[
         "J. D. McEwen",
         "C. R. G. Wallis",
