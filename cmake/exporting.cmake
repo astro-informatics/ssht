@@ -17,7 +17,7 @@ write_basic_package_version_file(
   VERSION ${PROJECT_VERSION}
   COMPATIBILITY SameMajorVersion)
 
-if(NOT CONAN_CENTER)
+if(NOT CONAN_EXPORTED)
   install(FILES
     "${PROJECT_BINARY_DIR}/SshtConfig.cmake"
     "${PROJECT_BINARY_DIR}/SshtConfigVersion.cmake"

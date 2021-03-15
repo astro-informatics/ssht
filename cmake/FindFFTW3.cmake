@@ -20,7 +20,6 @@
 #                             and PARALLEL: SERIAL, OPENMP, MPI, THREADS.
 #  FFTW3_$KIND_$PARALLEL_LIBRARY - The libraries needed to use.
 #  FFTW3_INCLUDE_DIR_PARALLEL - The FFTW3 include directories for parallels mode.
-
 cmake_policy(SET CMP0054 NEW)
 
 if(FFTW3_FOUND)
@@ -229,7 +228,7 @@ find_package_handle_standard_args(FFTW3
     HANDLE_COMPONENTS
 )
 
-add_library(fftw3 INTERFACE IMPORTED)
-target_link_libraries(fftw3 INTERFACE ${FFTW3_DOUBLE_SERIAL_LIBRARY})
-target_include_directories(fftw3 INTERFACE ${FFTW3_INCLUDE_DIRS})
-target_compile_definitions(fftw3 INTERFACE ${FFTW3_DEFINITIONS})
+add_library(fftw::fftw INTERFACE IMPORTED)
+target_link_libraries(fftw::fftw INTERFACE ${FFTW3_DOUBLE_SERIAL_LIBRARY})
+target_include_directories(fftw::fftw INTERFACE ${FFTW3_INCLUDE_DIRS})
+target_compile_definitions(fftw::fftw INTERFACE ${FFTW3_DEFINITIONS})
