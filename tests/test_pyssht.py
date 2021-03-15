@@ -140,7 +140,7 @@ def test_rotation(rng: np.random.Generator, method="MW", L=256):
     f[20:60] = 10
     flm = ssht.forward(f, L, Reality=True, Method=method)
     f = ssht.inverse(flm, L, Reality=True, Method=method)
-    rotations = np.pi * rng.uniform(-1, 1, size=3)
+    rotations = np.pi * rng.uniform(0, 1, size=3)
     rotated_flm = ssht.rotate_flms(flm, *rotations, L)
     rotated_image = ssht.rotate_image(f, rotations)
     from_rotated_flm = ssht.inverse(rotated_flm, L, Reality=True, Method=method)
