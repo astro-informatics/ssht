@@ -109,7 +109,7 @@ macro(find_specific_libraries KIND PARALLEL)
 endmacro()
 
 if(NOT FFTW3_FIND_COMPONENTS)
-    set(FFTW3_FIND_COMPONENTS SINGLE DOUBLE LONGDOUBLE SERIAL)
+    set(FFTW3_FIND_COMPONENTS DOUBLE SERIAL)
 endif()
 
 string(TOUPPER "${FFTW3_FIND_COMPONENTS}" FFTW3_FIND_COMPONENTS)
@@ -243,7 +243,7 @@ find_package_handle_standard_args(
     VERSION_VAR FFTW3_VERSION_STRING
     HANDLE_COMPONENTS)
 
-add_library(fftw::fftw INTERFACE IMPORTED)
-target_link_libraries(fftw::fftw INTERFACE ${FFTW3_DOUBLE_SERIAL_LIBRARY})
-target_include_directories(fftw::fftw INTERFACE ${FFTW3_INCLUDE_DIRS})
-target_compile_definitions(fftw::fftw INTERFACE ${FFTW3_DEFINITIONS})
+add_library(FFTW3::FFTW3 INTERFACE IMPORTED)
+target_link_libraries(FFTW3::FFTW3 INTERFACE ${FFTW3_DOUBLE_SERIAL_LIBRARY})
+target_include_directories(FFTW3::FFTW3 INTERFACE ${FFTW3_INCLUDE_DIRS})
+target_compile_definitions(FFTW3::FFTW3 INTERFACE ${FFTW3_DEFINITIONS})

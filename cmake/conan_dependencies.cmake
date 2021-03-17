@@ -5,12 +5,16 @@ if(NOT EXISTS "${CMAKE_BINARY_DIR}/conan.cmake")
          "${CMAKE_BINARY_DIR}/conan.cmake" TLS_VERIFY ON)
 endif()
 include(${CMAKE_BINARY_DIR}/conan.cmake)
-conan_cmake_run(CONANFILE ${PROJECT_SOURCE_DIR}/conanfile.txt BASIC_SETUP CMAKE_TARGETS
-                BUILD missing)
+
+conan_cmake_configure(CONANFILE ${PROJECT_SOURCE_DIR}/conanfile.txt GENERATORS
+                      cmake_find_package)
 conan_cmake_autodetect(settings)
 conan_cmake_install(
     PATH_OR_REFERENCE
     ${PROJECT_SOURCE_DIR}/conanfile.txt
+    GENERATOR
+    cmake_find_package
+    cmake_paths
     BUILD
     missing
     REMOTE
