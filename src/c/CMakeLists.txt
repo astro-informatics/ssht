@@ -19,7 +19,7 @@ endif()
 if(NOT SKBUILD)
     install(
         TARGETS ssht
-        EXPORT SshtTargets
+        EXPORT sshtTargets
         ARCHIVE DESTINATION lib
         PUBLIC_HEADER)
     install(
