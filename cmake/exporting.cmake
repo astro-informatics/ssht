@@ -28,4 +28,5 @@ endif()
 install(
     EXPORT SshtTargets
     DESTINATION lib/cmake/ssht
-    COMPONENT dev)
+    COMPONENT dev
+    NAMESPACE astro-informatics)
