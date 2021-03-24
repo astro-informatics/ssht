@@ -1,29 +1,32 @@
 # Exports ssht so other packages can access it
-export(TARGETS ssht FILE "${PROJECT_BINARY_DIR}/SshtTargets.cmake")
+export(TARGETS ssht FILE "${PROJECT_BINARY_DIR}/sshtTargets.cmake")
 
 # Avoids creating an entry in the cmake registry.
 if(NOT NOEXPORT)
-  export(PACKAGE Ssht)
+    export(PACKAGE ssht)
 endif()
 
 set(INCLUDE_INSTALL_DIR include/)
 include(CMakePackageConfigHelpers)
-configure_package_config_file(cmake/SshtConfig.in.cmake
-  "${PROJECT_BINARY_DIR}/SshtConfig.cmake"
-  INSTALL_DESTINATION lib/cmake/Ssht
-  PATH_VARS INCLUDE_INSTALL_DIR)
+configure_package_config_file(
+    cmake/sshtConfig.in.cmake "${PROJECT_BINARY_DIR}/sshtConfig.cmake"
+    INSTALL_DESTINATION lib/cmake/ssht
+    PATH_VARS INCLUDE_INSTALL_DIR)
 write_basic_package_version_file(
-  SshtConfigVersion.cmake
-  VERSION ${PROJECT_VERSION}
-  COMPATIBILITY SameMajorVersion)
+    sshtConfigVersion.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion)
 
-if(NOT CONAN_CENTER)
-  install(FILES
-    "${PROJECT_BINARY_DIR}/SshtConfig.cmake"
-    "${PROJECT_BINARY_DIR}/SshtConfigVersion.cmake"
-    DESTINATION lib/cmake/ssht
-    COMPONENT dev
-  )
+if(NOT CONAN_EXPORTED)
+    install(
+        FILES "${PROJECT_BINARY_DIR}/sshtConfig.cmake"
+              "${PROJECT_BINARY_DIR}/sshtConfigVersion.cmake"
+        DESTINATION lib/cmake/ssht
+        COMPONENT dev)
 endif()
 
-install(EXPORT SshtTargets DESTINATION lib/cmake/ssht COMPONENT dev)
+install(
+    EXPORT sshtTargets
+    DESTINATION lib/cmake/ssht
+    COMPONENT dev
+    NAMESPACE ssht)

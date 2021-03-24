@@ -2,15 +2,15 @@
 
 [docs-img]: https://img.shields.io/badge/docs-stable-blue.svg
 [docs-url]: https://astro-informatics.github.io/ssht/
-[bintray-img]: https://img.shields.io/badge/ConanCenter-C%20Package-red.svg
-[bintray-url]: https://conan.io/center/ssht
+[conan-img]: https://img.shields.io/badge/ConanCenter-C%20Package-red.svg
+[conan-url]: https://conan.io/center/ssht
 [pypi-img]: https://badge.fury.io/py/pyssht.svg
 [pypi-url]: https://badge.fury.io/py/pyssht
 [codefactor-img]: https://www.codefactor.io/repository/github/astro-informatics/ssht/badge/main
 [codefactor-url]: https://www.codefactor.io/repository/github/astro-informatics/ssht/overview/main
 
 [![][docs-img]][docs-url]
-[![][bintray-img]][bintray-url]
+[![][conan-img]][conan-url]
 [![][pypi-img]][pypi-url]
 [![][codefactor-img]][codefactor-url]
 ![CMake Build](https://github.com/astro-informatics/ssht/workflows/CMake%20Build/badge.svg)

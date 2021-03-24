@@ -1,7 +1,7 @@
 # ======== COMPILER ========
 
 CC      = gcc
-OPT		= -std=c99 -pedantic -Wall -O3 -fopenmp -DSSHT_VERSION=\"1.3.6\" -DSSHT_BUILD=\"`git rev-parse HEAD`\"
+OPT		= -std=c99 -pedantic -Wall -O3 -fopenmp -DSSHT_VERSION=\"1.3.7\" -DSSHT_BUILD=\"`git rev-parse HEAD`\"
 #OPT	= -Wall -g -fopenmp -DSSHT_VERSION=\"1.0b1\" -DSSHT_BUILD=\"`git rev-parse HEAD`\"
 
 
