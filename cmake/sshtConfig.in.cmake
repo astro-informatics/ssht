@@ -5,7 +5,7 @@ set(SSHT_VERSION "@PROJECT_VERSION@")
 include(CMakeFindDependencyMacro)
 find_dependency(FFTW3 REQUIRED)
 
-set(SSHT_INCLUDE_DIRS "@PACKAGE_INCLUDE_INSTALL_DIR@")
+include("${CMAKE_CURRENT_LIST_DIR}/sshtTargets.cmake")
 set(SSHT_LIBRARIES ssht::ssht)
 
 check_required_components(SSHT)
