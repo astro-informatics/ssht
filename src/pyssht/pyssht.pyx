@@ -457,6 +457,172 @@ class ssht_input_error(TypeError):
 class ssht_spin_error(ValueError):
     '''Raise this when the spin is none zero but Reality is true'''
 
+#----------------------------------------------------------------------------------------------------#
+_preferred_backend = "ssht"
+_ducc0_nthreads = 0
+
+try:
+    import ducc0
+except:
+    ducc0 = None
+
+def select_ducc_backend(nthreads=None):
+    global _preferred_backend
+    if ducc0 is not None:
+        _preferred_backend = "ducc"
+        if nthreads is not None:
+            global _ducc0_nthreads
+            _ducc0_nthreads = nthreads
+    else:
+        print("DUCC backend requested, but the relevant package cannot be "
+              "imported. Leaving backend unchanged.")
+
+def select_ssht_backend():
+    global _preferred_backend
+    _preferred_backend = "ssht"
+
+def _ducc0_nalm(lmax, mmax):
+    return ((mmax + 1) * (mmax + 2)) // 2 + (mmax + 1) * (lmax - mmax)
+
+def _ducc0_get_theta(L, Method):
+    if Method == 'MW' or Method == 'MW_pole':
+        return pi*(2.*np.arange(L)+1) / ( 2.0 * float(L) - 1.0 )
+             
+    if Method == 'MWSS':
+        return pi*np.arange(L+1)/float(L)
+
+    if Method == 'DH':
+        return pi*(2*np.arange(2*L)+1.) / ( 4.0 * float(L) )
+           
+    if Method == 'GL':
+        return ducc0.misc.GL_thetas(L)
+
+def _ducc0_extract_real_alm(flm, L):
+    res = np.empty((_ducc0_nalm(L-1, L-1),), dtype=np.complex128)
+    ofs = 0
+    for m in range(L):
+        for l in range(m,L):
+            res[ofs+l-m] = flm[l*l+l+m]
+        ofs += L-m
+    return res
+
+def _ducc0_extract_complex_alm(flm, L, Spin):
+    res = np.empty((2, _ducc0_nalm(L-1, L-1),), dtype=np.complex128)
+    ofs = 0
+    for m in range(L):
+        mfac = (-1)**m
+        for l in range(m,L):
+            res[0, ofs+l-m] = 0.5*(flm[l*l+l+m]+mfac*np.conj(flm[l*l+l-m]))
+            res[1, ofs+l-m] = 0.5*(flm[l*l+l+m]-mfac*np.conj(flm[l*l+l-m]))/(1j)
+        ofs += L-m
+    return res
+
+def _ducc0_inverse(flm, L, Spin, Method, Reality):
+    theta = _ducc0_get_theta(L, Method)
+    ntheta = theta.shape[0]
+    nphi = 2*L-1
+    if Method == 'MWSS':
+        nphi += 1
+    if Reality:
+        alm = _ducc0_extract_real_alm(flm, L)
+        leg = ducc0.sht.experimental.alm2leg(
+            alm=alm.reshape((1, -1)), theta=theta, lmax=L-1, spin=Spin, nthreads=_ducc0_nthreads)
+        map_out = np.empty((ntheta, nphi), dtype=np.float64)
+        ducc0.sht.experimental.leg2map(
+            leg=leg,
+            nphi=np.full((ntheta,), nphi, dtype=np.uint64),
+            phi0=np.zeros((ntheta,)),
+            ringstart=nphi * np.arange(ntheta, dtype=np.uint64),
+            nthreads=_ducc0_nthreads,
+            map=map_out.reshape((1, -1)))
+        return map_out
+    else:
+        if Spin == 0:
+            alm = _ducc0_extract_complex_alm(flm, L, Spin)
+            leg = ducc0.sht.experimental.alm2leg(
+                alm=alm[0:1], theta=theta, lmax=L-1, spin=Spin, nthreads=_ducc0_nthreads)
+            rmap = ducc0.sht.experimental.leg2map(
+                leg=leg,
+                nphi=np.full((ntheta,), nphi, dtype=np.uint64),
+                phi0=np.zeros((ntheta,)),
+                ringstart=nphi * np.arange(ntheta, dtype=np.uint64),
+                nthreads=_ducc0_nthreads).reshape((ntheta, nphi))
+            leg = ducc0.sht.experimental.alm2leg(
+                alm=alm[1:], theta=theta, lmax=L-1, spin=Spin, nthreads=_ducc0_nthreads)
+            imap = ducc0.sht.experimental.leg2map(
+                leg=leg,
+                nphi=np.full((ntheta,), nphi, dtype=np.uint64),
+                phi0=np.zeros((ntheta,)),
+                ringstart=nphi * np.arange(ntheta, dtype=np.uint64),
+                nthreads=_ducc0_nthreads).reshape((ntheta, nphi))
+            return rmap + 1j*imap
+        else:
+            alm = _ducc0_extract_complex_alm(flm, L, Spin)
+            leg = ducc0.sht.experimental.alm2leg(
+                alm=alm, theta=theta, lmax=L-1, spin=Spin, nthreads=_ducc0_nthreads)
+            map_out = np.empty((2,ntheta, nphi), dtype=np.float64)
+            ducc0.sht.experimental.leg2map(
+                leg=leg,
+                nphi=np.full((ntheta,), nphi, dtype=np.uint64),
+                phi0=np.zeros((ntheta,)),
+                ringstart=nphi * np.arange(ntheta, dtype=np.uint64),
+                nthreads=_ducc0_nthreads,
+                map=map_out.reshape((2, -1)))
+            return -map_out[0] - 1j*map_out[1]
+
+
+def _ducc0_forward(f, L, Spin, Method, Reality):
+    theta = _ducc0_get_theta(L, Method)
+    ntheta = theta.shape[0]
+    nphi = 2*L-1
+    if Method == 'MWSS':
+        nphi += 1
+    if Reality:
+        alm = _ducc0_extract_real_alm(flm, L)
+        leg = ducc0.sht.experimental.alm2leg(
+            alm=alm.reshape((1, -1)), theta=theta, lmax=L-1, spin=Spin, nthreads=_ducc0_nthreads)
+        map_out = np.empty((ntheta, nphi), dtype=np.float64)
+        ducc0.sht.experimental.leg2map(
+            leg=leg,
+            nphi=np.full((ntheta,), nphi, dtype=np.uint64),
+            phi0=np.zeros((ntheta,)),
+            ringstart=nphi * np.arange(ntheta, dtype=np.uint64),
+            nthreads=_ducc0_nthreads,
+            map=map_out.reshape((1, -1)))
+        return map_out
+    else:
+        if Spin == 0:
+            alm = _ducc0_extract_complex_alm(flm, L, Spin)
+            leg = ducc0.sht.experimental.alm2leg(
+                alm=alm[0:1], theta=theta, lmax=L-1, spin=Spin, nthreads=_ducc0_nthreads)
+            rmap = ducc0.sht.experimental.leg2map(
+                leg=leg,
+                nphi=np.full((ntheta,), nphi, dtype=np.uint64),
+                phi0=np.zeros((ntheta,)),
+                ringstart=nphi * np.arange(ntheta, dtype=np.uint64),
+                nthreads=_ducc0_nthreads).reshape((ntheta, nphi))
+            leg = ducc0.sht.experimental.alm2leg(
+                alm=alm[1:], theta=theta, lmax=L-1, spin=Spin, nthreads=_ducc0_nthreads)
+            imap = ducc0.sht.experimental.leg2map(
+                leg=leg,
+                nphi=np.full((ntheta,), nphi, dtype=np.uint64),
+                phi0=np.zeros((ntheta,)),
+                ringstart=nphi * np.arange(ntheta, dtype=np.uint64),
+                nthreads=_ducc0_nthreads).reshape((ntheta, nphi))
+            return rmap + 1j*imap
+        else:
+            alm = _ducc0_extract_complex_alm(flm, L, Spin)
+            leg = ducc0.sht.experimental.alm2leg(
+                alm=alm, theta=theta, lmax=L-1, spin=Spin, nthreads=_ducc0_nthreads)
+            map_out = np.empty((2,ntheta, nphi), dtype=np.float64)
+            ducc0.sht.experimental.leg2map(
+                leg=leg,
+                nphi=np.full((ntheta,), nphi, dtype=np.uint64),
+                phi0=np.zeros((ntheta,)),
+                ringstart=nphi * np.arange(ntheta, dtype=np.uint64),
+                nthreads=_ducc0_nthreads,
+                map=map_out.reshape((2, -1)))
+            return -map_out[0] - 1j*map_out[1]
 
 
 #----------------------------------------------------------------------------------------------------#
@@ -491,7 +657,7 @@ def forward(f, int L, int Spin=0, str Method='MW', bint Reality=False):
         print('Complex signal given but Reality flag is True. Ignoring complex component')
         f_new = np.real(f)
         f = f_new.copy(order='c')
-        
+
     # do correct transform
     if Method == 'MW':
         if Reality:
@@ -536,7 +702,10 @@ def inverse(flm, int L, int Spin=0, str Method='MW', bint Reality=False):
     
     if Spin != 0 and Reality == True :
         raise ssht_spin_error('Reality set to True and Spin is not 0. However, spin signals must be complex.')
-    
+
+    if _preferred_backend == "ducc":
+        return _ducc0_inverse(flm, L, Spin, Method, Reality)
+
     # do correct transform
     if Method == 'MW':
         if Reality:
