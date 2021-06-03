@@ -497,25 +497,61 @@ def _ducc0_get_theta(L, Method):
     if Method == 'GL':
         return ducc0.misc.GL_thetas(L)
 
+def _ducc0_get_lidx(L):
+    res = np.arange(L)
+    return res*(res+1)
+
+
 def _ducc0_extract_real_alm(flm, L):
     res = np.empty((_ducc0_nalm(L-1, L-1),), dtype=np.complex128)
+    lidx = _ducc0_get_lidx(L)
     ofs = 0
     for m in range(L):
-        for l in range(m,L):
-            res[ofs+l-m] = flm[l*l+l+m]
+        res[ofs: ofs-m+L] = flm[lidx[m:]+m]
         ofs += L-m
     return res
 
-def _ducc0_extract_complex_alm(flm, L, Spin):
-    res = np.empty((2, _ducc0_nalm(L-1, L-1),), dtype=np.complex128)
+def _ducc0_build_real_flm(alm, L):
+    res = np.empty((L*L), dtype=np.complex128)
+    lidx = _ducc0_get_lidx(L)
     ofs = 0
     for m in range(L):
-        mfac = (-1)**m
-        for l in range(m,L):
-            res[0, ofs+l-m] = 0.5*(flm[l*l+l+m]+mfac*np.conj(flm[l*l+l-m]))
-            res[1, ofs+l-m] = 0.5*(flm[l*l+l+m]-mfac*np.conj(flm[l*l+l-m]))/(1j)
+        res[lidx[m:]+m] = alm[ofs: ofs-m+L]
+        res[lidx[m:]-m] = (-1)**m*np.conj(alm[ofs: ofs-m+L])
         ofs += L-m
     return res
+
+def _ducc0_extract_complex_alm(flm, L):
+    res = np.empty((2, _ducc0_nalm(L-1, L-1),), dtype=np.complex128)
+    lidx = _ducc0_get_lidx(L)
+    ofs = 0
+    for m in range(L):
+        fp = flm[lidx[m:]+m]
+        fm = (-1)**m * np.conj(flm[lidx[m:]-m])
+        res[0, ofs: ofs-m+L] = 0.5*(fp+fm)
+        res[1, ofs: ofs-m+L] = -0.5j*(fp-fm)
+        ofs += L-m
+    return res
+
+def _ducc0_build_complex_flm(alm, L):
+    res = np.empty((L*L), dtype=np.complex128)
+    lidx = _ducc0_get_lidx(L)
+    ofs = 0
+    for m in range(L):
+        fp = alm[0, ofs: ofs-m+L] + 1j*alm[1, ofs: ofs-m+L]
+        fm = alm[0, ofs: ofs-m+L] - 1j*alm[1, ofs: ofs-m+L]
+        res[lidx[m:]+m] = fp
+        res[lidx[m:]-m] = (-1)**m*np.conj(fm)
+        ofs += L-m
+    return res
+
+def _ducc0_rotate_flms(flm, alpha, beta, gamma, L):
+    alm = _ducc0_extract_complex_alm(flm, L)
+    for i in range(2):
+        alm[i] = ducc0.sht.rotate_alm(
+            alm[i], L-1, gamma, beta, alpha, nthreads=_ducc0_nthreads)
+    return _ducc0_build_complex_flm(alm, L)
+
 
 def _ducc0_inverse(flm, L, Spin, Method, Reality):
     theta = _ducc0_get_theta(L, Method)
@@ -538,7 +574,7 @@ def _ducc0_inverse(flm, L, Spin, Method, Reality):
         return map_out
     else:
         if Spin == 0:
-            alm = _ducc0_extract_complex_alm(flm, L, Spin)
+            alm = _ducc0_extract_complex_alm(flm, L)
             leg = ducc0.sht.experimental.alm2leg(
                 alm=alm[0:1], theta=theta, lmax=L-1, spin=Spin, nthreads=_ducc0_nthreads)
             rmap = ducc0.sht.experimental.leg2map(
@@ -571,58 +607,58 @@ def _ducc0_inverse(flm, L, Spin, Method, Reality):
             return -map_out[0] - 1j*map_out[1]
 
 
-def _ducc0_forward(f, L, Spin, Method, Reality):
-    theta = _ducc0_get_theta(L, Method)
-    ntheta = theta.shape[0]
-    nphi = 2*L-1
-    if Method == 'MWSS':
-        nphi += 1
-    if Reality:
-        alm = _ducc0_extract_real_alm(flm, L)
-        leg = ducc0.sht.experimental.alm2leg(
-            alm=alm.reshape((1, -1)), theta=theta, lmax=L-1, spin=Spin, nthreads=_ducc0_nthreads)
-        map_out = np.empty((ntheta, nphi), dtype=np.float64)
-        ducc0.sht.experimental.leg2map(
-            leg=leg,
-            nphi=np.full((ntheta,), nphi, dtype=np.uint64),
-            phi0=np.zeros((ntheta,)),
-            ringstart=nphi * np.arange(ntheta, dtype=np.uint64),
-            nthreads=_ducc0_nthreads,
-            map=map_out.reshape((1, -1)))
-        return map_out
-    else:
-        if Spin == 0:
-            alm = _ducc0_extract_complex_alm(flm, L, Spin)
-            leg = ducc0.sht.experimental.alm2leg(
-                alm=alm[0:1], theta=theta, lmax=L-1, spin=Spin, nthreads=_ducc0_nthreads)
-            rmap = ducc0.sht.experimental.leg2map(
-                leg=leg,
-                nphi=np.full((ntheta,), nphi, dtype=np.uint64),
-                phi0=np.zeros((ntheta,)),
-                ringstart=nphi * np.arange(ntheta, dtype=np.uint64),
-                nthreads=_ducc0_nthreads).reshape((ntheta, nphi))
-            leg = ducc0.sht.experimental.alm2leg(
-                alm=alm[1:], theta=theta, lmax=L-1, spin=Spin, nthreads=_ducc0_nthreads)
-            imap = ducc0.sht.experimental.leg2map(
-                leg=leg,
-                nphi=np.full((ntheta,), nphi, dtype=np.uint64),
-                phi0=np.zeros((ntheta,)),
-                ringstart=nphi * np.arange(ntheta, dtype=np.uint64),
-                nthreads=_ducc0_nthreads).reshape((ntheta, nphi))
-            return rmap + 1j*imap
-        else:
-            alm = _ducc0_extract_complex_alm(flm, L, Spin)
-            leg = ducc0.sht.experimental.alm2leg(
-                alm=alm, theta=theta, lmax=L-1, spin=Spin, nthreads=_ducc0_nthreads)
-            map_out = np.empty((2,ntheta, nphi), dtype=np.float64)
-            ducc0.sht.experimental.leg2map(
-                leg=leg,
-                nphi=np.full((ntheta,), nphi, dtype=np.uint64),
-                phi0=np.zeros((ntheta,)),
-                ringstart=nphi * np.arange(ntheta, dtype=np.uint64),
-                nthreads=_ducc0_nthreads,
-                map=map_out.reshape((2, -1)))
-            return -map_out[0] - 1j*map_out[1]
+#def _ducc0_forward(f, L, Spin, Method, Reality):
+#    theta = _ducc0_get_theta(L, Method)
+#    ntheta = theta.shape[0]
+#    nphi = 2*L-1
+#    if Method == 'MWSS':
+#        nphi += 1
+#    if Reality:
+#        alm = _ducc0_extract_real_alm(flm, L)
+#        leg = ducc0.sht.experimental.alm2leg(
+#            alm=alm.reshape((1, -1)), theta=theta, lmax=L-1, spin=Spin, nthreads=_ducc0_nthreads)
+#        map_out = np.empty((ntheta, nphi), dtype=np.float64)
+#        ducc0.sht.experimental.leg2map(
+#            leg=leg,
+#            nphi=np.full((ntheta,), nphi, dtype=np.uint64),
+#            phi0=np.zeros((ntheta,)),
+#            ringstart=nphi * np.arange(ntheta, dtype=np.uint64),
+#            nthreads=_ducc0_nthreads,
+#            map=map_out.reshape((1, -1)))
+#        return map_out
+#    else:
+#        if Spin == 0:
+#            alm = _ducc0_extract_complex_alm(flm, L, Spin)
+#            leg = ducc0.sht.experimental.alm2leg(
+#                alm=alm[0:1], theta=theta, lmax=L-1, spin=Spin, nthreads=_ducc0_nthreads)
+#            rmap = ducc0.sht.experimental.leg2map(
+#                leg=leg,
+#                nphi=np.full((ntheta,), nphi, dtype=np.uint64),
+#                phi0=np.zeros((ntheta,)),
+#                ringstart=nphi * np.arange(ntheta, dtype=np.uint64),
+#                nthreads=_ducc0_nthreads).reshape((ntheta, nphi))
+#            leg = ducc0.sht.experimental.alm2leg(
+#                alm=alm[1:], theta=theta, lmax=L-1, spin=Spin, nthreads=_ducc0_nthreads)
+#            imap = ducc0.sht.experimental.leg2map(
+#                leg=leg,
+#                nphi=np.full((ntheta,), nphi, dtype=np.uint64),
+#                phi0=np.zeros((ntheta,)),
+#                ringstart=nphi * np.arange(ntheta, dtype=np.uint64),
+#                nthreads=_ducc0_nthreads).reshape((ntheta, nphi))
+#            return rmap + 1j*imap
+#        else:
+#            alm = _ducc0_extract_complex_alm(flm, L, Spin)
+#            leg = ducc0.sht.experimental.alm2leg(
+#                alm=alm, theta=theta, lmax=L-1, spin=Spin, nthreads=_ducc0_nthreads)
+#            map_out = np.empty((2,ntheta, nphi), dtype=np.float64)
+#            ducc0.sht.experimental.leg2map(
+#                leg=leg,
+#                nphi=np.full((ntheta,), nphi, dtype=np.uint64),
+#                phi0=np.zeros((ntheta,)),
+#                ringstart=nphi * np.arange(ntheta, dtype=np.uint64),
+#                nthreads=_ducc0_nthreads,
+#                map=map_out.reshape((2, -1)))
+#            return -map_out[0] - 1j*map_out[1]
 
 
 #----------------------------------------------------------------------------------------------------#
@@ -2835,6 +2871,9 @@ def generate_exp_array(double x, int L):
 def rotate_flms(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None,\
                       double alpha, double beta, double gamma, int L, dl_array_in=None,\
                       M_in=None, bint Axisymmetric=False, bint Keep_dl=False):
+
+  if _preferred_backend == "ducc":
+     return _ducc0_rotate_flms(f_lm, alpha, beta, gamma, L)
 
   cdef np.ndarray[np.float_t, ndim=3] dl_array
   cdef np.ndarray[complex, ndim=1] alpha_array, gamma_array 
