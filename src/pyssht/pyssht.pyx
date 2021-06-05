@@ -628,15 +628,11 @@ def _ducc0_forward(f, L, Spin, Method, Reality):
             wgt = ducc0.misc.GL_weights(ntheta, nphi)
             leg *= wgt.reshape((1, -1, 1))
         if Method == "MW":
-            lego = np.empty((leg.shape[0],leg.shape[1]+1,leg.shape[2]), dtype=np.complex128)
-            ducc0.sht.experimental.resample_theta(leg[0], False, True, lego[0], True, True, Spin, _ducc0_nthreads)
-            fct = np.sqrt((2*ntheta)/(2*ntheta-1))/nphi
-            leg = ducc0.sht.experimental.prep_for_analysis(lego, Spin, _ducc0_nthreads)*fct
-            ntheta = ntheta+1
+            leg = ducc0.sht.experimental.resample_to_prepared_CC(leg, False, True, Spin, _ducc0_nthreads)/nphi
+            ntheta = leg.shape[1]
             theta = np.arange(ntheta)*pi/(ntheta-1)
-            del lego
         if Method == "MWSS":
-            leg = ducc0.sht.experimental.prep_for_analysis(leg, Spin, _ducc0_nthreads)/nphi
+            leg = ducc0.sht.experimental.resample_to_prepared_CC(leg, True, True, Spin, _ducc0_nthreads)/nphi
         alm = ducc0.sht.experimental.leg2alm(
             leg=leg, theta=theta, lmax=L-1, spin=Spin, nthreads=_ducc0_nthreads)[0]
         return _ducc0_build_real_flm(alm, L)
@@ -664,16 +660,11 @@ def _ducc0_forward(f, L, Spin, Method, Reality):
                 wgt = ducc0.misc.GL_weights(ntheta, nphi)
                 leg *= wgt.reshape((1, -1, 1))
             if Method == "MW":
-                lego = np.empty((leg.shape[0],leg.shape[1]+1,leg.shape[2]), dtype=np.complex128)
-                ducc0.sht.experimental.resample_theta(leg[0], False, True, lego[0], True, True, Spin, _ducc0_nthreads)
-                ducc0.sht.experimental.resample_theta(leg[1], False, True, lego[1], True, True, Spin, _ducc0_nthreads)
-                fct = np.sqrt((2*ntheta)/(2*ntheta-1))/nphi
-                leg = ducc0.sht.experimental.prep_for_analysis(lego, Spin, _ducc0_nthreads)*fct
-                ntheta = ntheta+1
+                leg = ducc0.sht.experimental.resample_to_prepared_CC(leg, False, True, Spin, _ducc0_nthreads)/nphi
+                ntheta = leg.shape[1]
                 theta = np.arange(ntheta)*pi/(ntheta-1)
-                del lego
             if Method == "MWSS":
-                leg = ducc0.sht.experimental.prep_for_analysis(leg, Spin, _ducc0_nthreads)/nphi
+                leg = ducc0.sht.experimental.resample_to_prepared_CC(leg, True, True, Spin, _ducc0_nthreads)/nphi
             alm = ducc0.sht.experimental.leg2alm(
                 leg=leg, theta=theta, lmax=L-1, spin=Spin, nthreads=_ducc0_nthreads)
             return _ducc0_build_complex_flm(alm, L)
