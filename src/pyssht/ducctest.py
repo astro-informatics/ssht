@@ -55,7 +55,7 @@ def test_rot(L, nthreads=1):
     return (_l2error(flm_rot,flm_rot2), tssht/tducc)
 
 
-L_list = [32, 64, 128, 256, 512]
+L_list = [32, 64, 128, 256, 512, 1024]
 nthreads=1
 
 print("flm rotation tests:")
@@ -65,7 +65,7 @@ for L in L_list:
                             L, res[0], res[1]
                         )
                     )
-L_list = [32, 64, 128, 256, 512, 1024]
+L_list = [32, 64, 128, 256, 512, 1024, 2048]
 print("SHT tests:")
 for Method in ["MW", "MWSS", "GL", "DH"]:
     for L in L_list:

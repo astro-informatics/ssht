@@ -3,6 +3,7 @@
 # import both numpy and the Cython declarations for numpy
 import numpy as np
 cimport numpy as np
+cimport cython
 
 from libc.math cimport log, exp, sqrt, atan2, cos, sin, asin, atan, tan
 from scipy.special import factorial
@@ -481,10 +482,10 @@ def select_ssht_backend():
     global _preferred_backend
     _preferred_backend = "ssht"
 
-def _ducc0_nalm(lmax, mmax):
+cdef Py_ssize_t _ducc0_nalm(Py_ssize_t lmax, Py_ssize_t mmax):
     return ((mmax + 1) * (mmax + 2)) // 2 + (mmax + 1) * (lmax - mmax)
 
-def _ducc0_get_theta(L, Method):
+cdef _ducc0_get_theta(Py_ssize_t L, str Method):
     if Method == 'MW' or Method == 'MW_pole':
         return pi*(2.*np.arange(L)+1) / ( 2.0 * float(L) - 1.0 )
              
@@ -497,55 +498,77 @@ def _ducc0_get_theta(L, Method):
     if Method == 'GL':
         return ducc0.misc.GL_thetas(L)
 
-def _ducc0_get_lidx(L):
+cdef np.ndarray _ducc0_get_lidx(Py_ssize_t L):
     res = np.arange(L)
     return res*(res+1)
 
 
-def _ducc0_extract_real_alm(flm, L):
+cdef _ducc0_extract_real_alm(flm, Py_ssize_t L):
     res = np.empty((_ducc0_nalm(L-1, L-1),), dtype=np.complex128)
-    lidx = _ducc0_get_lidx(L)
-    ofs = 0
+ #   cdef np.ndarray[Py_ssize_t, ndim=1]lidx = _ducc0_get_lidx(L)
+    cdef complex[:] myres = res
+    cdef complex[:] myflm = flm
+    cdef Py_ssize_t ofs=0, m, i
+    cdef Py_ssize_t[:] mylidx = _ducc0_get_lidx(L)
     for m in range(L):
-        res[ofs: ofs-m+L] = flm[lidx[m:]+m]
+        for i in range(m,L):
+           myres[ofs-m+i] = myflm[mylidx[i]+m]
         ofs += L-m
     return res
 
-def _ducc0_build_real_flm(alm, L):
+def _ducc0_build_real_flm(alm, Py_ssize_t L):
     res = np.empty((L*L), dtype=np.complex128)
-    lidx = _ducc0_get_lidx(L)
-    ofs = 0
+    cdef Py_ssize_t ofs=0, m, i
+    cdef complex[:] myres=res
+    cdef complex[:] myalm=alm
+    cdef Py_ssize_t[:] lidx = _ducc0_get_lidx(L)
+    cdef double mfac
     for m in range(L):
-        res[lidx[m:]+m] = alm[ofs: ofs-m+L]
-        res[lidx[m:]-m] = (-1)**m*np.conj(alm[ofs: ofs-m+L])
+        mfac = (-1)**m
+        for i in range(m,L):
+            myres[lidx[i]+m] = myalm[ofs-m+i]
+            myres[lidx[i]-m] = mfac*(myalm[ofs-m+i].real - 1j*myalm[ofs-m+i].imag)
         ofs += L-m
     return res
 
-def _ducc0_extract_complex_alm(flm, L):
+cdef _ducc0_extract_complex_alm(flm, Py_ssize_t L):
     res = np.empty((2, _ducc0_nalm(L-1, L-1),), dtype=np.complex128)
-    lidx = _ducc0_get_lidx(L)
-    ofs = 0
+    cdef Py_ssize_t ofs=0, m, i
+    cdef double mfac
+    cdef complex[:,:] myres=res
+    cdef complex[:] myflm=flm
+    cdef Py_ssize_t[:] lidx = _ducc0_get_lidx(L)
+    cdef complex fp, fm
     for m in range(L):
-        fp = flm[lidx[m:]+m]
-        fm = (-1)**m * np.conj(flm[lidx[m:]-m])
-        res[0, ofs: ofs-m+L] = 0.5*(fp+fm)
-        res[1, ofs: ofs-m+L] = -0.5j*(fp-fm)
+        mfac = (-1)**m
+        for i in range(m,L):
+            fp = myflm[lidx[i]+m]
+            fm = mfac * (myflm[lidx[i]-m].real - 1j*myflm[lidx[i]-m].imag)
+            myres[0, ofs-m+i] = 0.5*(fp+fm)
+            myres[1, ofs-m+i] = -0.5j*(fp-fm)
         ofs += L-m
     return res
 
-def _ducc0_build_complex_flm(alm, L):
+cdef _ducc0_build_complex_flm(alm, Py_ssize_t L):
     res = np.empty((L*L), dtype=np.complex128)
-    lidx = _ducc0_get_lidx(L)
-    ofs = 0
+    cdef Py_ssize_t ofs=0, m, i
+    cdef complex fp, fm
+    cdef complex[:] myres=res
+    cdef complex[:,:] myalm=alm
+    cdef Py_ssize_t[:] lidx = _ducc0_get_lidx(L)
+    cdef double mfac
     for m in range(L):
-        fp = alm[0, ofs: ofs-m+L] + 1j*alm[1, ofs: ofs-m+L]
-        fm = alm[0, ofs: ofs-m+L] - 1j*alm[1, ofs: ofs-m+L]
-        res[lidx[m:]+m] = fp
-        res[lidx[m:]-m] = (-1)**m*np.conj(fm)
+        mfac = (-1)**m
+        for i in range(m,L):
+            fp = myalm[0, ofs-m+i] + 1j*myalm[1, ofs-m+i]
+            fm = myalm[0, ofs-m+i] - 1j*myalm[1, ofs-m+i]
+            myres[lidx[i]+m] = fp
+            myres[lidx[i]-m] = mfac*(fm.real - 1j*fm.imag)
         ofs += L-m
     return res
 
-def _ducc0_rotate_flms(flm, alpha, beta, gamma, L):
+
+cdef _ducc0_rotate_flms(flm, alpha, beta, gamma, L):
     alm = _ducc0_extract_complex_alm(flm, L)
     for i in range(2):
         alm[i] = ducc0.sht.rotate_alm(
@@ -553,7 +576,7 @@ def _ducc0_rotate_flms(flm, alpha, beta, gamma, L):
     return _ducc0_build_complex_flm(alm, L)
 
 
-def _ducc0_inverse(flm, L, Spin, Method, Reality):
+cdef _ducc0_inverse(np.ndarray flm, Py_ssize_t L, Py_ssize_t Spin, str Method, bint Reality):
     theta = _ducc0_get_theta(L, Method)
     ntheta = theta.shape[0]
     nphi = 2*L-1
@@ -645,7 +668,7 @@ def _ducc0_forward(f, L, Spin, Method, Reality):
             alm[1] = _ducc0_extract_real_alm(flmi, L)
             return _ducc0_build_complex_flm(alm, L)
         else:
-            map = np.stack([-f.real, -f.imag], axis=0)
+            map = f.astype(np.complex128).view(dtype=np.float64).reshape((f.shape[0],f.shape[1],2)).transpose((2,0,1))
             leg = ducc0.sht.experimental.map2leg(
                 nphi=np.full((ntheta,), nphi, dtype=np.uint64),
                 phi0=np.zeros((ntheta,)),
@@ -655,16 +678,18 @@ def _ducc0_forward(f, L, Spin, Method, Reality):
                 mmax=L-1)
             if Method == "DH":
                 wgt = ducc0.sht.experimental.get_gridweights("F1", ntheta) / nphi
-                leg *= wgt.reshape((1, -1, 1))
+                leg *= -wgt.reshape((1, -1, 1))
             if Method == "GL":
                 wgt = ducc0.misc.GL_weights(ntheta, nphi)
-                leg *= wgt.reshape((1, -1, 1))
+                leg *= -wgt.reshape((1, -1, 1))
             if Method == "MW":
-                leg = ducc0.sht.experimental.resample_to_prepared_CC(leg, False, True, Spin, _ducc0_nthreads)/nphi
+                leg = ducc0.sht.experimental.resample_to_prepared_CC(leg, False, True, Spin, _ducc0_nthreads)
+                leg *= -1./nphi
                 ntheta = leg.shape[1]
                 theta = np.arange(ntheta)*pi/(ntheta-1)
             if Method == "MWSS":
-                leg = ducc0.sht.experimental.resample_to_prepared_CC(leg, True, True, Spin, _ducc0_nthreads)/nphi
+                leg = ducc0.sht.experimental.resample_to_prepared_CC(leg, True, True, Spin, _ducc0_nthreads)
+                leg *= -1./nphi
             alm = ducc0.sht.experimental.leg2alm(
                 leg=leg, theta=theta, lmax=L-1, spin=Spin, nthreads=_ducc0_nthreads)
             return _ducc0_build_complex_flm(alm, L)
@@ -692,7 +717,7 @@ def forward(f, int L, int Spin=0, str Method='MW', bint Reality=False):
     if Spin != 0 and Reality == True :
         raise ssht_spin_error('Reality set to True and Spin is not 0. However, spin signals must be complex.')
 
-    if _preferred_backend == "ducc":
+    if _preferred_backend == "ducc" and Method != 'MW_pole':
         return _ducc0_forward(f, L, Spin, Method, Reality)
 
     if f.dtype == np.float_ and Reality == False:
@@ -751,7 +776,7 @@ def inverse(flm, int L, int Spin=0, str Method='MW', bint Reality=False):
     if Spin != 0 and Reality == True :
         raise ssht_spin_error('Reality set to True and Spin is not 0. However, spin signals must be complex.')
 
-    if _preferred_backend == "ducc":
+    if _preferred_backend == "ducc" and Method != 'MW_pole':
         return _ducc0_inverse(flm, L, Spin, Method, Reality)
 
     # do correct transform
