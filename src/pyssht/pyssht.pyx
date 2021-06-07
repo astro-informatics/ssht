@@ -2701,7 +2701,7 @@ def rotate_flms(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None,\
 
         for n in range(-n_max,n_max+1):
             Dlmn =  <complex> alpha_array[m+L-1] * <complex> dl_array[el,m+L-1,n+L-1]\
-                   * <complex> gamma_array[n+L-1] # not sure about
+                   * <complex> gamma_array[n+L-1]
             if Axisymmetric:
                 ind = el
             else:
