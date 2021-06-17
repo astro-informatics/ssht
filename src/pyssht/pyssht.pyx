@@ -464,6 +464,9 @@ _ducc0_nthreads = 0
 
 try:
     import ducc0
+    major, minor, patch = ducc0.__version__.split('.')
+    if int(major) < 1 and int(minor) < 14:
+        raise RuntimeError
 except:
     ducc0 = None
 
@@ -577,88 +580,54 @@ cdef _ducc0_rotate_flms(flm, alpha, beta, gamma, L):
 
 
 cdef _ducc0_inverse(np.ndarray flm, Py_ssize_t L, Py_ssize_t Spin, str Method, bint Reality):
+    gdict = {"DH":"F1", "MW":"MW", "MWSS":"CC", "GL":"GL"}
     theta = _ducc0_get_theta(L, Method)
     ntheta = theta.shape[0]
     nphi = 2*L-1
     if Method == 'MWSS':
         nphi += 1
     if Reality:
-        alm = _ducc0_extract_real_alm(flm, L)
-        leg = ducc0.sht.experimental.alm2leg(
-            alm=alm.reshape((1, -1)), theta=theta, lmax=L-1, spin=Spin, nthreads=_ducc0_nthreads)
-        map_out = np.empty((ntheta, nphi), dtype=np.float64)
-        ducc0.sht.experimental.leg2map(
-            leg=leg,
-            nphi=np.full((ntheta,), nphi, dtype=np.uint64),
-            phi0=np.zeros((ntheta,)),
-            ringstart=nphi * np.arange(ntheta, dtype=np.uint64),
+        return ducc0.sht.experimental.synthesis_2d(
+            alm=_ducc0_extract_real_alm(flm, L).reshape((1,-1)),
+            map=np.empty((1,ntheta, nphi)),
+            lmax=L-1,
             nthreads=_ducc0_nthreads,
-            map=map_out.reshape((1, -1)))
-        return map_out
+            spin=0,
+            geometry=gdict[Method])[0]
     else:
         if Spin == 0:
             alm = _ducc0_extract_complex_alm(flm, L)
-            leg = ducc0.sht.experimental.alm2leg(
-                alm=alm[0:1], theta=theta, lmax=L-1, spin=Spin, nthreads=_ducc0_nthreads)
-            rmap = ducc0.sht.experimental.leg2map(
-                leg=leg,
-                nphi=np.full((ntheta,), nphi, dtype=np.uint64),
-                phi0=np.zeros((ntheta,)),
-                ringstart=nphi * np.arange(ntheta, dtype=np.uint64),
-                nthreads=_ducc0_nthreads).reshape((ntheta, nphi))
-            leg = ducc0.sht.experimental.alm2leg(
-                alm=alm[1:], theta=theta, lmax=L-1, spin=Spin, nthreads=_ducc0_nthreads)
-            imap = ducc0.sht.experimental.leg2map(
-                leg=leg,
-                nphi=np.full((ntheta,), nphi, dtype=np.uint64),
-                phi0=np.zeros((ntheta,)),
-                ringstart=nphi * np.arange(ntheta, dtype=np.uint64),
-                nthreads=_ducc0_nthreads).reshape((ntheta, nphi))
-            return rmap + 1j*imap
+            flmr = _ducc0_build_real_flm(alm[0], L)
+            flmi = _ducc0_build_real_flm(alm[1], L)
+            return _ducc0_inverse(flmr, L, 0, Method, True) + 1j*_ducc0_inverse(flmi, L, 0, Method, True)
         else:
-            alm = _ducc0_extract_complex_alm(flm, L)
-            leg = ducc0.sht.experimental.alm2leg(
-                alm=alm, theta=theta, lmax=L-1, spin=Spin, nthreads=_ducc0_nthreads)
-            map_out = np.empty((2,ntheta, nphi), dtype=np.float64)
-            ducc0.sht.experimental.leg2map(
-                leg=leg,
-                nphi=np.full((ntheta,), nphi, dtype=np.uint64),
-                phi0=np.zeros((ntheta,)),
-                ringstart=nphi * np.arange(ntheta, dtype=np.uint64),
+            tmp=ducc0.sht.experimental.synthesis_2d(
+                alm=_ducc0_extract_complex_alm(flm, L),
+                map=np.empty((2,ntheta, nphi)),
+                lmax=L-1,
                 nthreads=_ducc0_nthreads,
-                map=map_out.reshape((2, -1)))
-            return -map_out[0] - 1j*map_out[1]
+                spin=Spin,
+                geometry=gdict[Method])
+            res = -1j*tmp[1]
+            res -= tmp[0]
+            return res
 
 
 def _ducc0_forward(f, L, Spin, Method, Reality):
+    gdict = {"DH":"F1", "MW":"MW", "MWSS":"CC", "GL":"GL"}
     theta = _ducc0_get_theta(L, Method)
     ntheta = theta.shape[0]
     if ntheta != f.shape[0]:
         raise RuntimeError("ntheta mismatch")
     nphi = f.shape[1]
     if Reality:
-        leg = ducc0.sht.experimental.map2leg(
-            nphi=np.full((ntheta,), nphi, dtype=np.uint64),
-            phi0=np.zeros((ntheta,)),
-            ringstart=nphi * np.arange(ntheta, dtype=np.uint64),
+        return _ducc0_build_real_flm(ducc0.sht.experimental.analysis_2d(
+            alm=np.empty((1,_ducc0_nalm(L-1, L-1)), dtype=np.complex128),
+            map=f.reshape((-1,f.shape[0],f.shape[1])),
+            lmax=L-1,
             nthreads=_ducc0_nthreads,
-            map=f.reshape((1, -1)),
-            mmax=L-1)
-        if Method == "DH":
-            wgt = ducc0.sht.experimental.get_gridweights("F1", ntheta) / nphi
-            leg *= wgt.reshape((1, -1, 1))
-        if Method == "GL":
-            wgt = ducc0.misc.GL_weights(ntheta, nphi)
-            leg *= wgt.reshape((1, -1, 1))
-        if Method == "MW":
-            leg = ducc0.sht.experimental.resample_to_prepared_CC(leg, False, True, Spin, _ducc0_nthreads)/nphi
-            ntheta = leg.shape[1]
-            theta = np.arange(ntheta)*pi/(ntheta-1)
-        if Method == "MWSS":
-            leg = ducc0.sht.experimental.resample_to_prepared_CC(leg, True, True, Spin, _ducc0_nthreads)/nphi
-        alm = ducc0.sht.experimental.leg2alm(
-            leg=leg, theta=theta, lmax=L-1, spin=Spin, nthreads=_ducc0_nthreads)[0]
-        return _ducc0_build_real_flm(alm, L)
+            spin=0,
+            geometry=gdict[Method])[0], L)
     else:
         if Spin == 0:
             flmr = _ducc0_forward(f.real, L, Spin, Method, True)
@@ -669,30 +638,15 @@ def _ducc0_forward(f, L, Spin, Method, Reality):
             return _ducc0_build_complex_flm(alm, L)
         else:
             map = f.astype(np.complex128).view(dtype=np.float64).reshape((f.shape[0],f.shape[1],2)).transpose((2,0,1))
-            leg = ducc0.sht.experimental.map2leg(
-                nphi=np.full((ntheta,), nphi, dtype=np.uint64),
-                phi0=np.zeros((ntheta,)),
-                ringstart=nphi * np.arange(ntheta, dtype=np.uint64),
+            res = _ducc0_build_complex_flm(ducc0.sht.experimental.analysis_2d(
+                alm=np.empty((2,_ducc0_nalm(L-1, L-1)), dtype=np.complex128),
+                map=map,
+                lmax=L-1,
                 nthreads=_ducc0_nthreads,
-                map=map.reshape((2, -1)),
-                mmax=L-1)
-            if Method == "DH":
-                wgt = ducc0.sht.experimental.get_gridweights("F1", ntheta) / nphi
-                leg *= -wgt.reshape((1, -1, 1))
-            if Method == "GL":
-                wgt = ducc0.misc.GL_weights(ntheta, nphi)
-                leg *= -wgt.reshape((1, -1, 1))
-            if Method == "MW":
-                leg = ducc0.sht.experimental.resample_to_prepared_CC(leg, False, True, Spin, _ducc0_nthreads)
-                leg *= -1./nphi
-                ntheta = leg.shape[1]
-                theta = np.arange(ntheta)*pi/(ntheta-1)
-            if Method == "MWSS":
-                leg = ducc0.sht.experimental.resample_to_prepared_CC(leg, True, True, Spin, _ducc0_nthreads)
-                leg *= -1./nphi
-            alm = ducc0.sht.experimental.leg2alm(
-                leg=leg, theta=theta, lmax=L-1, spin=Spin, nthreads=_ducc0_nthreads)
-            return _ducc0_build_complex_flm(alm, L)
+                spin=Spin,
+                geometry=gdict[Method]), L)
+            res *= -1
+            return res
 
 
 #----------------------------------------------------------------------------------------------------#
