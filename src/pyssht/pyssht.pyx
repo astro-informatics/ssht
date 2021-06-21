@@ -465,7 +465,7 @@ _ducc0_nthreads = 0
 try:
     import ducc0
     major, minor, patch = ducc0.__version__.split('.')
-    if int(major) < 1 and int(minor) < 14:
+    if int(major) < 1 and int(minor) < 15:
         raise RuntimeError
 except:
     ducc0 = None
@@ -508,7 +508,6 @@ cdef np.ndarray _ducc0_get_lidx(Py_ssize_t L):
 
 cdef _ducc0_extract_real_alm(flm, Py_ssize_t L):
     res = np.empty((_ducc0_nalm(L-1, L-1),), dtype=np.complex128)
- #   cdef np.ndarray[Py_ssize_t, ndim=1]lidx = _ducc0_get_lidx(L)
     cdef complex[:] myres = res
     cdef complex[:] myflm = flm
     cdef Py_ssize_t ofs=0, m, i
@@ -589,7 +588,8 @@ cdef _ducc0_inverse(np.ndarray flm, Py_ssize_t L, Py_ssize_t Spin, str Method, b
     if Reality:
         return ducc0.sht.experimental.synthesis_2d(
             alm=_ducc0_extract_real_alm(flm, L).reshape((1,-1)),
-            map=np.empty((1,ntheta, nphi)),
+            ntheta=ntheta,
+            nphi=nphi,
             lmax=L-1,
             nthreads=_ducc0_nthreads,
             spin=0,
@@ -603,7 +603,8 @@ cdef _ducc0_inverse(np.ndarray flm, Py_ssize_t L, Py_ssize_t Spin, str Method, b
         else:
             tmp=ducc0.sht.experimental.synthesis_2d(
                 alm=_ducc0_extract_complex_alm(flm, L),
-                map=np.empty((2,ntheta, nphi)),
+                ntheta=ntheta,
+                nphi=nphi,
                 lmax=L-1,
                 nthreads=_ducc0_nthreads,
                 spin=Spin,
@@ -622,7 +623,6 @@ def _ducc0_forward(f, L, Spin, Method, Reality):
     nphi = f.shape[1]
     if Reality:
         return _ducc0_build_real_flm(ducc0.sht.experimental.analysis_2d(
-            alm=np.empty((1,_ducc0_nalm(L-1, L-1)), dtype=np.complex128),
             map=f.reshape((-1,f.shape[0],f.shape[1])),
             lmax=L-1,
             nthreads=_ducc0_nthreads,
@@ -639,7 +639,6 @@ def _ducc0_forward(f, L, Spin, Method, Reality):
         else:
             map = f.astype(np.complex128).view(dtype=np.float64).reshape((f.shape[0],f.shape[1],2)).transpose((2,0,1))
             res = _ducc0_build_complex_flm(ducc0.sht.experimental.analysis_2d(
-                alm=np.empty((2,_ducc0_nalm(L-1, L-1)), dtype=np.complex128),
                 map=map,
                 lmax=L-1,
                 nthreads=_ducc0_nthreads,
