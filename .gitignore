@@ -5,8 +5,8 @@ SSHT.sublime-workspace
 build/
 *.DS_Store
 *.idea/
-src/python/*.c
-src/python/*.so
+src/pyssht/*.c
+src/pyssht/*.so
 
 CMakeCache.txt
 CMakeFiles/

@@ -8,6 +8,7 @@ cimport cython
 from libc.math cimport log, exp, sqrt, atan2, cos, sin, asin, atan, tan
 from scipy.special import factorial
 from scipy.interpolate import interp2d
+from pyssht.ducc0 import select_ducc_backend, select_ssht_backend
 
 cdef double pi=3.1415926535897932384626433832795028841971
 
@@ -23,7 +24,6 @@ cdef enum EQUATORIAL_PROJECTION_TYPE:
   SINE, MERCATOR
 
 #----------------------------------------------------------------------------------------------------#
-
 cdef extern from "ssht/ssht.h":
 
         double ssht_sampling_mw_t2theta(int t, int L) #  adjoints
@@ -459,200 +459,11 @@ class ssht_spin_error(ValueError):
     '''Raise this when the spin is none zero but Reality is true'''
 
 #----------------------------------------------------------------------------------------------------#
-_preferred_backend = "ssht"
-_ducc0_nthreads = 0
-
-try:
-    import ducc0
-    major, minor, patch = ducc0.__version__.split('.')
-    if int(major) < 1 and int(minor) < 15:
-        raise RuntimeError
-except:
-    ducc0 = None
-
-def select_ducc_backend(nthreads=None):
-    global _preferred_backend
-    if ducc0 is not None:
-        _preferred_backend = "ducc"
-        if nthreads is not None:
-            global _ducc0_nthreads
-            _ducc0_nthreads = nthreads
-    else:
-        print("DUCC backend requested, but the relevant package cannot be "
-              "imported. Leaving backend unchanged.")
-
-def select_ssht_backend():
-    global _preferred_backend
-    _preferred_backend = "ssht"
-
-cdef Py_ssize_t _ducc0_nalm(Py_ssize_t lmax, Py_ssize_t mmax):
-    return ((mmax + 1) * (mmax + 2)) // 2 + (mmax + 1) * (lmax - mmax)
-
-cdef _ducc0_get_theta(Py_ssize_t L, str Method):
-    if Method == 'MW' or Method == 'MW_pole':
-        return pi*(2.*np.arange(L)+1) / ( 2.0 * float(L) - 1.0 )
-             
-    if Method == 'MWSS':
-        return pi*np.arange(L+1)/float(L)
-
-    if Method == 'DH':
-        return pi*(2*np.arange(2*L)+1.) / ( 4.0 * float(L) )
-           
-    if Method == 'GL':
-        return ducc0.misc.GL_thetas(L)
-
-cdef np.ndarray _ducc0_get_lidx(Py_ssize_t L):
-    res = np.arange(L)
-    return res*(res+1)
-
-
-cdef _ducc0_extract_real_alm(flm, Py_ssize_t L):
-    res = np.empty((_ducc0_nalm(L-1, L-1),), dtype=np.complex128)
-    cdef complex[:] myres = res
-    cdef complex[:] myflm = flm
-    cdef Py_ssize_t ofs=0, m, i
-    cdef Py_ssize_t[:] mylidx = _ducc0_get_lidx(L)
-    for m in range(L):
-        for i in range(m,L):
-           myres[ofs-m+i] = myflm[mylidx[i]+m]
-        ofs += L-m
-    return res
-
-def _ducc0_build_real_flm(alm, Py_ssize_t L):
-    res = np.empty((L*L), dtype=np.complex128)
-    cdef Py_ssize_t ofs=0, m, i
-    cdef complex[:] myres=res
-    cdef complex[:] myalm=alm
-    cdef Py_ssize_t[:] lidx = _ducc0_get_lidx(L)
-    cdef double mfac
-    for m in range(L):
-        mfac = (-1)**m
-        for i in range(m,L):
-            myres[lidx[i]+m] = myalm[ofs-m+i]
-            myres[lidx[i]-m] = mfac*(myalm[ofs-m+i].real - 1j*myalm[ofs-m+i].imag)
-        ofs += L-m
-    return res
-
-cdef _ducc0_extract_complex_alm(flm, Py_ssize_t L):
-    res = np.empty((2, _ducc0_nalm(L-1, L-1),), dtype=np.complex128)
-    cdef Py_ssize_t ofs=0, m, i
-    cdef double mfac
-    cdef complex[:,:] myres=res
-    cdef complex[:] myflm=flm
-    cdef Py_ssize_t[:] lidx = _ducc0_get_lidx(L)
-    cdef complex fp, fm
-    for m in range(L):
-        mfac = (-1)**m
-        for i in range(m,L):
-            fp = myflm[lidx[i]+m]
-            fm = mfac * (myflm[lidx[i]-m].real - 1j*myflm[lidx[i]-m].imag)
-            myres[0, ofs-m+i] = 0.5*(fp+fm)
-            myres[1, ofs-m+i] = -0.5j*(fp-fm)
-        ofs += L-m
-    return res
-
-cdef _ducc0_build_complex_flm(alm, Py_ssize_t L):
-    res = np.empty((L*L), dtype=np.complex128)
-    cdef Py_ssize_t ofs=0, m, i
-    cdef complex fp, fm
-    cdef complex[:] myres=res
-    cdef complex[:,:] myalm=alm
-    cdef Py_ssize_t[:] lidx = _ducc0_get_lidx(L)
-    cdef double mfac
-    for m in range(L):
-        mfac = (-1)**m
-        for i in range(m,L):
-            fp = myalm[0, ofs-m+i] + 1j*myalm[1, ofs-m+i]
-            fm = myalm[0, ofs-m+i] - 1j*myalm[1, ofs-m+i]
-            myres[lidx[i]+m] = fp
-            myres[lidx[i]-m] = mfac*(fm.real - 1j*fm.imag)
-        ofs += L-m
-    return res
-
-
-cdef _ducc0_rotate_flms(flm, alpha, beta, gamma, L):
-    alm = _ducc0_extract_complex_alm(flm, L)
-    for i in range(2):
-        alm[i] = ducc0.sht.rotate_alm(
-            alm[i], L-1, gamma, beta, alpha, nthreads=_ducc0_nthreads)
-    return _ducc0_build_complex_flm(alm, L)
-
-
-cdef _ducc0_inverse(np.ndarray flm, Py_ssize_t L, Py_ssize_t Spin, str Method, bint Reality):
-    gdict = {"DH":"F1", "MW":"MW", "MWSS":"CC", "GL":"GL"}
-    theta = _ducc0_get_theta(L, Method)
-    ntheta = theta.shape[0]
-    nphi = 2*L-1
-    if Method == 'MWSS':
-        nphi += 1
-    if Reality:
-        return ducc0.sht.experimental.synthesis_2d(
-            alm=_ducc0_extract_real_alm(flm, L).reshape((1,-1)),
-            ntheta=ntheta,
-            nphi=nphi,
-            lmax=L-1,
-            nthreads=_ducc0_nthreads,
-            spin=0,
-            geometry=gdict[Method])[0]
-    else:
-        if Spin == 0:
-            alm = _ducc0_extract_complex_alm(flm, L)
-            flmr = _ducc0_build_real_flm(alm[0], L)
-            flmi = _ducc0_build_real_flm(alm[1], L)
-            return _ducc0_inverse(flmr, L, 0, Method, True) + 1j*_ducc0_inverse(flmi, L, 0, Method, True)
-        else:
-            tmp=ducc0.sht.experimental.synthesis_2d(
-                alm=_ducc0_extract_complex_alm(flm, L),
-                ntheta=ntheta,
-                nphi=nphi,
-                lmax=L-1,
-                nthreads=_ducc0_nthreads,
-                spin=Spin,
-                geometry=gdict[Method])
-            res = -1j*tmp[1]
-            res -= tmp[0]
-            return res
-
-
-def _ducc0_forward(f, L, Spin, Method, Reality):
-    gdict = {"DH":"F1", "MW":"MW", "MWSS":"CC", "GL":"GL"}
-    theta = _ducc0_get_theta(L, Method)
-    ntheta = theta.shape[0]
-    if ntheta != f.shape[0]:
-        raise RuntimeError("ntheta mismatch")
-    nphi = f.shape[1]
-    if Reality:
-        return _ducc0_build_real_flm(ducc0.sht.experimental.analysis_2d(
-            map=f.reshape((-1,f.shape[0],f.shape[1])),
-            lmax=L-1,
-            nthreads=_ducc0_nthreads,
-            spin=0,
-            geometry=gdict[Method])[0], L)
-    else:
-        if Spin == 0:
-            flmr = _ducc0_forward(f.real, L, Spin, Method, True)
-            flmi = _ducc0_forward(f.imag, L, Spin, Method, True)
-            alm = np.empty((2,_ducc0_nalm(L-1, L-1)), dtype=np.complex128)
-            alm[0] = _ducc0_extract_real_alm(flmr, L)
-            alm[1] = _ducc0_extract_real_alm(flmi, L)
-            return _ducc0_build_complex_flm(alm, L)
-        else:
-            map = f.astype(np.complex128).view(dtype=np.float64).reshape((f.shape[0],f.shape[1],2)).transpose((2,0,1))
-            res = _ducc0_build_complex_flm(ducc0.sht.experimental.analysis_2d(
-                map=map,
-                lmax=L-1,
-                nthreads=_ducc0_nthreads,
-                spin=Spin,
-                geometry=gdict[Method]), L)
-            res *= -1
-            return res
-
-
-#----------------------------------------------------------------------------------------------------#
 
 # easy to use functions to perform forward and backward transfroms
 
 def forward(f, int L, int Spin=0, str Method='MW', bint Reality=False):
+    from pyssht.ducc0 import _preferred_backend, forward as _ducc0_forward
     # Checks
 
     if Method == 'MW_pole':
@@ -720,6 +531,8 @@ def forward(f, int L, int Spin=0, str Method='MW', bint Reality=False):
 
 
 def inverse(flm, int L, int Spin=0, str Method='MW', bint Reality=False):
+    from pyssht.ducc0 import _preferred_backend, inverse as _ducc0_inverse
+
     if flm.ndim != 1:
       raise ssht_input_error('flm must be 1D numpy array')
 
@@ -2861,6 +2674,7 @@ def generate_exp_array(double x, int L):
 def rotate_flms(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None,\
                       double alpha, double beta, double gamma, int L, dl_array_in=None,\
                       M_in=None, bint Axisymmetric=False, bint Keep_dl=False):
+  from pyssht.ducc0 import _preferred_backend, rotate_flms as _ducc0_rotate_flms
 
   if _preferred_backend == "ducc":
      return _ducc0_rotate_flms(f_lm, alpha, beta, gamma, L)
