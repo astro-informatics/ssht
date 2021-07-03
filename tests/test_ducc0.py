@@ -1,6 +1,8 @@
 import numpy as np
 import pyssht as ssht
-from pytest import approx, fixture, mark
+from pytest import approx, fixture, mark, importorskip
+
+skip_ducc0 = importorskip("ducc0", minversion="0.16")
 
 
 @fixture
