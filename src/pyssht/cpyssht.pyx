@@ -454,7 +454,7 @@ def ssht_inverse_gl_real(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not 
 # easy to use functions to perform forward and backward transfroms
 
 def forward(f, int L, int Spin=0, str Method='MW', bint Reality=False, str backend="SSHT", **kwargs):
-    from pyssht.ducc0 import forward as _ducc0_forward
+    from pyssht.ducc_interface import forward as _ducc0_forward
     from pyssht.parameters import method, Ducc
 
     params = method(Method, spin=Spin, reality=Reality, backend=backend, **kwargs)
@@ -517,7 +517,7 @@ def forward(f, int L, int Spin=0, str Method='MW', bint Reality=False, str backe
 
 
 def inverse(flm, int L, int Spin=0, str Method='MW', bint Reality=False, str backend="SSHT", **kwargs):
-    from pyssht.ducc0 import inverse as _ducc0_inverse
+    from pyssht.ducc_interface import inverse as _ducc0_inverse
     from pyssht.parameters import method, Ducc
 
     if flm.ndim != 1:
@@ -2651,7 +2651,7 @@ def rotate_flms(
   backend: str = "SSHT",
   **kwargs,
 ):
-  from pyssht.ducc0 import rotate_flms as _ducc0_rotate_flms
+  from pyssht.ducc_interface import rotate_flms as _ducc0_rotate_flms
   from pyssht.parameters import method, Ducc
 
   params = method(backend=backend, **kwargs)
