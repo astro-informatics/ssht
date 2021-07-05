@@ -118,6 +118,10 @@ Performs the adjoint of the inverse spherical harmonic transform.
     1. `'MW'`         [McEwen & Wiaux sampling (default)]
     2. `'MWSS'`       [McEwen & Wiaux symmetric sampling]
 * `Reality`  determines if the signal is real or complex, Boolean (default = False)
+* `backend` the backend that runs the transforms:
+    1. `'SSHT'` this package
+    2. `'ducc'` interface to [ducc0](https://pypi.org/project/ducc0/). "MW_pole"
+       is not available in this backend.
 
 #### Output
 
@@ -783,10 +787,10 @@ Function to rotate a set of spherical harmonic coefficients by the set of Euler 
 * `beta` rotation angle \(\beta\), type `double`
 * `gamma` rotation angle \(\gamma\), type `double`
 * `L` the band limit of the signal, non-zero positive integer
-* `dl_array` if set should be the precomputed small Wigner D matrix for angle \(\beta\) and harmonic band limit `L`. If not set this is calculated in the function.
+* `dl_array` if set should be the precomputed small Wigner D matrix for angle \(\beta\) and harmonic band limit `L`. If not set this is calculated in the function. (This parameter is ignored when using the `ducc` backend.)
 * `M` if set is the azimuthal band limit of the function to be rotated, default `M=L`.
 * `Axisymmetric` set if the function is axisymmetric and axisymmetric harmonic coefficients are parsed.
-* `Keep_dl` if set the output is changed to allow one to keep the computed `dl_array`
+* `Keep_dl` if set the output is changed to allow one to keep the computed `dl_array`. (This parameter is ignored when using the `ducc` backend.)
 * `backend` the backend that runs the transforms:
     1. `'SSHT'` this package
     2. `'ducc'` interface to [ducc0](https://pypi.org/project/ducc0/)

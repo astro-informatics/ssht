@@ -140,6 +140,41 @@ def inverse(np.ndarray flm, Py_ssize_t L, Py_ssize_t Spin, str Method, bint Real
             return res
 
 
+def inverse_adjoint(f, L, Spin, Method, Reality, int nthreads = 1):
+    ducc0 = import_ducc0()
+    gdict = {"DH":"F1", "MW":"MW", "MWSS":"CC", "GL":"GL"}
+    theta = _get_theta(L, Method)
+    ntheta = theta.shape[0]
+    if ntheta != f.shape[0]:
+        raise RuntimeError("ntheta mismatch")
+    nphi = f.shape[1]
+    if Reality:
+        return _build_real_flm(ducc0.sht.experimental.adjoint_synthesis_2d(
+            map=f.reshape((-1,f.shape[0],f.shape[1])),
+            lmax=L-1,
+            nthreads=nthreads,
+            spin=0,
+            geometry=gdict[Method])[0], L)
+    else:
+        if Spin == 0:
+            flmr = inverse_adjoint(f.real, L, Spin, Method, True)
+            flmi = inverse_adjoint(f.imag, L, Spin, Method, True)
+            alm = np.empty((2,_nalm(L-1, L-1)), dtype=np.complex128)
+            alm[0] = _extract_real_alm(flmr, L)
+            alm[1] = _extract_real_alm(flmi, L)
+            return _build_complex_flm(alm, L)
+        else:
+            map = f.astype(np.complex128).view(dtype=np.float64).reshape((f.shape[0],f.shape[1],2)).transpose((2,0,1))
+            res = _build_complex_flm(ducc0.sht.experimental.adjoint_synthesis_2d(
+                map=map,
+                lmax=L-1,
+                nthreads=nthreads,
+                spin=Spin,
+                geometry=gdict[Method]), L)
+            res *= -1
+            return res
+
+
 def forward(f, L, Spin, Method, Reality, int nthreads = 1):
     ducc0 = import_ducc0()
     gdict = {"DH":"F1", "MW":"MW", "MWSS":"CC", "GL":"GL"}

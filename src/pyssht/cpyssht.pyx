@@ -526,7 +526,7 @@ def inverse(flm, int L, int Spin=0, str Method='MW', bint Reality=False, str bac
     params = method(Method, spin=Spin, reality=Reality, backend=backend, **kwargs)
     
     if isinstance(params, Ducc):
-        return _ducc0_inverse(flm, L, params.spin, params.method, params.reality)
+        return _ducc0_inverse(flm, L, params.spin, params.method, params.reality, params.nthreads)
 
     # do correct transform
     if params.method == 'MW':
@@ -564,10 +564,15 @@ def inverse(flm, int L, int Spin=0, str Method='MW', bint Reality=False, str bac
             
     return f
 
-def inverse_adjoint(f, int L, int Spin=0, str Method='MW', bint Reality=False, str backend="SSHT"):
-    from pyssht.parameters import method
+def inverse_adjoint(f, int L, int Spin=0, str Method='MW', bint Reality=False, str backend="SSHT", **kwargs):
+    from pyssht.ducc_interface import inverse_adjoint as _ducc0_inverse_adjoint
+    from pyssht.parameters import method, Ducc
 
     params = method(Method, spin=Spin, reality=Reality, backend=backend)
+
+    if isinstance(params, Ducc):
+        return _ducc0_inverse_adjoint(f, L, params.spin, params.method, params.reality, params.nthreads)
+
     if params.method == 'MW_POLE':
         if Reality:
             f, f_sp = f
