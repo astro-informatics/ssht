@@ -28,7 +28,7 @@ class SSHT(MethodParameter):
             raise ssht_input_error(
                 "Method is not recognised, Methods are: MW, MW_pole, MWSS, DH and GL"
             )
-        if spin != 0 and reality == True:
+        if spin != 0 and reality:
             raise ssht_spin_error(
                 "Reality set to True and Spin is not 0. However, spin signals must be complex."
             )
