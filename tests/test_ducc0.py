@@ -18,12 +18,20 @@ def test_real_ssht_vs_ducc0(rng: np.random.Generator, L, Method, nthreads=1):
     neg_index = [ssht.elm2ind(el, -m) for el in range(L) for m in range(1, el + 1)]
     flm[neg_index] = np.conjugate(flm[pos_index])
 
-    ssht.select_ducc_backend(nthreads=nthreads)
     ssht_image = ssht.inverse(flm, L, Reality=True, Method=Method, Spin=0)
     ssht_coeffs = ssht.forward(ssht_image, L, Reality=True, Method=Method, Spin=0)
-    ssht.select_ssht_backend()
-    ducc0_image = ssht.inverse(flm, L, Reality=True, Method=Method, Spin=0)
-    ducc0_coeffs = ssht.forward(ducc0_image, L, Reality=True, Method=Method, Spin=0)
+    ducc0_image = ssht.inverse(
+        flm, L, Reality=True, Method=Method, Spin=0, backend="ducc", nthreads=nthreads
+    )
+    ducc0_coeffs = ssht.forward(
+        ducc0_image,
+        L,
+        Reality=True,
+        Method=Method,
+        Spin=0,
+        backend="ducc",
+        nthreads=nthreads,
+    )
     assert ssht_image == approx(ducc0_image)
     assert ssht_coeffs == approx(ducc0_coeffs)
 
@@ -34,12 +42,26 @@ def test_real_ssht_vs_ducc0(rng: np.random.Generator, L, Method, nthreads=1):
 def test_complex_ssht_vs_ducc0(rng: np.random.Generator, L, Method, Spin, nthreads=1):
     flm = rng.random((L * L, 2), dtype="float64") @ np.array([1, 1j])
 
-    ssht.select_ducc_backend(nthreads=nthreads)
     ssht_image = ssht.inverse(flm, L, Reality=False, Method=Method, Spin=Spin)
     ssht_coeffs = ssht.forward(ssht_image, L, Reality=False, Method=Method, Spin=Spin)
-    ssht.select_ssht_backend()
-    ducc0_image = ssht.inverse(flm, L, Reality=False, Method=Method, Spin=Spin)
-    ducc0_coeffs = ssht.forward(ducc0_image, L, Reality=False, Method=Method, Spin=Spin)
+    ducc0_image = ssht.inverse(
+        flm,
+        L,
+        Reality=False,
+        Method=Method,
+        Spin=Spin,
+        backend="ducc",
+        nthreads=nthreads,
+    )
+    ducc0_coeffs = ssht.forward(
+        ducc0_image,
+        L,
+        Reality=False,
+        Method=Method,
+        Spin=Spin,
+        backend="ducc",
+        nthreads=nthreads,
+    )
     assert ssht_image == approx(ducc0_image)
     assert ssht_coeffs == approx(ducc0_coeffs)
 
@@ -52,8 +74,6 @@ def test_rot(rng, L, nthreads=1):
     beta = np.pi / 7
     alpha = -np.pi / 3
 
-    ssht.select_ducc_backend(nthreads=nthreads)
     ssht_rot = ssht.rotate_flms(flm, alpha, beta, gamma, L)
-    ssht.select_ssht_backend()
-    ducc0_rot = ssht.rotate_flms(flm, alpha, beta, gamma, L)
+    ducc0_rot = ssht.rotate_flms(flm, alpha, beta, gamma, L, backend="ducc")
     assert ssht_rot == approx(ducc0_rot)

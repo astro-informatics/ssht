@@ -1,37 +1,18 @@
 import numpy as np
 cimport numpy as np
 
-_preferred_backend = "ssht"
-_nthreads = 0
-cdef double pi=3.1415926535897932384626433832795028841971
-
-try:
+cdef import_ducc0():
     import ducc0
     major, minor, patch = ducc0.__version__.split('.')
     if int(major) < 1 and int(minor) < 15:
         raise RuntimeError("pyssht requires ducc0>=0.16")
-except:
-    ducc0 = None
-
-def select_ducc_backend(nthreads=None):
-    global _preferred_backend
-    if ducc0 is not None:
-        _preferred_backend = "ducc"
-        if nthreads is not None:
-            global _nthreads
-            _nthreads = nthreads
-    else:
-        print("DUCC backend requested, but the relevant package cannot be "
-              "imported. Leaving backend unchanged.")
-
-def select_ssht_backend():
-    global _preferred_backend
-    _preferred_backend = "ssht"
+    return ducc0
 
 cdef Py_ssize_t _nalm(Py_ssize_t lmax, Py_ssize_t mmax):
     return ((mmax + 1) * (mmax + 2)) // 2 + (mmax + 1) * (lmax - mmax)
 
 cdef _get_theta(Py_ssize_t L, str Method):
+    cdef double pi=3.1415926535897932384626433832795028841971
     if Method == 'MW' or Method == 'MW_pole':
         return pi*(2.*np.arange(L)+1) / ( 2.0 * float(L) - 1.0 )
              
@@ -42,7 +23,7 @@ cdef _get_theta(Py_ssize_t L, str Method):
         return pi*(2*np.arange(2*L)+1.) / ( 4.0 * float(L) )
            
     if Method == 'GL':
-        return ducc0.misc.GL_thetas(L)
+        return import_ducc0().misc.GL_thetas(L)
 
 cdef np.ndarray _get_lidx(Py_ssize_t L):
     res = np.arange(L)
@@ -113,15 +94,17 @@ cdef _build_complex_flm(alm, Py_ssize_t L):
     return res
 
 
-def rotate_flms(flm, alpha, beta, gamma, L):
+def rotate_flms(flm, alpha, beta, gamma, L, int nthreads = 1):
+    ducc0 = import_ducc0()
     alm = _extract_complex_alm(flm, L)
     for i in range(2):
         alm[i] = ducc0.sht.rotate_alm(
-            alm[i], L-1, gamma, beta, alpha, nthreads=_nthreads)
+            alm[i], L-1, gamma, beta, alpha, nthreads=nthreads)
     return _build_complex_flm(alm, L)
 
 
-def inverse(np.ndarray flm, Py_ssize_t L, Py_ssize_t Spin, str Method, bint Reality):
+def inverse(np.ndarray flm, Py_ssize_t L, Py_ssize_t Spin, str Method, bint Reality, int nthreads = 1):
+    ducc0 = import_ducc0()
     gdict = {"DH":"F1", "MW":"MW", "MWSS":"CC", "GL":"GL"}
     theta = _get_theta(L, Method)
     ntheta = theta.shape[0]
@@ -134,7 +117,7 @@ def inverse(np.ndarray flm, Py_ssize_t L, Py_ssize_t Spin, str Method, bint Real
             ntheta=ntheta,
             nphi=nphi,
             lmax=L-1,
-            nthreads=_nthreads,
+            nthreads=nthreads,
             spin=0,
             geometry=gdict[Method])[0]
     else:
@@ -149,7 +132,7 @@ def inverse(np.ndarray flm, Py_ssize_t L, Py_ssize_t Spin, str Method, bint Real
                 ntheta=ntheta,
                 nphi=nphi,
                 lmax=L-1,
-                nthreads=_nthreads,
+                nthreads=nthreads,
                 spin=Spin,
                 geometry=gdict[Method])
             res = -1j*tmp[1]
@@ -157,7 +140,8 @@ def inverse(np.ndarray flm, Py_ssize_t L, Py_ssize_t Spin, str Method, bint Real
             return res
 
 
-def forward(f, L, Spin, Method, Reality):
+def forward(f, L, Spin, Method, Reality, int nthreads = 1):
+    ducc0 = import_ducc0()
     gdict = {"DH":"F1", "MW":"MW", "MWSS":"CC", "GL":"GL"}
     theta = _get_theta(L, Method)
     ntheta = theta.shape[0]
@@ -168,7 +152,7 @@ def forward(f, L, Spin, Method, Reality):
         return _build_real_flm(ducc0.sht.experimental.analysis_2d(
             map=f.reshape((-1,f.shape[0],f.shape[1])),
             lmax=L-1,
-            nthreads=_nthreads,
+            nthreads=nthreads,
             spin=0,
             geometry=gdict[Method])[0], L)
     else:
@@ -184,7 +168,7 @@ def forward(f, L, Spin, Method, Reality):
             res = _build_complex_flm(ducc0.sht.experimental.analysis_2d(
                 map=map,
                 lmax=L-1,
-                nthreads=_nthreads,
+                nthreads=nthreads,
                 spin=Spin,
                 geometry=gdict[Method]), L)
             res *= -1

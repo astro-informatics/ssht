@@ -116,7 +116,7 @@ def test_forward_method_type(L=64):
 
 def test_forward_real_spin_nonzero(L=64):
     f = np.zeros(np.multiply.reduce(ssht.sample_shape(L)), dtype="float64")
-    with raises(ssht.ssht_input_error):
+    with raises(ssht.ssht_spin_error):
         ssht.forward(f, L, Reality=True, Spin=2)
 
 
@@ -144,8 +144,8 @@ def test_rotation(rng: np.random.Generator, method="MW", L=256):
     rotated_flm = ssht.rotate_flms(flm, *rotations, L)
     rotated_image = ssht.rotate_image(f, rotations)
     from_rotated_flm = ssht.inverse(rotated_flm, L, Reality=True, Method=method)
-    
-    def level(a : np.ndarray, where: float, range: float = 0.2) -> np.ndarray:
+
+    def level(a: np.ndarray, where: float, range: float = 0.2) -> np.ndarray:
         return np.logical_and(a > where - range * where, a < where + range * where)
 
     def ratio(a: np.ndarray, b: np.ndarray) -> float:

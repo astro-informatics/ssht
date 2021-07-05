@@ -8,7 +8,7 @@ cimport cython
 from libc.math cimport log, exp, sqrt, atan2, cos, sin, asin, atan, tan
 from scipy.special import factorial
 from scipy.interpolate import interp2d
-from pyssht.ducc0 import select_ducc_backend, select_ssht_backend
+from pyssht.exceptions import ssht_input_error
 
 cdef double pi=3.1415926535897932384626433832795028841971
 
@@ -22,6 +22,7 @@ cdef enum POLAR_PROJECTION_TYPE:
 
 cdef enum EQUATORIAL_PROJECTION_TYPE:
   SINE, MERCATOR
+
 
 #----------------------------------------------------------------------------------------------------#
 cdef extern from "ssht/ssht.h":
@@ -450,23 +451,14 @@ def ssht_inverse_gl_real(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not 
 
 #----------------------------------------------------------------------------------------------------#
 
-# some error handling
-
-class ssht_input_error(TypeError):
-    '''Raise this when inputs are the wrong type'''
-
-class ssht_spin_error(ValueError):
-    '''Raise this when the spin is none zero but Reality is true'''
-
-#----------------------------------------------------------------------------------------------------#
-
 # easy to use functions to perform forward and backward transfroms
 
-def forward(f, int L, int Spin=0, str Method='MW', bint Reality=False):
-    from pyssht.ducc0 import _preferred_backend, forward as _ducc0_forward
-    # Checks
+def forward(f, int L, int Spin=0, str Method='MW', bint Reality=False, str backend="SSHT", **kwargs):
+    from pyssht.ducc0 import forward as _ducc0_forward
+    from pyssht.parameters import method, Ducc
 
-    if Method == 'MW_pole':
+    params = method(Method, spin=Spin, reality=Reality, backend=backend, **kwargs)
+    if params.method == 'MW_POLE':
         if Reality:
             f, f_sp = f
         else:
@@ -475,116 +467,108 @@ def forward(f, int L, int Spin=0, str Method='MW', bint Reality=False):
     if f.ndim != 2:
       raise ssht_input_error('f must be 2D numpy array')
 
-    if not(Method == 'MW' or Method == 'MW_pole' or Method == 'MWSS' or Method == 'DH' or Method == 'GL'):
-        raise ssht_input_error('Method is not recognised, Methods are: MW, MW_pole, MWSS, DH and GL')
+    if isinstance(params, Ducc):
+        return _ducc0_forward(f, L, **params.asDict())
 
-    if Spin != 0 and Reality == True :
-        raise ssht_spin_error('Reality set to True and Spin is not 0. However, spin signals must be complex.')
-
-    if _preferred_backend == "ducc" and Method != 'MW_pole':
-        return _ducc0_forward(f, L, Spin, Method, Reality)
-
-    if f.dtype == np.float_ and Reality == False:
+    if f.dtype == np.float_ and params.reality == False:
         print('Real signal given but Reality flag is False. Set Reality = True to improve performance')
         f_new = np.empty(sample_shape(L,Method=Method), dtype=np.complex_)
         f_new = f + 1j*np.zeros(sample_shape(L,Method=Method), dtype=np.float_)
         f = f_new
 
-    if f.dtype == np.complex_ and Reality == True:
+    if f.dtype == np.complex_ and params.reality == True:
         print('Complex signal given but Reality flag is True. Ignoring complex component')
         f_new = np.real(f)
         f = f_new.copy(order='c')
 
     # do correct transform
-    if Method == 'MW':
-        if Reality:
+    if params.method == 'MW':
+        if params.reality:
             flm = ssht_forward_mw_real(f,L)
         else:
-            flm = ssht_forward_mw_complex(f,L,Spin)
+            flm = ssht_forward_mw_complex(f,L,params.spin)
             
-    if Method == 'MW_pole':
-        if Reality:
+    if params.method == 'MW_POLE':
+        if params.reality:
             flm = ssht_forward_mw_real_pole(f,f_sp,L)
         else:
-            flm = ssht_forward_mw_complex_pole(f,f_sp,phi_sp,L,Spin)
+            flm = ssht_forward_mw_complex_pole(f,f_sp,phi_sp,L,params.spin)
             
-    if Method == 'MWSS':
-        if Reality:
+    if params.method == 'MWSS':
+        if params.reality:
             flm = ssht_forward_mwss_real(f,L)
         else:
-            flm = ssht_forward_mwss_complex(f,L,Spin)
+            flm = ssht_forward_mwss_complex(f,L,params.spin)
 
-    if Method == 'DH':
-        if Reality:
+    if params.method == 'DH':
+        if params.reality:
             flm = ssht_forward_dh_real(f,L)
         else:
-            flm = ssht_forward_dh_complex(f,L,Spin)
+            flm = ssht_forward_dh_complex(f,L,params.spin)
             
-    if Method == 'GL':
-        if Reality:
+    if params.method == 'GL':
+        if params.reality:
             flm = ssht_forward_gl_real(f,L)
         else:
-            flm = ssht_forward_gl_complex(f,L,Spin)
+            flm = ssht_forward_gl_complex(f,L,params.spin)
             
             
     return flm
 
 
-def inverse(flm, int L, int Spin=0, str Method='MW', bint Reality=False):
-    from pyssht.ducc0 import _preferred_backend, inverse as _ducc0_inverse
+def inverse(flm, int L, int Spin=0, str Method='MW', bint Reality=False, str backend="SSHT", **kwargs):
+    from pyssht.ducc0 import inverse as _ducc0_inverse
+    from pyssht.parameters import method, Ducc
 
     if flm.ndim != 1:
       raise ssht_input_error('flm must be 1D numpy array')
 
-    if not(Method == 'MW' or Method == 'MW_pole' or Method == 'MWSS' or Method == 'DH' or Method == "GL"):
-        raise ssht_input_error('Method is not recognised, Methods are: MW, MW_pole, MWSS, DH and GL')
+    params = method(Method, spin=Spin, reality=Reality, backend=backend, **kwargs)
     
-    if Spin != 0 and Reality == True :
-        raise ssht_spin_error('Reality set to True and Spin is not 0. However, spin signals must be complex.')
-
-    if _preferred_backend == "ducc" and Method != 'MW_pole':
-        return _ducc0_inverse(flm, L, Spin, Method, Reality)
+    if isinstance(params, Ducc):
+        return _ducc0_inverse(flm, L, params.spin, params.method, params.reality)
 
     # do correct transform
-    if Method == 'MW':
-        if Reality:
+    if params.method == 'MW':
+        if params.reality:
             f = ssht_inverse_mw_real(flm,L)
         else:
-            f = ssht_inverse_mw_complex(flm,L,Spin)
+            f = ssht_inverse_mw_complex(flm,L,params.spin)
             
 
-    if Method == 'MW_pole':
-        if Reality:
+    if params.method == 'MW_POLE':
+        if params.reality:
             f = ssht_inverse_mw_real_pole(flm,L)
         else:
-            f = ssht_inverse_mw_complex_pole(flm,L,Spin)
+            f = ssht_inverse_mw_complex_pole(flm,L,params.spin)
 
-    if Method == 'MWSS':
-        if Reality:
+    if params.method == 'MWSS':
+        if params.reality:
             f = ssht_inverse_mwss_real(flm,L)
         else:
-            f = ssht_inverse_mwss_complex(flm,L,Spin)
+            f = ssht_inverse_mwss_complex(flm,L,params.spin)
           
-    if Method == 'DH':
-        if Reality:
+    if params.method == 'DH':
+        if params.reality:
             f = ssht_inverse_dh_real(flm,L)
         else:
-            f = ssht_inverse_dh_complex(flm,L,Spin)
+            f = ssht_inverse_dh_complex(flm,L,params.spin)
             
-    if Method == 'GL':
-        if Reality:
+    if params.method == 'GL':
+        if params.reality:
             f = ssht_inverse_gl_real(flm,L)
         else:
-            f = ssht_inverse_gl_complex(flm,L,Spin)
+            f = ssht_inverse_gl_complex(flm,L,params.spin)
             
             
             
     return f
 
-def inverse_adjoint(f, int L, int Spin=0, str Method='MW', bint Reality=False):
-    # Checks
+def inverse_adjoint(f, int L, int Spin=0, str Method='MW', bint Reality=False, str backend="SSHT"):
+    from pyssht.parameters import method
 
-    if Method == 'MW_pole':
+    params = method(Method, spin=Spin, reality=Reality, backend=backend)
+    if params.method == 'MW_POLE':
         if Reality:
             f, f_sp = f
         else:
@@ -593,75 +577,57 @@ def inverse_adjoint(f, int L, int Spin=0, str Method='MW', bint Reality=False):
     if f.ndim != 2:
       raise ssht_input_error('f must be 2D numpy array')
 
-    if not(Method == 'MW' or Method == 'MWSS'):
+    if params.method not in ('MW', 'MWSS'):
         raise ssht_input_error('Method is not recognised, Methods are: MW, MWSS')
 
-    if Spin != 0 and Reality == True :
-        raise ssht_spin_error('Reality set to True and Spin is not 0. However, spin signals must be complex.')
-
-    if f.dtype == np.float_ and Reality == False:
+    if f.dtype == np.float_ and params.reality == False:
         print('Real signal given but Reality flag is False. Set Reality = True to improve performance')
-        f_new = np.empty(sample_shape(L,Method=Method), dtype=np.complex_)
-        f_new = f + 1j*np.zeros(sample_shape(L,Method=Method), dtype=np.float_)
+        f_new = np.empty(sample_shape(L,Method=params.method), dtype=np.complex_)
+        f_new = f + 1j*np.zeros(sample_shape(L,Method=params.method), dtype=np.float_)
         f = f_new
 
-    if f.dtype == np.complex_ and Reality == True:
+    if f.dtype == np.complex_ and params.reality == True:
         print('Complex signal given but Reality flag is True. Ignoring complex component')
         f_new = np.real(f)
         f = f_new.copy(order='c')
         
     # do correct transform
-    if Method == 'MW':
-        if Reality:
+    if params.method == 'MW':
+        if params.reality:
             flm = ssht_inverse_mw_real_adjoint(f,L)
         else:
-            flm = ssht_inverse_mw_complex_adjoint(f,L,Spin)
-            
-    # if Method == 'MW_pole':
-    #     if Reality:
-    #         flm = ssht_inverse_mw_real_pole_adjoint(f,f_sp,L)
-    #     else:
-    #         flm = ssht_inverse_mw_complex_pole_adjoint(f,f_sp,phi_sp,L,Spin)
-            
-    if Method == 'MWSS':
-        if Reality:
+            flm = ssht_inverse_mw_complex_adjoint(f,L,params.spin)
+    elif params.method == 'MWSS':
+        if params.reality:
             flm = ssht_inverse_mwss_real_adjoint(f,L)
         else:
-            flm = ssht_inverse_mwss_complex_adjoint(f,L,Spin)
+            flm = ssht_inverse_mwss_complex_adjoint(f,L,params.spin)
             
             
     return flm
 
 
-def forward_adjoint(flm, int L, int Spin=0, str Method='MW', bint Reality=False):
+def forward_adjoint(flm, int L, int Spin=0, str Method='MW', bint Reality=False, str backend="SSHT"):
+    from pyssht.parameters import method
+
+    params = method(Method, spin=Spin, reality=Reality, backend=backend)
+
     if flm.ndim != 1:
       raise ssht_input_error('flm must be 1D numpy array')
 
-    if not(Method == 'MW' or Method == 'MWSS'):
+    if params.method not in ( 'MW', 'MWSS'):
         raise ssht_input_error('Method is not recognised, Methods are: MW, MWSS')
     
-    if Spin != 0 and Reality == True :
-        raise ssht_spin_error('Reality set to True and Spin is not 0. However, spin signals must be complex.')
-    
-    # do correct transform
-    if Method == 'MW':
-        if Reality:
+    if params.method == 'MW':
+        if params.reality:
             f = ssht_forward_mw_real_adjoint(flm,L)
         else:
-            f = ssht_forward_mw_complex_adjoint(flm,L,Spin)
-            
-
-    # if Method == 'MW_pole':
-    #     if Reality:
-    #         f = ssht_forward_mw_real_pole_adjoint(flm,L)
-    #     else:
-    #         f = ssht_forward_mw_complex_pole_adjoint(flm,L,Spin)
-
-    if Method == 'MWSS':
-         if Reality:
+            f = ssht_forward_mw_complex_adjoint(flm,L,params.spin)
+    elif params.method == 'MWSS':
+         if params.reality:
              f = ssht_forward_mwss_real_adjoint(flm,L)
          else:
-             f = ssht_forward_mwss_complex_adjoint(flm,L,Spin)
+             f = ssht_forward_mwss_complex_adjoint(flm,L,params.spin)
                       
     return f
 #----------------------------------------------------------------------------------------------------#
@@ -811,37 +777,36 @@ cdef inline double cy_index_to_phi(int index, int L, METHOD_TYPE Method_enum):
 
 
 def sample_length(int L, Method = 'MW'):
-  if not(Method == 'MW' or Method == 'MW_pole' or Method == 'MWSS' or Method == 'DH' or Method == "GL"):
-      raise ssht_input_error('Method is not recognised, Methods are: MW, MW_pole, MWSS, DH and GL')
-
+  from pyssht.parameters import method
+  params = method(Method)
   cdef int n_theta, n_phi
-  n_theta, n_phi = sample_shape(L, Method=Method)
+  n_theta, n_phi = sample_shape(L, Method=params.method)
 
   return n_theta*n_phi
 # get the shape of the signal on the sphere for different sampling theorems
 
 def sample_shape(int L, str Method = 'MW'):
-  if not(Method == 'MW' or Method == 'MW_pole' or Method == 'MWSS' or Method == 'DH' or Method == "GL"):
-      raise ssht_input_error('Method is not recognised, Methods are: MW, MW_pole, MWSS, DH and GL')
+  from pyssht.parameters import method
+  params = method(Method)
 
   cdef int n_theta, n_phi
-  if Method == 'MW':
+  if params.method == 'MW':
     n_theta = L
     n_phi   = 2*L-1
 
-  if Method == 'MW_pole':
+  if params.method == 'MW_POLE':
     n_theta = L-1
     n_phi   = 2*L-1
 
-  if Method == 'MWSS':
+  if params.method == 'MWSS':
     n_theta = L+1
     n_phi   = 2*L
 
-  if Method == 'GL':
+  if params.method == 'GL':
     n_theta = L
     n_phi   = 2*L-1
 
-  if Method == 'DH':
+  if params.method == 'DH':
     n_theta = 2*L
     n_phi   = 2*L-1
 
@@ -850,36 +815,36 @@ def sample_shape(int L, str Method = 'MW'):
   return (n_theta, n_phi)
 
 def sample_positions(int L, str Method = 'MW', bint Grid=False):
-  if not(Method == 'MW' or Method == 'MW_pole' or Method == 'MWSS' or Method == 'DH' or Method == "GL"):
-    raise ssht_input_error('Method is not recognised, Methods are: MW, MW_pole, MWSS, DH and GL')
+  from pyssht.parameters import method
+  params = method(Method)
 
   cdef int n_theta, n_phi, i
   cdef np.ndarray[np.float_t, ndim=1] thetas, phis
 
-  n_theta, n_phi = sample_shape(L, Method=Method)
+  n_theta, n_phi = sample_shape(L, Method=params.method)
   thetas = np.empty(n_theta, dtype=np.float_)
   phis   = np.empty(n_phi,   dtype=np.float_)
 
 
-  if Method == 'MW':
+  if params.method == 'MW':
     for i in range(n_theta):
       thetas[i] = ssht_sampling_mw_t2theta(i, L)
     for i in range(n_phi):
       phis[i] = ssht_sampling_mw_p2phi(i, L)
 
-  if Method == 'MWSS':
+  if params.method == 'MWSS':
     for i in range(n_theta):
       thetas[i] = ssht_sampling_mw_ss_t2theta(i, L)
     for i in range(n_phi):
       phis[i] = ssht_sampling_mw_ss_p2phi(i, L)
 
-  if Method == 'DH':
+  if params.method == 'DH':
     for i in range(n_theta):
       thetas[i] = ssht_sampling_dh_t2theta(i, L)
     for i in range(n_phi):
       phis[i] = ssht_sampling_dh_p2phi(i, L)
 
-  if Method == 'GL':
+  if params.method == 'GL':
     weights_unused = np.empty(L, dtype=np.float_)
     ssht_sampling_gl_thetas_weights(<double*> np.PyArray_DATA(thetas), <double*> np.PyArray_DATA(weights_unused), L)
     for i in range(n_phi):
@@ -1145,17 +1110,19 @@ def plot_sphere(f, int L, str Method='MW', bint Close=True, bint Parametric=Fals
     from matplotlib import cm, colors, colorbar, gridspec
     from mpl_toolkits.mplot3d import Axes3D
     from mpl_toolkits.axes_grid1 import make_axes_locatable
+    from pyssht.parameters import method
 
     # add ability to choose color bar min max
     # and sort out shapes of the plots
     
-    if Method == 'MW_pole':
+    params = method(Method)
+    if params.method == 'MW_POLE':
         if len(f) == 2:
             f, f_sp = f
         else:
             f, f_sp, phi_sp = f
 
-    (thetas, phis) = sample_positions(L, Method=Method, Grid=True)
+    (thetas, phis) = sample_positions(L, Method=params.method, Grid=True)
 
     if (thetas.size != f.size):
         ssht_input_error('Band limit L deos not match that of f')
@@ -1182,7 +1149,7 @@ def plot_sphere(f, int L, str Method='MW', bint Close=True, bint Parametric=Fals
 
     # % Close plot.
     if Close:
-        (n_theta,n_phi) = sample_shape(L,Method=Method)
+        (n_theta,n_phi) = sample_shape(L,Method=params.method)
         f_plot = np.insert(f_plot,n_phi,f[:,0],axis=1)
         if Parametric:
           f_normalised = np.insert(f_normalised,n_phi,f_normalised[:,0],axis=1)
@@ -1337,7 +1304,7 @@ cdef METHOD_TYPE get_method_enum(str Method):
 
 
 
-def mollweide_projection(f, int L, int resolution=500, rot=None,\
+def mollweide_projection(f, int L, int resolution=500, rot=None,
                         zoom_region=[np.sqrt(2.0)*2,np.sqrt(2.0)], str Method="MW"):
 
   cdef int i, j, n_phi, n_theta
@@ -2671,13 +2638,25 @@ def generate_exp_array(double x, int L):
 # rotation functions
 
 
-def rotate_flms(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None,\
-                      double alpha, double beta, double gamma, int L, dl_array_in=None,\
-                      M_in=None, bint Axisymmetric=False, bint Keep_dl=False):
-  from pyssht.ducc0 import _preferred_backend, rotate_flms as _ducc0_rotate_flms
+def rotate_flms(
+  np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None,
+  double alpha,
+  double beta,
+  double gamma,
+  int L,
+  dl_array_in=None,
+  M_in=None,
+  bint Axisymmetric=False,
+  bint Keep_dl=False,
+  backend: str = "SSHT",
+  **kwargs,
+):
+  from pyssht.ducc0 import rotate_flms as _ducc0_rotate_flms
+  from pyssht.parameters import method, Ducc
 
-  if _preferred_backend == "ducc":
-     return _ducc0_rotate_flms(f_lm, alpha, beta, gamma, L)
+  params = method(backend=backend, **kwargs)
+  if isinstance(params, Ducc):
+     return _ducc0_rotate_flms(f_lm, alpha, beta, gamma, L, nthreads=params.nthreads)
 
   cdef np.ndarray[np.float_t, ndim=3] dl_array
   cdef np.ndarray[complex, ndim=1] alpha_array, gamma_array 

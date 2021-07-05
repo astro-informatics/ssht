@@ -11,7 +11,7 @@ def test_SHT(L, Method, Reality, Spin, nthreads=1):
     if Reality:
         # Generate random flms (of real signal).
         flm = np.zeros((L * L), dtype=complex)
-    
+
         # Impose reality on flms.
         for el in range(L):
             m = 0
@@ -25,17 +25,32 @@ def test_SHT(L, Method, Reality, Spin, nthreads=1):
     else:
         flm = np.random.randn(L * L) + 1j * np.random.randn(L * L)
 
-    ssht.select_ducc_backend(nthreads=nthreads)
     t0 = time()
-    f = ssht.inverse(flm, L, Reality=Reality, Method=Method, Spin=Spin)
-    flm_syn = ssht.forward(f, L, Reality=Reality, Method=Method, Spin=Spin)
-    tducc = time()-t0
-    ssht.select_ssht_backend()
+    f = ssht.inverse(
+        flm,
+        L,
+        Reality=Reality,
+        Method=Method,
+        Spin=Spin,
+        backend="ducc",
+        nthreads=nthreads,
+    )
+    flm_syn = ssht.forward(
+        f,
+        L,
+        Reality=Reality,
+        Method=Method,
+        Spin=Spin,
+        backend="ducc",
+        nthreads=nthreads,
+    )
+    tducc = time() - t0
     t0 = time()
     f2 = ssht.inverse(flm, L, Reality=Reality, Method=Method, Spin=Spin)
     flm_syn2 = ssht.forward(f2, L, Reality=Reality, Method=Method, Spin=Spin)
-    tssht = time()-t0
-    return (_l2error(f,f2)+_l2error(flm_syn,flm_syn2), tssht/tducc)
+    tssht = time() - t0
+    return (_l2error(f, f2) + _l2error(flm_syn, flm_syn2), tssht / tducc)
+
 
 def test_rot(L, nthreads=1):
     gamma = np.pi / 5
@@ -44,27 +59,24 @@ def test_rot(L, nthreads=1):
 
     flm = np.random.randn(L * L) + 1j * np.random.randn(L * L)
 
-    ssht.select_ducc_backend(nthreads=nthreads)
     t0 = time()
-    flm_rot = ssht.rotate_flms(flm, alpha, beta, gamma, L)
-    tducc = time()-t0
-    ssht.select_ssht_backend()
+    flm_rot = ssht.rotate_flms(
+        flm, alpha, beta, gamma, L, backend="ducc", nthreads=nthreads
+    )
+    tducc = time() - t0
     t0 = time()
     flm_rot2 = ssht.rotate_flms(flm, alpha, beta, gamma, L)
-    tssht = time()-t0
-    return (_l2error(flm_rot,flm_rot2), tssht/tducc)
+    tssht = time() - t0
+    return (_l2error(flm_rot, flm_rot2), tssht / tducc)
 
 
 L_list = [32, 64, 128, 256, 512, 1024]
-nthreads=1
+nthreads = 1
 
 print("flm rotation tests:")
 for L in L_list:
     res = test_rot(L, nthreads=nthreads)
-    print("L={:4}:  L2 error={:e}, speedup factor={:f}".format(
-                            L, res[0], res[1]
-                        )
-                    )
+    print("L={:4}:  L2 error={:e}, speedup factor={:f}".format(L, res[0], res[1]))
 L_list = [32, 64, 128, 256, 512, 1024, 2048]
 print("SHT tests:")
 for Method in ["MW", "MWSS", "GL", "DH"]:
@@ -72,7 +84,8 @@ for Method in ["MW", "MWSS", "GL", "DH"]:
         for Reality in [False, True]:
             for Spin in [0] if Reality else [0, 1]:
                 res = test_SHT(L, Method, Reality, Spin, nthreads=nthreads)
-                print("{:4}, L={:4}, Reality={:5}, Spin={:1}:  L2 error={:e}, speedup factor={:f}".format(
-                            Method, L, str(Reality),Spin,res[0], res[1]
-                        )
+                print(
+                    "{:4}, L={:4}, Reality={:5}, Spin={:1}:  L2 error={:e}, speedup factor={:f}".format(
+                        Method, L, str(Reality), Spin, res[0], res[1]
                     )
+                )
