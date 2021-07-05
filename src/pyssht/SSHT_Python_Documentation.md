@@ -1,6 +1,11 @@
 # SSHT Python Documentation
 
-This guide is intended to explain the python interface of SSHT. For a description of the workings of SSHT see [here](http://astro-informatics.github.io/ssht/ "SSHT documentation")
+This guide is intended to explain the python interface of SSHT. For a
+description of the workings of SSHT see
+[here](http://astro-informatics.github.io/ssht/ "SSHT documentation"). The
+python package also offers an interface to some of the functionality from
+[ducc0](https://pypi.org/project/ducc0/), including forward and inverse
+transforms.
 
 ## pyssht.forward
 
@@ -22,6 +27,10 @@ Performs the forward spherical harmonic transform.
     4. `'DH'`         [Driscoll & Healy sampling]
     5. `'GL'`         [Gauss-Legendre sampling]
 * `Reality`  determines if the signal is real or complex, Boolean (default = False)
+* `backend` the backend that runs the transforms:
+    1. `'SSHT'` this package
+    2. `'ducc'` interface to [ducc0](https://pypi.org/project/ducc0/). "MW_pole"
+       is not available in this backend.
 
 #### Output
 
@@ -54,6 +63,10 @@ Performs the inverse spherical harmonic transform.
     4. `'DH'`         [Driscoll & Healy sampling]
     5. `'GL'`         [Gauss-Legendre sampling]
 * `Reality`  determines if the signal is real or complex, Boolean (default = False)
+* `backend` the backend that runs the transforms:
+    1. `'SSHT'` this package
+    2. `'ducc'` interface to [ducc0](https://pypi.org/project/ducc0/). "MW_pole"
+       is not available in this backend.
 
 #### Output
 
@@ -774,6 +787,9 @@ Function to rotate a set of spherical harmonic coefficients by the set of Euler 
 * `M` if set is the azimuthal band limit of the function to be rotated, default `M=L`.
 * `Axisymmetric` set if the function is axisymmetric and axisymmetric harmonic coefficients are parsed.
 * `Keep_dl` if set the output is changed to allow one to keep the computed `dl_array`
+* `backend` the backend that runs the transforms:
+    1. `'SSHT'` this package
+    2. `'ducc'` interface to [ducc0](https://pypi.org/project/ducc0/)
 
 #### Output
 
