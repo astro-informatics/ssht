@@ -35,7 +35,9 @@ def test_real_ssht_vs_ducc0(rng: np.random.Generator, L, Method, nthreads=1):
     assert ssht_image == approx(ducc0_image)
     assert ssht_coeffs == approx(ducc0_coeffs)
     if Method in ["MW", "MWSS"]:
-        ssht_adj_coeffs = ssht.inverse_adjoint(ssht_image, L, Reality=True, Method=Method, Spin=0)
+        ssht_adj_coeffs = ssht.inverse_adjoint(
+            ssht_image, L, Reality=True, Method=Method, Spin=0
+        )
         ducc0_adj_coeffs = ssht.inverse_adjoint(
             ducc0_image,
             L,
@@ -77,7 +79,9 @@ def test_complex_ssht_vs_ducc0(rng: np.random.Generator, L, Method, Spin, nthrea
     assert ssht_image == approx(ducc0_image)
     assert ssht_coeffs == approx(ducc0_coeffs)
     if Method in ["MW", "MWSS"]:
-        ssht_adj_coeffs = ssht.inverse_adjoint(ssht_image, L, Reality=False, Method=Method, Spin=0)
+        ssht_adj_coeffs = ssht.inverse_adjoint(
+            ssht_image, L, Reality=False, Method=Method, Spin=0
+        )
         ducc0_adj_coeffs = ssht.inverse_adjoint(
             ducc0_image,
             L,
