@@ -23,6 +23,17 @@ def inverse(
 ) -> np.ndarray:
     pass
 
+def inverse_adjoint(
+    f: np.ndarray,
+    L: int,
+    Spin: int = 0,
+    Method: str = "MW",
+    Reality: bool = False,
+    backend: str = "SSHT",
+    **kwargs,
+) -> np.ndarray:
+    pass
+
 def elm2ind(el: int, m: int) -> int:
     pass
 
