@@ -120,24 +120,23 @@ def inverse(np.ndarray flm, Py_ssize_t L, Py_ssize_t Spin, str Method, bint Real
             nthreads=nthreads,
             spin=0,
             geometry=gdict[Method])[0]
+    elif Spin == 0:
+        alm = _extract_complex_alm(flm, L)
+        flmr = _build_real_flm(alm[0], L)
+        flmi = _build_real_flm(alm[1], L)
+        return inverse(flmr, L, 0, Method, True) + 1j*inverse(flmi, L, 0, Method, True)
     else:
-        if Spin == 0:
-            alm = _extract_complex_alm(flm, L)
-            flmr = _build_real_flm(alm[0], L)
-            flmi = _build_real_flm(alm[1], L)
-            return inverse(flmr, L, 0, Method, True) + 1j*inverse(flmi, L, 0, Method, True)
-        else:
-            tmp=ducc0.sht.experimental.synthesis_2d(
-                alm=_extract_complex_alm(flm, L),
-                ntheta=ntheta,
-                nphi=nphi,
-                lmax=L-1,
-                nthreads=nthreads,
-                spin=Spin,
-                geometry=gdict[Method])
-            res = -1j*tmp[1]
-            res -= tmp[0]
-            return res
+        tmp=ducc0.sht.experimental.synthesis_2d(
+            alm=_extract_complex_alm(flm, L),
+            ntheta=ntheta,
+            nphi=nphi,
+            lmax=L-1,
+            nthreads=nthreads,
+            spin=Spin,
+            geometry=gdict[Method])
+        res = -1j*tmp[1]
+        res -= tmp[0]
+        return res
 
 
 def inverse_adjoint(f, L, Spin, Method, Reality, int nthreads = 1):
@@ -155,24 +154,23 @@ def inverse_adjoint(f, L, Spin, Method, Reality, int nthreads = 1):
             nthreads=nthreads,
             spin=0,
             geometry=gdict[Method])[0], L)
+    elif Spin == 0:
+       flmr = inverse_adjoint(f.real, L, Spin, Method, True)
+       flmi = inverse_adjoint(f.imag, L, Spin, Method, True)
+       alm = np.empty((2,_nalm(L-1, L-1)), dtype=np.complex128)
+       alm[0] = _extract_real_alm(flmr, L)
+       alm[1] = _extract_real_alm(flmi, L)
+       return _build_complex_flm(alm, L)
     else:
-        if Spin == 0:
-            flmr = inverse_adjoint(f.real, L, Spin, Method, True)
-            flmi = inverse_adjoint(f.imag, L, Spin, Method, True)
-            alm = np.empty((2,_nalm(L-1, L-1)), dtype=np.complex128)
-            alm[0] = _extract_real_alm(flmr, L)
-            alm[1] = _extract_real_alm(flmi, L)
-            return _build_complex_flm(alm, L)
-        else:
-            map = f.astype(np.complex128).view(dtype=np.float64).reshape((f.shape[0],f.shape[1],2)).transpose((2,0,1))
-            res = _build_complex_flm(ducc0.sht.experimental.adjoint_synthesis_2d(
-                map=map,
-                lmax=L-1,
-                nthreads=nthreads,
-                spin=Spin,
-                geometry=gdict[Method]), L)
-            res *= -1
-            return res
+       map = f.astype(np.complex128).view(dtype=np.float64).reshape((f.shape[0],f.shape[1],2)).transpose((2,0,1))
+       res = _build_complex_flm(ducc0.sht.experimental.adjoint_synthesis_2d(
+           map=map,
+           lmax=L-1,
+           nthreads=nthreads,
+           spin=Spin,
+           geometry=gdict[Method]), L)
+       res *= -1
+       return res
 
 
 def forward(f, L, Spin, Method, Reality, int nthreads = 1):
@@ -190,21 +188,20 @@ def forward(f, L, Spin, Method, Reality, int nthreads = 1):
             nthreads=nthreads,
             spin=0,
             geometry=gdict[Method])[0], L)
+    elif Spin == 0:
+        flmr = forward(f.real, L, Spin, Method, True)
+        flmi = forward(f.imag, L, Spin, Method, True)
+        alm = np.empty((2,_nalm(L-1, L-1)), dtype=np.complex128)
+        alm[0] = _extract_real_alm(flmr, L)
+        alm[1] = _extract_real_alm(flmi, L)
+        return _build_complex_flm(alm, L)
     else:
-        if Spin == 0:
-            flmr = forward(f.real, L, Spin, Method, True)
-            flmi = forward(f.imag, L, Spin, Method, True)
-            alm = np.empty((2,_nalm(L-1, L-1)), dtype=np.complex128)
-            alm[0] = _extract_real_alm(flmr, L)
-            alm[1] = _extract_real_alm(flmi, L)
-            return _build_complex_flm(alm, L)
-        else:
-            map = f.astype(np.complex128).view(dtype=np.float64).reshape((f.shape[0],f.shape[1],2)).transpose((2,0,1))
-            res = _build_complex_flm(ducc0.sht.experimental.analysis_2d(
-                map=map,
-                lmax=L-1,
-                nthreads=nthreads,
-                spin=Spin,
-                geometry=gdict[Method]), L)
-            res *= -1
-            return res
+        map = f.astype(np.complex128).view(dtype=np.float64).reshape((f.shape[0],f.shape[1],2)).transpose((2,0,1))
+        res = _build_complex_flm(ducc0.sht.experimental.analysis_2d(
+            map=map,
+            lmax=L-1,
+            nthreads=nthreads,
+            spin=Spin,
+            geometry=gdict[Method]), L)
+        res *= -1
+        return res
