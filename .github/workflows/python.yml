@@ -31,7 +31,7 @@ jobs:
           python -m pip install scikit-build
 
       - name: Install pyssht
-        run: pip install -e .[dev]
+        run: pip install -e .[dev,ducc0]
 
       - name: run pytest
         run: pytest tests/test_pyssht.py
@@ -85,7 +85,7 @@ jobs:
       - name: Setup environment
         run: |
           python -m pip install --upgrade pip wheel
-          python -m pip install conan pytest
+          python -m pip install conan pytest ducc0
           conan profile new default --detect
 
       - name: Build wheels
