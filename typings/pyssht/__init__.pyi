@@ -12,6 +12,17 @@ def forward(
 ) -> np.ndarray:
     pass
 
+def forward_adjoint(
+    flm: np.ndarray,
+    L: int,
+    Spin: int = 0,
+    Method: str = "MW",
+    Reality: bool = False,
+    backend: str = "SSHT",
+    **kwargs,
+) -> np.ndarray:
+    pass
+
 def inverse(
     flm: np.ndarray,
     L: int,

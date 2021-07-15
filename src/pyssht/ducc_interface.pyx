@@ -205,3 +205,39 @@ def forward(f, L, Spin, Method, Reality, int nthreads = 1):
             geometry=gdict[Method]), L)
         res *= -1
         return res
+
+
+def forward_adjoint(np.ndarray flm, Py_ssize_t L, Py_ssize_t Spin, str Method, bint Reality, int nthreads = 1):
+    ducc0 = import_ducc0()
+    gdict = {"DH":"F1", "MW":"MW", "MWSS":"CC", "GL":"GL"}
+    theta = _get_theta(L, Method)
+    ntheta = theta.shape[0]
+    nphi = 2*L-1
+    if Method == 'MWSS':
+        nphi += 1
+    if Reality:
+        return ducc0.sht.experimental.adjoint_analysis_2d(
+            alm=_extract_real_alm(flm, L).reshape((1,-1)),
+            ntheta=ntheta,
+            nphi=nphi,
+            lmax=L-1,
+            nthreads=nthreads,
+            spin=0,
+            geometry=gdict[Method])[0]
+    elif Spin == 0:
+        alm = _extract_complex_alm(flm, L)
+        flmr = _build_real_flm(alm[0], L)
+        flmi = _build_real_flm(alm[1], L)
+        return forward_adjoint(flmr, L, 0, Method, True) + 1j*forward_adjoint(flmi, L, 0, Method, True)
+    else:
+        tmp=ducc0.sht.experimental.adjoint_analysis_2d(
+            alm=_extract_complex_alm(flm, L),
+            ntheta=ntheta,
+            nphi=nphi,
+            lmax=L-1,
+            nthreads=nthreads,
+            spin=Spin,
+            geometry=gdict[Method])
+        res = -1j*tmp[1]
+        res -= tmp[0]
+        return res

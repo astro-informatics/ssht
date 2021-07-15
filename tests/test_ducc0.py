@@ -100,6 +100,26 @@ def test_real_inverse_adjoint_ssht_vs_ducc0(real_image, order, method, nthreads=
     assert ssht_adj_coeffs == approx(ducc0_adj_coeffs)
 
 
+def test_real_forward_adjoint_ssht_vs_ducc0(real_coeffs, order, method, nthreads=1):
+    from pyssht.exceptions import ssht_input_error
+
+    try:
+        ssht_image = ssht.forward_adjoint(real_coeffs, order, Reality=True, Method=method, Spin=0)
+    except ssht_input_error:
+        assert method not in ("MW", "MWSS")
+        return
+    ducc0_image = ssht.forward_adjoint(
+        real_coeffs,
+        order,
+        Reality=True,
+        Method=method,
+        Spin=0,
+        backend="ducc",
+        nthreads=nthreads,
+    )
+    assert ssht_image[1:-1] == approx(ducc0_image[1:-1])
+
+
 def test_complex_inverse_ssht_vs_ducc0(complex_coeffs, order, method, spin, nthreads=1):
     ssht_image = ssht.inverse(
         complex_coeffs, order, Reality=False, Method=method, Spin=spin
@@ -155,6 +175,28 @@ def test_complex_inverse_adjoint_ssht_vs_ducc0(
         nthreads=nthreads,
     )
     assert ssht_adj_coeffs == approx(ducc0_adj_coeffs)
+
+
+def test_complex_forward_adjoint_ssht_vs_ducc0(complex_coeffs, order, method, spin, nthreads=1):
+    from pyssht.exceptions import ssht_input_error
+
+    try:
+        ssht_image = ssht.forward_adjoint(
+            complex_coeffs, order, Reality=False, Method=method, Spin=spin
+    )
+    except ssht_input_error:
+        assert method not in ("MW", "MWSS")
+        return
+    ducc0_image = ssht.forward_adjoint(
+        complex_coeffs,
+        order,
+        Reality=False,
+        Method=method,
+        Spin=spin,
+        backend="ducc",
+        nthreads=nthreads,
+    )
+    assert ssht_image[1:-1] == approx(ducc0_image[1:-1])
 
 
 def test_rot(complex_coeffs, order):
