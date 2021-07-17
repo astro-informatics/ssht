@@ -1,5 +1,5 @@
 import numpy as np
-from pytest import approx, fixture, importorskip
+from pytest import approx, fixture, mark, importorskip
 
 import pyssht as ssht
 
@@ -100,26 +100,6 @@ def test_real_inverse_adjoint_ssht_vs_ducc0(real_image, order, method, nthreads=
     assert ssht_adj_coeffs == approx(ducc0_adj_coeffs)
 
 
-def test_real_forward_adjoint_ssht_vs_ducc0(real_coeffs, order, method, nthreads=1):
-    from pyssht.exceptions import ssht_input_error
-
-    try:
-        ssht_image = ssht.forward_adjoint(real_coeffs, order, Reality=True, Method=method, Spin=0)
-    except ssht_input_error:
-        assert method not in ("MW", "MWSS")
-        return
-    ducc0_image = ssht.forward_adjoint(
-        real_coeffs,
-        order,
-        Reality=True,
-        Method=method,
-        Spin=0,
-        backend="ducc",
-        nthreads=nthreads,
-    )
-    assert ssht_image[1:-1] == approx(ducc0_image[1:-1])
-
-
 def test_complex_inverse_ssht_vs_ducc0(complex_coeffs, order, method, spin, nthreads=1):
     ssht_image = ssht.inverse(
         complex_coeffs, order, Reality=False, Method=method, Spin=spin
@@ -177,26 +157,31 @@ def test_complex_inverse_adjoint_ssht_vs_ducc0(
     assert ssht_adj_coeffs == approx(ducc0_adj_coeffs)
 
 
-def test_complex_forward_adjoint_ssht_vs_ducc0(complex_coeffs, order, method, spin, nthreads=1):
-    from pyssht.exceptions import ssht_input_error
+@mark.parametrize("method", ["MW", "MWSS"])
+def test_real_forward_adjoint(rng: np.random.Generator, method, order):
+    shape = ssht.sample_shape(order, Method=method)
+    f = rng.standard_normal(shape, dtype="float64")
+    flm = ssht.forward(f, order, Reality=True, Method=method)
+    f = ssht.inverse(flm, order, Reality=True, Method=method)
 
-    try:
-        ssht_image = ssht.forward_adjoint(
-            complex_coeffs, order, Reality=False, Method=method, Spin=spin
-    )
-    except ssht_input_error:
-        assert method not in ("MW", "MWSS")
-        return
-    ducc0_image = ssht.forward_adjoint(
-        complex_coeffs,
-        order,
-        Reality=False,
-        Method=method,
-        Spin=spin,
-        backend="ducc",
-        nthreads=nthreads,
-    )
-    assert ssht_image[1:-1] == approx(ducc0_image[1:-1])
+    f_prime = rng.standard_normal(shape, dtype="float64")
+    flm_prime = ssht.forward(f_prime, order, Reality=True, Method=method)
+    f_prime = ssht.forward_adjoint(flm_prime, order, Reality=True, Method=method, backend="ducc")
+
+    assert flm_prime.conj() @ flm == approx(f_prime.flatten().conj() @ f.flatten())
+
+
+@mark.parametrize("method", ["MW", "MWSS"])
+def test_forward_adjoint(rng: np.random.Generator, spin, method, order):
+    flm = rng.standard_normal((order * order, 2), dtype="float64") @ [1, 1j]
+    flm[0 : spin * spin] = 0.0
+    f = ssht.inverse(flm, order, Spin=spin, Method=method, backend="ducc")
+
+    flm_prime = rng.standard_normal((order * order, 2), dtype="float64") @ [1, 1j]
+    flm_prime[0 : spin * spin] = 0.0
+    f_prime = ssht.forward_adjoint(flm_prime, order, Spin=spin, Method=method, backend="ducc")
+
+    assert flm_prime.conj() @ flm == approx(f_prime.flatten().conj() @ f.flatten())
 
 
 def test_rot(complex_coeffs, order):
