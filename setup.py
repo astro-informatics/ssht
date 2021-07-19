@@ -18,7 +18,7 @@ dev_requirements = [
     "conan",
     "pip!=20.0.0,!=20.0.1",
     "pytest",
-    "ducc0>=0.16",
+    "ducc0>=0.18",
 ]
 
 long_description = (
@@ -36,7 +36,7 @@ setup(
         "Y. Wiaux",
     ],
     install_requires=["numpy", "scipy"],
-    extras_require={"dev": dev_requirements, "ducc0": ["ducc0>=0.16"]},
+    extras_require={"dev": dev_requirements, "ducc0": ["ducc0>=0.18"]},
     description="Fast spin spherical transforms",
     long_description=long_description,
     long_description_content_type="text/markdown",

@@ -3,7 +3,7 @@ from pytest import approx, fixture, mark, importorskip
 
 import pyssht as ssht
 
-skip_ducc0 = importorskip("ducc0", minversion="0.16")
+skip_ducc0 = importorskip("ducc0", minversion="0.18")
 
 
 @fixture
