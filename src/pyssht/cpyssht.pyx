@@ -612,10 +612,14 @@ def inverse_adjoint(f, int L, int Spin=0, str Method='MW', bint Reality=False, s
     return flm
 
 
-def forward_adjoint(flm, int L, int Spin=0, str Method='MW', bint Reality=False, str backend="SSHT"):
-    from pyssht.parameters import method
+def forward_adjoint(flm, int L, int Spin=0, str Method='MW', bint Reality=False, str backend="SSHT", **kwargs):
+    from pyssht.ducc_interface import forward_adjoint as _ducc0_forward_adjoint
+    from pyssht.parameters import method, Ducc
 
     params = method(Method, spin=Spin, reality=Reality, backend=backend)
+
+    if isinstance(params, Ducc):
+        return _ducc0_forward_adjoint(flm, L, params.spin, params.method, params.reality, params.nthreads)
 
     if flm.ndim != 1:
       raise ssht_input_error('flm must be 1D numpy array')
