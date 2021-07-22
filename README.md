@@ -23,7 +23,7 @@ spin spherical harmonic transforms based on the sampling theorem on the
 sphere derived in <a href="http://www.jasonmcewen.org/publication/mcewen-fssht/">McEwen & Wiaux (2011)</a>.
 
 **SSHT** can also interface with [ducc0](https://pypi.org/project/ducc0/) and
-*use it as a backend for the forward, inverse and inverse adjoint transforms.
+use it as a backend for spherical harmonic transforms and rotations.
 
 
 ## INSTALLATION
