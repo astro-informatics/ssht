@@ -68,3 +68,9 @@ def rotate_flms(
     **kwargs,
 ) -> np.ndarray:
     pass
+
+def sample_length(L: int, Method: str = "MW") -> int:
+    pass
+
+def sample_shape(L: int, Method: str = "MW") -> Tuple[int, int]:
+    pass
