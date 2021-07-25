@@ -166,20 +166,26 @@ def test_real_forward_adjoint(rng: np.random.Generator, method, order):
 
     f_prime = rng.standard_normal(shape, dtype="float64")
     flm_prime = ssht.forward(f_prime, order, Reality=True, Method=method)
-    f_prime = ssht.forward_adjoint(flm_prime, order, Reality=True, Method=method, backend="ducc")
+    f_prime = ssht.forward_adjoint(
+        flm_prime, order, Reality=True, Method=method, backend="ducc"
+    )
 
     assert flm_prime.conj() @ flm == approx(f_prime.flatten().conj() @ f.flatten())
 
 
 @mark.parametrize("method", ["MW", "MWSS"])
 def test_forward_adjoint(rng: np.random.Generator, spin, method, order):
-    flm = rng.standard_normal((order * order, 2), dtype="float64") @ [1, 1j]
+    flm = rng.standard_normal((order * order, 2), dtype="float64") @ np.array([1, 1j])
     flm[0 : spin * spin] = 0.0
     f = ssht.inverse(flm, order, Spin=spin, Method=method, backend="ducc")
 
-    flm_prime = rng.standard_normal((order * order, 2), dtype="float64") @ [1, 1j]
+    flm_prime = rng.standard_normal((order * order, 2), dtype="float64") @ np.array(
+        [1, 1j]
+    )
     flm_prime[0 : spin * spin] = 0.0
-    f_prime = ssht.forward_adjoint(flm_prime, order, Spin=spin, Method=method, backend="ducc")
+    f_prime = ssht.forward_adjoint(
+        flm_prime, order, Spin=spin, Method=method, backend="ducc"
+    )
 
     assert flm_prime.conj() @ flm == approx(f_prime.flatten().conj() @ f.flatten())
 
