@@ -98,6 +98,10 @@ Performs the adjoint of the forward spherical harmonic transform.
     1. `'MW'`         [McEwen & Wiaux sampling (default)]
     2. `'MWSS'`       [McEwen & Wiaux symmetric sampling]
 * `Reality`  determines if the signal is real or complex, Boolean (default = False)
+* `backend` the backend that runs the transforms:
+    1. `'SSHT'` this package
+    2. `'ducc'` interface to [ducc0](https://pypi.org/project/ducc0/).
+* `nthreads`: number of threads when calling into the `'ducc'` backend. Ignored otherwise.
 
 #### Output
 
@@ -122,8 +126,7 @@ Performs the adjoint of the inverse spherical harmonic transform.
 * `Reality`  determines if the signal is real or complex, Boolean (default = False)
 * `backend` the backend that runs the transforms:
     1. `'SSHT'` this package
-    2. `'ducc'` interface to [ducc0](https://pypi.org/project/ducc0/). "MW_pole"
-       is not available in this backend.
+    2. `'ducc'` interface to [ducc0](https://pypi.org/project/ducc0/).
 * `nthreads`: number of threads when calling into the `'ducc'` backend. Ignored otherwise.
 
 #### Output
