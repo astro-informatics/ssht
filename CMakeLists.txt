@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.12)
 
 project(
     Ssht
-    VERSION "1.4.0"
+    VERSION "1.5.0"
     DESCRIPTION "Fast and exact spin spherical harmonic transforms"
     HOMEPAGE_URL "http://astro-informatics.github.io/ssht/"
     LANGUAGES C)
