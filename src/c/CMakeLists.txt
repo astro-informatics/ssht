@@ -12,10 +12,6 @@ target_compile_features(ssht PUBLIC c_std_99)
 configure_file(${PROJECT_SOURCE_DIR}/include/ssht/ssht_version.in.h
                ${PROJECT_BINARY_DIR}/include/ssht/ssht_version.h)
 
-if(fPIC)
-    set_target_properties(ssht PROPERTIES POSITION_INDEPENDENT_CODE TRUE)
-endif()
-
 if(NOT SKBUILD)
     install(
         TARGETS ssht

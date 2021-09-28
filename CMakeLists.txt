@@ -7,18 +7,12 @@ project(
     HOMEPAGE_URL "http://astro-informatics.github.io/ssht/"
     LANGUAGES C)
 
-option(tests "Enable testing" ON)
 option(conan_deps "Download dependencies using conan" OFF)
-if(NOT WIN32)
-    option(fPIC "Compile with fPIC" ON)
-endif()
 
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
 endif()
-if(tests)
-    enable_testing()
-endif()
+include(CTest)
 if(conan_deps OR CONAN_EDITABLE_MODE)
     include("${PROJECT_SOURCE_DIR}/cmake/conan_dependencies.cmake")
 endif()
@@ -33,18 +27,18 @@ find_package(FFTW3 REQUIRED)
 find_library(MATH_LIBRARY m)
 
 add_subdirectory(src/c)
-if(tests)
+if(BUILD_TESTING)
     include("${PROJECT_SOURCE_DIR}/cmake/fetch_cmocka.cmake")
     add_subdirectory(tests)
 endif()
 
-if(NOT SKBUILD AND NOT CONAN_EXPORTED)
-    include("${PROJECT_SOURCE_DIR}/cmake/exporting.cmake")
-elseif(NOT CONAN_EXPORTED)
+if(SKBUILD)
     find_package(PythonExtensions REQUIRED)
     find_package(Cython REQUIRED)
     find_package(NumPy REQUIRED)
     add_subdirectory(src/pyssht)
+elseif(NOT CONAN_EXPORTED)
+    include("${PROJECT_SOURCE_DIR}/cmake/exporting.cmake")
 endif()
 
 # only run documentation if this is not a sub-project

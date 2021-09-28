@@ -3,9 +3,9 @@ from pathlib import Path
 from skbuild import setup
 
 cmake_args = [
-    "-Dtests:BOOL=OFF",
+    "-DBUILD_TESTING:BOOL=OFF",
     "-Dconan_deps=ON",
-    "-DfPIC=ON",
+    "-DCMAKE_POSITION_INDEPENDENT_CODE=ON",
 ]
 
 dev_requirements = [
