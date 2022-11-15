@@ -21,7 +21,7 @@ def method(request):
     return request.param
 
 
-@fixture(params=[0, 1, 2])
+@fixture(params=[-2, -1, 0, 1, 2])
 def spin(request):
     return request.param
 
@@ -139,7 +139,7 @@ def test_complex_inverse_adjoint_ssht_vs_ducc0(
 
     try:
         ssht_adj_coeffs = ssht.inverse_adjoint(
-            complex_image, order, Reality=False, Method=method, Spin=0
+            complex_image, order, Reality=False, Method=method, Spin=spin
         )
     except ssht_input_error:
         assert method not in ("MW", "MWSS")
@@ -150,7 +150,7 @@ def test_complex_inverse_adjoint_ssht_vs_ducc0(
         order,
         Reality=False,
         Method=method,
-        Spin=0,
+        Spin=spin,
         backend="ducc",
         nthreads=nthreads,
     )
