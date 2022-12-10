@@ -82,7 +82,7 @@ print("SHT tests:")
 for Method in ["MW", "MWSS", "GL", "DH"]:
     for L in L_list:
         for Reality in [False, True]:
-            for Spin in [0] if Reality else [0, 1]:
+            for Spin in [0] if Reality else [-1, 0, 1]:
                 res = test_SHT(L, Method, Reality, Spin, nthreads=nthreads)
                 print(
                     "{:4}, L={:4}, Reality={:5}, Spin={:1}:  L2 error={:e}, speedup factor={:f}".format(
