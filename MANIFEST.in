@@ -5,4 +5,4 @@ include cmake/*.cmake
 include conanfile.txt
 recursive-include src/c *.c CMakeLists.txt
 recursive-include include/ssht *.h CMakeLists.txt
-recursive-include src/pyssht .py *.pyx *.md CMakeLists.txt
+recursive-include src/pyssht *.py *.pyx *.md CMakeLists.txt
