@@ -805,10 +805,10 @@ Function to rotate a set of spherical harmonic coefficients by the set of Euler 
 
 If `Keep_dl` is not set the output is the rotated set of spherical harmonic coefficients. If it is the output is a tuple `(flm_rotated, dl_array)`, ie the rotated harmonic coefficients and the small Wigner D matrix computed for that band limit and \(\alpha\) value.
 
-## pyssht.guassian_smoothing
+## pyssht.gaussian_smoothing
 
 ~~~~{.python}
-fs_lm = pyssht.guassian_smoothing(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, int L, sigma_in=None, bl_in = None)
+fs_lm = pyssht.gaussian_smoothing(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, int L, sigma_in=None, bl_in = None)
 ~~~~
 
 Smooths a set of harmonic coefficients either with a precomputed smoothing kernel `bl` or with a Gaussian given on input.
