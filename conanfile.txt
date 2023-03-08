@@ -1,7 +1,0 @@
-[requires]
-fftw/[>=3.3]
-[generators]
-cmake
-[options]
-fftw:shared=False
-fftw:precision=double
