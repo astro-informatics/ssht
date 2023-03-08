@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.18)
 
 project(
     Ssht
@@ -7,18 +7,11 @@ project(
     HOMEPAGE_URL "http://astro-informatics.github.io/ssht/"
     LANGUAGES C)
 
-option(conan_deps "Download dependencies using conan" OFF)
-
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
 endif()
 include(CTest)
-if(conan_deps OR CONAN_EDITABLE_MODE)
-    include("${PROJECT_SOURCE_DIR}/cmake/conan_dependencies.cmake")
-endif()
-if(EXISTS "${PROJECT_BINARY_DIR}/conan_paths.cmake")
-    include("${PROJECT_BINARY_DIR}/conan_paths.cmake")
-elseif(EXISTS "${PROJECT_BINARY_DIR}/FindFFTW3.cmake")
+if(EXISTS "${PROJECT_BINARY_DIR}/FindFFTW3.cmake")
     list(APPEND CMAKE_MODULE_PATH "${PROJECT_BINARY_DIR}")
 else()
     list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
@@ -33,9 +26,8 @@ if(BUILD_TESTING)
 endif()
 
 if(SKBUILD)
-    find_package(PythonExtensions REQUIRED)
+    find_package(Python COMPONENTS Interpreter Development.Module Numpy)
     find_package(Cython REQUIRED)
-    find_package(NumPy REQUIRED)
     add_subdirectory(src/pyssht)
 elseif(NOT CONAN_EXPORTED)
     include("${PROJECT_SOURCE_DIR}/cmake/exporting.cmake")

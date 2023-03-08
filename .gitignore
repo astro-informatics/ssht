@@ -19,3 +19,5 @@ MANIFEST
 dist/
 compile_commands.json
 .clangd/
+
+CMakeUserPresets.json
