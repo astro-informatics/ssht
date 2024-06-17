@@ -5,6 +5,9 @@ import numpy as np
 cimport numpy as np
 cimport cython
 
+# required if using any part of the numpy PyArray_* API
+np.import_array()
+
 from libc.math cimport log, exp, sqrt, atan2, cos, sin, asin, atan, tan
 from scipy.special import factorial
 from scipy.interpolate import interp2d

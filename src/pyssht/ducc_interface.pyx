@@ -1,6 +1,9 @@
 import numpy as np
 cimport numpy as np
 
+# required if using any part of the numpy PyArray_* API
+np.import_array()
+
 cdef import_ducc0():
     import ducc0
     major, minor, patch = ducc0.__version__.split('.')
