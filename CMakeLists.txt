@@ -1,7 +1,11 @@
-cmake_minimum_required(VERSION 3.12)
-
+cmake_minimum_required(VERSION 3.24)
+if(NOT SKBUILD_PROJECT_NAME)
+    set(project_name Ssht)
+else()
+    set(project_name ${SKBUILD_PROJECT_NAME})
+endif()
 project(
-    Ssht
+    ${project_name}
     VERSION "1.5.2"
     DESCRIPTION "Fast and exact spin spherical harmonic transforms"
     HOMEPAGE_URL "http://astro-informatics.github.io/ssht/"
@@ -13,12 +17,8 @@ if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
 endif()
 include(CTest)
-if(conan_deps OR CONAN_EDITABLE_MODE)
-    include("${PROJECT_SOURCE_DIR}/cmake/conan_dependencies.cmake")
-endif()
-if(EXISTS "${PROJECT_BINARY_DIR}/conan_paths.cmake")
-    include("${PROJECT_BINARY_DIR}/conan_paths.cmake")
-elseif(EXISTS "${PROJECT_BINARY_DIR}/FindFFTW3.cmake")
+
+if(EXISTS "${PROJECT_BINARY_DIR}/FindFFTW3.cmake")
     list(APPEND CMAKE_MODULE_PATH "${PROJECT_BINARY_DIR}")
 else()
     list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
@@ -33,16 +33,17 @@ if(BUILD_TESTING)
 endif()
 
 if(SKBUILD)
-    find_package(PythonExtensions REQUIRED)
-    find_package(Cython REQUIRED)
-    find_package(NumPy REQUIRED)
+    find_package(
+        Python
+        COMPONENTS Interpreter Development.Module NumPy
+        REQUIRED)
     add_subdirectory(src/pyssht)
 elseif(NOT CONAN_EXPORTED)
     include("${PROJECT_SOURCE_DIR}/cmake/exporting.cmake")
 endif()
 
 # only run documentation if this is not a sub-project
-if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+if(CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR AND NOT SKBUILD)
     find_package(Doxygen)
     if(DOXYGEN_FOUND)
         set(DOXYGEN_OPTIMIZE_OUTPUT_FOR_C "YES")

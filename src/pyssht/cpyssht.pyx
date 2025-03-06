@@ -1579,7 +1579,7 @@ def equatorial_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L, i
 
   cdef list rot_list
 
-  cdef np.ndarray[np.int_t,   ndim=2] n_points
+  cdef np.ndarray[np.int64_t,   ndim=2] n_points
 
   cdef float x_pos, y_pos, z_pos, x_p_pos, y_p_pos, z_p_pos, rho, theta_pos, phi_pos, half_box_len_x, half_box_len_y, max_len
   
@@ -2108,7 +2108,7 @@ def polar_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L, int re
 
   cdef list rot_list
 
-  cdef np.ndarray[np.int_t,   ndim=2] n_points_north, n_points_south
+  cdef np.ndarray[np.int64_t,   ndim=2] n_points_north, n_points_south
 
   cdef float x_pos, y_pos, z_pos, x_p_pos, y_p_pos, z_p_pos, rho, theta_pos, phi_pos, half_box_len, max_len, tol_error
   

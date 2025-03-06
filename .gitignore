@@ -19,3 +19,16 @@ MANIFEST
 dist/
 compile_commands.json
 .clangd/
+# Devenv
+.devenv*
+devenv.local.nix
+
+# direnv
+.direnv
+devenv.nix
+.envrc 
+devenv.yaml
+devenv.lock
+
+# pre-commit
+.pre-commit-config.yaml
