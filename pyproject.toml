@@ -12,7 +12,8 @@ description = "Fast spin spherical transforms"
 readme = "src/pyssht/SSHT_Python_Documentation.md"
 license = "GPL-3.0-or-later"
 keywords = ["numerical transforms", "signal processing", "science"]
-dependencies = [ "numpy" ]
+dependencies = [ "numpy", "scipy" ]
+requires-python = ">= 3.8"
 
 [project.urls]
 Homepage = "http://astro-informatics.github.io/ssht/"
@@ -48,3 +49,8 @@ cmake.args=[
 ]
 ninja.make-fallback = false
 build-dir="build"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.5",
+]
