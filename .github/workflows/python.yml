@@ -10,7 +10,7 @@ name: Python Build
 
 jobs:
   from-sdist:
-    name: python source distribution
+    name: python unit-tests
     runs-on: ubuntu-latest
     steps:
       - name: Install uv
