@@ -9,10 +9,11 @@ name: Python Build
   pull_request:
 
 jobs:
-  from-sdist:
-    name: python unit-tests
+  from_uv:
+    name: python uv installation
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
@@ -20,20 +21,47 @@ jobs:
       - name: "Set up Python"
         uses: actions/setup-python@v5
         with:
-          python-version: 3.8
           python-version-file: "pyproject.toml"
 
       - name: Install pyssht
         run: uv sync --all-extras --dev
 
       - name: run pytest
-        run: uv run pytest tests/test_pyssht.py
+        run: uv run pytest
+
+  from_sdist:
+    name: python source distribution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.6.5"
+
+      - name: "Set up Python"
+        uses: actions/setup-python@v5
+        with:
+          python-version-file: "pyproject.toml"
+
+      - name: Build sdist
+        run: uv build --sdist
+
+      - name: create venv
+        run: uv venv 
+
+      - name: install wheel
+        run: "uv pip install dist/pyssht-*.tar.gz"
+
+      - name: run pytests
+        run: uv pip install pytest && uv run pytest
 
   build_wheels:
-    name: Build wheels on ${{ matrix.os }}
+    name: Build wheels
     runs-on: macos-latest
 
     steps:
+      - uses: actions/checkout@v4
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
@@ -41,30 +69,70 @@ jobs:
       - name: "Set up Python"
         uses: actions/setup-python@v5
         with:
-          python-version: 3.8
+          python-version-file: "pyproject.toml"
 
       - name: Build wheels
         run: uv build --wheel
 
+      - name: create venv
+        run: uv venv 
+
       - name: install wheel
-        run: "pip install dist/*.whl"
+        run: "uv pip install dist/*.whl"
 
       - name: run pytests
-        run: uv pip install pytest && pytest tests
+        run: uv pip install pytest && uv run pytest
 
-  publication:
-    name: publish to pypi
+  publish_wheels:
+    name: Build wheels and publish on ${{ matrix.os }}
     if: ${{ startsWith(github.ref, 'refs/tags') }}
-    runs-on: macos-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-13, macos-14]
+    permissions:
+      id-token: write
     steps:
+      - uses: actions/checkout@v4
       - name: Install uv
         uses: astral-sh/setup-uv@v5
         with:
           version: "0.6.5"
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.23.1
+        env:
+          CIBW_SKIP: "cp36-* cp37-* cp38-* pp* *musllinux*"
+          CIBW_BUILD_FRONTEND: "build[uv]"
+
       - name: Publish distribution 📦 to Test PyPI
         if: ${{ github.ref != 'refs/tags/v1.5.2' }}
-        run: "uv publish --publish-url https://test.pypi.org/legacy --token ${{ secrets.TEST_PYPI_TOKEN }}"
+        run: "uv publish --publish-url https://test.pypi.org/legacy/ wheelhouse/*.whl"
 
       - name: Publish distribution 📦 to PyPI
         if: ${{ github.ref == 'refs/tags/v1.5.2' }}
-        run: "uv publish --token ${{ secrets.TEST_PYPI_TOKEN }}"
+        run: "uv publish wheelhouse/*.whl"
+
+  publish_sdist:
+    name: Build sdist and publish on ubuntu
+    if: ${{ startsWith(github.ref, 'refs/tags') }}
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.6.5"
+
+      - name: Build sdist
+        run: uv build --sdist
+
+      - name: Publish distribution 📦 to Test PyPI
+        if: ${{ github.ref != 'refs/tags/v1.5.2' }}
+        run: "uv publish --publish-url https://test.pypi.org/legacy/ dist/*.tar.gz"
+
+      - name: Publish distribution 📦 to PyPI
+        if: ${{ github.ref == 'refs/tags/v1.5.2' }}
+        run: "uv publish dist/*.tar.gz"

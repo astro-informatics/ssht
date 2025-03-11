@@ -47,10 +47,10 @@ Then **SSHT** can be compiled with:
 
 ```bash
 git clone https://github.com/astro-informatics/ssht.git
-mkdir ssht/build && cd ssht/build
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -Dconan_deps=True ..
-make
-make install
+cmake -B ./build -S . -DCMAKE_BUILD_TYPE=Release -DCMAKE_PROJECT_TOP_LEVEL_INCLUDES=./cmake/conan_provider.cmake
+cmake --build build
+ctest --test-dir build
+cmake --install build --install-prefix=/usr/local
 ```
 
 The above will also download [FFTW](http://www.fftw.org/), if necessary.

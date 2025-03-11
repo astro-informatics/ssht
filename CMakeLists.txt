@@ -11,8 +11,6 @@ project(
     HOMEPAGE_URL "http://astro-informatics.github.io/ssht/"
     LANGUAGES C)
 
-option(conan_deps "Download dependencies using conan" OFF)
-
 if(NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE Debug)
 endif()
@@ -38,7 +36,7 @@ if(SKBUILD)
         COMPONENTS Interpreter Development.Module NumPy
         REQUIRED)
     add_subdirectory(src/pyssht)
-elseif(NOT CONAN_EXPORTED)
+else()
     include("${PROJECT_SOURCE_DIR}/cmake/exporting.cmake")
 endif()
 
