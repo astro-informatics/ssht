@@ -6,7 +6,7 @@ else()
 endif()
 project(
     ${project_name}
-    VERSION "1.5.2"
+    VERSION "1.5.3"
     DESCRIPTION "Fast and exact spin spherical harmonic transforms"
     HOMEPAGE_URL "http://astro-informatics.github.io/ssht/"
     LANGUAGES C)

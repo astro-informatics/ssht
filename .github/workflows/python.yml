@@ -106,11 +106,11 @@ jobs:
           CIBW_BUILD_FRONTEND: "build[uv]"
 
       - name: Publish distribution 📦 to Test PyPI
-        if: ${{ github.ref != 'refs/tags/v1.5.2' }}
+        if: ${{ github.ref != 'refs/tags/v1.5.3' }}
         run: "uv publish --publish-url https://test.pypi.org/legacy/ wheelhouse/*.whl"
 
       - name: Publish distribution 📦 to PyPI
-        if: ${{ github.ref == 'refs/tags/v1.5.2' }}
+        if: ${{ github.ref == 'refs/tags/v1.5.3' }}
         run: "uv publish wheelhouse/*.whl"
 
   publish_sdist:
@@ -130,9 +130,9 @@ jobs:
         run: uv build --sdist
 
       - name: Publish distribution 📦 to Test PyPI
-        if: ${{ github.ref != 'refs/tags/v1.5.2' }}
+        if: ${{ github.ref != 'refs/tags/v1.5.3' }}
         run: "uv publish --publish-url https://test.pypi.org/legacy/ dist/*.tar.gz"
 
       - name: Publish distribution 📦 to PyPI
-        if: ${{ github.ref == 'refs/tags/v1.5.2' }}
+        if: ${{ github.ref == 'refs/tags/v1.5.3' }}
         run: "uv publish dist/*.tar.gz"
