@@ -1,6 +1,6 @@
 [project]
 name = "pyssht"
-version = "1.5.2"
+version = "1.5.3rc1"
 authors = [
     {name="J. D. McEwen"},
     {name="C. R. G. Wallis"},
