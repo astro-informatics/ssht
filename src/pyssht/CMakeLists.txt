@@ -1,15 +1,25 @@
-add_cython_target(cpyssht_sources cpyssht.pyx C PY3)
-add_cython_target(ducc0_sources ducc_interface.pyx C PY3)
-add_library(cpyssht MODULE ${cpyssht_sources})
-add_library(ducc_interface MODULE ${ducc0_sources})
-python_extension_module(cpyssht)
-python_extension_module(ducc_interface)
-target_link_libraries(cpyssht ssht)
-target_include_directories(cpyssht PUBLIC "${PROJECT_SOURCE_DIR}/src/c"
-                                          ${NumPy_INCLUDE_DIRS})
-target_include_directories(ducc_interface PUBLIC ${NumPy_INCLUDE_DIRS})
+add_custom_command(
+    OUTPUT cpyssht.c
+    MAIN_DEPENDENCY cpyssht.pyx
+    VERBATIM
+    COMMAND Python::Interpreter -m cython "${CMAKE_CURRENT_SOURCE_DIR}/cpyssht.pyx"
+            --output-file "${CMAKE_CURRENT_BINARY_DIR}/cpyssht.c")
+add_custom_command(
+    OUTPUT ducc_interface.c
+    MAIN_DEPENDENCY ducc_interface.pyx
+    VERBATIM
+    COMMAND
+        Python::Interpreter -m cython "${CMAKE_CURRENT_SOURCE_DIR}/ducc_interface.pyx"
+        --output-file "${CMAKE_CURRENT_BINARY_DIR}/ducc_interface.c")
+
+python_add_library(cpyssht MODULE "${CMAKE_CURRENT_BINARY_DIR}/cpyssht.c" WITH_SOABI)
+python_add_library(ducc_interface MODULE "${CMAKE_CURRENT_BINARY_DIR}/ducc_interface.c"
+                   WITH_SOABI)
+target_link_libraries(cpyssht PUBLIC ssht)
+target_include_directories(cpyssht PUBLIC ${Python3_NumPy_INCLUDE_DIR})
+target_include_directories(ducc_interface PUBLIC ${Python3_NumPy_INCLUDE_DIR})
 if(WIN32)
     target_compile_definitions(cpyssht PUBLIC MS_WIN64)
     target_compile_definitions(ducc_interface PUBLIC MS_WIN64)
 endif()
-install(TARGETS cpyssht ducc_interface LIBRARY DESTINATION src/pyssht)
+install(TARGETS cpyssht ducc_interface LIBRARY DESTINATION ${SKBUILD_PROJECT_NAME})

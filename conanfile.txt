@@ -1,7 +1,9 @@
 [requires]
 fftw/[>=3.3]
+[layout]
+cmake_layout
 [generators]
-cmake
+CMakeDeps
 [options]
-fftw:shared=False
-fftw:precision=double
+fftw/*:shared=False
+fftw/*:precision=double

@@ -244,7 +244,7 @@ def ssht_forward_mw_real(np.ndarray[ double, ndim=2, mode="c"] f_mw_r not None,i
 def ssht_inverse_mw_real(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, int L):
 
         cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO
-        f_mw_r = np.empty([L,2*L-1,], dtype=np.float_)
+        f_mw_r = np.empty([L,2*L-1,], dtype=np.float64)
         ssht_core_mw_inverse_sov_sym_real(<double*> np.PyArray_DATA(f_mw_r),<const double complex*> np.PyArray_DATA(f_lm), L, dl_method, 0)
         return f_mw_r
 
@@ -258,7 +258,7 @@ def ssht_inverse_mw_real_adjoint(np.ndarray[ double, ndim=2, mode="c"] f_mw_r no
 def ssht_forward_mw_real_adjoint(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, int L):
 
         cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO
-        f_mw_r = np.empty([L,2*L-1,], dtype=np.float_)
+        f_mw_r = np.empty([L,2*L-1,], dtype=np.float64)
         ssht_adjoint_mw_forward_sov_sym_real(<double*> np.PyArray_DATA(f_mw_r),<const double complex*> np.PyArray_DATA(f_lm), L, dl_method, 0)
         return f_mw_r
 
@@ -304,7 +304,7 @@ def ssht_forward_mwss_real(np.ndarray[ double, ndim=2, mode="c"] f_mwss_r not No
 def ssht_inverse_mwss_real(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, int L):
 
         cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO
-        f_mwss_r = np.empty([L+1,2*L,], dtype=np.float_)
+        f_mwss_r = np.empty([L+1,2*L,], dtype=np.float64)
         ssht_core_mw_inverse_sov_sym_ss_real(<double*> np.PyArray_DATA(f_mwss_r),<const double complex*> np.PyArray_DATA(f_lm), L, dl_method, 0)
         return f_mwss_r
 
@@ -318,7 +318,7 @@ def ssht_inverse_mwss_real_adjoint(np.ndarray[ double, ndim=2, mode="c"] f_mwss_
 def ssht_forward_mwss_real_adjoint(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, int L):
 
         cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO
-        f_mwss_r = np.empty([L+1,2*L,], dtype=np.float_)
+        f_mwss_r = np.empty([L+1,2*L,], dtype=np.float64)
         ssht_adjoint_mw_forward_sov_sym_ss_real(<double*> np.PyArray_DATA(f_mwss_r),<const double complex*> np.PyArray_DATA(f_lm), L, dl_method, 0)
         return f_mwss_r
 
@@ -369,7 +369,7 @@ def ssht_forward_mw_real_pole(np.ndarray[ double, ndim=2, mode="c"] f_mw_r not N
 def ssht_inverse_mw_real_pole(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, int L):
 
         cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO
-        f_mw_r = np.empty([L-1,2*L-1,], dtype=np.float_)
+        f_mw_r = np.empty([L-1,2*L-1,], dtype=np.float64)
         cdef double f_sp
         ssht_core_mw_inverse_sov_sym_real_pole(<double*> np.PyArray_DATA(f_mw_r), &f_sp, <const double complex*> np.PyArray_DATA(f_lm), L, dl_method, 0)
         return f_mw_r, f_sp
@@ -384,7 +384,7 @@ def ssht_inverse_mw_real_pole_adjoint(np.ndarray[ double, ndim=2, mode="c"] f_mw
 def ssht_forward_mw_real_pole_adjoint(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, int L):
 
         cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO
-        f_mw_r = np.empty([L-1,2*L-1,], dtype=np.float_)
+        f_mw_r = np.empty([L-1,2*L-1,], dtype=np.float64)
         cdef double f_sp
         ssht_adjoint_mw_forward_sov_sym_real_pole(<double*> np.PyArray_DATA(f_mw_r), &f_sp, <const double complex*> np.PyArray_DATA(f_lm), L, dl_method, 0)
         return f_mw_r, f_sp
@@ -413,7 +413,7 @@ def ssht_forward_dh_real(np.ndarray[ double, ndim=2, mode="c"] f_dh_r not None,i
         
 def ssht_inverse_dh_real(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, int L):
 
-        f_dh_r = np.empty([2*L,2*L-1,], dtype=np.float_)
+        f_dh_r = np.empty([2*L,2*L-1,], dtype=np.float64)
         ssht_core_dh_inverse_sov_real(<double*> np.PyArray_DATA(f_dh_r),<const double complex*> np.PyArray_DATA(f_lm), L, 0)
         return f_dh_r
 
@@ -446,7 +446,7 @@ def ssht_forward_gl_real(np.ndarray[ double, ndim=2, mode="c"] f_gl_r not None,i
 def ssht_inverse_gl_real(np.ndarray[ double complex, ndim=1, mode="c"] f_lm not None, int L):
 
         cdef ssht_dl_method_t dl_method = SSHT_DL_RISBO
-        f_gl_r = np.empty([L,2*L-1,], dtype=np.float_)
+        f_gl_r = np.empty([L,2*L-1,], dtype=np.float64)
         ssht_core_gl_inverse_sov_real(<double*> np.PyArray_DATA(f_gl_r),<const double complex*> np.PyArray_DATA(f_lm), L, 0)
         return f_gl_r
 
@@ -473,13 +473,13 @@ def forward(f, int L, int Spin=0, str Method='MW', bint Reality=False, str backe
     if isinstance(params, Ducc):
         return _ducc0_forward(f, L, **params.asDict())
 
-    if f.dtype == np.float_ and params.reality == False:
+    if f.dtype == np.float64 and params.reality == False:
         print('Real signal given but Reality flag is False. Set Reality = True to improve performance')
-        f_new = np.empty(sample_shape(L,Method=Method), dtype=np.complex_)
-        f_new = f + 1j*np.zeros(sample_shape(L,Method=Method), dtype=np.float_)
+        f_new = np.empty(sample_shape(L,Method=Method), dtype=np.complex128)
+        f_new = f + 1j*np.zeros(sample_shape(L,Method=Method), dtype=np.float64)
         f = f_new
 
-    if f.dtype == np.complex_ and params.reality == True:
+    if f.dtype == np.complex128 and params.reality == True:
         print('Complex signal given but Reality flag is True. Ignoring complex component')
         f_new = np.real(f)
         f = f_new.copy(order='c')
@@ -588,13 +588,13 @@ def inverse_adjoint(f, int L, int Spin=0, str Method='MW', bint Reality=False, s
     if params.method not in ('MW', 'MWSS'):
         raise ssht_input_error('Method is not recognised, Methods are: MW, MWSS')
 
-    if f.dtype == np.float_ and params.reality == False:
+    if f.dtype == np.float64 and params.reality == False:
         print('Real signal given but Reality flag is False. Set Reality = True to improve performance')
-        f_new = np.empty(sample_shape(L,Method=params.method), dtype=np.complex_)
-        f_new = f + 1j*np.zeros(sample_shape(L,Method=params.method), dtype=np.float_)
+        f_new = np.empty(sample_shape(L,Method=params.method), dtype=np.complex128)
+        f_new = f + 1j*np.zeros(sample_shape(L,Method=params.method), dtype=np.float64)
         f = f_new
 
-    if f.dtype == np.complex_ and params.reality == True:
+    if f.dtype == np.complex128 and params.reality == True:
         print('Complex signal given but Reality flag is True. Ignoring complex component')
         f_new = np.real(f)
         f = f_new.copy(order='c')
@@ -682,7 +682,7 @@ cdef inline int cy_elm2ind( int el, int m):
 
 def theta_to_index(double theta, int L, str Method="MW"):
   cdef int p
-  cdef np.ndarray[np.float_t, ndim=1] theta_gl_grid, phi_gl_grid
+  cdef np.ndarray[np.float64_t, ndim=1] theta_gl_grid, phi_gl_grid
 
   if Method == 'GL':
     theta_gl_grid, phi_gl_grid = sample_positions(L,Method="GL")
@@ -831,11 +831,11 @@ def sample_positions(int L, str Method = 'MW', bint Grid=False):
   params = method(Method)
 
   cdef int n_theta, n_phi, i
-  cdef np.ndarray[np.float_t, ndim=1] thetas, phis
+  cdef np.ndarray[np.float64_t, ndim=1] thetas, phis
 
   n_theta, n_phi = sample_shape(L, Method=params.method)
-  thetas = np.empty(n_theta, dtype=np.float_)
-  phis   = np.empty(n_phi,   dtype=np.float_)
+  thetas = np.empty(n_theta, dtype=np.float64)
+  phis   = np.empty(n_phi,   dtype=np.float64)
 
 
   if params.method == 'MW':
@@ -857,7 +857,7 @@ def sample_positions(int L, str Method = 'MW', bint Grid=False):
       phis[i] = ssht_sampling_dh_p2phi(i, L)
 
   if params.method == 'GL':
-    weights_unused = np.empty(L, dtype=np.float_)
+    weights_unused = np.empty(L, dtype=np.float64)
     ssht_sampling_gl_thetas_weights(<double*> np.PyArray_DATA(thetas), <double*> np.PyArray_DATA(weights_unused), L)
     for i in range(n_phi):
       phis[i] = ssht_sampling_gl_p2phi(i, L)
@@ -939,7 +939,7 @@ def ra_dec_to_theta_phi(ra, dec, bint Degrees=False):
   return theta, phi
 
 def old_make_rotation_matrix(list rot):
-  cdef np.ndarray[np.float_t, ndim=2] rot_matix = np.empty((3,3), dtype=np.float_)
+  cdef np.ndarray[np.float64_t, ndim=2] rot_matix = np.empty((3,3), dtype=np.float64)
 
   cdef double c1 = cos(float(rot[0]))
   cdef double s1 = sin(float(rot[0]))
@@ -966,7 +966,7 @@ def make_rotation_matrix(list rot):
   ZYZ rotation: R = Rz(alpha)Ry(beta)Rz(gamma)
   list rot = [alpha,beta,gamma]
   '''
-  cdef np.ndarray[np.float_t, ndim=2] rot_matix = np.empty((3,3), dtype=np.float_)
+  cdef np.ndarray[np.float64_t, ndim=2] rot_matix = np.empty((3,3), dtype=np.float64)
 
   cdef double c1 = cos(float(rot[0]))
   cdef double s1 = sin(float(rot[0]))
@@ -992,14 +992,14 @@ def rot_cart(x, y, z, list rot):
   if x.shape != y.shape or y.shape != z.shape:
     raise ssht_input_error('x, y and z must be the same shape')
 
-  cdef np.ndarray[np.float_t, ndim=2] rot_matix
+  cdef np.ndarray[np.float64_t, ndim=2] rot_matix
   rot_matix = make_rotation_matrix(rot)
 
   cdef unsigned long i
 
-  x_p = np.empty(x.shape, dtype=np.float_)
-  y_p = np.empty(x.shape, dtype=np.float_)
-  z_p = np.empty(x.shape, dtype=np.float_)
+  x_p = np.empty(x.shape, dtype=np.float64)
+  y_p = np.empty(x.shape, dtype=np.float64)
+  z_p = np.empty(x.shape, dtype=np.float64)
 
 
   for i in range(x.size):
@@ -1010,19 +1010,19 @@ def rot_cart(x, y, z, list rot):
   return x_p, y_p, z_p
 
 
-def rot_cart_1d(np.ndarray[np.float_t, ndim=1] x, np.ndarray[np.float_t, ndim=1] y, np.ndarray[np.float_t, ndim=1] z, list rot):
+def rot_cart_1d(np.ndarray[np.float64_t, ndim=1] x, np.ndarray[np.float64_t, ndim=1] y, np.ndarray[np.float64_t, ndim=1] z, list rot):
   if x.shape[0] != y.shape[0] or y.shape[0] != z.shape[0]:
     raise ssht_input_error('x, y and z must be the same shape')
 
-  cdef np.ndarray[np.float_t, ndim=1] x_p, y_p, z_p
-  cdef np.ndarray[np.float_t, ndim=2] rot_matix
+  cdef np.ndarray[np.float64_t, ndim=1] x_p, y_p, z_p
+  cdef np.ndarray[np.float64_t, ndim=2] rot_matix
   cdef int i, j
 
   rot_matix = make_rotation_matrix(rot)
 
-  x_p = np.empty((x.shape[0]), dtype=np.float_)
-  y_p = np.empty((x.shape[0]), dtype=np.float_)
-  z_p = np.empty((x.shape[0]), dtype=np.float_)
+  x_p = np.empty((x.shape[0]), dtype=np.float64)
+  y_p = np.empty((x.shape[0]), dtype=np.float64)
+  z_p = np.empty((x.shape[0]), dtype=np.float64)
 
 
   for i in range(x.shape[0]):
@@ -1032,18 +1032,18 @@ def rot_cart_1d(np.ndarray[np.float_t, ndim=1] x, np.ndarray[np.float_t, ndim=1]
 
   return x_p, y_p, z_p
 
-def rot_cart_2d(np.ndarray[np.float_t, ndim=2] x, np.ndarray[np.float_t, ndim=2] y, np.ndarray[np.float_t, ndim=2] z, list rot):
+def rot_cart_2d(np.ndarray[np.float64_t, ndim=2] x, np.ndarray[np.float64_t, ndim=2] y, np.ndarray[np.float64_t, ndim=2] z, list rot):
   if x.shape[0] != y.shape[0] or y.shape[0] != z.shape[0] or x.shape[1] != y.shape[1] or y.shape[1] != z.shape[1]:
     raise ssht_input_error('x, y and z must be the same shape')
 
-  cdef np.ndarray[np.float_t, ndim=2] x_p, y_p, z_p, rot_matix
+  cdef np.ndarray[np.float64_t, ndim=2] x_p, y_p, z_p, rot_matix
   cdef int i, j
 
   rot_matix = make_rotation_matrix(rot)
 
-  x_p = np.empty((x.shape[0], x.shape[1]), dtype=np.float_)
-  y_p = np.empty((x.shape[0], x.shape[1]), dtype=np.float_)
-  z_p = np.empty((x.shape[0], x.shape[1]), dtype=np.float_)
+  x_p = np.empty((x.shape[0], x.shape[1]), dtype=np.float64)
+  y_p = np.empty((x.shape[0], x.shape[1]), dtype=np.float64)
+  z_p = np.empty((x.shape[0], x.shape[1]), dtype=np.float64)
 
 
   for i in range(x.shape[0]):
@@ -1225,22 +1225,22 @@ def mollweide_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L, in
   cdef int  Nx, Ny 
   cdef int p, q, i, j
 
-  cdef np.ndarray[np.float_t, ndim=1] x1, y1
-  cdef np.ndarray[np.float_t, ndim=2] x, y, aux_angle, dec, ra, theta, phi
-  cdef np.ndarray[np.float_t, ndim=2] xx, yy, zz, xx_p, yy_p, zz_p, f_plot, mask
+  cdef np.ndarray[np.float64_t, ndim=1] x1, y1
+  cdef np.ndarray[np.float64_t, ndim=2] x, y, aux_angle, dec, ra, theta, phi
+  cdef np.ndarray[np.float64_t, ndim=2] xx, yy, zz, xx_p, yy_p, zz_p, f_plot, mask
 
 
 
   if len(zoom_region) == 2:
     Nx = resolution*zoom_region[0]/zoom_region[1]
     Ny = resolution
-    x1 = np.linspace(-zoom_region[0],zoom_region[0],num=Nx,dtype=np.float_)
-    y1 = np.linspace(-zoom_region[1],zoom_region[1],num=Ny,dtype=np.float_)
+    x1 = np.linspace(-zoom_region[0],zoom_region[0],num=Nx,dtype=np.float64)
+    y1 = np.linspace(-zoom_region[1],zoom_region[1],num=Ny,dtype=np.float64)
   if len(zoom_region) == 4:
     Nx = resolution*(zoom_region[1]-zoom_region[0])/(zoom_region[3]-zoom_region[2])
     Ny = resolution
-    x1 = np.linspace(zoom_region[0],zoom_region[1],num=Nx,dtype=np.float_)
-    y1 = np.linspace(zoom_region[2],zoom_region[3],num=Ny,dtype=np.float_)
+    x1 = np.linspace(zoom_region[0],zoom_region[1],num=Nx,dtype=np.float64)
+    y1 = np.linspace(zoom_region[2],zoom_region[3],num=Ny,dtype=np.float64)
 
   x, y = np.meshgrid(x1,y1)
 
@@ -1277,8 +1277,8 @@ def mollweide_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L, in
       xx_p, yy_p, zz_p = rot_cart_2d(xx, yy, zz, rot)
       theta, phi = cart_to_s2(xx_p, yy_p, zz_p)
 
-  f_plot = np.empty([Ny,Nx],dtype=np.float_)
-  mask   = np.empty([Ny,Nx],dtype=np.float_)
+  f_plot = np.empty([Ny,Nx],dtype=np.float64)
+  mask   = np.empty([Ny,Nx],dtype=np.float64)
 
   mask.fill(np.nan)
 
@@ -1320,7 +1320,7 @@ def mollweide_projection(f, int L, int resolution=500, rot=None,
                         zoom_region=[np.sqrt(2.0)*2,np.sqrt(2.0)], str Method="MW"):
 
   cdef int i, j, n_phi, n_theta
-  cdef np.ndarray[np.float_t, ndim=2] f_real, f_imag
+  cdef np.ndarray[np.float64_t, ndim=2] f_real, f_imag
   cdef METHOD_TYPE Method_enum=get_method_enum(Method)
 
   if not isinstance(f, np.ndarray):
@@ -1335,8 +1335,8 @@ def mollweide_projection(f, int L, int resolution=500, rot=None,
                         zoom_region=zoom_region, Method_enum=Method_enum)
   elif f.dtype == complex:
     n_theta, n_phi = sample_shape(L,Method=Method)
-    f_real = np.empty((n_theta,n_phi), dtype=np.float_)
-    f_imag = np.empty((n_theta,n_phi), dtype=np.float_)
+    f_real = np.empty((n_theta,n_phi), dtype=np.float64)
+    f_imag = np.empty((n_theta,n_phi), dtype=np.float64)
     for i in range(n_theta):
       for j in range(n_phi):
         f_real[i,j] = f[i,j].real
@@ -1397,8 +1397,8 @@ def equatorial_projection(f, int L, int resolution=500, rot=None,\
                         zoom_region=zoom_region, Method_enum=Method_enum, Equatorial_Projection_enum=Equatorial_Projection_enum)
   elif f.dtype == complex:
     n_theta, n_phi = sample_shape(L,Method=Method)
-    f_real = np.empty((n_theta,n_phi), dtype=np.float_)
-    f_imag = np.empty((n_theta,n_phi), dtype=np.float_)
+    f_real = np.empty((n_theta,n_phi), dtype=np.float64)
+    f_imag = np.empty((n_theta,n_phi), dtype=np.float64)
     for i in range(n_theta):
       for j in range(n_phi):
         f_real[i,j] = f[i,j].real
@@ -1431,7 +1431,7 @@ def equatorial_projection_rotation_angle(int resolution, list zoom_region, rot=N
 
   cdef double rot_angle = dummy
 
-  cdef np.ndarray[np.float_t, ndim=2] rotation_angle, rot_matix
+  cdef np.ndarray[np.float64_t, ndim=2] rotation_angle, rot_matix
  
   cdef float x_pos, y_pos, z_pos, x_p_pos, y_p_pos, z_p_pos, rho, theta_pos, phi_pos, half_box_len_x, half_box_len_y, max_len
   cdef float delta_x, delta_y, delta_z, delta_theta, delta_phi, delta_y_plane, delta_x_plane
@@ -1521,7 +1521,7 @@ def equatorial_projection_angle_array(int resolution, list zoom_region=[-1.,-1.]
 
   cdef double rot_angle = dummy
 
-  cdef np.ndarray[np.float_t, ndim=2] theta_angle, phi_angle, rot_matix
+  cdef np.ndarray[np.float64_t, ndim=2] theta_angle, phi_angle, rot_matix
  
   cdef float x_pos, y_pos, z_pos, x_p_pos, y_p_pos, z_p_pos, rho, theta_pos, phi_pos, half_box_len_x, half_box_len_y, max_len
   cdef int n_theta, n_phi, n_theta_north, n_theta_south, i, j, p, q, i_rot, j_rot
@@ -1571,15 +1571,15 @@ def equatorial_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L, i
 
   cdef double rot_angle = dummy
 
-  cdef np.ndarray[np.float_t, ndim=2] theta, phi
-  cdef np.ndarray[np.float_t, ndim=2] x_project, y_project
-  cdef np.ndarray[np.float_t, ndim=2] xx, yy, zz, xx_p, yy_p, zz_p
-  cdef np.ndarray[np.float_t, ndim=2] f_project, mask
-  cdef np.ndarray[np.float_t, ndim=2] rot_matix
+  cdef np.ndarray[np.float64_t, ndim=2] theta, phi
+  cdef np.ndarray[np.float64_t, ndim=2] x_project, y_project
+  cdef np.ndarray[np.float64_t, ndim=2] xx, yy, zz, xx_p, yy_p, zz_p
+  cdef np.ndarray[np.float64_t, ndim=2] f_project, mask
+  cdef np.ndarray[np.float64_t, ndim=2] rot_matix
 
   cdef list rot_list
 
-  cdef np.ndarray[np.int_t,   ndim=2] n_points
+  cdef np.ndarray[np.int64_t,   ndim=2] n_points
 
   cdef float x_pos, y_pos, z_pos, x_p_pos, y_p_pos, z_p_pos, rho, theta_pos, phi_pos, half_box_len_x, half_box_len_y, max_len
   
@@ -1701,7 +1701,7 @@ def equatorial_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L, i
 def forward_equatorial_projection_function_array(np.ndarray[ double, ndim=2, mode="c"] theta, \
   np.ndarray[ double, ndim=2, mode="c"] phi, EQUATORIAL_PROJECTION_TYPE Equatorial_Projection_enum=MERCATOR):
 
-  cdef np.ndarray[np.float_t, ndim=2] x_project, y_project
+  cdef np.ndarray[np.float64_t, ndim=2] x_project, y_project
 
   if Equatorial_Projection_enum == MERCATOR:
     x_project = phi
@@ -1840,7 +1840,7 @@ def polar_plane_to_sphere(np.ndarray[ double, ndim=2, mode="c"] image, int L, bi
   cdef METHOD_TYPE Method_enum=MW
 
   cdef list rotation_inverse, rotation
-  cdef np.ndarray[np.float_t, ndim=2] spherical_map, spherical_count, theta_2D, phi_2D, theta_new, phi_new, x, y, z, xx, yy, zz
+  cdef np.ndarray[np.float64_t, ndim=2] spherical_map, spherical_count, theta_2D, phi_2D, theta_new, phi_new, x, y, z, xx, yy, zz
   cdef int i, j, theta_index, phi_index, tolerance, len_1, len_2, x_new_scal, y_new_scal, theta_max, theta_min, phi_max, phi_min
   cdef double r, phi, r_scal, theta, r_new, r_unscal, x_new, y_new, i_new, j_new
   
@@ -2100,15 +2100,15 @@ def polar_projection_work(np.ndarray[ double, ndim=2, mode="c"] f, int L, int re
 
   cdef double rot_angle = dummy
 
-  cdef np.ndarray[np.float_t, ndim=2] theta, phi
-  cdef np.ndarray[np.float_t, ndim=2] x_project, y_project
-  cdef np.ndarray[np.float_t, ndim=2] xx, yy, zz, xx_p, yy_p, zz_p
-  cdef np.ndarray[np.float_t, ndim=2] ortho_proj_north, mask_north, ortho_proj_south, mask_south
-  cdef np.ndarray[np.float_t, ndim=2] rot_matix
+  cdef np.ndarray[np.float64_t, ndim=2] theta, phi
+  cdef np.ndarray[np.float64_t, ndim=2] x_project, y_project
+  cdef np.ndarray[np.float64_t, ndim=2] xx, yy, zz, xx_p, yy_p, zz_p
+  cdef np.ndarray[np.float64_t, ndim=2] ortho_proj_north, mask_north, ortho_proj_south, mask_south
+  cdef np.ndarray[np.float64_t, ndim=2] rot_matix
 
   cdef list rot_list
 
-  cdef np.ndarray[np.int_t,   ndim=2] n_points_north, n_points_south
+  cdef np.ndarray[np.int64_t,   ndim=2] n_points_north, n_points_south
 
   cdef float x_pos, y_pos, z_pos, x_p_pos, y_p_pos, z_p_pos, rho, theta_pos, phi_pos, half_box_len, max_len, tol_error
   
@@ -2327,7 +2327,7 @@ def polar_projection(f, int L, int resolution=500, rot=None,\
                         float zoom_region=-1, str Method="MW", str Projection="OP", int Spin=0):
 
   cdef int i, j, n_phi, n_theta
-  cdef np.ndarray[np.float_t, ndim=2] f_real, f_imag
+  cdef np.ndarray[np.float64_t, ndim=2] f_real, f_imag
   cdef METHOD_TYPE Method_enum
   cdef POLAR_PROJECTION_TYPE Polar_Projection_enum
 
@@ -2374,8 +2374,8 @@ def polar_projection(f, int L, int resolution=500, rot=None,\
                         zoom_region=zoom_region, Method_enum=Method_enum, Polar_Projection_enum=Polar_Projection_enum)
   elif f.dtype == complex:
     n_theta, n_phi = sample_shape(L,Method=Method)
-    f_real = np.empty((n_theta,n_phi), dtype=np.float_)
-    f_imag = np.empty((n_theta,n_phi), dtype=np.float_)
+    f_real = np.empty((n_theta,n_phi), dtype=np.float64)
+    f_imag = np.empty((n_theta,n_phi), dtype=np.float64)
     for i in range(n_theta):
       for j in range(n_phi):
         f_real[i,j] = f[i,j].real
@@ -2404,7 +2404,7 @@ def polar_projection(f, int L, int resolution=500, rot=None,\
 
 def polar_projection_rotation_array(int resolution, str Projection="OP", rot=None, float zoom_region=-1):
 
-  cdef np.ndarray[np.float_t, ndim=2] rotation_angle_north, rotation_angle_south
+  cdef np.ndarray[np.float64_t, ndim=2] rotation_angle_north, rotation_angle_south
   cdef POLAR_PROJECTION_TYPE Polar_Projection_enum
 
   if Projection=="OP":
@@ -2423,7 +2423,7 @@ def polar_projection_rotation_array(int resolution, str Projection="OP", rot=Non
       zoom_region = pi/2
 
 
-  cdef np.ndarray[np.float_t, ndim=2] rot_matix
+  cdef np.ndarray[np.float64_t, ndim=2] rot_matix
 
   cdef list rot_list
 
@@ -2567,11 +2567,11 @@ def dln_beta_recurse(np.ndarray[ double, ndim=1, mode="c"] dl not None,\
 
 def generate_dl(double beta, int L):
 
-  cdef np.ndarray[np.float_t, ndim=3] dl_array = np.zeros((L, 2*L-1, 2*L-1), dtype=np.float_)
-  cdef np.ndarray[np.float_t, ndim=2] dl_dummy = np.zeros((2*L-1, 2*L-1), dtype=np.float_)
+  cdef np.ndarray[np.float64_t, ndim=3] dl_array = np.zeros((L, 2*L-1, 2*L-1), dtype=np.float64)
+  cdef np.ndarray[np.float64_t, ndim=2] dl_dummy = np.zeros((2*L-1, 2*L-1), dtype=np.float64)
 
-  cdef np.ndarray[np.float_t, ndim=1] sqrt_tbl = np.sqrt(np.arange(0,2*(L-1)+1, dtype=np.float_))
-  cdef np.ndarray[np.float_t, ndim=2] signs = np.ones((L+1,1), dtype=np.float_)
+  cdef np.ndarray[np.float64_t, ndim=1] sqrt_tbl = np.sqrt(np.arange(0,2*(L-1)+1, dtype=np.float64))
+  cdef np.ndarray[np.float64_t, ndim=2] signs = np.ones((L+1,1), dtype=np.float64)
 
   cdef int i, j, el, offset_m=L-1
 
@@ -2600,11 +2600,11 @@ def generate_dl(double beta, int L):
 
 def generate_dl_Mmax(double beta, int L, int M):
 
-  cdef np.ndarray[np.float_t, ndim=3] dl_array = np.zeros((L, 2*M-1, 2*M-1), dtype=np.float_)
-  cdef np.ndarray[np.float_t, ndim=2] dl_dummy = np.zeros((2*L-1, 2*L-1), dtype=np.float_)
+  cdef np.ndarray[np.float64_t, ndim=3] dl_array = np.zeros((L, 2*M-1, 2*M-1), dtype=np.float64)
+  cdef np.ndarray[np.float64_t, ndim=2] dl_dummy = np.zeros((2*L-1, 2*L-1), dtype=np.float64)
 
-  cdef np.ndarray[np.float_t, ndim=1] sqrt_tbl = np.sqrt(np.arange(0,2*(L-1)+1, dtype=np.float_))
-  cdef np.ndarray[np.float_t, ndim=2] signs = np.ones((L+1,1), dtype=np.float_)
+  cdef np.ndarray[np.float64_t, ndim=1] sqrt_tbl = np.sqrt(np.arange(0,2*(L-1)+1, dtype=np.float64))
+  cdef np.ndarray[np.float64_t, ndim=2] signs = np.ones((L+1,1), dtype=np.float64)
 
   cdef int i, j, el, offset_m=M-1, offset_m_dummy=L-1
 
@@ -2635,7 +2635,7 @@ def generate_dl_Mmax(double beta, int L, int M):
 
 def generate_exp_array(double x, int L):
 
-  cdef np.ndarray[complex, ndim=1] exp_array = np.empty((2*L-1), dtype=np.complex_)
+  cdef np.ndarray[complex, ndim=1] exp_array = np.empty((2*L-1), dtype=np.complex128)
 
   cdef int i = 0, m
 
@@ -2670,7 +2670,7 @@ def rotate_flms(
   if isinstance(params, Ducc):
      return _ducc0_rotate_flms(f_lm, alpha, beta, gamma, L, nthreads=params.nthreads)
 
-  cdef np.ndarray[np.float_t, ndim=3] dl_array
+  cdef np.ndarray[np.float64_t, ndim=3] dl_array
   cdef np.ndarray[complex, ndim=1] alpha_array, gamma_array 
   cdef np.ndarray[complex, ndim=1] f_lm_rotated
   cdef int M, el, m
